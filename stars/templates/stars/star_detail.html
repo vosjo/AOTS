@@ -1,0 +1,276 @@
+ 
+{% extends "base.html" %}
+{% load static %}
+{% load conversion_tags %}
+
+{% block head %}
+   {% include "bokeh.html" %}
+   
+   <script type="text/javascript" src="{% static 'js/stars_detail.js' %}"></script>
+   
+{% endblock %}
+
+{% block headertitle %}Systems: {{ star.name }} - {{ star.classification }}{% endblock %}
+
+{% block content %}
+
+   <div id="sidenav">
+   <h2> All systems </h2>
+   <ul>
+   {% for s in all_stars %}
+      {% if s.id == star.id %}
+      <li> <a href="/stars/stars/{{ s.id }}" class="active">{{ s.name }}</a> </li>
+      {% else %}
+      <li> <a href="/stars/stars/{{ s.id }}">{{ s.name }}</a> </li>
+      {% endif %}
+   {% endfor %}
+   </ul>
+   </div>
+
+   <section class='data-section' id="summary">
+
+   <h3>Summary</h3>
+   
+   <div class="flex-data-container j-center">
+   
+   <div class="tag-container j-center">
+   <h3>Basic Data </h3>
+   <a href="/stars/stars/{{ star.id }}/edit" class="material-icons button edit" title="Edit">edit</a>
+   <table class="datatable">
+   <tbody>
+      <tr> <th>Name:</th> <td class="mono">{{ star.name }}</td> </tr>
+      <tr> <th>RA:</th> <td class="mono">{{ star.ra|dgr2hms }}</td> </tr>
+      <tr> <th>Dec:</th> <td class="mono">{{ star.dec|dgr2dms }}</td> </tr>
+      <tr> <th>Classification:</th> <td class="mono">{{ star.classification }}</td> </tr>
+      <tr> <th>Class. type:</th> <td class="mono">{{ star.get_classification_type_display}}</td> </tr>
+      <tr> <th>Observing Status:</th> <td class="mono">{{ star.get_observing_status_display }}</td> </tr>
+   </tbody>
+   </table>
+   </div>
+   
+   <div class="tag-container">
+      <h3>Parameters</h3>
+      <i id="allParameterButton" class="material-icons button edit" title="View all parameters">visibility</i>
+      <table class="paramtable">
+      <thead>
+         <tr> <th>Parameter</th> <th>Prim.</th> <th>Sec.</th> </tr>
+      </thead>
+      <tbody>
+         {% for p in star.get_system_summary_parameter %}
+            <tr> <th>{{p.0}} ({{p.1}})</th>  <td colspan=2> {{p.2|safe}} </td> </tr>
+         {% endfor %}
+         {% for p in star.get_component_summary_parameter %}
+            <tr> <th>{{p.0}} ({{p.1}})</th>  <td> {{p.2|safe}} </td> <td> {{p.3|safe}} </td></tr>
+         {% endfor %}
+      </tbody>
+      </table>
+   </div>
+   
+   <div class="tag-container">
+      <h3>Notes</h3>
+      <i id="noteEditButton" class="material-icons button edit" title="Edit" star_id={{star.pk}}>edit</i>
+      <div id="noteField">{{star.note|linebreaks}}</div>
+   </div>
+   
+   </div>
+   
+   <div class="flex-data-container">
+   
+   <div class="tag-container">
+      
+      <h3>Aliases</h3>
+      <i id="identifierAddButton" class="material-icons button add" title="Add new" star_id={{star.pk}}>add_box</i>
+   
+      <div class="flex-data-container" id="identifier_list">
+      {% for name in star.identifier_set.all %}
+      <div class="identifier" id="identifier-{{name.pk}}">{{ name.name }} 
+      <i class="material-icons button delete" id="delete-identifier-{{name.pk}}" title="Delete">delete</i>
+      </div>
+      {% empty %}
+      <p> None known.</p>
+      {% endfor %}
+      </div>
+      
+   </div>
+   
+   <div class="tag-container">
+   
+      <h3>Tags</h3>
+      <i id="tagEditButton" class="material-icons button edit" title="Edit" star_id={{star.pk}}>edit</i>
+   
+      <div class="flex-data-container" id="tag_list">
+      <p>Loading...</p>
+      </div>
+      
+   </div>
+   
+   </div>
+   
+   <hr>
+   
+   </section>
+   
+   <section class='data-section'  id="observations">
+   <i id="toggle-obs" class="material-icons button show" title="Expand/hide">visibility</i>
+   
+   <h3 class='indent'>Observations</h3>
+   
+   <div id="obs_summary" class='data-summary'>
+      Photometric observations: {{star.photometry_set.all|length}}, Spectroscopic observations: {{star.spectrum_set.all|length}}
+   </div>
+   
+   <div id="obs_detail" class='data-detail'>
+   
+    <div class="flex-data-container j-center">
+      {% if star.photometry_set.all %}
+      <div class="block">
+         <h3 class="center"> Photometry </h3> 
+         <table class="obs-table">
+         <thead>
+            <tr>
+            <th>Band</th>
+            <th>Value</th>
+            <th>Error</th>
+            <th>Unit</th>
+            </tr>
+         </thead>
+         <tbody>
+         {% for phot in star.photometry_set.all %}
+            <tr>
+            <td class="mono">{{ phot.band }}</td>
+            <td>{{ phot.measurement }}</td>
+            <td>{{ phot.error }}</td>
+            <td>{{ phot.unit }}</td>
+            </tr>
+         {% endfor %}
+         </tbody>
+         </table>
+      </div>
+      {% endif %}
+    
+    
+      {%if star.spectrum_set.all %}
+      <div class="block">
+         <h3 class="center"> Spectra </h3> 
+         <table class="obs-table">
+         <thead>
+            <tr>
+            <th>HJD</th>
+            <th>Instrument</th>
+            <th>Exp time</th>
+            </tr>
+         </thead>
+         <tbody>
+         {% for spec in star.spectrum_set.all %}
+            <tr>
+            <td><a href="/spectra/{{ spec.id }}/">{{ spec.hjd|floatformat:3 }}</a></td>
+            <td>{{ spec.instrument }} @ {{spec.telescope}}</td>
+            <td>{{ spec.exptime }}</td>
+            </tr>
+         {% empty %}
+         <tr><td colspan="3">No spectra available.</td></tr>
+         {% endfor %}
+         </tbody>
+         </table>
+      </div>
+      {% endif %}
+    
+   </div> <!--obs all-->
+   
+   </div>
+   
+   <hr>
+   
+   </section>
+   
+   {% for figure, dataset in datasets %}
+      
+      <section class='data-section'  id="dataset-{{dataset.pk}}">
+         
+         <h3> <a href="/analysis/datasets/{{dataset.pk}}/">{{dataset.method.name}}</a> </h3>
+         
+         <div class="flex-data-container j-center">
+         
+         <div class="block w600">
+            <h3 class="center"> {{dataset.name}} </h3> 
+            {{ figure|safe }}
+         </div>
+                  
+         <div class="block w600">
+            <h3 class="center"> Parameters </h3> 
+            <table class="paramtable">
+            <thead>
+               <tr> <th>Parameter</th> <th>Prim.</th> <th>Sec.</th> </tr>
+            </thead>
+            <tbody class='mono'>
+            {% for p in dataset.get_system_parameters %}
+               <tr> <th>{{p.0}} ({{p.1}})</th>  <td colspan=2> {{p.2|safe}} </td> </tr>
+            {% endfor %}
+            {% for p in dataset.get_component_parameters %}
+               <tr> <th>{{p.0}} ({{p.1}})</th>  <td> {{p.2|safe}} </td> <td> {{p.3|safe}} </td></tr>
+            {% endfor %}
+            </tbody>
+            </table>
+            
+            <h3 class="center"> Description </h3>
+            
+            <div>{{dataset.note|linebreaks}}</div>
+            
+         </div>
+         
+         </div>
+   
+         <hr>
+         
+      </section>
+   {% endfor %}
+   
+   {{ script|safe }}
+   
+   <!-- Div ect necessary for editing on page stuff with ajax -->
+   <div id="noteEdit">
+      <textarea name="edit-message" id="edit-message" cols="80" rows="5"></textarea>
+   </div>
+   
+   <div id="identifierAdd">
+      <input id="identifierAddtext" type='text' placeholder="New alias" size="50">
+   </div>
+   
+   <div id="tadAdd">
+      <ul id="tagOptions">
+      {% for tag in tags %}
+      <li><label><input id="tag_pk_{{tag.pk}}" name="tags" type="checkbox" value="{{tag.pk}}" />{{tag.name}}</label></li>
+      {% endfor %}
+      </ul>
+   </div>
+   
+   <div id="allParameters">
+      <table class="paramtable">
+      <thead>
+         <tr>
+            <th>Parameter</th>
+            {% for source in parameterSources %}
+            <th>{{ source.method.name }}</th>
+            {% endfor %}
+         </tr>
+      </thead>
+      
+      <tbody>
+         {% for comp in allParameters %}
+         
+            <tr> <th> <b> {{comp.component}} </b> </th> </tr>
+            {% for pline in comp.params %}
+            <tr>
+               <th> {{pline.pinfo.name}} ({{pline.pinfo.unit}})</th>
+               {% for p in pline.values %}
+               <td> {{ p }} </td>
+               {% endfor %}
+            </tr>
+            {% endfor %}
+         
+         {% endfor %}
+      </tbody>
+      </table>
+   </div>
+   
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}  <!--Add necessary javascript and css files for this page-->
+
+   {% include "datatables.html" %}
+   <script type="text/javascript" src="{% static 'js/specfiles_list.js' %}"></script>
+
+{% endblock %}
+
+{% block headertitle %} Spectrum Files {% endblock %}
+
+{% block navigation %}
+   <a href="/spectra/spectra/"> INDEX </a>
+   <strong> | </strong>
+   <a href="/spectra/upload" class="active"> UPLOAD </a>
+{% endblock %}
+
+{% block content %}
+
+
+<div class='upload'>
+   <form action="{% url "spectra:specfile_list" %}" method="post" enctype="multipart/form-data" class="upload" id="specfile-upload-form">
+      {% csrf_token %}
+      <h3> Add new spectra </h3>
+      
+      {% if upload_form.non_field_errors %}
+      <p>{{ upload_form.non_field_errors }}</p>
+      {% endif %}
+
+      <p>
+      {{ upload_form.specfile.errors }}   
+      {{ upload_form.specfile }}
+      </p>
+
+      <input type="submit" class="material-icons button" value="file_upload"/>
+   </form>
+</div>
+
+<section>
+
+   <table id="specfiletable" class="fullwidth">
+   <thead>
+      <tr>
+      <th>HJD</th>
+      <th>Instrument</th>
+      <th>Filetype</th>
+      <th>Added on</th>
+      <th>Processed</th>
+      <th>Action</th>
+      </tr>
+   </thead>
+   <tfoot>
+      <tr>
+      <th>HJD</th>
+      <th>Instrument</th>
+      <th>Filetype</th>
+      <th>Added on</th>
+      <th>Processed</th>
+      <th>Action</th>
+      </tr>
+   </tfoot>
+   </table>
+   
+{% endblock %}

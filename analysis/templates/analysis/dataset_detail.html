@@ -1,0 +1,121 @@
+ 
+{% extends "base.html" %}
+{% load static %}
+{% load conversion_tags %}
+
+{% block head %}
+
+   {% include "bokeh.html" %}
+   <script type="text/javascript" src="{% static 'js/dataset_detail.js' %}"></script>
+{% endblock %}
+
+
+{% block headertitle %}Dataset: {{ dataset.star.name }} - {{ dataset.method.name }} {% endblock %}
+
+
+{% block content %}
+
+   <section class='data-section'>
+   
+   <div class="main-container-h border">
+      
+      <i id="nameEditButton" class="material-icons button edit" title="edit name" dataset_id={{dataset.pk}}>edit</i>
+      
+      <div class='header-item'>
+      <h3 id="nameField"> {{ dataset.name }}</h3> 
+      </div>
+      
+      <div class='header-item'>
+      <p class="material-icons">star</p> 
+      <h3><a href="/stars/stars/{{dataset.star.pk}}">{{ dataset.star.name }}</a></h3>  
+      </div>
+      
+      <div class='header-item'>
+      <p class="material-icons">build</p>
+      <h3>{{ dataset.method.name }}</h3> 
+      </div>
+      
+      <div class='header-item'>
+      <input type="checkbox" id="dataset-valid-{{dataset.pk}}" {% if dataset.valid %} checked="checked" {% endif %} onchange='toggleDatasetValid(this);'>
+      <h3> Valid </h3> 
+      </div>
+      
+      
+   </div>
+   
+   <div class="flex-data-container j-center">
+      
+      <div class="main-container border maxw50 minw800">
+      <i id="figureFullscreenButton" class="material-icons button edit" title="expand figure">zoom_out_map</i> <!--zoom_out_map all_out fullscreen-->
+      <div class='block'>
+         {{ fit|safe }}
+      </div>
+      </div>
+      
+      
+      <div class="main-container maxw50 stretch">
+      
+      <div class="main-container border">
+         <h3>Parameters</h3>
+      
+         <i id="switchParameterComponentButton" class="material-icons button edit" title="Switch primary/secondary">cached</i>
+      
+         <table class="paramtable">
+         <thead>
+            <tr> <th>Parameter</th> <th>Value</th> <th>Error</th> <th>Valid</th> </tr>
+         </thead>
+         <tbody class='mono'>
+         {% for p in dataset.parameter_set.order %}
+            <tr> <th>{{p.cname}} ({{p.unit}})</th>
+                 <td>{{p.rvalue}}</td>  
+                 <td>{{p.rerror}}</td>
+                 <td> <input type="checkbox" id="cb-parameter-valid-{{p.pk}}" {% if p.valid %} checked="checked" {% endif %} onchange='toggleParameterValid(this);' parameter_id="{{p.pk}}"> </td>
+         {% endfor %}
+         </tbody>
+         </table>
+      </div>
+      
+      <div class="main-container border">
+      <h3>Notes</h3>
+      <i id="noteEditButton" class="material-icons button edit" title="edit note" dataset_id={{dataset.pk}}>edit</i>
+         <div id="noteField">
+         {{dataset.note|linebreaks}}
+         </div>
+      </div>
+      
+      </div>
+      
+      
+   </div>
+   
+   <hr>
+   
+   </section>
+   
+   <section class='data-section'>
+      
+      <h3> Parameter confidence intervals </h3>
+      
+      <div class="flex-data-container j-center">
+      {% for fig in ci %}
+      
+      <div class="block">
+         {{ fig|safe }}
+      </div>
+      
+      {% endfor %}
+      </div>
+   
+   </section>
+   
+    <div id="noteEdit">
+      <textarea name="edit-note" id="edit-note" cols="80" rows="5"></textarea>
+   </div>
+   
+   <div id="nameEdit">
+      <textarea name="edit-name" id="edit-name" cols="80" rows="2"></textarea>
+   </div>
+   
+   {{ script|safe }}
+
+{% endblock %}

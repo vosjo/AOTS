@@ -1,0 +1,50 @@
+ 
+{% extends "base.html" %}
+{% load static %}
+{% load conversion_tags %}
+
+{% block head %}
+
+   {% include "bokeh.html" %}
+<!--    <script type="text/javascript" src="{% static 'js/dataset_detail.js' %}"></script> -->
+{% endblock %}
+
+
+{% block headertitle %} Analysis: Parameter plotter {% endblock %}
+
+
+{% block navigation %}
+   <a href="/analysis/datasets"> INDEX </a>
+   <strong>|</strong> 
+   <a href="/analysis/methods"> Methods </a>
+   <strong>|</strong> 
+   <a href="/analysis/plotter" class="active"> Parameter Plotter</a>
+{% endblock %}
+
+{% block content %}
+
+   <section class='data-section'>
+   
+   <div class="flex-data-container j-center">
+   
+      <div class="main-container border">
+         <h3> Parameter Selection</h3>
+         
+         <form action="{% url "analysis:parameter_plotter" %}" method="get">
+
+            <input type="submit" value="Update Figure"/>
+         </form>
+         
+      </div>
+      
+      <div class="main-container border minw800">
+         {{ figure|safe }}
+      </div>
+      
+   </div>
+   
+   </section>
+   
+   {{ script|safe }}
+
+{% endblock %}

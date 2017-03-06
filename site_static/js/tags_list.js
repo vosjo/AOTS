@@ -5,7 +5,7 @@ $(document).ready(function () {
    
    // Table functionality
    tag_table = $('#tagtable').DataTable({
-   autoWidth: false,
+//    autoWidth: true,
    paging: false,
    info: false,
    ajax: {
@@ -17,7 +17,8 @@ $(document).ready(function () {
       { data: 'description' },
       { data: 'color', render: color_render},
       { data: 'pk', render: action_render, width: '100', className: 'dt-center'},
-   ]
+   ],
+   
    });
    
    function color_render( data, type, full, meta ) {

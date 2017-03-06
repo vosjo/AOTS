@@ -141,7 +141,7 @@ class Parameter(models.Model):
       else:
          return self.name
    
-   value = models.FloatField()
+   value = models.FloatField(default=0.0)
    
    #-- errors are stored as upper and lower error, and error function is 
    #   provided to return the average error in 1 value.
@@ -192,7 +192,39 @@ class Parameter(models.Model):
                                           self.unit, 'V' if self.valid else 'F',
                                           self.data_source.name[0:10])
 
-
+#@python_2_unicode_compatible  # to support Python 2
+class DerivedParameter(Parameter):
+   """
+   Subtype of an average parameter that is derived based on other parameters
+   """
+   
+   source_parameters = models.ManyToManyField(Parameter, blank=True, related_name='derived_parameters')
+   
+   def update(self):
+      M = self.source_parameters.get(name__exact='mass')
+      g = self.source_parameters.get(name__exact='logg')
+      
+      G = 6.673839999999998e-05
+      M = np.random.normal(M.value, M.error, 512)
+      g = np.random.normal(g.value, g.error, 512)
+      r = np.sqrt(G * M * 1.988547e+30 / 10**g) / 69550800000.0
+      
+      self.name = 'radius'
+      self.value = np.average(r)
+      self.error = np.std(r)
+      self.unit = 'Rsol'
+      self.component = 1
+      self.average = True
+      
+   #def __str__(self):
+      #return "Derived parameter"
+      
+   #def save(self, *args, **kwargs):
+      #super(DerivedParameter, self).save(*args, **kwargs)
+      #self.update()
+      #super(DerivedParameter, self).save(*args, **kwargs)
+   
+   
 
 #======================================================================================
 # AVERAGE parameter handling
@@ -204,17 +236,24 @@ def calculate_average(params):
    params needs to be a queryset
    """
    values = np.array( params.values_list('value', flat=True) )
+   
+   #-- work with 1D average errors
    errors_l = np.array( params.values_list('error_l', flat=True) )
    errors_u = np.array( params.values_list('error_u', flat=True) )
-   
    errors = (errors_l + errors_u) / 2.0
+   
+   #-- if the error is zero, assume a 10% error when calculating the average,
+   #   if also the value is zero, assume an error of 1.
+   errors = np.where(errors == 0, values / 10., errors)
+   errors = np.where(errors == 0, 1., errors)
+   
    error = np.sqrt(np.sum(errors**2)) / len(errors)
    
-   return np.average(values, weights=1/errors), error
+   return np.average(values, weights=1./errors), error
 
 @receiver(post_delete, sender=Parameter)
 @receiver(post_save, sender=Parameter)
-def parameter_post_delete_handler(sender, **kwargs):
+def average_parameter_bookkeeping(sender, **kwargs):
    """
    Create, update and delete average parameters when parameters
    are added, updated, or deleted.
@@ -275,3 +314,17 @@ def parameter_post_delete_handler(sender, **kwargs):
                                           average     = True, 
                                           valid       = True, 
                                           data_source = ds)
+            
+
+#======================================================================================
+# DERIVED parameter handling
+#======================================================================================
+
+#@receiver(post_init, sender=DerivedParameter)
+#def derived_parameter_find_sources(sender, **kwargs):
+   #"""
+   #When a new Derived parameter is created, find all necesary parameters
+   #to derive it from
+   #"""
+   #pass
+   

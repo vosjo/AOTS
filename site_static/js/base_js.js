@@ -67,7 +67,7 @@ $(document).ready(function () {
    $('a[href*="'+firstLevel+'"]').siblings('ul').clone().appendTo("#subtoolbar");
    
    // toggle the active class for the 1st and 2nd level navigation bar
-   $('#toolbar a[href*="'+firstLevel+'"]').parent('li').toggleClass('active');
+   $('#toolbar a[href^="/'+firstLevel+'"]').parent('li').toggleClass('active');
    $('#subtoolbar a[href*="'+secondLevel+'"]').parent('li').toggleClass('active');
    
 });

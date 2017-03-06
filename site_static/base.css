@@ -152,27 +152,6 @@ a:link, a:visited {
    text-decoration: none;
 }
 
-/*div#toolbar {
-   float: right;
-   width: 200;
-   padding-right: 2%;
-}
-
-div#toolbar img {
-   display: block;
-   width: 60px;
-   height: 60px;
-   margin: auto;
-}
-
-div#toolbar a {
-   display: inline-block;
-   width: 95px;
-   height: 70px;
-   background: rgba(255,255,255,0.3);
-   border-radius: 0px 0px 10px 10px;
-}*/
-
 
 ul#messages {
    list-style-type: none;
@@ -308,6 +287,47 @@ hr {
    margin-top: 10px;
 }
 
+/* Status icons */
+
+.status-icon {
+   line-height: inherit;
+   vertical-align: middle;
+}
+
+.status-icon.FI:after {
+   color: #007e00;
+   content:'done'; 
+}
+
+.status-icon.ON:after {
+   color: #1063aa;
+   content:'sync';
+}
+
+.status-icon.RE:after {
+   color: #d20707;
+   content:'clear';
+}
+
+.status-icon.NE:after {
+   color: black;
+   content:'more_horiz';
+}
+
+.status-icon.small {
+   font-size: 12px;
+}
+
+/* Classification div */
+
+.classification-SP {
+   color: #006400
+}
+
+.classification-PH {
+   color: #666666
+}
+
 /* Note settings */
 
 form#note-form {
@@ -384,6 +404,9 @@ div#sidenav {
    bottom: 10%;
    right: -300px;
    width: 295px;
+   
+   overflow: scroll;
+   
    -webkit-transition-duration: 0.3s;
    -moz-transition-duration: 0.3s;
    -o-transition-duration: 0.3s;
@@ -415,6 +438,13 @@ div#sidenav h3 {
 div#sidenav h3 {
    font-size: 14px;
    padding-bottom: 0px;
+   border: solid 3px;
+   border-radius: 25px;
+}
+
+div#sidenav .legend {
+/*    padding-top: 10px; */
+   padding-bottom: 10px;
 }
 
 span.nobreak {
@@ -423,24 +453,29 @@ span.nobreak {
 }
 
 div#sidenav a {
-   padding: 5px;
+   line-height: inherit;
+   text-align: center;
+   vertical-align: middle;
 }
 
 div#sidenav a.active {
    display: inline-block;
    color: #036;
-   border: solid 2px rgba(64, 117, 144, 0.3);
-   margin-top: 5px;
-   margin-bottom: 5px;
-   padding: 5px;
+   margin-top: 4px;
+   margin-bottom: 4px;
    font-weight: 700;
 }
 
 div#sidenav ul {
    list-style: none;
    margin-left: 0px;
+   margin-top: 2px;
    padding-left: 0px;
    text-align:center;
+}
+
+div#sidenav ul li {
+   line-height: 17px;
 }
 
 /* Spectrum detail page */
@@ -628,6 +663,11 @@ table.paramtable td{
    padding-right: 2px;
 }
 
+table.paramtable.overview td:nth-child(3) {
+   border-left: 1px dotted #666666;
+   padding-left: 10px;
+}
+
 table.paramtable thead tr:last-child{
    border-bottom: 1px solid black;
 }
@@ -805,6 +845,8 @@ form.upload {
   bottom: 10%;
   right: -310px;
   width: 295px;
+  overflow: scroll;
+  
   -webkit-transition-duration: 0.3s;
   -moz-transition-duration: 0.3s;
   -o-transition-duration: 0.3s;

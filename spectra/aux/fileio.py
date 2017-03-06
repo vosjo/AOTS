@@ -34,7 +34,6 @@ def read_spectrum(filename, return_header=False):
         # for PHOENIX spectra
         wave = np.exp(wave)
     
-    logger.debug('Read spectrum %s'%(filename))
     
     if return_header:
         return wave,flux,header

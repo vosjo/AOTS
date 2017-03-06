@@ -76,7 +76,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     )
 }
-            
+
+# Login url
+LOGIN_URL = '/login'
+
 # Login redirection
 LOGIN_REDIRECT_URL = '/stars/stars'
 

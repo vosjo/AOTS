@@ -100,8 +100,8 @@ def get_parameters_sedfit(data):
    
    ci = data['results']['iminimize']['CI'] if 'iminimize' in data['results'] else data['results']['igrid_search']['CI']
    
-   parameters2 = [('teff', 'K'), ('logg', 'dex'), ('rad', 'Rsol'), ('z', 'dex')]
    parameters1 = [('ebv', '')]
+   parameters2 = [('teff', 'K'), ('logg', 'dex'),]
    upper, lower = '_u', '_l'
    
    results = {}

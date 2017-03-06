@@ -15,6 +15,49 @@
 
 {% block content %}
 
+   <div id="sidenav">
+   <h2> Related datasets </h2>
+   
+   {% if related_datasets %}
+   <div>
+   <h3 title="Other datasets for the same star"> {{dataset.star.name}} </h2>
+   <ul>
+   {% for d in related_datasets %}
+      {% if d.id == dataset.id %}
+      <li> 
+         <a href="/analysis/datasets/{{ d.id }}" class="active">-- {{ d.method.name }} --</a> 
+      </li>
+      {% else %}
+      <li> 
+         <a href="/analysis/datasets/{{ d.id }}">{{ d.method.name }}</a> 
+      </li>
+      {% endif %}
+   {% endfor %}
+   </ul>
+   </div>
+   {% endif %}
+   
+   {% if related_stars %}
+   <div>
+   <h3 title="Other stars with same dataset type"> {{dataset.method.name}} </h2>
+   <ul>
+   {% for d in related_stars %}
+      {% if d.id == dataset.id %}
+      <li> 
+         <a href="/analysis/datasets/{{ d.id }}" class="active">-- {{ d.star.name }} --</a> 
+      </li>
+      {% else %}
+      <li> 
+         <a href="/analysis/datasets/{{ d.id }}">{{ d.star.name }}</a> 
+      </li>
+      {% endif %}
+   {% endfor %}
+   </ul>
+   </div>
+   {% endif %}
+   
+   </div>
+
    <section class='data-section'>
    
    <div class="main-container-h border">

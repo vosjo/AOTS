@@ -363,8 +363,11 @@ def plot_sedfit_ci2d(datafile):
    
    figures = {}
    
-   data = fileio.read2dict(datafile)
-   ci2d = data['results']['igrid_search']['CI2D']
+   try:
+      data = fileio.read2dict(datafile)
+      ci2d = data['results']['igrid_search']['CI2D']
+   except Exception:
+      return figures
    
    for name, ci in ci2d.items():
       

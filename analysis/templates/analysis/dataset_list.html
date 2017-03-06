@@ -12,6 +12,7 @@
 
 {% block content %}
 
+{% if user.is_authenticated %}
 <div class='upload'>
    
    <form action="{% url "analysis:dataset_list" %}" method="post" enctype="multipart/form-data" class="upload">
@@ -31,6 +32,7 @@
    </form>
    
 </div>
+{% endif %}
 
 <section>
 <!--    <h3> All uploaded data sets </h3> -->

@@ -15,16 +15,37 @@
 {% block content %}
 
    <div id="sidenav">
-   <h2> All systems </h2>
+   <h2> Related systems </h2>
+   <div class="legend">
+   <span><i class="material-icons status-icon small NE"></i>New</span>
+   <span><i class="material-icons status-icon small ON"></i>Ongoing</span>
+   <span><i class="material-icons status-icon small FI"></i>Finished</span>
+   <span><i class="material-icons status-icon small RE"></i>Rejected</span>
+   </div>
+   
+   {% for systems in related_stars %}
+   <div>
+   <h3 title="{{systems.tag.description}}" style="border-color: {{systems.tag.color}};"> {{systems.tag.name}} </h2>
    <ul>
-   {% for s in all_stars %}
+   {% for s in systems.stars %}
       {% if s.id == star.id %}
-      <li> <a href="/stars/stars/{{ s.id }}" class="active">{{ s.name }}</a> </li>
+      <li> 
+         <a href="/stars/stars/{{ s.id }}" class="active">-- {{ s.name }} --</a> 
+      </li>
       {% else %}
-      <li> <a href="/stars/stars/{{ s.id }}">{{ s.name }}</a> </li>
+      <li> 
+         <i class="material-icons status-icon small {{s.observing_status}}"></i>
+         <a href="/stars/stars/{{ s.id }}">{{ s.name }}</a> 
+      </li>
       {% endif %}
    {% endfor %}
    </ul>
+   </div>
+   {% empty %}
+   <div>
+   <p> No related systems found </p>
+   </div>
+   {% endfor %}
    </div>
 
    <section class='data-section' id="summary">
@@ -245,12 +266,12 @@
    </div>
    
    <div id="allParameters">
-      <table class="paramtable">
+      <table class="paramtable overview">
       <thead>
          <tr>
             <th>Parameter</th>
             {% for source in parameterSources %}
-            <th>{{ source.method.name }}</th>
+            <th>{{ source.source }}</th>
             {% endfor %}
          </tr>
       </thead>
@@ -263,7 +284,7 @@
             <tr>
                <th> {{pline.pinfo.name}} ({{pline.pinfo.unit}})</th>
                {% for p in pline.values %}
-               <td> {{ p }} </td>
+               <td> {{ p|safe }} </td>
                {% endfor %}
             </tr>
             {% endfor %}

@@ -2,16 +2,14 @@ from django.test import TestCase
 
 import numpy as np
 
-# Create your tests here.
-
-from analysis.models import Parameter, DataSource
+from analysis.models import Parameter, DerivedParameter, DataSource
 from stars.models import Star
 
 class AverageParameter(TestCase):
    
    def setUp(self):
       
-      s = Star.objects.create(name='test star', ra=1.1, dec=-10.3)
+      s = Star.objects.create(name='Vega', ra=279.23473479, dec=38.78368896)
       
       ds1 = DataSource.objects.create(name='tc 1')
       ds2 = DataSource.objects.create(name='tc 2')
@@ -32,6 +30,22 @@ class AverageParameter(TestCase):
       self.assertEqual(np.round(p.error, 1), np.round(np.sqrt(3000.**2+5000.**2)/2., 1),
                        "Average creation: error is wrong {}".format(p) )
    
+   def test_average_parameter_zero_error(self):
+      """
+      If a parameter has an error of 0, when calculating the average, an
+      error of 10% of the value is assumed
+      """
+      s = Star.objects.get(name__exact='Vega')
+      ds = DataSource.objects.create(name='tc 3')
+      
+      Parameter.objects.create(star=s, name='teff', component=1, value=32000, error=0, unit='K', data_source=ds)
+      
+      p = Parameter.objects.get(name__exact='teff', average__exact=True)
+      
+      self.assertEqual(np.round(p.value, 0), 32709, 
+                       "Average zero error: value is wrong {}".format(p) )
+      self.assertEqual(np.round(p.error, 1), np.round(np.sqrt(3000.**2+5000.**2 + 3200**2)/3., 1),
+                       "Average zero error: error is wrong {}".format(p) )
    
    def test_average_parameter_on_parameter_update(self):
       """
@@ -100,3 +114,33 @@ class AverageParameter(TestCase):
       #Star.objects.all().delete()
       #DataSource.objects.all().delete()
       #Parameter.objects.all().delete()
+      
+class DeriveParameters(TestCase):
+   
+   def setUp(self):
+      
+      s = Star.objects.create(name='Vega', ra=279.23473479, dec=38.78368896)
+      
+      ds1 = DataSource.objects.create(name='tc 1')
+      ds2 = DataSource.objects.create(name='tc 2')
+      
+      Parameter.objects.create(star=s, name='mass', component=1, value=0.47, error=0.05, unit='Msol', data_source=ds1)
+      
+      Parameter.objects.create(star=s, name='logg', component=1, value=5.80, error=0.20, unit='cgs', data_source=ds2)
+   
+   
+   def test_average_parameter_create(self):
+      """
+      On parameter creation, the average parameter needs to be updated
+      """
+      m = Parameter.objects.get(name__exact='mass', average__exact=True)
+      g = Parameter.objects.get(name__exact='logg', average__exact=True)
+      
+      
+      r = DerivedParameter.objects.create(name='radius')
+      r.source_parameters.add(m)
+      r.source_parameters.add(g)
+      r.update()
+      r.save()
+      
+      print r

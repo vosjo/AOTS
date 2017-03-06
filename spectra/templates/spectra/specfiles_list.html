@@ -18,7 +18,7 @@
 
 {% block content %}
 
-
+{% if user.is_authenticated %}
 <div class='upload'>
    <form action="{% url "spectra:specfile_list" %}" method="post" enctype="multipart/form-data" class="upload" id="specfile-upload-form">
       {% csrf_token %}
@@ -36,6 +36,7 @@
       <input type="submit" class="material-icons button" value="file_upload"/>
    </form>
 </div>
+{% endif %}
 
 <section>
 

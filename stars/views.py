@@ -1,7 +1,6 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
-from django.http import HttpResponse, QueryDict, JsonResponse
-#from django.template import loader
+from django.contrib.auth.decorators import login_required
 
 from .models import Star, Tag
 from analysis.models import Method, DataSet, DataSource, Parameter
@@ -48,9 +47,13 @@ def star_detail(request, star_id):
    }
    
    
-   #-- make navigation list
-   all_stars = Star.objects.order_by('ra')
-   context['all_stars'] = all_stars
+   #-- make related systems list
+   tags = star.tags.all()
+   related_stars = []
+   for tag in tags:
+      related_stars.append({'tag': tag, 'stars': tag.stars.order_by('ra')})
+   
+   context['related_stars'] = related_stars
    
    #-- add analysis methods
    methods = Method.objects.all()
@@ -78,7 +81,9 @@ def star_detail(request, star_id):
    component_names = {0:'System', 1:'Primary', 2:'Secondary'}
    
    parameters = []
-   pSource = star.parameter_set.values_list('data_source').distinct()
+   pSource_pks = star.parameter_set.values_list('data_source').distinct()
+   pSource = DataSource.objects.filter(id__in=pSource_pks).order_by('name')
+   
    for comp in [analModels.SYSTEM, analModels.PRIMARY, analModels.SECONDARY]:
       pNames = star.parameter_set.filter(component__exact=comp,
                                          valid__exact=True).values_list('name').distinct()
@@ -91,8 +96,8 @@ def star_detail(request, star_id):
          values, pinfo = [], None
          for source in pSource:
             try:
-               p = allParameters.get(name__exact=name, data_source__exact=source)
-               values.append("{} +- {}".format(p.rvalue(), p.rerror()))
+               p = allParameters.get(name__exact=name, data_source__exact=source.pk)
+               values.append(r"{} &pm; {}".format(p.rvalue(), p.rerror()))
                pinfo = p
             except Exception, e:
                values.append("/")
@@ -101,14 +106,12 @@ def star_detail(request, star_id):
          
       parameters.append({ 'params': params, 'component':component_names[comp] })
    
-   
-   parameterSources = [DataSource.objects.get(pk=pk[0]) for pk in pSource]
-   
    context['allParameters'] = parameters
-   context['parameterSources'] = parameterSources
+   context['parameterSources'] = pSource
    
    return render(request, 'stars/star_detail.html', context)
 
+@login_required
 def star_edit(request, star_id):
    """
    View to handle editing of the basic star details

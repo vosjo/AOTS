@@ -13,13 +13,11 @@ from bokeh.embed import components
 
 def dataset_list(request):
    
-   # Handle file upload
-   if request.method == 'GET':
-      form = UploadAnalysisFileForm() # A empty, unbound form
+   upload_form = UploadAnalysisFileForm()
    
-   if request.method == 'POST':
-      form = UploadAnalysisFileForm(request.POST, request.FILES)
-      if form.is_valid():
+   if request.method == 'POST' and request.user.is_authenticated:
+      upload_form = UploadAnalysisFileForm(request.POST, request.FILES)
+      if upload_form.is_valid():
          files = request.FILES.getlist('datafile')
          for f in files:
             #-- save the new specfile
@@ -37,9 +35,12 @@ def dataset_list(request):
                new_dataset.delete() # delete the dataset if it can't be successfully processed
             
             messages.add_message(request, level, message)
+            
+   elif request.method != 'GET' and not request.user.is_authenticated:
+      messages.add_message(request, messages.ERROR, "You need to login for that action!")
    
    
-   context = { 'upload_form': form}
+   context = { 'upload_form': upload_form}
    
    return render(request, 'analysis/dataset_list.html', context)
 
@@ -48,6 +49,10 @@ def dataset_detail(request, dataset_id):
    # show details dataset information
    
    dataset = get_object_or_404(DataSet, pk=dataset_id)
+   
+   # make related datasets list
+   related_datasets = dataset.star.dataset_set.all()
+   related_stars = DataSet.objects.filter(method__exact=dataset.method)
    
    # make the main figure
    fit = dataset.make_large_figure()
@@ -62,6 +67,8 @@ def dataset_detail(request, dataset_id):
    
    context = {
       'dataset': dataset,
+      'related_datasets': related_datasets,
+      'related_stars': related_stars,
       'fit': figures['fit'],
       'ci': [figures[name] for name in cinames],
       'script': script,

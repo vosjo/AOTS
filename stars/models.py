@@ -5,6 +5,9 @@ from astropy.coordinates.angles import Angle
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+
 # Create your models here.
 
 @python_2_unicode_compatible  # to support Python 2
@@ -14,7 +17,7 @@ class Tag(models.Model):
    """
    #-- Multiple stars can have the same tag, and multiple tags can be added to one star
    
-   name = models.CharField(max_length=75)
+   name = models.CharField(max_length=75, unique=True)
    
    description = models.TextField(default='')
    
@@ -151,29 +154,22 @@ class Identifier(models.Model):
       return "{} = {}".format(self.star.name, self.name)
 
 
-#@python_2_unicode_compatible  # to support Python 2
-#class Photometry(models.Model):
-   #"""
-   #A photometric measurement. We only save the observed value, 
-   #values in other units like fluxes have to be calculated.
-   #There is no wavelength saved, only the bandname. Wavelength 
-   #would then be redundant.
-   #"""
+
+@receiver(post_save, sender=Star)
+def identifier_bookkeeping(sender, **kwargs):
+   """
+   Add identifiers when stars are created or star names are changed.
+   For now identifiers are never automatically removed
+   """
    
-   ##-- a photometry measurement belongs to one star only
-   #star = models.ForeignKey(Star, on_delete=models.CASCADE)
+   if kwargs.get('raw', False):
+      return
    
-   #band = models.CharField(max_length=50)
+   star = kwargs['instance']
    
-   ##-- measurement can be in any unit
-   #measurement = models.FloatField()
-   #error = models.FloatField()
-   #unit = models.CharField(max_length=50)
+   #-- create an identifier with the same name as the star if non exist
+   try:
+      Identifier.objects.get(name__exact=star.name)
+   except Identifier.DoesNotExist:
+      Identifier.objects.create(name=star.name, star=star)
    
-   ##-- bookkeeping
-   #added_on = models.DateTimeField(auto_now_add=True)
-   #last_modified = models.DateTimeField(auto_now=True)
-   
-   ##-- representation of self
-   #def __str__(self):
-      #return "{} = {} +- {} {}".format(self.band, self.measurement, self.error, self.unit)

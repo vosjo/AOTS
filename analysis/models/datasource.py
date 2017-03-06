@@ -133,6 +133,16 @@ class DataSource(models.Model):
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)
    
+   def source(self):
+      """
+      Retruns a string representation of the source of the parameters
+      depending on whether this object is a DataSet, DataTable or 
+      a random source
+      """
+      try:
+         return self.dataset.method.name
+      except DataSet.DoesNotExist:
+         return self.reference if self.reference != '' else self.name
    
    #-- representation of self
    def __str__(self):

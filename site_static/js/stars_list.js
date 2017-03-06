@@ -18,7 +18,7 @@ function( settings, data, dataIndex, rowData, counter ) {
    var dec = parseFloat( rowData['dec'] ) || 0; 
    
    // Magnitude filter
-   var min_mag = parseFloat( $('#filter_mag').val().split(':')[0] ) || 0 ;
+   var min_mag = parseFloat( $('#filter_mag').val().split(':')[0] ) || -1 ;
    var max_mag = parseFloat( $('#filter_mag').val().split(':')[1] ) || 90 ;
    var mag = parseFloat( rowData['vmag'] ) || 0; 
    
@@ -30,13 +30,17 @@ function( settings, data, dataIndex, rowData, counter ) {
    var selected_status = $("#status_options input:checked").map( function () { return this.value; }).get();
    var status = rowData['observing_status'];
    
-   
+   // Tags
+   var selected_tags = $("#tag_filter_options input:checked").map( function () { return parseInt(this.value); }).get();
+   var tag_ids = rowData['tag_ids'];
    
    if ( ra >= min_ra && ra <= max_ra &&
          dec >= min_dec && dec <= max_dec &&
          mag >= min_mag && mag <= max_mag &&
          (selected_class.length == 0 || selected_class.indexOf(classType) > -1) &&
-         (selected_status.length == 0 || selected_status.indexOf(status) > -1) )
+         (selected_status.length == 0 || selected_status.indexOf(status) > -1) &&
+         (selected_tags.length == 0 || selected_tags.every(elem => tag_ids.indexOf(elem) > -1))
+      )
       {
          return true;
       }
@@ -46,7 +50,6 @@ function( settings, data, dataIndex, rowData, counter ) {
 $(document).ready(function () {
 
    star_table = $('#datatable').DataTable({
-   autoWidth: true,
    dom: 'l<"toolbar">frtip',
    ajax: {
       url: '/api/stars/stars/',
@@ -65,13 +68,14 @@ $(document).ready(function () {
       { data: 'classification', render: classification_render },
       { data: 'vmag' },
       { data: 'tags', render: tag_render },
-      { data: 'observing_status_display' },
+      { data: 'observing_status', render: status_render, 
+         width: '70', 
+         className: "dt-center" },
    ],
-//    fixedColumns: true,
    paging: false,
    scrollY: '600px',
-//    scrollX: '200px',
    scrollCollapse: true,
+   autoWidth: true,
    });
    
    //Add toolbar to table
@@ -143,8 +147,6 @@ $(document).ready(function () {
    $( "#status-button").click( openStatusEditWindow );
    $( "#tag-button").click( openTagEditWindow );
    
-   
-   
 });
 
 
@@ -170,14 +172,23 @@ function tag_render( data, type, full, meta ) {
    var tag = data[0];
    for (i = 0; i < data.length; i++) {
       tag = data[i];
-      result += "<div class='small-tag' style='border-color:"+tag.color+"' title='"+tag.info+"'>"+tag.name+"</div>";
+      result += "<div class='small-tag' style='border-color:"+tag.color+"' title='"+tag.description+"'>"+tag.name+"</div>";
    }
    return result;
 }
 
 function classification_render( data, type, full, meta ) {
    // add the classification type to the table
-   return "<span title='"+full['classification_type_display']+"'>"+data+"</span>";
+   return "<span class='classification-" + full['classification_type'] + 
+          "' title='"+full['classification_type_display']+"'>" + 
+          data + " </span>"
+   
+//    return "<span title='"+full['classification_type_display']+"'>"+data+"</span>";
+}
+
+function status_render( data, type, full, meta ) {
+   return '<i class="material-icons status-icon ' + data +  '" title="' +
+          full['observing_status_display'] +'"></i>'
 }
 
 

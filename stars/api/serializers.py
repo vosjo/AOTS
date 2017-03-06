@@ -44,6 +44,12 @@ class StarListSerializer(ModelSerializer):
    vmag = SerializerMethodField()
    classification_type_display = SerializerMethodField()
    observing_status_display = SerializerMethodField()
+   tag_ids = PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all(),
+        read_only=False,
+        source='tags',
+    )
    
    class Meta:
       model = Star
@@ -61,6 +67,7 @@ class StarListSerializer(ModelSerializer):
             'observing_status_display',
             'note',
             'tags',
+            'tag_ids',
             'vmag',
       ]
       read_only_fields = ('pk',)

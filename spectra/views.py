@@ -1,13 +1,11 @@
 from django.shortcuts import get_object_or_404, render, reverse
-from django.http import HttpResponseRedirect, HttpResponse, QueryDict, JsonResponse
+from django.http import HttpResponseRedirect
 from django.contrib import messages
 
 from .models import Spectrum, SpecFile
 from stars.models import Star
 
-from .forms import UploadSpecFileForm, SearchSpectrumForm, SearchSpecFileForm
-
-import json
+from .forms import UploadSpecFileForm
 
 
 from aux import read_spectrum
@@ -22,56 +20,11 @@ from bokeh.embed import components
 
 
 def spectra_list(request):
-   
-   context = {
-         'search_form': SearchSpectrumForm(),
-      }
-   
-   if request.method == 'GET':
-      # Perform a search query 
-      search_form = SearchSpectrumForm(request.GET)
+   """
+   simplified version of spectra index page using datatables and restframework api
+   """
       
-      context['search_form'] = search_form
-      context['spectra'] = search_form.search()
-      
-      return render(request, 'spectra/spectra_list.html', context)
-   
-   #elif request.method == 'DELETE':
-      #request_body = QueryDict(request.body)
-      #response_data = {'success':False}
-      
-      #if 'delete_spectrum_pk' in request_body:  # DELETE a spectrum
-         #spectrum_pk = int(request_body.get('delete_spectrum_pk'))
-      
-         #Spectrum.objects.filter(pk=spectrum_pk).delete()
-         
-         #response_data['success'] = True
-         #response_data['msg'] = 'The spectrum was deleted.'
-      
-      #elif 'remove_specfile_pk' in request_body: # REMOVE a specfile
-         #specfile_pk = int(request_body.get('remove_specfile_pk'))
-         
-         #specfile = SpecFile.objects.get(pk = specfile_pk)
-         #specfile.spectrum = None
-         #specfile.save()
-         
-         #response_data['success'] = True
-         #response_data['msg'] = 'The specfile was removed from the spectrum.'
-      
-      #elif 'delete_specfile_pk' in request_body: # DELETE a specfile
-         #specfile_pk = int(request_body.get('delete_specfile_pk'))
-         
-         #SpecFile.objects.get(pk = specfile_pk).delete()
-         
-         #response_data['success'] = True
-         #response_data['msg'] = 'The specfile was deleted from the database.'
-      
-      #return JsonResponse(response_data)
-   #else:
-      ## not shure when this would actually happen
-      #context['spectra'] = Spectrum.objects.order_by('hjd')
-      
-   #return render(request, 'spectra/spectra_index.html', context)
+   return render(request, 'spectra/spectra_list.html')
 
 
 def spectra_detail(request, spectrum_id):
@@ -107,7 +60,7 @@ def specfile_list(request):
    upload_form = UploadSpecFileForm()
    
    # Handle file upload
-   if request.method == 'POST':
+   if request.method == 'POST' and request.user.is_authenticated:
       if 'specfile' in request.FILES:
          upload_form = UploadSpecFileForm(request.POST, request.FILES)
          if upload_form.is_valid():
@@ -123,8 +76,11 @@ def specfile_list(request):
                level = messages.SUCCESS if success else messages.ERROR
                messages.add_message(request, level, message)
                
-            return HttpResponseRedirect(reverse('spectra:upload'))
+            return HttpResponseRedirect(reverse('spectra:specfile_list'))
    
-   context = {'upload_form': upload_form,}
+   elif request.method != 'GET' and not request.user.is_authenticated:
+      messages.add_message(request, messages.ERROR, "You need to login for that action!")
+   
+   context = {'upload_form': upload_form}
    
    return render(request, 'spectra/specfiles_list.html', context)

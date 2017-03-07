@@ -14,15 +14,6 @@ from bokeh.models import widgets
 from analysis.aux import fileio
 from analysis.aux.units import conversions
 
-sed_colors = {'2MASS': 'black',
-             'STROMGREN': 'olive',
-             'JOHNSON': 'gold',
-             'GALEX': 'powderblue',
-             'SDSS': 'aqua',
-             'COUSINS': 'maroon',
-             'DENIS': 'orange',
-             'GENEVA': 'forestgreen ',}
-
 def plot_errorbars(fig, x, y, e, **kwargs):
    """
    Plot errorbars on a bokeh plot
@@ -198,10 +189,15 @@ def plot_generic_ci(datafile):
 # SED fit plotting code
 #============================================================================================
 
-sed_colors = { 'STROMGREN' : 'orange',
-               'APASS' : 'blue',
-               '2MASS' : 'black',
-               'JOHNSON' : 'green',}
+sed_colors = {'2MASS': 'black',
+              'APASS' : 'blue',
+             'STROMGREN': 'olive',
+             'JOHNSON': 'gold',
+             'GALEX': 'powderblue',
+             'SDSS': 'aqua',
+             'COUSINS': 'maroon',
+             'DENIS': 'orange',
+             'GENEVA': 'forestgreen ',}
 
 def get_band_color(band):
    if band in sed_colors:
@@ -244,7 +240,7 @@ def plot_sedfit(datafile):
                     x_axis_type="log", x_range=(xmin, xmax))
    
    #-- Plot the model
-   x,y,y_ur = model
+   x,y = model
    y = y / scale
    y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
    fig.line(x, y, color='red', legend='binary model')
@@ -324,7 +320,7 @@ def plot_sedfit_large(datafile):
                     tools=tools)
    
    #-- Plot the model
-   x,y,y_ur = model
+   x,y = model
    y = y / scale
    y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
    fig.line(x, y, color='red')

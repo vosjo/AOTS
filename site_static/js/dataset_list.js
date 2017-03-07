@@ -2,7 +2,7 @@
 var dataset_table = null;
 
 $(document).ready(function () {
-
+   
    dataset_table = $('#datasettable').DataTable({
    ajax: {
       url: '/api/analysis/datasets/',
@@ -14,7 +14,7 @@ $(document).ready(function () {
       { data: 'note', render: note_render },
       { data: 'method', render: method_render },
       { data: 'added_on' },
-      { data: 'pk', render: action_render, width: '30'},
+      { data: 'pk', render: action_render, width: '30', visible: user_authenticated},
    ]
    });
    

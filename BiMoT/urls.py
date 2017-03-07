@@ -16,8 +16,10 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.views.generic import RedirectView
 
 urlpatterns = [
+    url(r'^$', RedirectView.as_view(url='/stars/stars/', permanent=False)),
     url(r'^stars/', include('stars.urls', namespace='stars'), name='stars'),
     url(r'^spectra/', include('spectra.urls', namespace='spectra'), name='spectra'),
     url(r'^analysis/', include('analysis.urls', namespace='analysis'), name='analysis'),

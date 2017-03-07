@@ -77,10 +77,6 @@
       </div>
    
    </nav>
-      
-   <!--<nav>
-   {% block navigation %}{% endblock %}
-   </nav>-->
    
    {% block header %}{% endblock %}
    </header>
@@ -92,6 +88,16 @@
    </ul>
    
    {% block content %}{% endblock %}
+   
+   <script type="text/javascript">
+      // Save in this variable if there is an authenticated user
+      // This variable is accessible on every other place in the code.
+      {% if user.is_authenticated %} 
+      var user_authenticated = true;
+      {% else %}
+      var user_authenticated = false;
+      {% endif %}
+   </script>
 
    <footer>
    </footer>

@@ -18,12 +18,13 @@
 
 {% block content %}
 
-{% if user.is_authenticated %}
+
 <div class='upload'>
    <form action="{% url "spectra:specfile_list" %}" method="post" enctype="multipart/form-data" class="upload" id="specfile-upload-form">
-      {% csrf_token %}
       <h3> Add new spectra </h3>
       
+      {% if user.is_authenticated %}
+      {% csrf_token %}
       {% if upload_form.non_field_errors %}
       <p>{{ upload_form.non_field_errors }}</p>
       {% endif %}
@@ -34,9 +35,12 @@
       </p>
 
       <input type="submit" class="material-icons button" value="file_upload"/>
+      {% else %}
+      <p> Log in to upload files! </p>
+      {% endif %}
    </form>
 </div>
-{% endif %}
+
 
 <section>
 

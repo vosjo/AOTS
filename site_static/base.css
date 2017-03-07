@@ -798,7 +798,8 @@ table.obs-table td {
    justify-content: space-around;
 }
 
-form.upload {
+form.upload, 
+p.upload {
    display: flex;
    flex-direction: column;
    align-items: center;

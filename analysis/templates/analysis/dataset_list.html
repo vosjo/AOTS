@@ -12,13 +12,14 @@
 
 {% block content %}
 
-{% if user.is_authenticated %}
 <div class='upload'>
    
+  
    <form action="{% url "analysis:dataset_list" %}" method="post" enctype="multipart/form-data" class="upload">
-      {% csrf_token %}
       <h3> Upload new Dataset </h3>
       
+      {% if user.is_authenticated %}
+      {% csrf_token %}
       {% if upload_form.non_field_errors %}
       <p>{{ upload_form.non_field_errors }}</p>
       {% endif %}
@@ -29,10 +30,14 @@
       </p>
 
       <input type="submit" class="material-icons button" value="file_upload"/>
+      {% else %}
+      <p> Log in to upload files! </p>
+      {% endif %}
    </form>
    
+   
 </div>
-{% endif %}
+
 
 <section>
 <!--    <h3> All uploaded data sets </h3> -->

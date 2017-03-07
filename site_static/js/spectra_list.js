@@ -37,7 +37,8 @@ $(document).ready(function () {
       { data: 'star', render : star_render },
       { data: 'instrument', render : instrument_render },
       { data: 'exptime' },
-      { data: 'pk', render: action_render, width: '100', className: 'dt-center'},
+      { data: 'pk', render: action_render, width: '100', 
+        className: 'dt-center', visible: user_authenticated},
    ]
    });
    

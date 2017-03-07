@@ -16,7 +16,8 @@ $(document).ready(function () {
       { data: 'filetype' },
       { data: 'added_on' },
       { data: 'spectrum', render : processed_render },
-      { data: 'pk', render: action_render, width: '100', className: 'dt-center'},
+      { data: 'pk', render: action_render, width: '100', 
+        className: 'dt-center', visible: user_authenticated},
    ]
    });
    

@@ -17,7 +17,8 @@ $(document).ready(function () {
       { data: 'slug' },
       { data: 'color', render : color_render},
       { data: 'data_type_display', width: '40' },
-      { data: 'pk', render: action_render, width: '100', className: 'dt-center'},
+      { data: 'pk', render: action_render, width: '100', 
+        className: 'dt-center', visible: user_authenticated},
    ]
    });
    

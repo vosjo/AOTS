@@ -23,8 +23,6 @@ def create_parameters(analmethod, data):
                                       error_u=value[1], error_l=value[2], 
                                       unit=value[3], star=analmethod.star)
    
-   print parameters
-   
    return len(parameters.keys())
    
 def process_analysis_file(file_id):
@@ -80,8 +78,21 @@ def process_analysis_file(file_id):
    #-- add parameters
    try:
       npars = create_parameters(analfile, data)
-      message += ", ({} parameters)".format(npars)
+      if npars == 0:
+         analfile.valid = False
+         analfile.save()
+         message += ", (No parameters included, default to invalid dataset)"
+      else:
+         message += ", ({} parameters)".format(npars)
    except Exception, e:
       return False, 'Not added, error reading parameters'
+   
+   #-- check if star already has this type of dataset, if so, replace
+   #   only do so at the end so only valid datasets can replace an old one.
+   similar = DataSet.objects.filter(method__exact=analfile.method,
+                                    star__exact=star).order_by('added_on')
+   if len(similar) > 1:
+      similar[0].delete()
+      message += ", replaced older analysis method"
    
    return True, message

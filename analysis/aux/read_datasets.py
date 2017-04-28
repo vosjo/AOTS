@@ -76,7 +76,7 @@ def get_basic_info(data):
             - type code of analysis method: 'RV', 'SF', 'GF', 'XF', '??'
    """
    
-   if 'results' in data and ('igrid_search' in data['results'] or 'iminimize' in data['results']):
+   if ('results' in data and ('igrid_search' in data['results'] or 'iminimize' in data['results'])) or ('master' in data):
       return basic_info_sedfit(data)
    
    else:

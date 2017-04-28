@@ -3,7 +3,7 @@
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_save, post_init
 from django.dispatch import receiver
 
 from stars.models import Star
@@ -46,12 +46,28 @@ PARAMETER_DECIMALS = {
    'v0':2,
    }
 
+def split_parameter_name(name):
+   
+   if name[-1] in ['0', '1', '2']:
+      component = int(name[-1])
+      name = name[:-1]
+   else:
+      name = name
+      component = 0
+   return name, component
+
+def combine_parameter_name(name, component):
+   
+   if component in [1,2]:
+      return name + '_' + str(component)
+   else:
+      return name
+
 def round_value(value, name):
    """
    Rounds a value based on the parameter name
    """
-   if name[-1] == '1' or name[-1] == '2':
-      name = name[:-1]
+   name, component = split_parameter_name(name)
    
    decimals = PARAMETER_DECIMALS.get(name, 3)
    if decimals > 0:
@@ -135,11 +151,7 @@ class Parameter(models.Model):
       default=SYSTEM)
    
    #-- add component behind name if component is primary or secondry
-   def cname(self):
-      if self.component in [PRIMARY, SECONDARY]:
-         return self.name + '_' + str(self.component)
-      else:
-         return self.name
+   cname = models.CharField(max_length=52, default='')
    
    value = models.FloatField(default=0.0)
    
@@ -188,7 +200,7 @@ class Parameter(models.Model):
    
    #-- representation of self
    def __str__(self):
-      return "{} = {} +- {} {} -{}- ({})".format(self.cname(), self.rvalue(), self.rerror(), 
+      return "{} = {} +- {} {} -{}- ({})".format(self.cname, self.rvalue(), self.rerror(), 
                                           self.unit, 'V' if self.valid else 'F',
                                           self.data_source.name[0:10])
 
@@ -200,21 +212,39 @@ class DerivedParameter(Parameter):
    
    source_parameters = models.ManyToManyField(Parameter, blank=True, related_name='derived_parameters')
    
+   def create(self):
+      try:
+         k1 = Parameter.objects.get(star__exact=self.star, name__exact='K', 
+                              component__exact=1, average__exact=True)
+         k2 = Parameter.objects.get(star__exact=self.star, name__exact='K', 
+                              component__exact=2, average__exact=True)
+         self.source_parameters.add(k1)
+         self.source_parameters.add(k2)
+      except Exception, e:
+         print e
+   
    def update(self):
-      M = self.source_parameters.get(name__exact='mass')
-      g = self.source_parameters.get(name__exact='logg')
+      k1 = self.source_parameters.get(name__exact='K', component__exact=1, average__exact=True)
+      k2 = self.source_parameters.get(name__exact='K', component__exact=2, average__exact=True)
       
-      G = 6.673839999999998e-05
-      M = np.random.normal(M.value, M.error, 512)
-      g = np.random.normal(g.value, g.error, 512)
-      r = np.sqrt(G * M * 1.988547e+30 / 10**g) / 69550800000.0
+      q = np.random.normal(k1.value, k1.error, 512) / np.random.normal(k2.value, k2.error, 512)
+      self.value = np.average(q)
+      self.error = np.std(q)
       
-      self.name = 'radius'
-      self.value = np.average(r)
-      self.error = np.std(r)
-      self.unit = 'Rsol'
-      self.component = 1
-      self.average = True
+      #M = self.source_parameters.get(name__exact='mass')
+      #g = self.source_parameters.get(name__exact='logg')
+      
+      #G = 6.673839999999998e-05
+      #M = np.random.normal(M.value, M.error, 512)
+      #g = np.random.normal(g.value, g.error, 512)
+      #r = np.sqrt(G * M * 1.988547e+30 / 10**g) / 69550800000.0
+      
+      #self.name = 'radius'
+      #self.value = np.average(r)
+      #self.error = np.std(r)
+      #self.unit = 'Rsol'
+      #self.component = 1
+      #self.average = True
       
    #def __str__(self):
       #return "Derived parameter"
@@ -224,7 +254,23 @@ class DerivedParameter(Parameter):
       #self.update()
       #super(DerivedParameter, self).save(*args, **kwargs)
    
+
+#======================================================================================
+# cname parameter handling
+#======================================================================================
+
+@receiver(pre_save, sender=Parameter)
+def set_cname(sender, **kwargs):
+   """
+   When a parameter is created or modified, update the cname based on the
+   parameter name and the component number:
+   cname = name + _ + component if component is 1 or 2.
+   """
+   if kwargs.get('raw', False):
+      return
    
+   param = kwargs['instance']
+   param.cname = combine_parameter_name(param.name, param.component)
 
 #======================================================================================
 # AVERAGE parameter handling
@@ -250,6 +296,8 @@ def calculate_average(params):
    error = np.sqrt(np.sum(errors**2)) / len(errors)
    
    return np.average(values, weights=1./errors), error
+
+
 
 @receiver(post_delete, sender=Parameter)
 @receiver(post_save, sender=Parameter)
@@ -320,11 +368,18 @@ def average_parameter_bookkeeping(sender, **kwargs):
 # DERIVED parameter handling
 #======================================================================================
 
-#@receiver(post_init, sender=DerivedParameter)
-#def derived_parameter_find_sources(sender, **kwargs):
-   #"""
-   #When a new Derived parameter is created, find all necesary parameters
-   #to derive it from
-   #"""
-   #pass
+@receiver(post_save, sender=DerivedParameter)
+def derived_parameter_find_sources(sender, **kwargs):
+   """
+   When a new Derived parameter is created, find all necesary parameters
+   to derive it from
+   """
+   param = kwargs['instance']
    
+   #-- if the derived paramter is newly created, search for the needed parameters 
+   #   to calculate it.
+   if kwargs['created']:
+      param.create()
+   
+   #-- upon any update of this parameter, recalculate it's value.
+   param.update()

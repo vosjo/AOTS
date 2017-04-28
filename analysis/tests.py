@@ -5,6 +5,44 @@ import numpy as np
 from analysis.models import Parameter, DerivedParameter, DataSource
 from stars.models import Star
 
+class CnameParameter(TestCase):
+   
+   def setUp(self):
+      
+      s = Star.objects.create(name='Vega', ra=279.23473479, dec=38.78368896)
+      
+      ds1 = DataSource.objects.create(name='tc 1')
+      
+      Parameter.objects.create(star=s, name='teff', component=1, value=30000, error=5000, unit='K', data_source=ds1)
+   
+   def test_cname_on_creation(self):
+      """
+      On parameter creation the cname needs to be set correctly
+      """
+      p = Parameter.objects.get(name__exact='teff', average=False)
+      
+      self.assertEqual(p.cname, 'teff_1',
+                       "cname on create not correct: {}, should be teff_1".format(p.cname))
+   
+   def test_cname_on_modify(self):
+      """
+      On parameter modify the cname needs to be updated if the 
+      name or component is changed.
+      """
+      p = Parameter.objects.get(name__exact='teff', average=False)
+      p.name = 'logg'
+      p.save()
+      
+      self.assertEqual(p.cname, 'logg_1',
+                       "cname on name modify not correct: {}, should be logg_1".format(p.cname))
+      
+      p.component = 2
+      p.save()
+      
+      self.assertEqual(p.cname, 'logg_2',
+                       "cname on comp. modify not correct: {}, should be logg_2".format(p.cname))
+      
+      
 class AverageParameter(TestCase):
    
    def setUp(self):
@@ -109,12 +147,6 @@ class AverageParameter(TestCase):
       
       
       
-   #def tearDown(self):
-      
-      #Star.objects.all().delete()
-      #DataSource.objects.all().delete()
-      #Parameter.objects.all().delete()
-      
 class DeriveParameters(TestCase):
    
    def setUp(self):
@@ -126,21 +158,32 @@ class DeriveParameters(TestCase):
       
       Parameter.objects.create(star=s, name='mass', component=1, value=0.47, error=0.05, unit='Msol', data_source=ds1)
       
+      Parameter.objects.create(star=s, name='K', component=1, value=5.5, error=0.5, unit='km s-1', data_source=ds1)
+      
+      Parameter.objects.create(star=s, name='K', component=2, value=13.8, error=1.2, unit='km s-1', data_source=ds1)
+      
       Parameter.objects.create(star=s, name='logg', component=1, value=5.80, error=0.20, unit='cgs', data_source=ds2)
    
    
    def test_average_parameter_create(self):
       """
-      On parameter creation, the average parameter needs to be updated
+      On parameter creation, the average parameter needs to be instantiated and calculated
       """
-      m = Parameter.objects.get(name__exact='mass', average__exact=True)
-      g = Parameter.objects.get(name__exact='logg', average__exact=True)
+      s = Star.objects.get(name__exact='Vega')
       
+      try:
+         ds = DataSource.objects.get(name__exact='AVG')
+      except DataSource.DoesNotExist:
+         ds = DataSource.objects.create(name='AVG')
       
-      r = DerivedParameter.objects.create(name='radius')
-      r.source_parameters.add(m)
-      r.source_parameters.add(g)
-      r.update()
-      r.save()
+      p = DerivedParameter.objects.create(star=s, name='q', data_source=ds, 
+                                          average=True, component=0)
       
-      print r
+      source = p.source_parameters.all()
+      self.assertEqual(len(source), 2, 
+                       "Source parameters not correctly loaded" )
+      self.assertEqual(np.round(p.value, 1), 0.4,
+                       "DerivedParamter on create: value is wrong {}".format(p) )
+      self.assertEqual(np.round(p.error, 2), 0.05,
+                       "DerivedParamter on create: error is wrong {}".format(p) )
+      

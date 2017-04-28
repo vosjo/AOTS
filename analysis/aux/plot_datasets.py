@@ -30,39 +30,48 @@ def plot_generic(datafile):
    will plot the data and models as lines or circles/square. 
    """
    hdf = h5py.File(datafile, 'r') 
-   data = hdf['DATA']
-   models = hdf['MODEL']
-   
    
    fig = bpl.figure(plot_width=600, plot_height=400, responsive=False, toolbar_location=None)
    colors = ['red', 'blue', 'green']
    
    #-- plot the data
-   for i, (name, dataset) in enumerate(data.items()):
-      lim = [dataset.attrs.get('xmin', -np.inf), dataset.attrs.get('xmax', +np.inf)]
-      s = np.where((dataset['x'] > lim[0]) & (dataset['x'] < lim[1]))
-      
-      if dataset.attrs.get('datatype', None) == 'continuous':
-         fig.line(dataset['x'][s], dataset['y'][s], color=colors[i], line_dash='dashed', legend=name)
-      elif dataset.attrs.get('datatype', None) == 'discrete':
-         fig.circle(dataset['x'][s], dataset['y'][s], color=colors[i], legend=name)
-      
-      if 'yerr' in dataset.dtype.names:
-         plot_errorbars(fig, dataset['x'], dataset['y'], dataset['yerr'], color=colors[i])
+   if 'DATA' in hdf:
+      data = hdf['DATA']
+         
+      for i, (name, dataset) in enumerate(data.items()):
+         xpar = dataset.attrs.get('xpar', 'x')
+         ypar = dataset.attrs.get('ypar', 'y')
+         
+         lim = [dataset.attrs.get('xmin', -np.inf), dataset.attrs.get('xmax', +np.inf)]
+         s = np.where((dataset[xpar] > lim[0]) & (dataset[xpar] < lim[1]))
+         
+         if dataset.attrs.get('datatype', None) == 'continuous':
+            fig.line(dataset[xpar][s], dataset[ypar][s], color=colors[i], line_dash='dashed', legend=name)
+         elif dataset.attrs.get('datatype', None) == 'discrete':
+            fig.circle(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
+         
+         if ypar+'_err' in dataset.dtype.names:
+            plot_errorbars(fig, dataset[xpar], dataset[ypar], dataset[ypar+'_err'], color=colors[i])
    
    #-- plot the models
-   for i, (name, dataset) in enumerate(models.items()):
-      lim = [dataset.attrs.get('xmin', -np.inf), dataset.attrs.get('xmax', +np.inf)]
-      s = np.where((dataset['x'] > lim[0]) & (dataset['x'] < lim[1]))
+   if 'MODEL' in hdf:
+      models = hdf['MODEL']
       
-      if dataset.attrs.get('datatype', None) == 'continuous':
-         fig.line(dataset['x'][s], dataset['y'][s], color=colors[i], legend=name)
-      elif dataset.attrs.get('datatype', None) == 'discrete':
-         fig.square(dataset['x'][s], dataset['y'][s], color=colors[i], legend=name)
+      for i, (name, dataset) in enumerate(models.items()):
+         xpar = dataset.attrs.get('xpar', 'x')
+         ypar = dataset.attrs.get('ypar', 'y')
+         
+         lim = [dataset.attrs.get('xmin', -np.inf), dataset.attrs.get('xmax', +np.inf)]
+         s = np.where((dataset[xpar] > lim[0]) & (dataset[xpar] < lim[1]))
+         
+         if dataset.attrs.get('datatype', None) == 'continuous':
+            fig.line(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
+         elif dataset.attrs.get('datatype', None) == 'discrete':
+            fig.square(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
    
    fig.toolbar.logo=None
-   fig.yaxis.axis_label = data.attrs['y']
-   fig.xaxis.axis_label = data.attrs['x']
+   fig.yaxis.axis_label = data.attrs['ylabel']
+   fig.xaxis.axis_label = data.attrs['xlabel']
    fig.yaxis.axis_label_text_font_size = '10pt'
    fig.xaxis.axis_label_text_font_size = '10pt'
    fig.min_border = 5
@@ -77,8 +86,6 @@ def plot_generic_large(datafile):
    will plot the data and models as lines or circles/square. 
    """
    hdf = h5py.File(datafile, 'r') 
-   data = hdf['DATA']
-   models = hdf['MODEL']
    
    TOOLS = "pan, box_zoom, wheel_zoom, reset"
    
@@ -87,44 +94,52 @@ def plot_generic_large(datafile):
    colors = ['red', 'blue', 'green']
    
    #-- plot the data
-   bokehsource = bpl.ColumnDataSource()
-   
-   for i, (name, dataset) in enumerate(data.items()):
+   if 'DATA' in hdf:
+      data = hdf['DATA']
+      bokehsource = bpl.ColumnDataSource()
       
-      if dataset.attrs.get('datatype', None) == 'continuous':
-         fig.line(dataset['x'], dataset['y'], color=colors[i], line_dash='dashed', legend=name)
-      elif dataset.attrs.get('datatype', None) == 'discrete':
-         bokehsource.add(dataset['x'], name=name+'_x')
-         bokehsource.add(dataset['y'], name=name+'_y')
-         rend = fig.circle(name+'_x', name+'_y', color=colors[i], source=bokehsource,
-                           size=7, legend=name)
+      for i, (name, dataset) in enumerate(data.items()):
+         xpar = dataset.attrs.get('xpar', 'x')
+         ypar = dataset.attrs.get('ypar', 'y')
          
-         tooltips = [(data.attrs['x'], "@"+name+"_x")]
-         if 'yerr' in dataset.dtype.names:
-            bokehsource.add(dataset['yerr'], name=name+'_yerr')
-            tooltips += [(data.attrs['y'], "@"+name+"_y +- @"+name+"_yerr")]
+         if dataset.attrs.get('datatype', None) == 'continuous':
+            fig.line(dataset[xpar], dataset[ypar], color=colors[i], line_dash='dashed', legend=name)
+         elif dataset.attrs.get('datatype', None) == 'discrete':
+            bokehsource.add(dataset[xpar], name=name+'_x')
+            bokehsource.add(dataset[ypar], name=name+'_y')
+            rend = fig.circle(name+'_x', name+'_y', color=colors[i], source=bokehsource,
+                              size=7, legend=name)
             
-            plot_errorbars(fig, dataset['x'], dataset['y'], dataset['yerr'], 
-                           line_width=2, color=colors[i])
-         else:
-            tooltips += [(data.attrs['y'], "@"+name+"_y")]
-         
-         hover_tool = mpl.HoverTool(renderers=[rend], tooltips=tooltips)
-         fig.add_tools(hover_tool)
+            tooltips = [(data.attrs['xlabel'], "@"+name+"_x")]
+            if ypar+'_err' in dataset.dtype.names:
+               bokehsource.add(dataset[ypar+'_err'], name=name+'_yerr')
+               tooltips += [(data.attrs['ylabel'], "@"+name+"_y +- @"+name+"_yerr")]
+               
+               plot_errorbars(fig, dataset[xpar], dataset[ypar], dataset[ypar+'_err'], 
+                              line_width=1, color=colors[i])
+            else:
+               tooltips += [(data.attrs['ylabel'], "@"+name+"_y")]
+            
+            hover_tool = mpl.HoverTool(renderers=[rend], tooltips=tooltips)
+            fig.add_tools(hover_tool)
       
       
    
    #-- plot the models
-   for i, (name, dataset) in enumerate(models.items()):
-      
-      if dataset.attrs.get('datatype', None) == 'continuous':
-         fig.line(dataset['x'], dataset['y'], color=colors[i], legend=name)
-      elif dataset.attrs.get('datatype', None) == 'discrete':
-         fig.square(dataset['x'], dataset['y'], color=colors[i], legend=name)
+   if 'MODEL' in hdf:
+      models = hdf['MODEL']
+      for i, (name, dataset) in enumerate(models.items()):
+         xpar = dataset.attrs.get('xpar', 'x')
+         ypar = dataset.attrs.get('ypar', 'y')
+         
+         if dataset.attrs.get('datatype', None) == 'continuous':
+            fig.line(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
+         elif dataset.attrs.get('datatype', None) == 'discrete':
+            fig.square(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
    
    fig.toolbar.logo=None
-   fig.yaxis.axis_label = data.attrs['y']
-   fig.xaxis.axis_label = data.attrs['x']
+   fig.yaxis.axis_label = data.attrs['ylabel']
+   fig.xaxis.axis_label = data.attrs['xlabel']
    fig.yaxis.axis_label_text_font_size = '10pt'
    fig.xaxis.axis_label_text_font_size = '10pt'
    fig.min_border = 5
@@ -146,10 +161,14 @@ def plot_generic_large(datafile):
 def plot_generic_ci(datafile):
    
    hdf = h5py.File(datafile, 'r') 
-   data = hdf['PARAMETERS']
+   
    
    figures = {}
    
+   if not 'PARAMETERS' in hdf:
+      return figures
+   
+   data = hdf['PARAMETERS']
    for i, (name, dataset) in enumerate(data.items()):
       
       if 'Chi2Val' in dataset:
@@ -216,8 +235,6 @@ def plot_sedfit(datafile):
    
    data = fileio.read2dict(datafile)
    phot = data['master']
-   sflux = data['results']['igrid_search']['synflux']
-   model = data['results']['igrid_search']['model']
    
    wave = phot['cwave']
    flux,e_flux = conversions.convert('erg/s/cm2/AA', flux_units, phot['cmeas'], 
@@ -240,15 +257,23 @@ def plot_sedfit(datafile):
                     x_axis_type="log", x_range=(xmin, xmax))
    
    #-- Plot the model
-   x,y = model
-   y = y / scale
-   y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
-   fig.line(x, y, color='red', legend='binary model')
+   try:
+      model = data['results']['igrid_search']['model']
+      x,y = model
+      y = y / scale
+      y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
+      fig.line(x, y, color='red', legend='binary model')
+   except Exception:
+      pass
    
    #-- plot integrated photometry
-   x, y = sflux['iwave'], sflux['iflux'] / scale
-   y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
-   fig.x(x, y, color='black', fill_alpha=0.7, line_alpha=1.0, size=9, line_width=3, legend='synthetic')
+   try:
+      sflux = data['results']['igrid_search']['synflux']
+      x, y = sflux['iwave'], sflux['iflux'] / scale
+      y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
+      fig.x(x, y, color='black', fill_alpha=0.7, line_alpha=1.0, size=9, line_width=3, legend='synthetic')
+   except Exception:
+      pass
    
    #-- plot the observations
    fig.circle(wave, flux, color='blue', 
@@ -275,8 +300,7 @@ def plot_sedfit_large(datafile):
    
    data = fileio.read2dict(datafile)
    phot = data['master']
-   sflux = data['results']['igrid_search']['synflux']
-   model = data['results']['igrid_search']['model']
+   
    
    wave = phot['cwave']
    flux,e_flux = conversions.convert('erg/s/cm2/AA', flux_units, phot['cmeas'], 
@@ -320,15 +344,23 @@ def plot_sedfit_large(datafile):
                     tools=tools)
    
    #-- Plot the model
-   x,y = model
-   y = y / scale
-   y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
-   fig.line(x, y, color='red')
+   try:
+      model = data['results']['igrid_search']['model']
+      x,y = model
+      y = y / scale
+      y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
+      fig.line(x, y, color='red')
+   except Exception:
+      pass
    
    #-- plot integrated photometry
-   x, y = sflux['iwave'], sflux['iflux'] / scale
-   y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
-   fig.x(x, y, color='black', fill_alpha=0.7, line_alpha=1.0, size=12, line_width=3)
+   try:
+      sflux = data['results']['igrid_search']['synflux']
+      x, y = sflux['iwave'], sflux['iflux'] / scale
+      y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
+      fig.x(x, y, color='black', fill_alpha=0.7, line_alpha=1.0, size=12, line_width=3)
+   except Exception:
+      pass
    
    #-- plot the observations
    fig.circle('wave', 'flux', color='white', source=photsource, name='hover',
@@ -414,26 +446,61 @@ def plot_sedfit_ci2d(datafile):
    return figures
 
 
+#============================================================================================
+# Error plots (empty plot in case an exception is thrown
+#============================================================================================
+
+def plot_error():
+   
+   fig = bpl.figure(plot_width=600, plot_height=400, responsive=False, 
+                    toolbar_location=None)
+   
+   error_text = mpl.Label(x=300, y=200, x_units='screen', y_units='screen', 
+                          text='An error occured when trying to plot this dataset!',
+                          text_color='red', text_align='center')
+
+   fig.add_layout(error_text)
+   
+   return fig
+
+def plot_error_large():
+   
+   fig = bpl.figure(plot_width=800, plot_height=600, responsive=False, 
+                    toolbar_location=None)
+   
+   error_text = mpl.Label(x=400, y=300, x_units='screen', y_units='screen', 
+                          text='An error occured when trying to plot this dataset!',
+                          text_color='red', text_align='center')
+
+   fig.add_layout(error_text)
+   
+   return fig
+
 def plot_dataset(datafile, method):
    """
    General plotting function for analysis
    """
    
-   if method.name == 'SED fit':
-      return plot_sedfit(datafile)
-   else:
-      return plot_generic(datafile)
+   try:
+      if method.name == 'SED fit':
+         return plot_sedfit(datafile)
+      else:
+         return plot_generic(datafile)
+   except Exception, e:
+      return plot_error()
    
 def plot_dataset_large(datafile, method):
    """
    General plotting function for analysis, makes the large version plot for 
    the detail pages including extra info when hovering over a figure
    """
-   
-   if method.name == 'SED fit':
-      return plot_sedfit_large(datafile)
-   else:
-      return plot_generic_large(datafile)
+   try:
+      if method.name == 'SED fit':
+         return plot_sedfit_large(datafile)
+      else:
+         return plot_generic_large(datafile)
+   except Exception, e:
+      return plot_error_large()
    
 def plot_parameter_ci(datafile, method):
    """

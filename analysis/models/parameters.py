@@ -3,11 +3,13 @@
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
-from django.db.models.signals import post_delete, post_save, pre_save, post_init
+from django.db.models.signals import pre_delete, post_delete, post_save, pre_save, post_init
 from django.dispatch import receiver
 
 from stars.models import Star
 from .datasource import  DataSet, DataTable, DataSource
+
+from analysis.aux import parameter_derivation
 
 import numpy as np
 
@@ -212,47 +214,28 @@ class DerivedParameter(Parameter):
    
    source_parameters = models.ManyToManyField(Parameter, blank=True, related_name='derived_parameters')
    
-   def create(self):
+   def create(self):   
       try:
-         k1 = Parameter.objects.get(star__exact=self.star, name__exact='K', 
-                              component__exact=1, average__exact=True)
-         k2 = Parameter.objects.get(star__exact=self.star, name__exact='K', 
-                              component__exact=2, average__exact=True)
-         self.source_parameters.add(k1)
-         self.source_parameters.add(k2)
+         names, components = parameter_derivation.find_parameters(self)
+         for n, c in zip(names, components):
+            p = Parameter.objects.get(star__exact=self.star, name__exact=n, 
+                              component__exact=c, average__exact=True)
+            self.source_parameters.add(p)
+         
       except Exception, e:
          print e
    
    def update(self):
-      k1 = self.source_parameters.get(name__exact='K', component__exact=1, average__exact=True)
-      k2 = self.source_parameters.get(name__exact='K', component__exact=2, average__exact=True)
+      try:
+         parameter_derivation.calculate(self)
+         self.average = True
+         
+         return True
+      except Exception, e:
+         print e
+         
+         return False
       
-      q = np.random.normal(k1.value, k1.error, 512) / np.random.normal(k2.value, k2.error, 512)
-      self.value = np.average(q)
-      self.error = np.std(q)
-      
-      #M = self.source_parameters.get(name__exact='mass')
-      #g = self.source_parameters.get(name__exact='logg')
-      
-      #G = 6.673839999999998e-05
-      #M = np.random.normal(M.value, M.error, 512)
-      #g = np.random.normal(g.value, g.error, 512)
-      #r = np.sqrt(G * M * 1.988547e+30 / 10**g) / 69550800000.0
-      
-      #self.name = 'radius'
-      #self.value = np.average(r)
-      #self.error = np.std(r)
-      #self.unit = 'Rsol'
-      #self.component = 1
-      #self.average = True
-      
-   #def __str__(self):
-      #return "Derived parameter"
-      
-   #def save(self, *args, **kwargs):
-      #super(DerivedParameter, self).save(*args, **kwargs)
-      #self.update()
-      #super(DerivedParameter, self).save(*args, **kwargs)
    
 
 #======================================================================================
@@ -368,8 +351,25 @@ def average_parameter_bookkeeping(sender, **kwargs):
 # DERIVED parameter handling
 #======================================================================================
 
+
+@receiver(pre_save, sender=DerivedParameter)
+def derived_parameter_update_on_save(sender, **kwargs):
+   """
+   When a derived parameter is saved, update its value and error first.
+   """
+   if kwargs['raw']: return
+
+   param = kwargs['instance']
+   if not param._state.adding:
+      # only update parameter if it is modified, not on creation
+      success = param.update()
+      
+      if not success:
+         param.delete()
+
+
 @receiver(post_save, sender=DerivedParameter)
-def derived_parameter_find_sources(sender, **kwargs):
+def derived_parameter_find_sources_on_create(sender, **kwargs):
    """
    When a new Derived parameter is created, find all necesary parameters
    to derive it from
@@ -380,6 +380,41 @@ def derived_parameter_find_sources(sender, **kwargs):
    #   to calculate it.
    if kwargs['created']:
       param.create()
+      param.update()
    
-   #-- upon any update of this parameter, recalculate it's value.
-   param.update()
+
+
+
+#@receiver(post_delete, sender=Parameter)
+@receiver(post_save, sender=Parameter)
+def derived_parameter_bookkeeping_on_update(sender, **kwargs):
+   """
+   Check if there are any derived parameters using this parameter, 
+   and if so, update theire values
+   """
+   if kwargs.get('raw', False):
+      return
+   
+   param = kwargs['instance']
+   
+   if param.derived_parameters.exists():
+      # Update derived parameters if there are any
+      for p in param.derived_parameters.all():
+         p.save()
+         
+
+@receiver(pre_delete, sender=Parameter)
+def derived_parameter_bookkeeping_on_delete(sender, **kwargs):
+   """
+   Check if there are any derived parameters using this parameter, 
+   and if so, update theire values
+   """
+   if kwargs.get('raw', False):
+      return
+   
+   param = kwargs['instance']
+   
+   if param.derived_parameters.exists():
+      # Update derived parameters if there are any
+      for p in param.derived_parameters.all():
+         p.delete()

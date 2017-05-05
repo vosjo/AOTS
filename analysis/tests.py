@@ -165,7 +165,7 @@ class DeriveParameters(TestCase):
       Parameter.objects.create(star=s, name='logg', component=1, value=5.80, error=0.20, unit='cgs', data_source=ds2)
    
    
-   def test_average_parameter_create(self):
+   def test_derived_parameter_create(self):
       """
       On parameter creation, the average parameter needs to be instantiated and calculated
       """
@@ -181,9 +181,66 @@ class DeriveParameters(TestCase):
       
       source = p.source_parameters.all()
       self.assertEqual(len(source), 2, 
-                       "Source parameters not correctly loaded" )
+                       "Source parameters not correctly loaded: {}".format(p.source_parameters.all()) )
       self.assertEqual(np.round(p.value, 1), 0.4,
                        "DerivedParamter on create: value is wrong {}".format(p) )
       self.assertEqual(np.round(p.error, 2), 0.05,
                        "DerivedParamter on create: error is wrong {}".format(p) )
+      
+      
+   def test_derived_parameter_update_on_parameter_save(self):
+      """
+      When a parameter that is used to calculate a derived parameter is changed, 
+      the derived parameter needs to be changed
+      """
+      s = Star.objects.get(name__exact='Vega')
+      
+      try:
+         ds = DataSource.objects.get(name__exact='AVG')
+      except DataSource.DoesNotExist:
+         ds = DataSource.objects.create(name='AVG')
+      
+      DerivedParameter.objects.create(star=s, name='q', data_source=ds, 
+                                          average=True, component=0)
+      
+      k1 = Parameter.objects.get(star__exact=s, name__exact='K', 
+                                 component__exact=1, average__exact=False) 
+      k1.value = 3.0
+      k1.error = 0.3
+      k1.save()
+      
+      p = DerivedParameter.objects.get(star__exact=s, name__exact='q', 
+                                       average__exact=True, component__exact=0)
+      
+      self.assertEqual(np.round(p.value, 1), 0.2,
+                       "DerivedParamter on parameter update: value is wrong {}".format(p) )
+      self.assertEqual(np.round(p.error, 2), 0.03,
+                       "DerivedParamter on parameter update: error is wrong {}".format(p) )
+      
+      
+   def test_derived_parameter_delete_on_parameter_delete(self):
+      """
+      When a parameter used to calculate a derived parameter is deleted, that derived
+      parameter needs to be deleted as well.
+      """
+      s = Star.objects.get(name__exact='Vega')
+      
+      try:
+         ds = DataSource.objects.get(name__exact='AVG')
+      except DataSource.DoesNotExist:
+         ds = DataSource.objects.create(name='AVG')
+      
+      DerivedParameter.objects.create(star=s, name='q', data_source=ds, 
+                                          average=True, component=0)
+      
+      k1 = Parameter.objects.get(star__exact=s, name__exact='K', 
+                                 component__exact=1, average__exact=False) 
+      k1.delete()
+      
+      with self.assertRaises(DerivedParameter.DoesNotExist, 
+                             msg="Derived parameter on parameter delete: should be deleted."):
+         p = DerivedParameter.objects.get(star__exact=s,
+                        name__exact='q', average__exact=True, component__exact=0)
+
+      
       

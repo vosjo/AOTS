@@ -80,20 +80,6 @@ function toggleParameterValid(cb) {
    var valid = cb.checked
    
    updateParameterValid(parameter_id, valid)
-//    console.log(parameter_id);
-//    $.ajax({
-//       url : "/api/analysis/parameters/"+parameter_id+'/', 
-//       type : "PATCH",
-//       data : { valid: cb.checked },
-//       
-//       success : function(json) {
-//       },
-// 
-//       error : function(xhr,errmsg,err) {
-//             console.log(xhr.status + ": " + xhr.responseText);
-//             cb.checked = !cb.checked
-//       }
-//    });
 };
 
 function updateParameterValid(parameter_id, valid) {
@@ -113,19 +99,25 @@ function updateParameterValid(parameter_id, valid) {
 }
 
 function toggleDatasetValid(cb) {
-//    var parameter_id = cb.getAttribute('parameter_id');
-//    console.log(parameter_id);
-//    $.ajax({
-//       url : "/api/analysis/parameters/"+parameter_id+'/', 
-//       type : "PATCH",
-//       data : { valid: cb.checked },
-//       
-//       success : function(json) {
-//       },
-// 
-//       error : function(xhr,errmsg,err) {
-//             console.log(xhr.status + ": " + xhr.responseText);
-//             cb.toggle();
-//       }
-//    });
+   var dataset_id = cb.getAttribute('dataset_id');
+   var valid = cb.checked
+   
+   updateDatasetValid(dataset_id, valid)
+};
+
+function updateDatasetValid(dataset_id, valid) {
+   $.ajax({
+      url : "/api/analysis/datasets/"+dataset_id+'/', 
+      type : "PATCH",
+      data : { valid: valid },
+      
+      success : function(json) {
+         console.log(json);
+      },
+
+      error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText);
+            $('#dataset-valid-'+dataset_id).checked = !valid
+      }
+   });
 };

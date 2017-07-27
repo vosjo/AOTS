@@ -3,19 +3,6 @@
 
 {% block headertitle %}Systems: {{ star.name }} - {{ star.classification }}{% endblock %}
 
-{% block navigation %}
-   <a href="/stars/stars"> INDEX </a>
-      
-   <strong>></strong>
-   
-   <a href="/stars/stars/{{ star.id }}/"> {{ star.name }} </a>
-   
-   <strong>:</strong>
-   
-   <a href="/stars/stars/{{ star.id }}/edit" class="active"> Edit </a>
-   
-{% endblock %}
-
 {% block content %}
 
 <section id="summary">

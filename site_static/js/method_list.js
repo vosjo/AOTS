@@ -16,6 +16,7 @@ $(document).ready(function () {
       { data: 'description' },
       { data: 'slug' },
       { data: 'color', render : color_render},
+      { data: 'derived_parameters' },
       { data: 'data_type_display', width: '40' },
       { data: 'pk', render: action_render, width: '100', 
         className: 'dt-center', visible: user_authenticated},
@@ -104,6 +105,7 @@ function openMethodEditBox(tabelrow, method_data) {
    $('#method-slug').val( method_data['slug'] );
    $("#method-color").val( method_data['color'] );
    $('#method-dataType').val( method_data['data_type'] );
+   $('#method-parameters').val( method_data['derived_parameters'] );
 };
 
 function editMethod(tabelrow, method_data) {
@@ -116,6 +118,7 @@ function editMethod(tabelrow, method_data) {
                slug :        $('#method-slug').val(),
                color :       $('#method-color').val(),
                data_type :   $('#method-dataType').val(),
+               derived_parameters : $('#method-parameters').val(),
                },
       
       success : function(json) {

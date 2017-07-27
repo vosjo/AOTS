@@ -4,7 +4,7 @@ from django.contrib import messages
 from .aux import process_datasets, plot_parameters
 
 from .models import DataSet
-from .forms import UploadAnalysisFileForm
+from .forms import UploadAnalysisFileForm, ParameterPlotterForm
 
 from bokeh.resources import CDN
 from bokeh.embed import components
@@ -84,13 +84,25 @@ def method_list(request):
 
 def parameter_plotter(request):
    
-   figure = plot_parameters.plot_parameters('data', 'xpar', 'ypar')
+   parameters = {}
+   
+   if request.method == 'GET':
+      form = ParameterPlotterForm(request.GET)
+      if form.is_valid():
+         parameters = form.get_parameters()
+   else:
+      form = ParameterPlotterForm()
+   
+   
+   figure, statistics = plot_parameters.plot_parameters(parameters)
    
    script, figure = components(figure, CDN)
    
    context = {
     'figure' : figure,
     'script' : script,
+    'statistics' : statistics,
+    'form' : form,
    }
    
    return render(request, 'analysis/parameter_plotter.html', context)

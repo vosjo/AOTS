@@ -177,14 +177,16 @@
          <thead>
             <tr>
             <th>HJD</th>
+            <th>Date</th>
             <th>Instrument</th>
             <th>Exp time</th>
             </tr>
          </thead>
          <tbody>
-         {% for spec in star.spectrum_set.all %}
+         {% for spec in star.spectrum_set.all|order_by:"hjd" %}
             <tr>
-            <td><a href="/spectra/{{ spec.id }}/">{{ spec.hjd|floatformat:3 }}</a></td>
+            <td><a href="/spectra/spectra/{{ spec.id }}/">{{ spec.hjd|floatformat:3 }}</a></td>
+            <td>{{ spec.hjd|hjd2date }}</td>
             <td>{{ spec.instrument }} @ {{spec.telescope}}</td>
             <td>{{ spec.exptime }}</td>
             </tr>
@@ -208,7 +210,14 @@
       
       <section class='data-section'  id="dataset-{{dataset.pk}}">
          
-         <h3> <a href="/analysis/datasets/{{dataset.pk}}/">{{dataset.method.name}}</a> </h3>
+         <h3> 
+         <a href="/analysis/datasets/{{dataset.pk}}/">{{dataset.method.name}}</a> 
+         {% if dataset.valid %}
+         (<i class="material-icons status-icon valid bold" title='Valid'></i>)
+         {% else %}
+         (<i class="material-icons status-icon invalid bold" title='Invalid'></i>)
+         {% endif %}
+         </h3>
          
          <div class="flex-data-container j-center">
          

@@ -314,8 +314,23 @@ hr {
    content:'more_horiz';
 }
 
+.status-icon.valid:after {
+   color: #007e00;
+   content:'done'; 
+}
+
+.status-icon.invalid:after {
+   color: #d20707;
+   content:'clear';
+}
+
 .status-icon.small {
    font-size: 12px;
+}
+
+.status-icon.bold {
+   font-size: 30px;
+   font-weight: bold;
 }
 
 /* Classification div */

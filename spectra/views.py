@@ -30,9 +30,11 @@ def spectra_list(request):
 def spectra_detail(request, spectrum_id):
    #-- show detailed spectrum information
    
-   spectrum = get_object_or_404(Spectrum, pk=spectrum_id)
+   rebin = 1
+   if request.method == 'GET':
+      rebin = int(request.GET.get('rebin', 1))
    
-   all_stars = Star.objects.order_by('ra')
+   spectrum = get_object_or_404(Spectrum, pk=spectrum_id)
    
    #-- order all spectra
    all_instruments = spectrum.star.spectrum_set.values_list('instrument', flat=True)
@@ -41,12 +43,11 @@ def spectra_detail(request, spectrum_id):
       all_spectra[inst] = spectrum.star.spectrum_set.filter(instrument__exact=inst).order_by('hjd')
    
    vis = plot_visibility(spectrum_id)
-   spec = plot_spectrum(spectrum_id)
+   spec = plot_spectrum(spectrum_id, rebin=rebin)
    script, div = components({'spec':spec, 'visibility':vis}, CDN)
    
    context = {
       'spectrum': spectrum,
-      'all_stars': all_stars,
       'all_spectra': all_spectra,
       'figures': div,
       'script': script,

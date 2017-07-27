@@ -214,16 +214,17 @@ class DerivedParameter(Parameter):
    
    source_parameters = models.ManyToManyField(Parameter, blank=True, related_name='derived_parameters')
    
-   def create(self):   
-      try:
-         names, components = parameter_derivation.find_parameters(self)
-         for n, c in zip(names, components):
-            p = Parameter.objects.get(star__exact=self.star, name__exact=n, 
-                              component__exact=c, average__exact=True)
-            self.source_parameters.add(p)
+   def create(self):
+      success = parameter_derivation.find_parameters(self)
+      #try:
+         #names, components = parameter_derivation.find_parameters(self)
+         #for n, c in zip(names, components):
+            #p = Parameter.objects.get(star__exact=self.star, name__exact=n, 
+                              #component__exact=c, average__exact=True)
+            #self.source_parameters.add(p)
          
-      except Exception, e:
-         print e
+      #except Exception, e:
+         #print e
    
    def update(self):
       try:
@@ -236,6 +237,11 @@ class DerivedParameter(Parameter):
          
          return False
       
+   #-- representation of self
+   def __str__(self):
+      return "{} = {} +- {} {} -{}- ({})".format(self.cname, self.rvalue(), self.rerror(), 
+                                          self.unit, 'V' if self.valid else 'F', 'DRVD')
+      
    
 
 #======================================================================================
@@ -243,6 +249,7 @@ class DerivedParameter(Parameter):
 #======================================================================================
 
 @receiver(pre_save, sender=Parameter)
+@receiver(pre_save, sender=DerivedParameter)
 def set_cname(sender, **kwargs):
    """
    When a parameter is created or modified, update the cname based on the
@@ -380,7 +387,7 @@ def derived_parameter_find_sources_on_create(sender, **kwargs):
    #   to calculate it.
    if kwargs['created']:
       param.create()
-      param.update()
+      param.save()
    
 
 

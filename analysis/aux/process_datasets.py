@@ -1,5 +1,5 @@
  
-from analysis.models import DataSet, DataTable, Method
+from analysis.models import DataSource, DataSet, DataTable, Method, DerivedParameter
 from stars.models import Star
 
 import read_datasets
@@ -24,6 +24,39 @@ def create_parameters(analmethod, data):
                                       unit=value[3], star=analmethod.star)
    
    return len(parameters.keys())
+
+def create_derived_parameters(analmethod):
+   """
+   Adds the parameters that can be automatically derived for this method
+   """
+   
+   try:
+      ds = DataSource.objects.get(name__exact='AVG')
+   except DataSource.DoesNotExist:
+      ds = DataSource.objects.create(name='AVG')
+   
+   params = analmethod.method.derived_parameters
+   if params.strip() == '': return 0
+   
+   params = params.split(',')
+   for p in params:
+      p = p.strip()
+      if '_' in p:
+         pname = p.split('_')[-2]
+         pcomp = int(p.split('_')[-1])
+      elif p[-1] in ['0', '1', '2']:
+         pname = p[:-1]
+         pcomp = int(p[-1])
+      else:
+         pname = p
+         pcomp = 0
+      
+      p = DerivedParameter.objects.create(star=analmethod.star, name=pname,
+                                                 component=pcomp, average=True, 
+                                                 data_source = ds )
+      print p
+      
+   return len(params)
    
 def process_analysis_file(file_id):
    
@@ -86,6 +119,10 @@ def process_analysis_file(file_id):
          message += ", ({} parameters)".format(npars)
    except Exception, e:
       return False, 'Not added, error reading parameters'
+   
+   #-- add derived parameters
+   npars = create_derived_parameters(analfile)
+   if npars > 0: message += ", ({} derived parameters)".format(npars)
    
    #-- check if star already has this type of dataset, if so, replace
    #   only do so at the end so only valid datasets can replace an old one.

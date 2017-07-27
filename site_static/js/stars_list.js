@@ -95,10 +95,10 @@ $(document).ready(function () {
       $("#filter-dashboard-button").toggleClass('open');
       
       var text = $('#filter-dashboard-button').text();
-      if (text == "menu"){
+      if (text == "filter_list"){
             $('#filter-dashboard-button').text("close");
       } else {
-            $('#filter-dashboard-button').text("menu");
+            $('#filter-dashboard-button').text("filter_list");
       }
    };
    

@@ -487,6 +487,7 @@ def plot_dataset(datafile, method):
       else:
          return plot_generic(datafile)
    except Exception, e:
+      print e
       return plot_error()
    
 def plot_dataset_large(datafile, method):
@@ -500,6 +501,7 @@ def plot_dataset_large(datafile, method):
       else:
          return plot_generic_large(datafile)
    except Exception, e:
+      print e
       return plot_error_large()
    
 def plot_parameter_ci(datafile, method):

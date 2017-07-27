@@ -105,6 +105,9 @@ class Method(models.Model):
    #-- plot type defines what the structure of the hdf5 file is
    data_type = models.CharField(max_length=7, choices=PLOT_CHOISES, default=GENERIC)
    
+   #--automatically derived parameters stored as ',' separated string
+   derived_parameters = models.TextField(default='')
+   
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)

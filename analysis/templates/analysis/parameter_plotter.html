@@ -13,28 +13,43 @@
 {% block headertitle %} Analysis: Parameter plotter {% endblock %}
 
 
-{% block navigation %}
-   <a href="/analysis/datasets"> INDEX </a>
-   <strong>|</strong> 
-   <a href="/analysis/methods"> Methods </a>
-   <strong>|</strong> 
-   <a href="/analysis/plotter" class="active"> Parameter Plotter</a>
-{% endblock %}
-
 {% block content %}
 
    <section class='data-section'>
    
    <div class="flex-data-container j-center">
    
-      <div class="main-container border">
-         <h3> Parameter Selection</h3>
+      <div class="main-container maxw50 stretch">
+   
+         <div class="main-container border">
+            <h3> Plot Setup</h3>
+            
+            <form action="{% url "analysis:parameter_plotter" %}" method="get">
+               
+               <table>
+               <tbody>
+               {% for field in form %}
+               <tr>
+                  <th>{{field.label_tag}}</th>
+                  <td>{{field}}<td>
+                  <td style="color:red;">{{field.errors}}<td>
+               </tr>
+               {% endfor %}
+               </tbody>
+               </table>
+               
+               <input type="submit" value="Update Figure"/>
+            </form>
+            
+         </div>
          
-         <form action="{% url "analysis:parameter_plotter" %}" method="get">
-
-            <input type="submit" value="Update Figure"/>
-         </form>
+         <div class="main-container border">
+         <h3>Statistics</h3>
          
+         <p> {{statistics}} </p>
+         
+         </div>
+      
       </div>
       
       <div class="main-container border minw800">

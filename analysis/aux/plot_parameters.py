@@ -49,7 +49,8 @@ def get_data(parameters):
       values, errors = [], []
       for star in stars:
          try:
-            p = params.get(cname__exact=pname, star__exact=star.pk)
+            print pname, star.name
+            p = params.get(cname__exact=pname, star__exact=star.pk, average__exact=True)
             values.append(p.value)
             errors.append(p.error)
          except Parameter.DoesNotExist:

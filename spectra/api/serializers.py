@@ -37,14 +37,22 @@ class SpectrumSerializer(ModelSerializer):
       
 class SpecFileSerializer(ModelSerializer):
    
+   star = SerializerMethodField()
+   
    class Meta:
       model = SpecFile
       fields = [
             'pk',
+            'star',
             'spectrum',
             'hjd',
             'instrument',
             'filetype',
             'added_on',
             ]
-      read_only_fields = ('pk',)
+      read_only_fields = ('pk', 'star')
+      
+   def get_star(self, obj):
+      if obj.spectrum is None:
+         return ''
+      return obj.spectrum.star.name

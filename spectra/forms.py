@@ -85,29 +85,3 @@ class SearchSpectrumForm(forms.Form):
       
       
       
-#<table class="spectrum-table fullwidth">
-#<thead>
-   #<tr>
-   #<th class="sortcol sortdesc" data-sort="float">HJD</th>
-   #<th data-sort="string">Target</th>
-   #<th data-sort="string">Instrument</th>
-   #<th data-sort="float">Exposure time</th>
-   #<th class="nosort"></th>
-   #</tr>
-#</thead>
-#<tbody>
-#{% for spec in spectra %}
-   #<tr class="spectrum-table-row" id="spectrum-{{spec.pk}}">
-   #<th><a href="/spectra/{{ spec.id }}/">{{ spec.hjd }}</a></th>
-   #<th><a href="/stars/{{ spec.star.id }}/">{{ spec.star.name }}</a></th>
-   #<td>{{ spec.instrument }} @ {{ spec.telescope }}</td>
-   #<td>{{ spec.exptime }}</td>
-   #<td style="width: 100px"><i class="material-icons button delete" id='delete-spectrum-{{spec.pk}}'>delete</i></td>
-   #</tr>
-#{% empty %}
-   #<tr class="spectrum-table-row" id="no-spectra">
-   #<td colspan='5'>No Spectra found.</td>
-   #</tr>
-#{% endfor %}
-#</tbody>
-#</table>

@@ -17,7 +17,6 @@ from bokeh.models import widgets, FuncTickFormatter
 
 from ivs.spectra import tools as spectools
 
-
 def plot_visibility(spectrum_id):
    """
    Plot airmass and moondistance on the night of observations
@@ -97,7 +96,7 @@ def plot_visibility(spectrum_id):
    
    return fig
 
-def plot_spectrum(spectrum_id):
+def plot_spectrum(spectrum_id, rebin=1):
    
    spectrum = Spectrum.objects.get(pk=spectrum_id)
    barycor = spectrum.barycor
@@ -110,13 +109,20 @@ def plot_spectrum(spectrum_id):
    for specfile in specfiles:
       wave, flux, header = specfile.get_spectrum()
       
+      print rebin, type(rebin)
+      
+      #if rebin > 1:
+         #wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
+      
       if instrument == 'UVES':
          wave = spectools.doppler_shift(wave, barycor)
-         wave, flux = spectools.rebin_spectrum(wave, flux, binsize=5)
+         wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
       elif instrument == 'HERMES':
          sel = np.where(wave > 3860)
          wave, flux = wave[sel], flux[sel]
-         wave, flux = spectools.rebin_spectrum(wave, flux, binsize=2)
+         wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
+      else:
+         wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
       
       fig = bpl.figure(plot_width=1600, plot_height=400)
       fig.line(wave, flux, line_width=1, color="blue")

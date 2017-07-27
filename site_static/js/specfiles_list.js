@@ -15,6 +15,7 @@ $(document).ready(function () {
       { data: 'instrument' },
       { data: 'filetype' },
       { data: 'added_on' },
+      { data: 'star' },
       { data: 'spectrum', render : processed_render },
       { data: 'pk', render: action_render, width: '100', 
         className: 'dt-center', visible: user_authenticated},
@@ -22,7 +23,13 @@ $(document).ready(function () {
    });
    
    function processed_render( data, type, full, meta ) {
-      if ( data ){ return 'Yes'; } else { return 'No'; }
+      if ( data ){
+         console.log(full['spectrum']);
+         return "<a href='/spectra/spectra/" + full['spectrum'] + "' >" + 'Yes' + "</a>";
+      } else {
+         return 'No';
+      }
+//       if ( data ){ return 'Yes'; } else { return 'No'; }
    }
    
    function action_render( data, type, full, meta ) {

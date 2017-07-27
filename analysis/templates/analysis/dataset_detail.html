@@ -79,7 +79,7 @@
       </div>
       
       <div class='header-item'>
-      <input type="checkbox" id="dataset-valid-{{dataset.pk}}" {% if dataset.valid %} checked="checked" {% endif %} onchange='toggleDatasetValid(this);'>
+      <input type="checkbox" id="dataset-valid-{{dataset.pk}}" {% if dataset.valid %} checked="checked" {% endif %} onchange='toggleDatasetValid(this);' dataset_id="{{dataset.pk}}">
       <h3> Valid </h3> 
       </div>
       

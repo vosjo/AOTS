@@ -15,7 +15,7 @@ from bokeh import plotting as bpl
 from bokeh import models as mpl
 from bokeh.models import widgets, FuncTickFormatter
 
-from ivs.spectra import tools as spectools
+from spectra.aux import tools as spectools
 
 def plot_visibility(spectrum_id):
    """

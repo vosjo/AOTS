@@ -9,7 +9,7 @@ from stars.models import Star
 from analysis.aux import plot_datasets
 
 import numpy as np
-from ivs.io import hdf5
+from analysis.aux import fileio
 
 
 #-- Method related constants
@@ -181,7 +181,7 @@ class DataSet(DataSource):
    
    
    def get_data(self):
-      return hdf5.read2dict(self.datafile.path)
+      return fileio.read2dict(self.datafile.path)
    
    def make_figure(self):
       """

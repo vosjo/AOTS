@@ -18,10 +18,10 @@ import sys
 import numpy
 
 # Local modules:
-from ivs.units import uncertainties
-from ivs.units.uncertainties import umath
+from analysis.aux.units import uncertainties
+from analysis.aux.units.uncertainties import umath
 
-from ivs.units.uncertainties import __author__
+from analysis.aux.units.uncertainties import __author__
 
 __all__ = [
     # Factory functions:

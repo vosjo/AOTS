@@ -9,7 +9,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from stars.models import Star
 
 from spectra.aux import fileio 
-import pyfits
+from astropy.io import fits
 
 # Create your models here.
 
@@ -93,7 +93,7 @@ class SpecFile(models.Model):
    
    def get_header(self, hdu=0):
       try:
-         header = pyfits.getheader(self.specfile.path, hdu)
+         header = fits.getheader(self.specfile.path, hdu)
          h = {}
          for k, v in header.items():
             if k != 'comment' and k != 'history' and k != '':

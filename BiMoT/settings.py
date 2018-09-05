@@ -25,7 +25,8 @@ SECRET_KEY = '!4ls$1ketyn!-=__-c9oy!nfj@i&cimyni32jbe&@u4x*0*suq'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['46.101.118.100']
+
 
 
 # Application definition
@@ -99,6 +100,18 @@ DATABASES = {
     }
 }
 
+#DATABASES = {
+    #'default': {
+        #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        #'NAME': 'bimotdb',
+        #'USER': 'bimotuser',
+        #'PASSWORD': 'DuV3Lpwd',
+        #'HOST': 'localhost',
+        #'PORT': '',
+    #}
+#}
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -137,6 +150,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 # Uploaded files
 

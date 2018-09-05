@@ -1,4 +1,4 @@
-import pyfits
+from astropy.io import fits
 
 import numpy as np
 
@@ -13,17 +13,17 @@ def read_spectrum(filename, return_header=False):
     @return: wavelength, flux(, header)
     @rtype: array, array(, dict)
     """
-    header = pyfits.getheader(filename)
+    header = fits.getheader(filename)
     
     if header['instrume'] == 'FEROS' and not "CRVAL1" in header:
        """
        FEROS phase 3 dataproduct
        """
-       data = pyfits.getdata(filename, 1)
+       data = fits.getdata(filename, 1)
        wave, flux = data['wave'][0], data['flux'][0]
     
     else:
-      flux = pyfits.getdata(filename)
+      flux = fits.getdata(filename)
       
       #-- Make the equidistant wavelengthgrid using the Fits standard info
       #   in the header

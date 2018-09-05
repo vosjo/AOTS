@@ -21,6 +21,12 @@ virtualenv bimotenv
 source bimotenv/bin/activate
 ```
 
+if this fails with an error similar to: Error: unsupported locale setting
+do:
+```
+export LC_ALL=C
+```
+
 ### 3. Clone BiMoT from github
 ```
 git clone https://github.com/Alegria01/BiMoT.git

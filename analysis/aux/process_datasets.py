@@ -2,7 +2,7 @@
 from analysis.models import DataSource, DataSet, DataTable, Method, DerivedParameter
 from stars.models import Star
 
-import read_datasets
+from . import read_datasets
  
 def create_parameters(analmethod, data):
    """
@@ -54,7 +54,7 @@ def create_derived_parameters(analmethod):
       p = DerivedParameter.objects.create(star=analmethod.star, name=pname,
                                                  component=pcomp, average=True, 
                                                  data_source = ds )
-      print p
+      print( p )
       
    return len(params)
    
@@ -64,20 +64,20 @@ def process_analysis_file(file_id):
    
    try:
       data = analfile.get_data()
-   except Exception, e:
-      print e
+   except Exception as e:
+      print( e )
       return False, 'Not added, file has wrong format / file is unreadable'
    
    # read the basic data
    try:
       systemname, ra, dec, name, note, atype = read_datasets.get_basic_info(data)
-   except Exception, e:
-      print e
+   except Exception as e:
+      print( e )
       return False, 'Not added, basic info unreadable'
    
    try:
       analfile.method = Method.objects.get(slug__iexact = atype)
-   except Exception, e:
+   except Exception as e:
       return False, 'Not added, analysis method not known'
       
    analfile.name = name
@@ -117,7 +117,7 @@ def process_analysis_file(file_id):
          message += ", (No parameters included, default to invalid dataset)"
       else:
          message += ", ({} parameters)".format(npars)
-   except Exception, e:
+   except Exception as e:
       return False, 'Not added, error reading parameters'
    
    #-- add derived parameters

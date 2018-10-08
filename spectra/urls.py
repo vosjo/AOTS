@@ -1,10 +1,12 @@
  
-from django.conf.urls import url
+
+from django.urls import path
 
 from . import views
 
+app_name = 'spectra'
 urlpatterns = [
-    url(r'^spectra/$', views.spectra_list, name='spectra_list'),
-    url(r'^spectra/(?P<spectrum_id>[0-9]+)/$', views.spectra_detail, name='spectra_detail'),
-    url(r'^specfiles/$', views.specfile_list, name='specfile_list'),
+    path('spectra/', views.spectra_list, name='spectra_list'),
+    path('spectra/<int:spectrum_id>/', views.spectra_detail, name='spectra_detail'),
+    path('specfiles/', views.specfile_list, name='specfile_list'),
 ]

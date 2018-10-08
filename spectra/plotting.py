@@ -30,12 +30,12 @@ def plot_visibility(spectrum_id):
    
    #-- get beginning and end of night and observation
    observatory.date = Time(spectrum.hjd, format='jd').iso
-   print observatory.date.__str__()
+   print (observatory.date.__str__())
    night_start = observatory.previous_setting(sun)
    night_end = observatory.next_rising(sun)
    night_duration = (night_end - night_start) * 24 * 60 # in minutes
    
-   print night_start, night_end, night_duration / 24 / 60.
+   print (night_start, night_end, night_duration / 24 / 60.)
    
    obs_start = observatory.date - spectrum.exptime / 2 * ephem.second
    obs_end = observatory.date + spectrum.exptime / 2 * ephem.second
@@ -70,7 +70,7 @@ def plot_visibility(spectrum_id):
    fig.line(date, staralt, color='blue')
    fig.line(date, moonalt, color='orange', line_width=2)
    
-   print ephem.Date(obs_start).__str__(), ephem.Date(obs_end).__str__()
+   print (ephem.Date(obs_start).__str__(), ephem.Date(obs_end).__str__())
    obs = mpl.BoxAnnotation(left=obs_start, right=obs_end, fill_alpha=0.5, fill_color='red')
    fig.add_layout(obs)
    
@@ -109,7 +109,7 @@ def plot_spectrum(spectrum_id, rebin=1):
    for specfile in specfiles:
       wave, flux, header = specfile.get_spectrum()
       
-      print rebin, type(rebin)
+      print (rebin, type(rebin))
       
       #if rebin > 1:
          #wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)

@@ -22,8 +22,8 @@ def find_parameters(dpar, **kwargs):
                                          average__exact=True)
          dpar.source_parameters.add(p)
       return True
-   except Exception, e:
-      print e
+   except Exception as e:
+      print (e)
       return False
 
 def calculate(dpar, *args, **kwargs):

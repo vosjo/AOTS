@@ -8,7 +8,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-# Create your models here.
+from .project import Project
+
 
 @python_2_unicode_compatible  # to support Python 2
 class Tag(models.Model):
@@ -34,6 +35,10 @@ class Tag(models.Model):
 @python_2_unicode_compatible  # to support Python 2
 class Star(models.Model):
    name = models.CharField(max_length=200)
+   
+   #-- a star belongs to a specific project
+   #   when that project is deleted, the star is also deleted.
+   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
    
    #-- coordinates in decimal form
    ra = models.FloatField()
@@ -119,14 +124,14 @@ class Star(models.Model):
    def ra_hms(self):
       try:
          a = Angle(float(self.ra), unit='degree').hms
-      except Exception, e:
+      except Exception as e:
          return self.ra
       return "{:02.0f}:{:02.0f}:{:05.2f}".format(*a)
    
    def dec_dms(self):
       try:
          a = Angle(float(self.dec), unit='degree').dms
-      except Exception, e:
+      except Exception as e:
          return self.dec
       return "{:+03.0f}:{:02.0f}:{:05.2f}".format(a[0], abs(a[1]), abs(a[2]))
    

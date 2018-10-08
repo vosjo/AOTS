@@ -21,6 +21,10 @@ from .serializers import StarListSerializer, StarSerializer, TagListSerializer, 
 from stars.models import Star, Identifier, Tag
 
 class StarViewSet(viewsets.ModelViewSet):
+   """
+   list:
+   Returns a list of all stars/objects in the database
+   """
    queryset = Star.objects.all()
    serializer_class = StarSerializer
    

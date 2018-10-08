@@ -1,4 +1,6 @@
- 
+
+import numpy as np
+
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField, SlugRelatedField
 
 from stars.models import Star, Tag, Identifier
@@ -77,7 +79,7 @@ class StarListSerializer(ModelSerializer):
       return tags
    
    def get_vmag(self, obj):
-      mag = obj.photometry_set.filter(band__icontains='APASS.V')
+      mag = obj.photometry_set.filter(band__icontains='GAIA2.G')
       return 0 if len(mag)==0 else mag[0].measurement
    
    def get_classification_type_display(self, obj):
@@ -130,7 +132,7 @@ class StarSerializer(ModelSerializer):
    
    def get_vmag(self, obj):
       mag = obj.photometry_set.filter(band__icontains='JOHNSON.V')
-      return 0 if len(mag)==0 else mag[0].measurement 
+      return 0 if len(mag)==0 else np.round(mag[0].measurement, 2)
       
    def get_classification_type_display(self, obj):
       return obj.get_classification_type_display()

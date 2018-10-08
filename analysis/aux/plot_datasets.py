@@ -12,7 +12,7 @@ from bokeh.models import widgets
 
 #from ivs.io import fileio
 from analysis.aux import fileio
-from analysis.aux.units import conversions
+#from analysis.aux.units import conversions
 
 def plot_errorbars(fig, x, y, e, **kwargs):
    """
@@ -399,7 +399,7 @@ def plot_sedfit_ci2d(datafile):
    
    for name, ci in ci2d.items():
       
-      print name, ci.keys()
+      print (name, ci.keys())
       
       x0, x1 = ci['x'][0], ci['x'][-1]
       y0, y1 = ci['y'][0], ci['y'][-1]
@@ -486,8 +486,8 @@ def plot_dataset(datafile, method):
          return plot_sedfit(datafile)
       else:
          return plot_generic(datafile)
-   except Exception, e:
-      print e
+   except Exception as e:
+      print (e)
       return plot_error()
    
 def plot_dataset_large(datafile, method):
@@ -500,8 +500,8 @@ def plot_dataset_large(datafile, method):
          return plot_sedfit_large(datafile)
       else:
          return plot_generic_large(datafile)
-   except Exception, e:
-      print e
+   except Exception as e:
+      print (e)
       return plot_error_large()
    
 def plot_parameter_ci(datafile, method):

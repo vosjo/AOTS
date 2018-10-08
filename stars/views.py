@@ -17,11 +17,22 @@ import json
 
 # Create your views here.
 
-def star_list(request):
+def project_list(request):
+   """
+   Simplified view of the project page
+   """
+   return render(request, 'stars/project_list.html')
+
+
+def star_list(request, *args, **kwargs):
    """
    Simplified version of the index page using datatables and the json api from rest_framework.
    """
-   return render(request, 'stars/star_list.html', {'tags' : Tag.objects.all()})
+   
+   print (args)
+   print (kwargs)
+   
+   return render(request, 'stars/star_list.html',)# {'tags' : Tag.objects.all()})
 
    
 def tag_list(request):
@@ -99,7 +110,7 @@ def star_detail(request, star_id):
                p = allParameters.get(name__exact=name, data_source__exact=source.pk)
                values.append(r"{} &pm; {}".format(p.rvalue(), p.rerror()))
                pinfo = p
-            except Exception, e:
+            except Exception as e:
                values.append("/")
                
          params.append({'values':values, 'pinfo':pinfo})

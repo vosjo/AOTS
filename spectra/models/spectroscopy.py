@@ -98,8 +98,8 @@ class SpecFile(models.Model):
          for k, v in header.items():
             if k != 'comment' and k != 'history' and k != '':
                h[k] = v
-      except Exception, e:
-         print e
+      except Exception as e:
+         print (e)
          h = {}
       return h
    
@@ -121,5 +121,5 @@ def specFile_post_delete_handler(sender, **kwargs):
     try:
       storage, path = specfile.specfile.storage, specfile.specfile.path
       storage.delete(path)
-    except Exception, e:
-       print e
+    except Exception as e:
+       print (e)

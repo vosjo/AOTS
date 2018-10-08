@@ -8,7 +8,7 @@ from stars.models import Star
 from .forms import UploadSpecFileForm
 
 
-from aux import read_spectrum
+from .aux import read_spectrum
 
 from .plotting import plot_visibility, plot_spectrum
 

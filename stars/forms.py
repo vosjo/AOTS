@@ -73,14 +73,14 @@ class RangeField(forms.CharField):
       if not value or value=='':
          return None
       if not ':' in value:
-         print 'ERR 1'
+         print ('ERR 1')
          raise forms.ValidationError("Please provide a range using ':'.", code='no_range')
       else:
          try:
             value = value.strip().split(':')
             return (float(value[0]), float(value[1]))
-         except Exception, e:
-            print 'ERR 2'
+         except Exception as e:
+            print ('ERR 2')
             raise forms.ValidationError('Cannot interpret provided range', code='invalid_range')
          
 

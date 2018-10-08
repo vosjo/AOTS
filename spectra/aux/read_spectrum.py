@@ -8,8 +8,8 @@ from spectra.models import Spectrum, SpecFile
 from stars.models import Star
 from stars.aux import add_star_from_spectrum
 
-import instrument_headers
-import observatories
+from . import instrument_headers
+from . import observatories
 
 from django.contrib import messages
 

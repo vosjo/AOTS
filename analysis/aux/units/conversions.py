@@ -957,7 +957,7 @@ def derive_wrapper(fctn):
     @functools.wraps(fctn)
     def func(*args,**kwargs):
         argspec = inspect.getargspec(fctn)
-        print argspec
+        print (argspec)
         result = fctn(*args,**kwargs)
         return result
     return func
@@ -3045,7 +3045,7 @@ if __name__=="__main__":
     #-- do the conversion
     output = convert(_from,_to,*args,**options)
     
-    #-- and nicely print to the screen
+    ##-- and nicely print to the screen
     if _to=='SI':
         fac,_to = breakdown(_from)
     if _from=='SI':

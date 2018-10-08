@@ -1,7 +1,20 @@
  
 # BiMoT
 
-## Instalation instructions
+## Setup postgres
+
+start postgres comand line
+```
+sudo -u postgres psql
+```
+
+connect to our database and list all tables:
+```
+\c bimotdb
+\dt
+```
+
+## Instaling Django
 
 This will install BiMoT using a python virtualenv to avoid conflicts with other packages.
 
@@ -45,9 +58,18 @@ To run BiMoT localy, using the simple sqlite database and the included server:
 
 ### 1. setup the database
 ```
-python manage.py makemigrations
+python manage.py makemigrations stars
+python manage.py makemigrations spectra
+python manage.py makemigrations analysis
 python manage.py migrate
 ```
+
+In case you want a fresh start, run:
+```
+find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
+find . -path "*/migrations/*.pyc"  -delete
+```
+and drop the database or remove the db.sqlite3 file
 
 ### 2. create a admin user
 ```

@@ -59,3 +59,14 @@ def mpg22():
    observatory.elevation = 2335
    
    return observatory
+
+def smarts():
+   """
+   The smarts 0.9 and 1.5m telescopes at CTIO
+   """
+   observatory = ephem.Observer()
+   observatory.lon = '-70:48:23.49'
+   observatory.lat = '-30:10:10.78'
+   observatory.elevation = 2207
+   
+   return observatory

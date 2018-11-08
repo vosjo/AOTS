@@ -539,6 +539,17 @@ div.flex-data-container {
    justify-content: space-around;
 }
 
+.project-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 500px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 5px;
+  border: solid 2px rgba(64, 117, 144, 0.3);
+  align-items: center;
+}
+
 div.tag-container {
    position: relative;
    display: flex;

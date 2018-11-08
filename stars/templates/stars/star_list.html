@@ -7,7 +7,7 @@
 
 {% endblock %}
 
-{% block headertitle %} Systems: Index {% endblock %}
+{% block headertitle %} Systems: Index ({{project.name}}) {% endblock %}
 
 {% block navigation %}
    <a href="/stars/stars" class="active"> INDEX </a>
@@ -16,6 +16,8 @@
 {% endblock %}
 
 {% block content %}
+
+<i display="none" id="project-pk" project={{project.pk}}></i>
 
 <i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
 

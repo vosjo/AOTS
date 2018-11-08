@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-from .models import Star, Tag
+from .models import Star, Tag, Project
 from analysis.models import Method, DataSet, DataSource, Parameter
 from analysis import models as analModels
 
@@ -21,27 +21,33 @@ def project_list(request):
    """
    Simplified view of the project page
    """
-   return render(request, 'stars/project_list.html')
+   
+   projects = Project.objects.all()
+   
+   context = {'projects': projects}
+   
+   return render(request, 'stars/project_list.html', context)
 
 
-def star_list(request, *args, **kwargs):
+def star_list(request, project=None,  **kwargs):
    """
    Simplified version of the index page using datatables and the json api from rest_framework.
    """
    
-   print (args)
-   print (kwargs)
+   project = get_object_or_404(Project, slug=project)
    
-   return render(request, 'stars/star_list.html',)# {'tags' : Tag.objects.all()})
+   return render(request, 'stars/star_list.html', {'project': project, 'tags': Tag.objects.all()})
 
    
-def tag_list(request):
+def tag_list(request, project=None,  **kwargs):
    """
    Simple view showing all defined tags, and allowing for deletion and creation of new ones.
    Tag retrieval, deletion and creation is handled through the API
    """
    
-   return render(request, 'stars/tag_list.html')
+   project = get_object_or_404(Project, slug=project)
+   
+   return render(request, 'stars/tag_list.html', {'project': project})
 
 
 def star_detail(request, star_id):

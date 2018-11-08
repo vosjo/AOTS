@@ -3,7 +3,39 @@ import numpy as np
 
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField, SlugRelatedField
 
-from stars.models import Star, Tag, Identifier
+from stars.models import Project, Star, Tag, Identifier
+
+
+# ===============================================================
+# PROJECTS
+# ===============================================================
+
+class ProjectListSerializer(ModelSerializer):
+   
+   class Meta:
+      model = Project
+      fields = [
+            'name',
+            'description',
+            'slug',
+            'pk',
+      ]
+      read_only_fields = ('pk',)
+      
+      
+class ProjectSerializer(ModelSerializer):
+   
+   class Meta:
+      model = Project
+      fields = [
+            'name',
+            'description',
+            'slug',
+            'logo',
+            'pk',
+      ]
+      read_only_fields = ('pk',)    
+   
 
 # ===============================================================
 # TAGS
@@ -58,6 +90,7 @@ class StarListSerializer(ModelSerializer):
       fields = [
             'pk',
             'name',
+            'project',
             'ra',
             'dec',
             'ra_hms',
@@ -102,11 +135,14 @@ class StarSerializer(ModelSerializer):
    classification_type_display = SerializerMethodField()
    observing_status_display = SerializerMethodField()
    
+   
+   
    class Meta:
       model = Star
       fields = [
             'pk',
             'name',
+            'project',
             'ra',
             'dec',
             'ra_hms',
@@ -123,6 +159,9 @@ class StarSerializer(ModelSerializer):
       ]
       read_only_fields = ('pk', 'tags', 'vmag', 
                           'classification_type_display', 'observing_status_display')
+      
+   
+   
    
    def get_tags(self, obj):
       # this has to be used instead of a through field, as otherwise

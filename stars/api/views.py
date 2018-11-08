@@ -11,29 +11,88 @@
 from django.http import JsonResponse
 import json
 
+from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework as filters
+
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 
-from .serializers import StarListSerializer, StarSerializer, TagListSerializer, TagSerializer, IdentifierListSerializer
+from django.core.exceptions import ObjectDoesNotExist
 
-from stars.models import Star, Identifier, Tag
+from .serializers import ProjectListSerializer, ProjectSerializer, StarListSerializer, StarSerializer, TagListSerializer, TagSerializer, IdentifierListSerializer
+
+from stars.models import Project, Star, Identifier, Tag
+
+# ===============================================================
+# PROJECTS
+# ===============================================================
+
+class ProjectViewSet(viewsets.ModelViewSet):
+   """
+   list:
+   Returns a list of all projects in the database
+   """
+   queryset = Project.objects.all()
+   serializer_class = ProjectSerializer
+   
+   def list(self, request):
+      queryset = Project.objects.all()
+      serializer = ProjectListSerializer(queryset, many=True)
+      return Response(serializer.data)
+
+
+# ===============================================================
+# STARS
+# ===============================================================
+
+
+class StarFilter(filters.FilterSet):
+   
+   min_ra = filters.NumberFilter(field_name="ra", lookup_expr='gte')
+   max_ra = filters.NumberFilter(field_name="ra", lookup_expr='lte')
+   
+   min_dec = filters.NumberFilter(field_name="dec", lookup_expr='gte')
+   max_dec = filters.NumberFilter(field_name="dec", lookup_expr='lte')
+   
+   classification = filters.CharFilter(field_name="classification", lookup_expr='icontains')
+   
+   classification_type = filters.MultipleChoiceFilter(field_name="classification_type", choices=Star.CLASSIFICATION_TYPE_CHOICES)
+   
+   status = filters.MultipleChoiceFilter(field_name="observing_status", choices=Star.OBSERVING_STATUS_CHOICES)
+   
+   tags = filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all())
+   
+   class Meta:
+      model = Star
+      fields = ['project',]
+
 
 class StarViewSet(viewsets.ModelViewSet):
    """
    list:
    Returns a list of all stars/objects in the database
    """
+   
    queryset = Star.objects.all()
    serializer_class = StarSerializer
    
-   def list(self, request):
-      queryset = Star.objects.all()
-      serializer = StarListSerializer(queryset, many=True)
-      return Response(serializer.data)
+   filter_backends = (DjangoFilterBackend,)
+   filterset_class = StarFilter
+   
+   
+   
+   def get_serializer_class(self):
       
+      print ( self.request.__dict__ )
       
+      if self.action == 'list':
+         return StarListSerializer
+      if self.action == 'retrieve':
+         return StarSerializer
+      return serializers.Default
+   
    
 #class StarViewSet(viewsets.ModelViewSet):
    #queryset = Star.objects.all()

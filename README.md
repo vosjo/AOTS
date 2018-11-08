@@ -65,6 +65,7 @@ python manage.py migrate
 ```
 
 In case you want a fresh start, run:
+
 ```
 find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
 find . -path "*/migrations/*.pyc"  -delete

@@ -3,6 +3,7 @@ from django.conf.urls import include, url
 from rest_framework import routers
 
 from .views import (
+   ProjectViewSet,
    StarViewSet, #star_remove_tag, star_add_tag,
    TagViewSet,
    IdentifierViewSet,

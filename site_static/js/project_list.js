@@ -6,14 +6,11 @@ $(document).ready(function () {
    // Table functionality
    tag_table = $('#tagtable').DataTable({
 //    autoWidth: true,
-//    paging: false,
-//    info: false,
-   serverSide: true,
+   paging: false,
+   info: false,
    ajax: {
-      url: '/api/stars/tags/?format=datatables',
-      data: function ( d ) {
-        d.project = $('#project-pk').attr('project');
-      },
+      url: '/api/stars/projects/',
+      dataSrc: '' 
    },
    columns: [
       { data: 'name' },

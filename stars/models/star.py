@@ -20,6 +20,10 @@ class Tag(models.Model):
    
    name = models.CharField(max_length=75, unique=True)
    
+   #-- a tag belongs to a specific project
+   #   when that project is deleted, the star is also deleted.
+   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
+   
    description = models.TextField(default='')
    
    color = models.CharField(max_length=7, default='#8B0000') # color as hex color value

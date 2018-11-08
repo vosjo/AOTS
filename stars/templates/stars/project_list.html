@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+{% include "datatables.html" %}
+<script type="text/javascript" src="{% static 'js/tags_list.js' %}"></script>
+{% endblock %}
+
+{% block headertitle %} Projects {% endblock %}
+
+{% block navigation %}
+   <a href="/stars/stars"> INDEX </a>
+   <strong>|</strong> 
+   <a href="/stars/tags" class="active"> Tags </a>
+{% endblock %}
+
+
+{% block content %}
+
+
+<section class='data-section' id="pojects">
+
+<div class="flex-data-container j-center">
+
+   {% for project in projects %}
+      
+      <div class='project-container'  id="project-{{project.pk}}">
+         
+         <div class="block w600">
+         <h3>
+         <a href="/{{project.slug}}/stars/">{{project.name}}</a>
+         </h3>
+         
+         <i>{{project.description}}</i>
+         </div>
+         
+      </div>
+   {% endfor %}
+   
+</div>
+   
+</section>
+   
+
+{% endblock %}

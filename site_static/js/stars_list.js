@@ -4,56 +4,18 @@ var edit_status_window = null;
 var edit_tags_window = null;
 var all_tags = null;
 
-// Function to handle specific table search based on filters
-$.fn.dataTable.ext.search.push(
-function( settings, data, dataIndex, rowData, counter ) {
-   // RA filter (convert from hours to decimal)
-   var min_ra = parseFloat( $('#filter_ra').val().split(':')[0] ) / 24 * 360 || 0;
-   var max_ra = parseFloat( $('#filter_ra').val().split(':')[1] ) / 24 * 360 || 360;
-   var ra = parseFloat( rowData['ra'] ) || 0; 
-   
-   // Dec filter
-   var min_dec = parseFloat( $('#filter_dec').val().split(':')[0] ) || -90 ;
-   var max_dec = parseFloat( $('#filter_dec').val().split(':')[1] ) || 90 ;
-   var dec = parseFloat( rowData['dec'] ) || 0; 
-   
-   // Magnitude filter
-   var min_mag = parseFloat( $('#filter_mag').val().split(':')[0] ) || -1 ;
-   var max_mag = parseFloat( $('#filter_mag').val().split(':')[1] ) || 90 ;
-   var mag = parseFloat( rowData['vmag'] ) || 0; 
-   
-   // Classification type
-   var selected_class = $("#classification_options input:checked").map( function () { return this.value; }).get();
-   var classType = rowData['classification_type'];
-   
-   // Observing Status
-   var selected_status = $("#status_options input:checked").map( function () { return this.value; }).get();
-   var status = rowData['observing_status'];
-   
-   // Tags
-   var selected_tags = $("#tag_filter_options input:checked").map( function () { return parseInt(this.value); }).get();
-   var tag_ids = rowData['tag_ids'];
-   
-   if ( ra >= min_ra && ra <= max_ra &&
-         dec >= min_dec && dec <= max_dec &&
-         mag >= min_mag && mag <= max_mag &&
-         (selected_class.length == 0 || selected_class.indexOf(classType) > -1) &&
-         (selected_status.length == 0 || selected_status.indexOf(status) > -1) &&
-         (selected_tags.length == 0 || selected_tags.every(elem => tag_ids.indexOf(elem) > -1))
-      )
-      {
-         return true;
-      }
-}
-);
 
 $(document).ready(function () {
 
    star_table = $('#datatable').DataTable({
    dom: 'l<"toolbar">frtip',
+   serverSide: true, 
    ajax: {
-      url: '/api/stars/stars/',
-      dataSrc: '' 
+      url: '/api/stars/stars/?format=datatables',
+      data: get_filter_keywords,
+//       function ( d ) {
+//         d.project = $('#project-pk').attr('project');
+//       },
    },
    columns: [
       { orderable:      false,
@@ -72,7 +34,7 @@ $(document).ready(function () {
          width: '70', 
          className: "dt-center" },
    ],
-   paging: false,
+   paging: true,
    scrollY: '600px',
    scrollCollapse: true,
    autoWidth: true,
@@ -149,6 +111,29 @@ $(document).ready(function () {
    
 });
 
+
+// Table filter functionality
+
+function get_filter_keywords( d ) {
+   
+      var selected_class = $("#classification_options input:checked").map( function () { return this.value; }).get();
+      
+      console.log(selected_class)
+      console.log(d)
+   
+      d = $.extend( {}, d, {
+        "project": $('#project-pk').attr('project'),
+        "min_ra": parseFloat( $('#filter_ra').val().split(':')[0] ) / 24 * 360 || 0,
+        "max_ra": parseFloat( $('#filter_ra').val().split(':')[1] ) / 24 * 360 || 360,
+        "min_dec": parseFloat( $('#filter_dec').val().split(':')[0] ) || -90,
+        "max_dec": parseFloat( $('#filter_dec').val().split(':')[1] ) || 90,
+        "classification": selected_class,
+      } );
+      
+      console.log(d)
+      
+      return d
+}
 
 
 // Table renderers

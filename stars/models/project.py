@@ -22,7 +22,7 @@ class Project(models.Model):
    
    description = models.TextField(default='')
    
-   logo = models.FileField(upload_to='projects/')
+   logo = models.FileField(upload_to='projects/', null=True, blank=True)
    
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)

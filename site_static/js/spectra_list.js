@@ -22,8 +22,10 @@ $(document).ready(function () {
    spectra_table = $('#spectratable').DataTable({
    autoWidth: false,
    ajax: {
-      url: '/api/spectra/spectra/',
-      dataSrc: '' 
+      url: '/api/observations/spectra/?format=datatables',
+      data: function ( d ) {
+        d.project = $('#project-pk').attr('project');
+      },
    },
    columns: [
       {
@@ -43,7 +45,7 @@ $(document).ready(function () {
    });
    
    function hjd_render( data, type, full, meta ) {
-      return "<a href='/spectra/spectra/" + full['pk'] + "' >" + data + "</a>"
+      return "<a href='/w/observations/spectra/" + full['pk'] + "' >" + data + "</a>"
    }
    
    function star_render( data, type, full, meta ) {

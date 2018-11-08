@@ -10,17 +10,12 @@
 
 {% block headertitle %} Spectrum Files {% endblock %}
 
-{% block navigation %}
-   <a href="/spectra/spectra/"> INDEX </a>
-   <strong> | </strong>
-   <a href="/spectra/upload" class="active"> UPLOAD </a>
-{% endblock %}
-
 {% block content %}
 
+<i display="none" id="project-pk" project={{project.pk}}></i>
 
 <div class='upload'>
-   <form action="{% url "spectra:specfile_list" %}" method="post" enctype="multipart/form-data" class="upload" id="specfile-upload-form">
+   <form action="{% url "observations:specfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload" id="specfile-upload-form">
       <h3> Add new spectra </h3>
       
       {% if user.is_authenticated %}

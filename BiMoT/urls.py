@@ -27,17 +27,18 @@ router.register(r'projects', ProjectViewSet)
 
 
 urlpatterns = [
-   path('', star_views.project_list, name='projects'),
-   #path('<slug:project>', RedirectView.as_view(url='{}/stars/stars/', permanent=False)),
-   path('<slug:project>/', include('stars.urls'), name='stars'),
-   #path('<slug:project>/stars/', include('stars.urls', namespace='stars'), name='stars'),
-   path('<slug:project>/spectra/', include('spectra.urls'), name='spectra'),
-   path('<slug:project>/analysis/', include('analysis.urls'), name='analysis'),
+   path('', RedirectView.as_view(pattern_name='projects')),
+   #path('w/<slug:project>', RedirectView.as_view(url='{}/stars/stars/', permanent=False)),
+   path('w/projects/', star_views.project_list, name='projects'),
+   path('w/<slug:project>/', RedirectView.as_view(pattern_name='systems:star_list')),
+   path('w/<slug:project>/systems/', include('stars.urls', namespace='systems')),
+   path('w/<slug:project>/observations/', include('spectra.urls', namespace='observations')),
+   path('w/<slug:project>/analysis/', include('analysis.urls', namespace='analysis')),
    
-   path(r'api/', include(router.urls), name='project-api'),
-   path(r'api/stars/', include("stars.api.urls"), name='stars-api'),
-   path(r'api/spectra/', include("spectra.api.urls"), name='spectra-api'),
-   path(r'api/analysis/', include("analysis.api.urls"), name='analysis-api'),
+   path('api/', include(router.urls), name='project-api'),
+   path('api/stars/', include("stars.api.urls", namespace='systems-api') ),
+   path('api/observations/', include("spectra.api.urls", namespace='observations-api') ),
+   path('api/analysis/', include("analysis.api.urls", namespace='analysis-api') ),
    
    path(r'admin/', admin.site.urls),
    

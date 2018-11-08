@@ -63,11 +63,14 @@ $(document).ready(function () {
    var firstLevel = window.location.pathname.split( '/' )[1]
    var secondLevel = window.location.pathname
    
+   console.log(firstLevel)
+   console.log(secondLevel)
+   
    // Copy the correct navigation subdivision into the 2nd level navigation bar
-   $('a[href*="'+firstLevel+'"]').siblings('ul').clone().appendTo("#subtoolbar");
+//    $('a[href*="'+secondLevel+'"]').siblings('ul').clone().appendTo("#subtoolbar");
    
    // toggle the active class for the 1st and 2nd level navigation bar
-   $('#toolbar a[href^="/'+firstLevel+'"]').parent('li').toggleClass('active');
-   $('#subtoolbar a[href*="'+secondLevel+'"]').parent('li').toggleClass('active');
+   $('#toolbar a[href*="/'+secondLevel+'"]').parent('li').toggleClass('active');
+//    $('#subtoolbar a[href*="'+secondLevel+'"]').parent('li').toggleClass('active');
    
 });

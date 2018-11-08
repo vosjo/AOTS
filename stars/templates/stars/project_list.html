@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+
 {% load static %}
 
 {% block head %}
@@ -28,7 +28,7 @@
          
          <div class="block w600">
          <h3>
-         <a href="/{{project.slug}}/stars/">{{project.name}}</a>
+         <a href= {% url 'systems:star_list' project.slug %}>{{project.name}}</a>
          </h3>
          
          <i>{{project.description}}</i>

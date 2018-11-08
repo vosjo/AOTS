@@ -29,6 +29,7 @@ from stars.models import Project, Star, Identifier, Tag
 # PROJECTS
 # ===============================================================
 
+
 class ProjectViewSet(viewsets.ModelViewSet):
    """
    list:
@@ -80,8 +81,6 @@ class StarViewSet(viewsets.ModelViewSet):
    
    filter_backends = (DjangoFilterBackend,)
    filterset_class = StarFilter
-   
-   
    
    def get_serializer_class(self):
       
@@ -136,9 +135,18 @@ class StarViewSet(viewsets.ModelViewSet):
 # TAGS
 # ===============================================================
 
+class TagFilter(filters.FilterSet):
+   
+   class Meta:
+      model = Tag
+      fields = ['project',]
+
 class TagViewSet(viewsets.ModelViewSet):
    queryset = Tag.objects.all()
    serializer_class = TagSerializer
+   
+   filter_backends = (DjangoFilterBackend,)
+   filterset_class = TagFilter
 
 
 # ===============================================================

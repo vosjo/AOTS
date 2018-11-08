@@ -7,8 +7,10 @@ $(document).ready(function () {
    specfile_table = $('#specfiletable').DataTable({
    autoWidth: false,
    ajax: {
-      url: '/api/spectra/specfiles/',
-      dataSrc: '' 
+      url: '/api/observations/specfiles/?format=datatables',
+      data: function ( d ) {
+        d.project = $('#project-pk').attr('project');
+      },
    },
    columns: [
       { data: 'hjd' },

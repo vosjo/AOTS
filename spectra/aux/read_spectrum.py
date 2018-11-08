@@ -152,7 +152,7 @@ def process_specfile(specfile_id):
       spectrum.specfile_set.add(specfile)
       message += "Specfile added to existing Spectrum {}".format(spectrum)
    else:
-      spectrum = Spectrum()
+      spectrum = Spectrum(project=specfile.project)
       spectrum.save()
       spectrum.specfile_set.add(specfile)
    

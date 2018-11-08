@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 
 from .models import Spectrum, SpecFile
-from stars.models import Star
+from stars.models import Star, Project
 
 from .forms import UploadSpecFileForm
 
@@ -19,15 +19,17 @@ from bokeh.embed import components
 
 
 
-def spectra_list(request):
+def spectra_list(request, project=None,  **kwargs):
    """
    simplified version of spectra index page using datatables and restframework api
    """
-      
-   return render(request, 'spectra/spectra_list.html')
+   
+   project = get_object_or_404(Project, slug=project)
+   
+   return render(request, 'spectra/spectra_list.html', {'project': project})
 
 
-def spectra_detail(request, spectrum_id):
+def spectra_detail(request, spectrum_id, project=None,  **kwargs):
    #-- show detailed spectrum information
    
    rebin = 1
@@ -56,7 +58,11 @@ def spectra_detail(request, spectrum_id):
    
    return render(request, 'spectra/spectra_detail.html', context)
 
-def specfile_list(request):
+def specfile_list(request, project=None,  **kwargs):
+   
+   project = get_object_or_404(Project, slug=project)
+   
+   print (project)
    
    upload_form = UploadSpecFileForm()
    
@@ -69,7 +75,7 @@ def specfile_list(request):
             files = request.FILES.getlist('specfile')
             for f in files:
                #-- save the new specfile
-               newspec = SpecFile(specfile=f)
+               newspec = SpecFile(specfile=f, project=project)
                newspec.save()
                
                #-- now process it and add it to a Spectrum and Object
@@ -77,11 +83,11 @@ def specfile_list(request):
                level = messages.SUCCESS if success else messages.ERROR
                messages.add_message(request, level, message)
                
-            return HttpResponseRedirect(reverse('spectra:specfile_list'))
+            return HttpResponseRedirect(reverse('spectra:specfile_list', kwargs={'project':project.slug}))
    
    elif request.method != 'GET' and not request.user.is_authenticated:
       messages.add_message(request, messages.ERROR, "You need to login for that action!")
    
-   context = {'upload_form': upload_form}
+   context = {'project': project, 'upload_form': upload_form}
    
    return render(request, 'spectra/specfiles_list.html', context)

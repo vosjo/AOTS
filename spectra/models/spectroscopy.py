@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 from django.utils.encoding import python_2_unicode_compatible
 
-from stars.models import Star
+from stars.models import Star, Project
 
 from spectra.aux import fileio 
 from astropy.io import fits
@@ -19,6 +19,10 @@ class Spectrum(models.Model):
    #-- a spectrum belongs to one star only and is deleted when the star 
    #   is deleted. However, a star can be added after creation.
    star = models.ForeignKey(Star, on_delete=models.CASCADE, blank=True, null=True)
+   
+   #-- a spectrum belongs to a specific project
+   #   when that project is deleted, the star is also deleted.
+   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
    
    hjd = models.FloatField(default=0)
    
@@ -75,6 +79,10 @@ class SpecFile(models.Model):
    #   spectrum is deleted, as the spectrum can be rebuild from the info in the
    #   specfile.
    spectrum = models.ForeignKey(Spectrum, on_delete=models.SET_NULL, blank=True, null=True,)
+   
+   #-- a specfile belongs to a specific project
+   #   when that project is deleted, the star is also deleted.
+   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
    
    #-- fields necesary to detect doubles. If spectra have same hjd, instrument and file
    #   type, they are probably the same spectrum

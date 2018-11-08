@@ -6,6 +6,8 @@ from .views import (
    ParameterViewSet, DatasetViewSet, MethodViewSet, processDataSet, 
    )
 
+app_name = 'analysis-api'
+
 router = routers.DefaultRouter()
 router.register(r'methods', MethodViewSet)
 router.register(r'datasets', DatasetViewSet)

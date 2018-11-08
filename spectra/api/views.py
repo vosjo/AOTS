@@ -8,6 +8,9 @@
    #RetrieveUpdateAPIView
 #)
 
+from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework as filters
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -18,13 +21,42 @@ from spectra.models import Spectrum, SpecFile
 
 from spectra.aux import read_spectrum
 
+
+# ===============================================================
+# Spectrum
+# ===============================================================
+
+class SpectrumFilter(filters.FilterSet):
+   
+   class Meta:
+      model = Spectrum
+      fields = ['project',]
+
 class SpectrumViewSet(viewsets.ModelViewSet):
    queryset = Spectrum.objects.all()
    serializer_class = SpectrumSerializer
    
+   filter_backends = (DjangoFilterBackend,)
+   filterset_class = SpectrumFilter
+
+# ===============================================================
+# SpecFile
+# ===============================================================
+
+class SpecFileFilter(filters.FilterSet):
+   
+   class Meta:
+      model = SpecFile
+      fields = ['project',]
+
 class SpecFileViewSet(viewsets.ModelViewSet):
    queryset = SpecFile.objects.all()
    serializer_class = SpecFileSerializer
+   
+   filter_backends = (DjangoFilterBackend,)
+   filterset_class = SpecFileFilter
+
+
 
 @api_view(['POST'])
 def processSpecfile(request, pk):

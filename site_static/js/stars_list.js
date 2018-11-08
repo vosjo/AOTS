@@ -13,9 +13,6 @@ $(document).ready(function () {
    ajax: {
       url: '/api/stars/stars/?format=datatables',
       data: get_filter_keywords,
-//       function ( d ) {
-//         d.project = $('#project-pk').attr('project');
-//       },
    },
    columns: [
       { orderable:      false,
@@ -35,7 +32,9 @@ $(document).ready(function () {
          className: "dt-center" },
    ],
    paging: true,
-   scrollY: '600px',
+   pageLength: 50,
+   lengthMenu: [[10, 25, 50, 100, 1000], [10, 25, 50, 100, 1000]], // Use -1 for all. 
+   scrollY: '900px',
    scrollCollapse: true,
    autoWidth: true,
    });

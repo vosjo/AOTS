@@ -9,6 +9,8 @@ from .views import (
    getSpecfileHeader
    )
 
+app_name = 'observations-api'
+
 router = routers.DefaultRouter()
 router.register(r'spectra', SpectrumViewSet)
 router.register(r'specfiles', SpecFileViewSet)

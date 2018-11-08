@@ -9,6 +9,8 @@ from .views import (
    IdentifierViewSet,
    )
 
+app_name = 'stars-api'
+
 router = routers.DefaultRouter()
 router.register(r'stars', StarViewSet)
 router.register(r'tags', TagViewSet)

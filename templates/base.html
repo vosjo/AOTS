@@ -21,13 +21,14 @@
    </div>-->
    
    <div id='titlebar'>
-      <h1>Wide sdB binaries</h1>
+      <h1>AOTS: {{project.name}}</h1>
       <h2>{% block headertitle %}{% endblock %}</h2>
    </div>
    
    <nav>
    
-      <div id="toolbar" role='navigation'>
+   
+   <div id="toolbar" role='navigation'>
          <ul>
             <li>
                <i class="icon material-icons">assignment</i>
@@ -36,27 +37,27 @@
          
             <li>
                <i class="icon material-icons">star</i>
-               <a href="/stars/stars/"> Systems</a>
+               <a href={% url 'systems:star_list' project.slug %}>Systems</a>
                <ul>
-               <li><a href="/stars/stars/">Systems</a></li>
-               <li><a href="/stars/tags/">Tags</a></li>
+               <li><a href={% url 'systems:star_list' project.slug %}>Systems</a></li>
+               <li><a href={% url 'systems:tag_list' project.slug %}>Tags</a></li>
                </ul>
             </li>
             <li>
                <i class="icon material-icons">visibility</i>
-               <a href="/spectra/spectra/">Observations</a>
+               <a href={% url 'observations:spectra_list' project.slug %}>Observations</a>
                <ul>
-               <li><a href="/spectra/spectra/">Spectra</a></li>
-               <li><a href="/spectra/specfiles/">Upload Spectra files</a></li>
+               <li><a href={% url 'observations:spectra_list' project.slug %}>Spectra</a></li>
+               <li><a href={% url 'observations:specfile_list' project.slug %}>Upload Spectra files</a></li>
                </ul>
             </li>
             <li>
                <i class="icon material-icons">build</i>
-               <a href="/analysis/datasets/">Analysis</a>
+               <a href={% url 'analysis:dataset_list' project.slug %}>Analysis</a>
                <ul>
-               <li><a href="/analysis/datasets/">Datasets</a></li>
-               <li><a href="/analysis/methods/">Methods</a></li>
-               <li><a href="/analysis/plotter/">Parameter plotter</a></li>
+               <li><a href={% url 'analysis:dataset_list' project.slug %}>Datasets</a></li>
+               <li><a href={% url 'analysis:method_list' project.slug %}>Methods</a></li>
+               <li><a href={% url 'analysis:parameter_plotter' project.slug %}>Parameter plotter</a></li>
                </ul>
             </li>
             {% if user.is_authenticated %}
@@ -81,8 +82,8 @@
       
       </div>
    
-      <div id="subtoolbar" role='navigation'>
-      </div>
+<!--       <div id="subtoolbar" role='navigation'> -->
+<!--       </div> -->
    
    </nav>
    

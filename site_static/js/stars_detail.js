@@ -111,7 +111,6 @@ function openTagEditBox() {
 };
 
 function openAllParameterBox() {
-   console.log('sanity check');
    all_parameters_window = $("#allParameters").dialog({
       close: function() { all_parameters_window.dialog( "close" ); }
    });

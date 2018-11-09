@@ -84,8 +84,6 @@ class StarViewSet(viewsets.ModelViewSet):
    
    def get_serializer_class(self):
       
-      print ( self.request.__dict__ )
-      
       if self.action == 'list':
          return StarListSerializer
       if self.action == 'retrieve':

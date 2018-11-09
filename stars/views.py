@@ -121,14 +121,11 @@ def star_detail(request, star_id, project=None, **kwargs):
                values.append(r"{} &pm; {}".format(p.rvalue(), p.rerror()))
                pinfo = p
             except Exception as e:
-               print (e)
                values.append("/")
                
          params.append({'values':values, 'pinfo':pinfo})
          
       parameters.append({ 'params': params, 'component':component_names[comp] })
-   
-   print (parameters)
    
    context['allParameters'] = parameters
    context['parameterSources'] = pSource

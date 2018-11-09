@@ -116,9 +116,6 @@ $(document).ready(function () {
 function get_filter_keywords( d ) {
    
       var selected_class = $("#classification_options input:checked").map( function () { return this.value; }).get();
-      
-      console.log(selected_class)
-      console.log(d)
    
       d = $.extend( {}, d, {
         "project": $('#project-pk').attr('project'),
@@ -128,8 +125,6 @@ function get_filter_keywords( d ) {
         "max_dec": parseFloat( $('#filter_dec').val().split(':')[1] ) || 90,
         "classification": selected_class,
       } );
-      
-      console.log(d)
       
       return d
 }
@@ -147,7 +142,6 @@ function selection_render( data, type, full, meta ) {
 
 function name_render( data, type, full, meta ) {
    // Create a link to the detail for the star name
-   console.log(full['href']);
    return "<a href='"+full['href']+"'>"+data+"</a>";
 }
 
@@ -212,7 +206,6 @@ function load_tags () {
       type : "GET",
       success : function(json) {
          all_tags = json;
-//             console.log(all_tags);
          for (var i=0; i<all_tags.length; i++) {
             tag = all_tags[i];
             $('#tagOptions').prepend("<li title='" + tag['description'] + 
@@ -343,7 +336,6 @@ function updateTags() {
          }
       }
       update_star_tags(this, new_tags);
-      console.log(new_tags);
    });
    
 }

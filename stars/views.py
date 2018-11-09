@@ -50,17 +50,20 @@ def tag_list(request, project=None,  **kwargs):
    return render(request, 'stars/tag_list.html', {'project': project})
 
 
-def star_detail(request, star_id):
+def star_detail(request, star_id, project=None, **kwargs):
    """
    Detailed view for star
    interesting for input fields: https://leaverou.github.io/awesomplete/
    and also: https://gist.github.com/conor10/8085ac62fd81ad3002e582d1be65c398
    """
    
+   project = get_object_or_404(Project, slug=project)
+   
    star = get_object_or_404(Star, pk=star_id)
    context = {
       'star': star,
       'tags' : Tag.objects.all(),
+      'project': project,
    }
    
    
@@ -83,15 +86,16 @@ def star_detail(request, star_id):
          figures.append(dataset.make_figure())
          datasets.append(dataset)
    
-   #-- Make the bokeh figures and add them to the dataset
-   script, div = components(figures, CDN)
-   
-   datasections = []
-   for fig, dataset in zip(div, datasets):
-      datasections.append((fig, dataset))
-   
-   context['datasets'] = datasections
-   context['script'] = script
+   if len(figures) > 0:
+      #-- Make the bokeh figures and add them to the dataset
+      script, div = components(figures, CDN)
+      
+      datasections = []
+      for fig, dataset in zip(div, datasets):
+         datasections.append((fig, dataset))
+      
+      context['datasets'] = datasections
+      context['script'] = script
    
    #-- get all parameters for the parameter overview
    

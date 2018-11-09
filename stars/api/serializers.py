@@ -1,6 +1,8 @@
 
 import numpy as np
 
+from django.urls import reverse
+
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField, SlugRelatedField
 
 from stars.models import Project, Star, Tag, Identifier
@@ -76,6 +78,7 @@ class StarListSerializer(ModelSerializer):
    
    tags = SerializerMethodField()
    vmag = SerializerMethodField()
+   href = SerializerMethodField()
    classification_type_display = SerializerMethodField()
    observing_status_display = SerializerMethodField()
    tag_ids = PrimaryKeyRelatedField(
@@ -104,8 +107,11 @@ class StarListSerializer(ModelSerializer):
             'tags',
             'tag_ids',
             'vmag',
+            'href',
       ]
       read_only_fields = ('pk',)
+      
+      datatables_always_serialize = ('href',)
       
    def get_tags(self, obj):
       tags = TagSerializer(obj.tags, many=True).data
@@ -113,7 +119,10 @@ class StarListSerializer(ModelSerializer):
    
    def get_vmag(self, obj):
       mag = obj.photometry_set.filter(band__icontains='GAIA2.G')
-      return 0 if len(mag)==0 else mag[0].measurement
+      return 0 if len(mag)==0 else np.round(mag[0].measurement, 2)
+   
+   def get_href(self, obj):
+      return reverse('systems:star_detail', kwargs={'project':obj.project.slug, 'star_id':obj.pk})
    
    def get_classification_type_display(self, obj):
       return obj.get_classification_type_display()

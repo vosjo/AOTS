@@ -11,7 +11,7 @@ $(document).ready(function () {
    dom: 'l<"toolbar">frtip',
    serverSide: true, 
    ajax: {
-      url: '/api/stars/stars/?format=datatables',
+      url: '/api/stars/stars/?format=datatables',  //adding "&keep=id,rank" will force return of id and rank fields
       data: get_filter_keywords,
    },
    columns: [
@@ -147,7 +147,8 @@ function selection_render( data, type, full, meta ) {
 
 function name_render( data, type, full, meta ) {
    // Create a link to the detail for the star name
-   return "<a href='/stars/stars/"+full['pk']+"/'>"+data+"</a>";
+   console.log(full['href']);
+   return "<a href='"+full['href']+"'>"+data+"</a>";
 }
 
 function tag_render( data, type, full, meta ) {

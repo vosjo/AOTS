@@ -90,7 +90,7 @@ class StarViewSet(viewsets.ModelViewSet):
          return StarListSerializer
       if self.action == 'retrieve':
          return StarSerializer
-      return serializers.Default
+      return StarSerializer
    
    
 #class StarViewSet(viewsets.ModelViewSet):

@@ -100,10 +100,14 @@ REST_FRAMEWORK = {
     
 
 # Login url
-LOGIN_URL = '/login'
+LOGIN_URL = '/accounts/login'
 
 # Login redirection
-LOGIN_REDIRECT_URL = '/stars/stars'
+LOGIN_REDIRECT_URL = '/'
+
+# Logout redirection
+LOGOUT_REDIRECT_URL = '/'
+
 
 # Extra locations for static files 
 STATICFILES_DIRS = ['site_static',]

@@ -1,0 +1,89 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css"> <!--CSS for google Icons-->
+   <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
+   <link href="{% static 'jquery-ui.css' %}" rel="stylesheet" type="text/css">
+   
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+   <script type="text/javascript" src="{% static 'js/base_js.js' %}"></script>
+   <script type="text/javascript" src="{% static 'jquery-ui.min.js' %}"></script>
+   {% block head %}{% endblock %}
+</head>
+
+<body>
+   <header>
+   
+   <!--<div class="block">
+   <img width="50px" height="75px"  src="{% static 'bimot_logo.svg' %}"/>
+   </div>-->
+   
+   <div id='titlebar'>
+      <h1>AOTS</h1>
+      <h2>{% block headertitle %}{% endblock %}</h2>
+   </div>
+   
+   <nav>
+   
+   
+   <div id="toolbar" role='navigation'>
+         <ul>
+            <li>
+               <i class="icon material-icons">assignment</i>
+               <a href="/"> Projects</a>
+            </li>
+            {% if user.is_authenticated %}
+            <li>
+               <i class="icon material-icons">account_circle</i>
+               <a href="#">{{user}}</a>
+               <ul>
+               <li><a href="/accounts/logout">Log Out</a></li>
+               <li><a href="/accounts/password_change">Change password</a></li>
+               </ul>
+            </li>
+            {% else %}
+            <li>
+               <i class="icon material-icons">lock</i>
+               <ul>
+               <li><a href="/accounts/login/?next={{request.path}}">Log In</a></li>
+               <li><a href="/accounts/password_reset">Reset password</a></li>
+               </ul>
+            </li>
+            {% endif %}
+         </ul>
+      
+      </div>
+   
+<!--       <div id="subtoolbar" role='navigation'> -->
+<!--       </div> -->
+   
+   </nav>
+   
+   {% block header %}{% endblock %}
+   </header>
+   
+   <ul id="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+   </ul>
+   
+   {% block content %}{% endblock %}
+   
+   <script type="text/javascript">
+      // Save in this variable if there is an authenticated user
+      // This variable is accessible on every other place in the code.
+      {% if user.is_authenticated %} 
+      var user_authenticated = true;
+      {% else %}
+      var user_authenticated = false;
+      {% endif %}
+   </script>
+
+   <footer>
+   </footer>
+
+</body>
+</html>

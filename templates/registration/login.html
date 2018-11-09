@@ -1,11 +1,35 @@
-
+{% extends "landing.html" %}
 
 {% block headertitle %}Login{% endblock %}
 
 {% block content %}
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-  </form>
+
+<section class='data-section' id="login">
+
+<div class="flex-data-container j-center">
+
+   {% if form.errors %}
+   <p>Your username and password didn't match. Please try again.</p>
+   {% endif %}
+
+   <div class="block">
+   
+   <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Login</button>
+   </form>
+   
+   <p><a href="{% url 'password_reset' %}">Forgot password?</a></p>
+   
+   </div>
+   
+   
+  
+</div>
+
+   
+
+</section>
+
 {% endblock %}

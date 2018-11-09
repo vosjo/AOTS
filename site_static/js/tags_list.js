@@ -10,7 +10,7 @@ $(document).ready(function () {
 //    info: false,
    serverSide: true,
    ajax: {
-      url: '/api/stars/tags/?format=datatables',
+      url: '/api/systems/tags/?format=datatables',
       data: function ( d ) {
         d.project = $('#project-pk').attr('project');
       },

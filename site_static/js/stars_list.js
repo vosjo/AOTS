@@ -11,7 +11,7 @@ $(document).ready(function () {
    dom: 'l<"toolbar">frtip',
    serverSide: true, 
    ajax: {
-      url: '/api/stars/stars/?format=datatables',  //adding "&keep=id,rank" will force return of id and rank fields
+      url: '/api/systems/stars/?format=datatables',  //adding "&keep=id,rank" will force return of id and rank fields
       data: get_filter_keywords,
    },
    columns: [

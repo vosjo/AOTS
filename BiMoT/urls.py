@@ -36,7 +36,7 @@ urlpatterns = [
    path('w/<slug:project>/analysis/', include('analysis.urls', namespace='analysis')),
    
    path('api/', include(router.urls), name='project-api'),
-   path('api/stars/', include("stars.api.urls", namespace='systems-api') ),
+   path('api/systems/', include("stars.api.urls", namespace='systems-api') ),
    path('api/observations/', include("spectra.api.urls", namespace='observations-api') ),
    path('api/analysis/', include("analysis.api.urls", namespace='analysis-api') ),
    

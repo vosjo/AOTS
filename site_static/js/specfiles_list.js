@@ -26,8 +26,7 @@ $(document).ready(function () {
    
    function processed_render( data, type, full, meta ) {
       if ( data ){
-         console.log(full['spectrum']);
-         return "<a href='/spectra/spectra/" + full['spectrum'] + "' >" + 'Yes' + "</a>";
+         return "<a href='" + data + "' >" + 'Yes' + "</a>";
       } else {
          return 'No';
       }

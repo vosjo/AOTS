@@ -7,6 +7,9 @@ from spectra.models import Spectrum, SpecFile
 from stars.models import Star
 from stars.api.serializers import SimpleStarSerializer
 
+# ===============================================================
+# SPECTRA
+# ===============================================================
 
 class SpectrumSerializer(ModelSerializer):
    
@@ -40,11 +43,16 @@ class SpectrumSerializer(ModelSerializer):
    
    def get_href(self, obj):
       return reverse('observations:spectra_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.pk})
+   
 
-      
+# ===============================================================
+# SPECFILE
+# ===============================================================
+
 class SpecFileSerializer(ModelSerializer):
    
    star = SerializerMethodField()
+   spectrum = SerializerMethodField()
    
    class Meta:
       model = SpecFile
@@ -63,3 +71,17 @@ class SpecFileSerializer(ModelSerializer):
       if obj.spectrum is None:
          return ''
       return obj.spectrum.star.name
+   
+   def get_spectrum(self, obj):
+      if obj.spectrum is None:
+         return ''
+      else:
+         return reverse('observations:spectra_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.spectrum.pk})
+   
+
+
+
+
+
+
+

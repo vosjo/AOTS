@@ -32,6 +32,8 @@ def spectra_list(request, project=None,  **kwargs):
 def spectra_detail(request, spectrum_id, project=None,  **kwargs):
    #-- show detailed spectrum information
    
+   project = get_object_or_404(Project, slug=project)
+   
    rebin = 1
    if request.method == 'GET':
       rebin = int(request.GET.get('rebin', 1))
@@ -48,7 +50,12 @@ def spectra_detail(request, spectrum_id, project=None,  **kwargs):
    spec = plot_spectrum(spectrum_id, rebin=rebin)
    script, div = components({'spec':spec, 'visibility':vis}, CDN)
    
+   #spec = plot_spectrum(spectrum_id, rebin=rebin)
+   #script, div = components({'spec':spec}, CDN)
+   
+   
    context = {
+      'project': project,
       'spectrum': spectrum,
       'all_spectra': all_spectra,
       'figures': div,
@@ -58,11 +65,10 @@ def spectra_detail(request, spectrum_id, project=None,  **kwargs):
    
    return render(request, 'spectra/spectra_detail.html', context)
 
+
 def specfile_list(request, project=None,  **kwargs):
    
    project = get_object_or_404(Project, slug=project)
-   
-   print (project)
    
    upload_form = UploadSpecFileForm()
    

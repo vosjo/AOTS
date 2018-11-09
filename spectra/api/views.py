@@ -59,15 +59,15 @@ class SpecFileViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['POST'])
-def processSpecfile(request, pk):
-   success, message = read_spectrum.process_specfile(pk)
-   specfile = SpecFile.objects.get(pk=pk)
+def processSpecfile(request, specfile_pk):
+   success, message = read_spectrum.process_specfile(specfile_pk)
+   specfile = SpecFile.objects.get(pk=specfile_pk)
    
    return Response(SpecFileSerializer(specfile).data)
 
 @api_view(['GET'])
-def getSpecfileHeader(request, pk):
-   specfile = SpecFile.objects.get(pk=pk)
+def getSpecfileHeader(request, specfile_pk):
+   specfile = SpecFile.objects.get(pk=specfile_pk)
    header = specfile.get_header()
    
    return Response(header)

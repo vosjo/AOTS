@@ -15,15 +15,6 @@
 {% block headertitle %}Spectrum: {{ spectrum }} {% endblock %}
 
 
-{% block navigation %}
-   <a href="/spectra/spectra"> INDEX </a>
-      
-   <strong>></strong>
-   
-   <a href="/spectra/spectra/{{ spectrum.id }}" class="active"> {{ spectrum.star.name }} : {{ spectrum.hjd }}</a>
-   
-{% endblock %}
-
 {% block content %}
    
    <div id="sidenav">
@@ -33,9 +24,9 @@
       <ul>
       {% for spec in spectra %}
          {% if spec.id == spectrum.id %}
-         <li> <a href="/spectra/spectra/{{ spec.id }}/" class="active"> {{ spec.hjd|floatformat:3 }} - {{ spec.hjd|hjd2date }}</a> </li>
+         <li> <a href={% url 'observations:spectra_detail' project.slug spec.id %} class="active"> {{ spec.hjd|floatformat:3 }} - {{ spec.hjd|hjd2date }}</a> </li>
          {% else %}
-         <li> <a href="/spectra/spectra/{{ spec.id }}/"> {{ spec.hjd|floatformat:3 }} - {{ spec.hjd|hjd2date }}</a> </li>
+         <li> <a href={% url 'observations:spectra_detail' project.slug spec.id %}> {{ spec.hjd|floatformat:3 }} - {{ spec.hjd|hjd2date }}</a> </li>
          {% endif %}
       {% endfor %}
       </ul>
@@ -55,7 +46,7 @@
    <div class="block">
    <table class='datatable'>
    <tbody>
-      <tr> <th>Target:</th> <td class="mono"><a href="/stars/stars/{{ spectrum.star.id }}/">{{ spectrum.star.name }}</a></td> </tr>
+      <tr> <th>Target:</th> <td class="mono"><a href={% url 'systems:star_detail' project.slug spectrum.star.pk %}>{{ spectrum.star.name }}</a></td> </tr>
       <tr> <th>Target Coord.:</th> <td class="mono">{{ spectrum.star.ra|dgr2hms }}  {{ spectrum.star.dec|dgr2dms }}</td> </tr>
       <tr> <th>Obs. Coord.:</th> <td class="mono">{{ spectrum.ra|dgr2hms }}  {{ spectrum.dec|dgr2dms }}</td> </tr>
       <tr> <th>HJD:</th> <td class="mono">{{ spectrum.hjd }}</td> </tr>
@@ -95,7 +86,7 @@
       <h3>Files belonging to this spectrum</h3>
       <ul>
       {% for sfile in spectrum.specfile_set.all %}
-         <li>{{ sfile.filetype }} <a href='/api/spectra/specfiles/{{sfile.pk}}/header/' class='showheader' name='{{sfile.filetype}}'>(header)</a></li>
+         <li>{{ sfile.filetype }} <a href={% url 'observations-api:specfile_header' sfile.id %} class='showheader' name='{{sfile.filetype}}'>(header)</a></li>
       {% endfor %}
       </ul>
    </div>

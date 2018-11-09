@@ -49,7 +49,7 @@ $(document).ready(function () {
    }
    
    function star_render( data, type, full, meta ) {
-      return "<a href='" + data['href'] + "' >" + data['name'] + "</a>"
+      return "<a href='" + data['href'] + "' >" + data['name'] + "</a>" + " (" + data['ra'].toFixed(5) + " " + data['dec'].toFixed(5) + ")"
    }
    
    function instrument_render( data, type, full, meta ) {

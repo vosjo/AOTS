@@ -51,15 +51,15 @@ from .default_values import *
    #'v0':2,
    #}
 
-def split_parameter_name(name):
+#def split_parameter_name(name):
    
-   if name[-1] in ['0', '1', '2']:
-      component = int(name[-1])
-      name = name[:-1]
-   else:
-      name = name
-      component = 0
-   return name, component
+   #if name[-1] in ['0', '1', '2']:
+      #component = int(name[-1])
+      #name = name[:-1]
+   #else:
+      #name = name
+      #component = 0
+   #return name, component
 
 def combine_parameter_name(name, component):
    

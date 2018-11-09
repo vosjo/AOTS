@@ -43,6 +43,16 @@ PARAMETER_DECIMALS = {
    'v0':2,
    }
 
+def split_parameter_name(name):
+   
+   if name[-1] in ['0', '1', '2']:
+      component = int(name[-1])
+      name = name[:-1]
+   else:
+      name = name
+      component = 0
+   return name, component
+
 def round_value(value, name):
    """
    Rounds a value based on the parameter name

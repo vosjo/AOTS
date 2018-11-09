@@ -30,12 +30,12 @@
    {% for s in systems.stars %}
       {% if s.id == star.id %}
       <li> 
-         <a href="/stars/stars/{{ s.id }}" class="active">-- {{ s.name }} --</a> 
+         <a href={% url 'systems:star_detail' project.slug s.id %} class="active">-- {{ s.name }} --</a> 
       </li>
       {% else %}
       <li> 
          <i class="material-icons status-icon small {{s.observing_status}}"></i>
-         <a href="/stars/stars/{{ s.id }}">{{ s.name }}</a> 
+         <a href={% url 'systems:star_detail' project.slug s.id %}>{{ s.name }}</a> 
       </li>
       {% endif %}
    {% endfor %}
@@ -56,7 +56,7 @@
    
    <div class="tag-container j-center">
    <h3>Basic Data </h3>
-   <a href="/stars/stars/{{ star.id }}/edit" class="material-icons button edit" title="Edit">edit</a>
+   <a href={% url 'systems:star_edit' project.slug star.id %} class="material-icons button edit" title="Edit">edit</a>
    <table class="datatable">
    <tbody>
       <tr> <th>Name:</th> <td class="mono">{{ star.name }}</td> </tr>

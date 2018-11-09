@@ -45,11 +45,11 @@ $(document).ready(function () {
    });
    
    function hjd_render( data, type, full, meta ) {
-      return "<a href='/w/observations/spectra/" + full['pk'] + "' >" + data + "</a>"
+      return "<a href='" + full['href'] + "' >" + data + "</a>"
    }
    
    function star_render( data, type, full, meta ) {
-      return "<a href='/stars/stars/" + data['pk'] + "' >" + data['name'] + "</a>"
+      return "<a href='" + data['href'] + "' >" + data['name'] + "</a>"
    }
    
    function instrument_render( data, type, full, meta ) {

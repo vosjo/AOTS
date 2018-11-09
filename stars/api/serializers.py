@@ -141,6 +141,7 @@ class StarSerializer(ModelSerializer):
         source='tags',
     )
    vmag = SerializerMethodField()
+   href = SerializerMethodField()
    classification_type_display = SerializerMethodField()
    observing_status_display = SerializerMethodField()
    
@@ -165,6 +166,7 @@ class StarSerializer(ModelSerializer):
             'tags',
             'tag_ids',
             'vmag',
+            'href',
       ]
       read_only_fields = ('pk', 'tags', 'vmag', 
                           'classification_type_display', 'observing_status_display')
@@ -181,13 +183,39 @@ class StarSerializer(ModelSerializer):
    def get_vmag(self, obj):
       mag = obj.photometry_set.filter(band__icontains='JOHNSON.V')
       return 0 if len(mag)==0 else np.round(mag[0].measurement, 2)
-      
+   
+   def get_href(self, obj):
+      return reverse('systems:star_detail', kwargs={'project':obj.project.slug, 'star_id':obj.pk})
+   
    def get_classification_type_display(self, obj):
       return obj.get_classification_type_display()
    
    def get_observing_status_display(self, obj):
       return obj.get_observing_status_display()
+   
+   
+class SimpleStarSerializer(ModelSerializer):
+   """
+   Basic serializer only returning the most basic information available for the Star object. 
+   """
+   
+   href = SerializerMethodField()
+   
+   class Meta:
+      model = Star
+      fields = [
+            'pk',
+            'name',
+            'project',
+            'ra',
+            'dec',
+            'href',
+      ]
+      read_only_fields = ('pk',)
       
+   def get_href(self, obj):
+      return reverse('systems:star_detail', kwargs={'project':obj.project.slug, 'star_id':obj.pk})
+   
 
 # ===============================================================
 # IDENTIFIERS

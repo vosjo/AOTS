@@ -154,6 +154,8 @@ class Identifier(models.Model):
    
    name = models.CharField(max_length=200)
    
+   href = models.CharField(max_length=400, blank=True)
+   
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)

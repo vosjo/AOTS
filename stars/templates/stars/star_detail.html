@@ -104,7 +104,12 @@
    
       <div class="flex-data-container" id="identifier_list">
       {% for name in star.identifier_set.all %}
-      <div class="identifier" id="identifier-{{name.pk}}">{{ name.name }} 
+         {% if name.href != "" %}
+             <div class="identifier" id="identifier-{{name.pk}}"><a href={{ name.href }}  target="_blank"> {{ name.name }} </a>
+         {% else %}
+             <div class="identifier" id="identifier-{{name.pk}}">{{ name.name }} 
+         {% endif %}
+     
       <i class="material-icons button delete" id="delete-identifier-{{name.pk}}" title="Delete">delete</i>
       </div>
       {% empty %}
@@ -258,15 +263,16 @@
    {{ script|safe }}
    
    <!-- Div ect necessary for editing on page stuff with ajax -->
-   <div id="noteEdit">
+   <div id="noteEdit" title="Edit system Note">
       <textarea name="edit-message" id="edit-message" cols="80" rows="5"></textarea>
    </div>
    
-   <div id="identifierAdd">
+   <div id="identifierAdd" title="Add an identifier">
       <input id="identifierAddtext" type='text' placeholder="New alias" size="50">
+      <input id="identifierAddhref" type='text' placeholder="optional link" size="100">
    </div>
    
-   <div id="tadAdd">
+   <div id="tadAdd" title="Add a tag">
       <ul id="tagOptions">
       {% for tag in tags %}
       <li><label><input id="tag_pk_{{tag.pk}}" name="tags" type="checkbox" value="{{tag.pk}}" />{{tag.name}}</label></li>

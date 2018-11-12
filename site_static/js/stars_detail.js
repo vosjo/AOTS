@@ -6,7 +6,7 @@ $(document).ready(function() {
    // load the star info
    var star_id = $('#noteEditButton').attr('star_id')
    $.ajax({
-      url : "/api/stars/stars/"+star_id+'/', 
+      url : "/api/systems/stars/"+star_id+'/', 
       type : "GET",
       success : function(json) {
          star = json;
@@ -122,7 +122,7 @@ function openAllParameterBox() {
 function updateNote() {
    var star_id = $('#noteEditButton').attr('star_id')
    $.ajax({
-      url : "/api/stars/stars/"+star_id+'/', 
+      url : "/api/systems/stars/"+star_id+'/', 
       type : "PATCH",
       data : { note: $("#edit-message").val().trim() },
       
@@ -141,17 +141,26 @@ function updateNote() {
 // Create an identifier
 function create_identifier(){
    $.ajax({
-      url : "/api/stars/identifiers/", 
+      url : "/api/systems/identifiers/", 
       type : "POST",
       data : { star : $('#identifierAddButton').attr('star_id'), 
-               name : $('#identifierAddtext').val() },
+               name : $('#identifierAddtext').val() ,
+               href : $('#identifierAddhref').val(),
+      },
       
       success : function(json) {
 //          add identiefier to the list and close the window on success
             add_identifier_window.dialog( "close" );
-            $("#identifier_list").prepend("<div class=\"identifier\" id=\"identifier-"+json.pk+"\">"+json.name+
-            "<i class=\"material-icons button delete\" id=\"delete-identifier-"+
-            json.pk+"\">delete</i></div>");
+            if (json.href != ""){
+               $("#identifier_list").prepend("<div class=\"identifier\" id=\"identifier-"+json.pk+"\"> <a href=\"" + 
+               json.href+"\" target=\"_blank\">"+json.name+
+               "</a> <i class=\"material-icons button delete\" id=\"delete-identifier-"+
+               json.pk+"\">delete</i></div>");
+            } else {
+               $("#identifier_list").prepend("<div class=\"identifier\" id=\"identifier-"+json.pk+"\">"+json.name+
+               "<i class=\"material-icons button delete\" id=\"delete-identifier-"+
+               json.pk+"\">delete</i></div>");
+            }
       },
 
       error : function(xhr,errmsg,err) {
@@ -164,7 +173,7 @@ function create_identifier(){
 function delete_identifier(identifier_pk){
     if (confirm('Are you sure you want to remove this Identifier?')==true){
         $.ajax({
-            url : "/api/stars/identifiers/"+identifier_pk+'/',
+            url : "/api/systems/identifiers/"+identifier_pk+'/',
             type : "DELETE", 
             
             success : function(json) {
@@ -186,7 +195,7 @@ function update_tags(){
        function () { return this.value; } ).get();
    var star_pk = $('#tagEditButton').attr('star_id')
    $.ajax({
-      url : "/api/stars/stars/"+star_pk+'/', 
+      url : "/api/systems/stars/"+star_pk+'/', 
       type : "PATCH",
       contentType: "application/json; charset=utf-8",
       

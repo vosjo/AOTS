@@ -119,10 +119,12 @@ function get_filter_keywords( d ) {
    
       d = $.extend( {}, d, {
         "project": $('#project-pk').attr('project'),
-        "min_ra": parseFloat( $('#filter_ra').val().split(':')[0] ) / 24 * 360 || 0,
-        "max_ra": parseFloat( $('#filter_ra').val().split(':')[1] ) / 24 * 360 || 360,
-        "min_dec": parseFloat( $('#filter_dec').val().split(':')[0] ) || -90,
-        "max_dec": parseFloat( $('#filter_dec').val().split(':')[1] ) || 90,
+        "ra_min": parseFloat( $('#filter_ra').val().split(':')[0] ) / 24 * 360 || 0,
+        "ra_max": parseFloat( $('#filter_ra').val().split(':')[1] ) / 24 * 360 || 360,
+        "dec_min": parseFloat( $('#filter_dec').val().split(':')[0] ) || -90,
+        "dec_max": parseFloat( $('#filter_dec').val().split(':')[1] ) || 90,
+        "mag_min": parseFloat( $('#filter_mag').val().split(':')[0] ) || -1,
+        "mag_max": parseFloat( $('#filter_mag').val().split(':')[1] ) || 90,
         "classification": selected_class,
       } );
       
@@ -202,21 +204,24 @@ function deselect_row(row) {
 function load_tags () {
    // load all tags and add them to the window
    $.ajax({
-      url : "/api/stars/tags/", 
+      url : "/api/systems/tags/", 
       type : "GET",
       success : function(json) {
-         all_tags = json;
+         all_tags = json.results;
+         
          for (var i=0; i<all_tags.length; i++) {
             tag = all_tags[i];
-            $('#tagOptions').prepend("<li title='" + tag['description'] + 
+            
+            $('#tagOptions').append("<li title='" + tag['description'] + 
             "'><input class='tristate' name='tags' type='checkbox' value='" 
             + tag['pk'] + "' />" + tag['name'] + "</li>" );
             
-            $('#tag_filter_options').prepend(
+            $('#tag_filter_options').append(
             "<li><label><input id='id_status_" + i + "' name='tags' type='checkbox' value='" + 
             tag['pk'] + "' />" + tag['name'] + "</label></li>");
             
          }
+         
          $('#tagOptions').on('change', ':checkbox', function(event){ cylceTristate(event, this); });
       },
       error : function(xhr,errmsg,err) {
@@ -255,7 +260,7 @@ function updateStatus() {
 
 function updateStarStatus(row, status) {
    $.ajax({
-      url : "/api/stars/stars/"+row.data()['pk']+'/', 
+      url : "/api/systems/stars/"+row.data()['pk']+'/', 
       type : "PATCH",
       data : { observing_status: status },
       
@@ -343,7 +348,7 @@ function updateTags() {
 function update_star_tags(row, new_tags){
    var star_pk = row.data()['pk']
    $.ajax({
-      url : "/api/stars/stars/"+star_pk+'/', 
+      url : "/api/systems/stars/"+star_pk+'/', 
       type : "PATCH",
       contentType: "application/json; charset=utf-8",
       

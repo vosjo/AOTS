@@ -51,11 +51,12 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 class StarFilter(filters.FilterSet):
    
-   min_ra = filters.NumberFilter(field_name="ra", lookup_expr='gte')
-   max_ra = filters.NumberFilter(field_name="ra", lookup_expr='lte')
+   ra = filters.RangeFilter(field_name="ra",)
    
-   min_dec = filters.NumberFilter(field_name="dec", lookup_expr='gte')
-   max_dec = filters.NumberFilter(field_name="dec", lookup_expr='lte')
+   dec = filters.RangeFilter(field_name="dec",)
+   
+   mag_min = filters.NumberFilter(field_name="Gmag", method='filter_magnitude_gt', lookup_expr='gte')
+   mag_max = filters.NumberFilter(field_name="Gmag", method='filter_magnitude_lt', lookup_expr='lte')
    
    classification = filters.CharFilter(field_name="classification", lookup_expr='icontains')
    
@@ -64,6 +65,14 @@ class StarFilter(filters.FilterSet):
    status = filters.MultipleChoiceFilter(field_name="observing_status", choices=Star.OBSERVING_STATUS_CHOICES)
    
    tags = filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all())
+   
+   
+   def filter_magnitude_gt(self, queryset, name, value):
+      return queryset.filter(photometry__band="GAIA2.G",  photometry__measurement__gte=value)
+   
+   def filter_magnitude_lt(self, queryset, name, value):
+      return queryset.filter(photometry__band="GAIA2.G",  photometry__measurement__lte=value)
+   
    
    class Meta:
       model = Star

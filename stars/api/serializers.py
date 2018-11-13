@@ -111,7 +111,7 @@ class StarListSerializer(ModelSerializer):
       ]
       read_only_fields = ('pk',)
       
-      datatables_always_serialize = ('href',)
+      datatables_always_serialize = ('href','pk')
       
    def get_tags(self, obj):
       tags = TagSerializer(obj.tags, many=True).data

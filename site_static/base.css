@@ -850,7 +850,9 @@ p.upload {
    width: 40px;
    height: 40px;
    background: #fff;
+   background-color: transparent;
    font-size: 35px;
+   z-index: 99999;
 /*    color: black; */
    -webkit-transition-duration: 0.3s;
    -moz-transition-duration: 0.3s;

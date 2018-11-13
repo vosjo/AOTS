@@ -63,9 +63,6 @@ $(document).ready(function () {
    var firstLevel = window.location.pathname.split( '/' )[1]
    var secondLevel = window.location.pathname
    
-   console.log(firstLevel)
-   console.log(secondLevel)
-   
    // Copy the correct navigation subdivision into the 2nd level navigation bar
 //    $('a[href*="'+secondLevel+'"]').siblings('ul').clone().appendTo("#subtoolbar");
    

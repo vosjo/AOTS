@@ -13,23 +13,30 @@ $(document).ready(function () {
    ajax: {
       url: '/api/systems/stars/?format=datatables',  //adding "&keep=id,rank" will force return of id and rank fields
       data: get_filter_keywords,
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+
    },
+   searching: false,
    columns: [
       { orderable:      false,
          className:      'select-control',
          data:           null,
          render: selection_render,
          width:          '10',
+         searchable: false,
       },
       { data: 'name', render: name_render },
-      { data: 'ra_hms' },
-      { data: 'dec_dms' },
-      { data: 'classification', render: classification_render },
-      { data: 'vmag' },
-      { data: 'tags', render: tag_render },
+      { data: 'ra_hms' , searchable: false},
+      { data: 'dec_dms' , searchable: false},
+      { data: 'classification', render: classification_render , searchable: false },
+      { data: 'vmag' , searchable: false },
+      { data: 'tags', render: tag_render , searchable: false },
       { data: 'observing_status', render: status_render, 
          width: '70', 
-         className: "dt-center" },
+         className: "dt-center",
+         searchable: false
+      },
    ],
    paging: true,
    pageLength: 50,
@@ -116,16 +123,22 @@ $(document).ready(function () {
 function get_filter_keywords( d ) {
    
       var selected_class = $("#classification_options input:checked").map( function () { return this.value; }).get();
+      var selected_status = $("#status_options input:checked").map( function () { return this.value; }).get();
+      var selected_tags = $("#tag_filter_options input:checked").map( function () { return parseInt(this.value); }).get();
    
       d = $.extend( {}, d, {
         "project": $('#project-pk').attr('project'),
+        "name": $('#filter_name').val(),
         "ra_min": parseFloat( $('#filter_ra').val().split(':')[0] ) / 24 * 360 || 0,
         "ra_max": parseFloat( $('#filter_ra').val().split(':')[1] ) / 24 * 360 || 360,
         "dec_min": parseFloat( $('#filter_dec').val().split(':')[0] ) || -90,
         "dec_max": parseFloat( $('#filter_dec').val().split(':')[1] ) || 90,
         "mag_min": parseFloat( $('#filter_mag').val().split(':')[0] ) || -1,
         "mag_max": parseFloat( $('#filter_mag').val().split(':')[1] ) || 90,
-        "classification": selected_class,
+        "classification": $('#filter_class').val(),
+        "status": selected_status[0],
+        "tags": selected_tags[0],
+        
       } );
       
       return d
@@ -217,12 +230,14 @@ function load_tags () {
             + tag['pk'] + "' />" + tag['name'] + "</li>" );
             
             $('#tag_filter_options').append(
-            "<li><label><input id='id_status_" + i + "' name='tags' type='checkbox' value='" + 
+            "<li><label><input id='id_status_" + i + "' name='tags' type='radio' value='" + 
             tag['pk'] + "' />" + tag['name'] + "</label></li>");
             
          }
          
          $('#tagOptions').on('change', ':checkbox', function(event){ cylceTristate(event, this); });
+         
+         $('input[type=radio]').click(allow_unselect);
       },
       error : function(xhr,errmsg,err) {
          console.log(xhr.status + ": " + xhr.responseText);
@@ -347,6 +362,7 @@ function updateTags() {
 
 function update_star_tags(row, new_tags){
    var star_pk = row.data()['pk']
+   console.log(row.data());
    $.ajax({
       url : "/api/systems/stars/"+star_pk+'/', 
       type : "PATCH",
@@ -385,3 +401,13 @@ function cylceTristate(event, checkbox) {
       checkbox.removeClass("indeterminate");
    }
 };
+
+
+// Allow unchecking of radio buttons in the filter window
+$('input[type=radio]').click(allow_unselect);
+
+function allow_unselect(e){
+   if (e.ctrlKey) {
+        $(this).prop('checked', false);
+    }
+}

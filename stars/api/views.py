@@ -51,6 +51,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 class StarFilter(filters.FilterSet):
    
+   
+   name = filters.CharFilter(field_name="name", lookup_expr='icontains')
+   
    ra = filters.RangeFilter(field_name="ra",)
    
    dec = filters.RangeFilter(field_name="dec",)
@@ -66,6 +69,8 @@ class StarFilter(filters.FilterSet):
    
    tags = filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all())
    
+   #name = filters.CharFilter(field_name='name', method='filter_identifier', lookup_expr='icontains')
+   
    
    def filter_magnitude_gt(self, queryset, name, value):
       return queryset.filter(photometry__band="GAIA2.G",  photometry__measurement__gte=value)
@@ -73,10 +78,12 @@ class StarFilter(filters.FilterSet):
    def filter_magnitude_lt(self, queryset, name, value):
       return queryset.filter(photometry__band="GAIA2.G",  photometry__measurement__lte=value)
    
+   def filter_identifier(self, queryset, name, value):
+      return queryset.filter(identifier__name__icontains=value)
    
    class Meta:
       model = Star
-      fields = ['project',]
+      fields = ['project']
 
 
 class StarViewSet(viewsets.ModelViewSet):

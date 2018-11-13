@@ -22,6 +22,13 @@
    <h3 class="center"> Filter Systems </h3>
    
    <div class="table-filter-item">
+      <p class="filter-label">Name:</p>
+      <input class="filter-input" id="filter_name" type="text" placeholder="identifier">
+   </div>
+   
+   <hr>
+   
+   <div class="table-filter-item">
       <p class="filter-label">RA:</p>
       <input class="filter-input" id="filter_ra" type="text" placeholder="min:max">
    </div>
@@ -40,7 +47,7 @@
    
    <div class="table-filter-item">
       <p class="filter-label">Class:</p>
-      <input class="filter-input" id="filter_class" type="text" placeholder="class1, class2, ...">
+      <input class="filter-input" id="filter_class" type="text" placeholder="class">
    </div>
    
    <div class="table-filter-item">
@@ -56,10 +63,10 @@
    <div class="table-filter-item">
       <p class="filter-label">Status: </p>
       <ul id="status_options">
-         <li><label for="id_status_0"><input id="id_status_0" name="status" type="checkbox" value="FI" /> Finished</label></li>
-         <li><label for="id_status_1"><input id="id_status_1" name="status" type="checkbox" value="ON" /> Ongoing</label></li>
-         <li><label for="id_status_2"><input id="id_status_2" name="status" type="checkbox" value="RE" /> Rejected</label></li>
-         <li><label for="id_status_3"><input id="id_status_3" name="status" type="checkbox" value="NE" /> New</label></li>
+         <li><label for="id_status_0"><input id="id_status_0" name="status" type="radio" value="FI" /> Finished</label></li>
+         <li><label for="id_status_1"><input id="id_status_1" name="status" type="radio" value="ON" /> Ongoing</label></li>
+         <li><label for="id_status_2"><input id="id_status_2" name="status" type="radio" value="RE" /> Rejected</label></li>
+         <li><label for="id_status_3"><input id="id_status_3" name="status" type="radio" value="NE" /> New</label></li>
       </ul>
    </div>
    

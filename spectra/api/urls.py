@@ -9,7 +9,8 @@ from .views import (
    SpectrumViewSet,
    SpecFileViewSet,
    processSpecfile,
-   getSpecfileHeader
+   getSpecfileHeader,
+   ObservatoryViewSet,
    )
 
 app_name = 'observations-api'
@@ -17,12 +18,8 @@ app_name = 'observations-api'
 router = routers.DefaultRouter()
 router.register(r'spectra', SpectrumViewSet)
 router.register(r'specfiles', SpecFileViewSet)
+router.register(r'observatories', ObservatoryViewSet)
 
-#urlpatterns = [
-   #url(r'^', include(router.urls)),
-   #url(r'^specfiles/(?P<pk>[\w-]+)/process/', processSpecfile, name='process_specfile'),
-   #url(r'^specfiles/(?P<pk>[\w-]+)/header/', getSpecfileHeader, name='specfile_header'),
-#]
 
 urlpatterns = [
    path('', include(router.urls) ),

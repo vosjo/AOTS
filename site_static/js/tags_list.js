@@ -70,11 +70,12 @@ function openTagAddBox() {
 
 function addTag() {
    $.ajax({
-      url : "/api/stars/tags/", 
+      url : "/api/systems/tags/", 
       type : "POST",
       data : { name :        $('#tag-name').val(), 
                description : $('#tag-description').val(),
                color :       $('#tag-color').val(),
+               project:      $('#project-pk').attr('project'),
                },
       
       success : function(json) {
@@ -105,7 +106,7 @@ function openTagEditBox(tabelrow, data) {
 
 function editTag(tabelrow, data) {
    $.ajax({
-      url : "/api/stars/tags/"+data['pk']+'/', 
+      url : "/api/systems/tags/"+data['pk']+'/', 
       type : "PATCH",
       data : { name :        $('#tag-name').val(), 
                description : $('#tag-description').val(),
@@ -127,7 +128,7 @@ function editTag(tabelrow, data) {
 function deleteTag(tabelrow, data) {
    if (confirm('Are you sure you want to remove this Tag?')==true){
       $.ajax({
-            url : "/api/stars/tags/"+data['pk']+'/',
+            url : "/api/systems/tags/"+data['pk']+'/',
             type : "DELETE",
             success : function(json) {
                // remove the row from the table

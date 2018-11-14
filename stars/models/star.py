@@ -162,7 +162,7 @@ class Identifier(models.Model):
    
    #-- representation of self
    def __str__(self):
-      return "{} = {}".format(self.star.name, self.name)
+      return "{} = {} ; {}".format(self.star.name, self.name, self.href)
 
 
 

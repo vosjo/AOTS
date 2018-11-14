@@ -63,6 +63,7 @@ class TagSerializer(ModelSerializer):
       model = Tag
       fields = [
             'name',
+            'project',
             'description',
             'color',
             'pk',

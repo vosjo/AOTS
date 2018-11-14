@@ -15,9 +15,9 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .serializers import SpectrumSerializer, SpecFileSerializer
+from .serializers import SpectrumSerializer, SpecFileSerializer, ObservatorySerializer
 
-from spectra.models import Spectrum, SpecFile
+from spectra.models import Spectrum, SpecFile, Observatory
 
 from spectra.aux import read_spectrum
 
@@ -71,3 +71,26 @@ def getSpecfileHeader(request, specfile_pk):
    header = specfile.get_header()
    
    return Response(header)
+
+
+# ===============================================================
+# Observatory
+# ===============================================================
+
+class ObservatoryFilter(filters.FilterSet):
+   
+   name = filters.CharFilter(field_name="name", lookup_expr='icontains')
+   
+   class Meta:
+      model = Observatory
+      fields = ['latitude', 'longitude', 'altitude']
+
+
+class ObservatoryViewSet(viewsets.ModelViewSet):
+   queryset = Observatory.objects.all()
+   serializer_class = ObservatorySerializer
+   
+   filter_backends = (DjangoFilterBackend,)
+   filterset_class = ObservatoryFilter
+   
+   

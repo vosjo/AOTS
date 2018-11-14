@@ -97,3 +97,13 @@ def specfile_list(request, project=None,  **kwargs):
    context = {'project': project, 'upload_form': upload_form}
    
    return render(request, 'spectra/specfiles_list.html', context)
+
+
+def observatory_list(request, project=None,  **kwargs):
+   """
+   simplified version of observatory index page using datatables and restframework api
+   """
+   
+   project = get_object_or_404(Project, slug=project)
+   
+   return render(request, 'spectra/observatory_list.html', {'project': project})

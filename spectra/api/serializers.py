@@ -3,7 +3,7 @@ from django.urls import reverse
  
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from spectra.models import Spectrum, SpecFile
+from spectra.models import Spectrum, SpecFile, Observatory
 from stars.models import Star
 from stars.api.serializers import SimpleStarSerializer
 
@@ -79,9 +79,21 @@ class SpecFileSerializer(ModelSerializer):
          return reverse('observations:spectra_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.spectrum.pk})
    
 
+# ===============================================================
+# Observatory
+# ===============================================================
 
-
-
-
-
-
+class ObservatorySerializer(ModelSerializer):
+   
+   class Meta:
+      model = Observatory
+      fields = [
+            'pk',
+            'name',
+            'latitude',
+            'longitude',
+            'altitude',
+            'note',
+            'url',
+            ]
+      read_only_fields = ('pk',)

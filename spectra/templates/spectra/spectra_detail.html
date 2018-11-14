@@ -86,7 +86,10 @@
       <h3>Files belonging to this spectrum</h3>
       <ul>
       {% for sfile in spectrum.specfile_set.all %}
-         <li>{{ sfile.filetype }} <a href={% url 'observations-api:specfile_header' sfile.id %} class='showheader' name='{{sfile.filetype}}'>(header)</a></li>
+         <li>{{ sfile.filetype }} 
+             <a href={% url 'observations-api:specfile_header' sfile.id %} class='showheader' name='{{sfile.filetype}}'>(header)</a>
+             <a href="{{ sfile.specfile.url }}">(download)</a>
+         </li>
       {% endfor %}
       </ul>
    </div>

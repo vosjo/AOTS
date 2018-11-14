@@ -14,6 +14,7 @@ from stars.api.serializers import SimpleStarSerializer
 class SpectrumSerializer(ModelSerializer):
    
    star = SerializerMethodField()
+   observatory = SerializerMethodField()
    specfiles = SerializerMethodField()
    href = SerializerMethodField()
    
@@ -28,6 +29,7 @@ class SpectrumSerializer(ModelSerializer):
             'exptime',
             'instrument',
             'telescope',
+            'observatory',
             'specfiles',
             'href',
             ]
@@ -36,6 +38,12 @@ class SpectrumSerializer(ModelSerializer):
    def get_star(self, obj):
       return SimpleStarSerializer(obj.star).data
       #return Star.objects.get(pk=obj.star).name
+      
+   def get_observatory(self, obj):
+      try:
+         return obj.observatory.name
+      except:
+         return ''
       
    def get_specfiles(self, obj):
       specfiles = SpecFileSerializer(obj.specfile_set, many=True).data

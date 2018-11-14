@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from django.utils.encoding import python_2_unicode_compatible
 
 from stars.models import Star, Project
+from .observatory import Observatory
 
 from spectra.aux import fileio 
 from astropy.io import fits
@@ -46,6 +47,10 @@ class Spectrum(models.Model):
    wind_speed = models.FloatField(default=0) # in m/s
    wind_direction = models.FloatField(default=0) # in degrees
    seeing = models.FloatField(default=0) # in mas
+   
+   #-- observatory
+   #   prevent deletion of an observatory that is referenced by a spectrum
+   observatory = models.ForeignKey(Observatory, on_delete=models.PROTECT, null=True,)
    
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)

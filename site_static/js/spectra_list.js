@@ -125,7 +125,7 @@ function remove_specfile(spec_elem, row) {
    var pk = spec_elem.attr('id').split('-')[2]
    if (confirm('Are you sure you want to remove this File from the spectrum?')==true){
       $.ajax({
-            url : "/api/spectra/specfiles/"+pk+'/',
+            url : "/api/observations/specfiles/"+pk+'/',
             type : "PATCH",
             data : { spectrum : null},
             success : function(json) {
@@ -154,7 +154,7 @@ function delete_specfile(spec_elem, row) {
    var pk = spec_elem.attr('id').split('-')[2]
    if (confirm('Are you sure you want to delete this File from the spectrum? This can NOT be undone! If you want to remove it from this spectrum, but keep it in the database, use the remove button.')==true){
       $.ajax({
-            url : "/api/spectra/specfiles/"+pk+'/',
+            url : "/api/observations/specfiles/"+pk+'/',
             type : "DELETE",
             success : function(json) {
                // remove the specfile from DOM
@@ -189,7 +189,7 @@ function remove_specfile_from_data(data, pk) {
 function delete_spectrum(row, data) {
    if (confirm('Are you sure you want to delete this Spectrum? The individual files will be kept.')==true){
       $.ajax({
-         url : "/api/spectra/spectra/"+data['pk']+"/",
+         url : "/api/observations/spectra/"+data['pk']+"/",
          type : "DELETE", // http method
          success : function(json) {
             // delete the spectrum from the table

@@ -57,7 +57,7 @@ $(document).ready(function () {
 
 function processSpecfile(row, data) {
    $.ajax({
-      url : "/api/spectra/specfiles/"+data['pk']+'/process/',
+      url : "/api/observations/specfiles/"+data['pk']+'/process/',
       type : "POST",
       success : function(json) {
          // remove the row from the table
@@ -73,7 +73,7 @@ function processSpecfile(row, data) {
 function deleteSpecfile(row, data) {
    if (confirm('Are you sure you want to remove this spectrum file?')==true){
       $.ajax({
-         url : "/api/spectra/specfiles/"+data['pk']+'/',
+         url : "/api/observations/specfiles/"+data['pk']+'/',
          type : "DELETE",
          success : function(json) {
             // remove the row from the table

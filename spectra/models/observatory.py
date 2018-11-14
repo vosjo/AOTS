@@ -7,7 +7,7 @@ from django.utils.encoding import python_2_unicode_compatible
 
 import astropy.units as u
 from astropy.time import Time
-from astropy.coordinates import SkyCoord, AltAz
+from astropy.coordinates import EarthLocation
 from astroplan import Observer
 
 @python_2_unicode_compatible  # to support Python 2

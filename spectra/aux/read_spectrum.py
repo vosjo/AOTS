@@ -134,7 +134,8 @@ def process_specfile(specfile_id):
    duplicates = SpecFile.objects.exclude(id__exact = specfile_id) \
                    .filter(hjd__exact = specfile.hjd) \
                    .filter(instrument__iexact = specfile.instrument) \
-                   .filter(filetype__iexact = specfile.filetype)
+                   .filter(filetype__iexact = specfile.filetype) \
+                   .filter(project__exact = specfile.project.pk)
                    
    if len(duplicates) > 0:
       # this specfile already exists, so remove it

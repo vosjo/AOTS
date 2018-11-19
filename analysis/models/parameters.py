@@ -17,50 +17,6 @@ import numpy as np
 from .default_values import *
 
 
-##-- PARAMETER related constants
-
-#SYSTEM = 0
-#PRIMARY = 1
-#SECONDARY = 2
-#CBDISK = 5
-#COMPONENT_CHOICES = (
-   #(SYSTEM, 'System'),
-   #(PRIMARY,  'Primary'),
-   #(SECONDARY, 'Secondary'),      
-   #(CBDISK, 'Circumbinary Disk'),)
-
-##SYSTEM_PARAMETERS = ['p', 't0', 'e', 'omega', 'ebv']
-#STELLAR_PARAMETERS = [PRIMARY, SECONDARY]
-
-##-- PARAMETER rounding
-#PARAMETER_DECIMALS = {
-   #'teff':0, 
-   #'logg':2, 
-   #'rad':2, 
-   #'ebv':3,
-   #'z':2,
-   #'met':2,
-   #'vmicro': 1,
-   #'vrot':0,
-   #'dilution':2,
-   #'p':0, 
-   #'t0':0, 
-   #'e':3, 
-   #'omega':2, 
-   #'K':2, 
-   #'v0':2,
-   #}
-
-#def split_parameter_name(name):
-   
-   #if name[-1] in ['0', '1', '2']:
-      #component = int(name[-1])
-      #name = name[:-1]
-   #else:
-      #name = name
-      #component = 0
-   #return name, component
-
 def combine_parameter_name(name, component):
    
    if component in [1,2]:
@@ -68,46 +24,7 @@ def combine_parameter_name(name, component):
    else:
       return name
 
-#def round_value(value, name):
-   #"""
-   #Rounds a value based on the parameter name
-   #"""
-   #name, component = split_parameter_name(name)
-   
-   #decimals = PARAMETER_DECIMALS.get(name, 3)
-   #if decimals > 0:
-      #return np.round(value, decimals)
-   #else:
-      #return int(value)
 
-##-- PARAMETER sorting
-#PARAMETER_ORDER = {
-   #'p':     0, 
-   #'t0':    1, 
-   #'e':     2, 
-   #'omega': 3, 
-   #'K':     4, 
-   #'v0':    5,
-   
-   #'teff':    10, 
-   #'logg':    11, 
-   #'rad':     12, 
-   #'ebv':     13,
-   #'z':       14,
-   #'met':     14,
-   #'vmicro':  15,
-   #'vrot':    16,
-   #'dilution':17,
-   #}
-
-#def parameter_order(name):
-   #"""
-   #returns the parameter order based on its name
-   #"""
-   #if name in PARAMETER_ORDER:
-      #return PARAMETER_ORDER[name]
-   #else:
-      #return 20
 
 
 
@@ -308,6 +225,12 @@ def average_parameter_bookkeeping(sender, **kwargs):
    
    param = kwargs['instance']
    
+   try:
+      s = param.star
+   except Star.DoesNotExist:
+      #-- this star is being deleted along with all related parameters, do nothing
+      return
+   
    if not param.average:
       p = Parameter.objects.filter(name__exact      = param.name, 
                                    component__exact = param.component,
@@ -344,10 +267,12 @@ def average_parameter_bookkeeping(sender, **kwargs):
             
          except Parameter.DoesNotExist:
             
+            #-- first get the datasource containing the average parameters
             try:
-               ds = DataSource.objects.get(name__exact='AVG')
+               ds = DataSource.objects.get(name__exact='AVG', project__exact=param.star.project)
             except DataSource.DoesNotExist:
-               ds = DataSource.objects.create(name='AVG')
+               print( 'project: ', param.star.project)
+               ds = DataSource.objects.create(name='AVG', project=param.star.project)
             
             ap = Parameter.objects.create(star        = param.star, 
                                           name        = param.name, 

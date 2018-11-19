@@ -1,7 +1,10 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, reverse
+from django.http import HttpResponseRedirect
 from django.contrib import messages
 
 from .aux import process_datasets, plot_parameters
+
+from stars.models import Project
 
 from .models import DataSet
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm
@@ -11,7 +14,9 @@ from bokeh.embed import components
 
 # Create your views here.
 
-def dataset_list(request):
+def dataset_list(request, project=None,  **kwargs):
+   
+   project = get_object_or_404(Project, slug=project)
    
    upload_form = UploadAnalysisFileForm()
    
@@ -21,7 +26,7 @@ def dataset_list(request):
          files = request.FILES.getlist('datafile')
          for f in files:
             #-- save the new specfile
-            new_dataset = DataSet(datafile=f)
+            new_dataset = DataSet(datafile=f, project=project)
             new_dataset.save()
             
             #-- now process it and add it to a system.
@@ -36,17 +41,22 @@ def dataset_list(request):
             
             messages.add_message(request, level, message)
             
+            return HttpResponseRedirect(reverse('analysis:dataset_list', kwargs={'project':project.slug}))
+            
    elif request.method != 'GET' and not request.user.is_authenticated:
       messages.add_message(request, messages.ERROR, "You need to login for that action!")
    
    
-   context = { 'upload_form': upload_form}
+   context = { 'upload_form': upload_form,
+               'project': project,}
    
    return render(request, 'analysis/dataset_list.html', context)
 
 
-def dataset_detail(request, dataset_id):
+def dataset_detail(request, dataset_id, project=None,  **kwargs):
    # show details dataset information
+   
+   project = get_object_or_404(Project, slug=project)
    
    dataset = get_object_or_404(DataSet, pk=dataset_id)
    
@@ -66,6 +76,7 @@ def dataset_detail(request, dataset_id):
    script, figures = components(ci, CDN)
    
    context = {
+      'project': project,
       'dataset': dataset,
       'related_datasets': related_datasets,
       'related_stars': related_stars,
@@ -77,12 +88,16 @@ def dataset_detail(request, dataset_id):
    return render(request, 'analysis/dataset_detail.html', context)
 
 
-def method_list(request):
+def method_list(request, project=None,  **kwargs):
    
-   return render(request, 'analysis/method_list.html')
+   project = get_object_or_404(Project, slug=project)
+   
+   return render(request, 'analysis/method_list.html', {'project': project,})
 
 
-def parameter_plotter(request):
+def parameter_plotter(request, project=None,  **kwargs):
+   
+   project = get_object_or_404(Project, slug=project)
    
    parameters = {}
    
@@ -99,6 +114,7 @@ def parameter_plotter(request):
    script, figure = components(figure, CDN)
    
    context = {
+    'project': project,
     'figure' : figure,
     'script' : script,
     'statistics' : statistics,

@@ -5,8 +5,10 @@ $(document).ready(function () {
    
    dataset_table = $('#datasettable').DataTable({
    ajax: {
-      url: '/api/analysis/datasets/',
-      dataSrc: '' 
+      url: '/api/analysis/datasets/?format=datatables',
+      data: function ( d ) {
+        d.project = $('#project-pk').attr('project');
+      },
    },
    columns: [
       { data: 'star', render: star_render },
@@ -35,7 +37,7 @@ $(document).ready(function () {
 });
 
 function star_render( data, type, full, meta ) {
-   return "<a href='/stars/stars/"+full['star_pk']+"/'>"+data+"</a>";
+   return "<a href='/systems/stars/"+full['star_pk']+"/'>"+data+"</a>";
 }
 
 function name_render( data, type, full, meta ) {

@@ -4,7 +4,7 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from stars.models import Star
+from stars.models import Star, Project
 
 from analysis.aux import plot_datasets
 
@@ -15,81 +15,6 @@ from analysis.aux import fileio
 from .default_values import *
 
 
-##-- Method related constants
-#GENERIC = 'gen'
-#SED = 'sed'
-#PLOT_CHOISES = (
-   #(GENERIC, 'Generic'),
-   #(SED, 'SED hdf5'),)
-
-
-##-- PARAMETER related constants
-
-#SYSTEM = 0
-#PRIMARY = 1
-#SECONDARY = 2
-#CBDISK = 5
-#COMPONENT_CHOICES = (
-   #(SYSTEM, 'System'),
-   #(PRIMARY,  'Primary'),
-   #(SECONDARY, 'Secondary'),      
-   #(CBDISK, 'Circumbinary Disk'),)
-
-##SYSTEM_PARAMETERS = ['p', 't0', 'e', 'omega', 'ebv']
-#STELLAR_PARAMETERS = [PRIMARY, SECONDARY]
-
-##-- PARAMETER rounding
-#PARAMETER_DECIMALS = {
-   #'teff':0, 
-   #'logg':2, 
-   #'rad':2, 
-   #'ebv':3,
-   #'z':2,
-   #'met':2,
-   #'vmicro': 1,
-   #'vrot':0,
-   #'dilution':2,
-   #'p':0, 
-   #'t0':0, 
-   #'e':3, 
-   #'omega':2, 
-   #'K':2, 
-   #'v0':2,
-   #}
-
-#def round_value(value, name):
-   #"""
-   #Rounds a value based on the parameter name
-   #"""
-   #if name[-1] == '1' or name[-1] == '2':
-      #name = name[:-1]
-   
-   #decimals = PARAMETER_DECIMALS.get(name, 3)
-   #if decimals > 0:
-      #return np.round(value, decimals)
-   #else:
-      #return int(value)
-
-##-- PARAMETER sorting
-#PARAMETER_ORDER = {
-   #'p':     0, 
-   #'t0':    1, 
-   #'e':     2, 
-   #'omega': 3, 
-   #'K':     4, 
-   #'v0':    5,
-   
-   #'teff':    10, 
-   #'logg':    11, 
-   #'rad':     12, 
-   #'ebv':     13,
-   #'z':       14,
-   #'met':     14,
-   #'vmicro':  15,
-   #'vrot':    16,
-   #'dilution':17,
-   #}
-
 class Method(models.Model):
    """
    This class represents different types of analysis methods, so that new ones
@@ -98,6 +23,10 @@ class Method(models.Model):
    
    name = models.TextField(default='')
    description = models.TextField(default='')
+   
+   #-- a method belongs to a specific project in the same way as a tag does. If the project is 
+   #   deleted, the method should go to.
+   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
    
    #-- short name for the method without spaces. To be used in determining 
    #   the method used in uploaded files
@@ -126,14 +55,21 @@ class Method(models.Model):
       super(Method, self).save(**kwargs)
 
 
-class DataSource(models.Model):
+class AbstractDataSource(models.Model):
    """
    Super class for any object that has parameters attached.
    """
    
+   class Meta:
+        abstract = True
+   
    name = models.TextField(default='')
    note = models.TextField(default='')
    reference = models.TextField(default='')
+   
+   #-- A datasource belongs to a specific project. If the project is 
+   #   deleted, the method should go to.
+   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False)
    
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
@@ -141,7 +77,7 @@ class DataSource(models.Model):
    
    def source(self):
       """
-      Retruns a string representation of the source of the parameters
+      Returns a string representation of the source of the parameters
       depending on whether this object is a DataSet, DataTable or 
       a random source
       """
@@ -153,8 +89,32 @@ class DataSource(models.Model):
    #-- representation of self
    def __str__(self):
       return "{} {}".format(self.name, '({})'.format(self.reference) if self.reference else '')
+
+
+class DataSource(AbstractDataSource):
    
-class DataTable(DataSource):
+   pass
+
+class AverageDataSource(AbstractDataSource):
+   """
+   Data source class to contain the average parameters of this project. Can only be one per project
+   """
+   
+   name = models.TextField(default='AVG')
+   
+   #-- A datasource belongs to a specific project. If the project is 
+   #   deleted, the method should go to. Has to be unique as there is only 
+   #   one set of average parameters for each project
+   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False, unique=True)
+   
+   
+   def save_parameters_as_csv(self):
+      """
+      Method to save all average parameters to a text file in CSV format.
+      """
+      pass
+
+class DataTable(AbstractDataSource):
    
    #-- the table is stored in a txt file
    datafile = models.FileField(upload_to='datatables/')
@@ -167,7 +127,7 @@ class DataTable(DataSource):
    xdim = models.IntegerField(default=0)
    ydim = models.IntegerField(default=0)
 
-class DataSet(DataSource):
+class DataSet(AbstractDataSource):
    
    #-- the dataset belongs to one star, and is deleted when the star is
    #   removed.

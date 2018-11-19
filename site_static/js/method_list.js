@@ -8,8 +8,10 @@ $(document).ready(function () {
    autoWidth: false,
    paging: false,
    ajax: {
-      url: '/api/analysis/methods/',
-      dataSrc: '' 
+      url: '/api/analysis/methods/?format=datatables',
+      data: function ( d ) {
+        d.project = $('#project-pk').attr('project');
+      },
    },
    columns: [
       { data: 'name' },
@@ -17,7 +19,7 @@ $(document).ready(function () {
       { data: 'slug' },
       { data: 'color', render : color_render},
       { data: 'derived_parameters' },
-      { data: 'data_type_display', width: '40' },
+      { data: 'data_type_display', width: '100' },
       { data: 'pk', render: action_render, width: '100', 
         className: 'dt-center', visible: user_authenticated},
    ]
@@ -77,6 +79,7 @@ function addMethod() {
                slug : $('#method-slug').val(),
                color : $('#method-color').val(),
                data_type : $('#method-dataType').val(),
+               project: $('#project-pk').attr('project'),
                },
       
       success : function(json) {

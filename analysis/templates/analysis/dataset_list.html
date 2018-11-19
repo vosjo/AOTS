@@ -12,10 +12,12 @@
 
 {% block content %}
 
+<i display="none" id="project-pk" project={{project.pk}}></i>
+
 <div class='upload'>
    
   
-   <form action="{% url "analysis:dataset_list" %}" method="post" enctype="multipart/form-data" class="upload">
+   <form action="{% url "analysis:dataset_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload">
       <h3> Upload new Dataset </h3>
       
       {% if user.is_authenticated %}

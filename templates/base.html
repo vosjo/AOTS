@@ -52,8 +52,6 @@
                <li><a href={% url 'observations:observatory_list' project.slug %}>Observatories</a></li>
                </ul>
             </li>
-            
-            {% if false %}
             <li>
                <i class="icon material-icons">build</i>
                <a href={% url 'analysis:dataset_list' project.slug %}>Analysis</a>
@@ -63,7 +61,6 @@
                <li><a href={% url 'analysis:parameter_plotter' project.slug %}>Parameter plotter</a></li>
                </ul>
             </li>
-            {% endif %}
             {% if user.is_authenticated %}
             <li>
                <i class="icon material-icons">account_circle</i>

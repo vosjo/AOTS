@@ -18,7 +18,8 @@ class MethodSerializer(ModelSerializer):
             'color',
             'data_type',
             'data_type_display',
-            'derived_parameters'
+            'derived_parameters',
+            'project'
       ]
       read_only_fields = ('pk',)
       
@@ -43,6 +44,7 @@ class DataSetListSerializer(ModelSerializer):
             'method',
             'valid',
             'added_on',
+            'project',
       ]
       read_only_fields = ('pk',)
       

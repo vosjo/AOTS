@@ -18,42 +18,33 @@ data = pd.read_csv('observed_systems.csv')
 data['Note'] = data['Note'].astype(str)
 
 print (data)
+    
+#-- create a new project
+try:
+   project = Project.objects.get(name__exact='Composite sdBs')
+except Project.DoesNotExist:
+   project = Project.objects.create(name='Composite sdBs', description='Radial velocity monitoring of long period sdB+MS binaries')
 
-#-- delete everything in database
-for star in Star.objects.all():
+
+#-- delete all systems in the database for this project
+for star in Star.objects.filter(project__exact=project.pk):
     star.delete() 
-    
-for p in Project.objects.all():
-   p.delete()
-    
-#-- create a new project
-try:
-   project1 = Project.objects.get(name__exact='Composite sdBs')
-except Project.DoesNotExist:
-   project1 = Project.objects.create(name='Composite sdBs', description='Radial velocity monitoring of long period sdB+MS binaries')
-
-#-- create a new project
-try:
-   project2 = Project.objects.get(name__exact='CHIRON sdBs')
-except Project.DoesNotExist:
-   project2 = Project.objects.create(name='CHIRON sdBs', description='Radial velocity monitoring with CHIRON')
-
 
 #-- make UVES and HERMES tags
 try: 
     tuves = Tag.objects.get(name__exact='UVES')
 except Tag.DoesNotExist:
-    tuves = Tag.objects.create(name='UVES', project=project1, description='UVES spectrocopy target', color='#1E90FF')
+    tuves = Tag.objects.create(name='UVES', project=project, description='UVES spectrocopy target', color='#1E90FF')
 
 try: 
     thermes = Tag.objects.get(name__exact='HERMES')
 except Tag.DoesNotExist:
-    thermes = Tag.objects.create(name='HERMES', project=project1, description='HERMES spectrocopy target', color='#1D8B2E')
+    thermes = Tag.objects.create(name='HERMES', project=project, description='HERMES spectrocopy target', color='#1D8B2E')
 
 try: 
     tchiron = Tag.objects.get(name__exact='CHIRON')
 except Tag.DoesNotExist:
-    tchiron = Tag.objects.create(name='CHIRON', project=project2, description='CHIRON spectrocopy target', color='#8E44AD')
+    tchiron = Tag.objects.create(name='CHIRON', project=project, description='CHIRON spectrocopy target', color='#8E44AD')
 
 
 
@@ -61,7 +52,7 @@ except Tag.DoesNotExist:
 try: 
     dsgaia = DataSource.objects.get(name__exact='Gaia DR 2')
 except DataSource.DoesNotExist:
-    dsgaia = DataSource.objects.create(name='Gaia DR 2', note='2nd Gaia data release', reference='https://doi.org/10.1051/0004-6361/201833051')
+    dsgaia = DataSource.objects.create(name='Gaia DR 2', note='2nd Gaia data release', reference='https://doi.org/10.1051/0004-6361/201833051', project=project)
 
 
 
@@ -73,11 +64,6 @@ for index, star in data.iterrows():
     if 'nan' in note: note = ''
 
     name = star['name'].strip()
-    
-    if 'CHIRON' in star['spectrograph']:
-       project = project2
-    else:
-       project = project1
 
     #-- add system to database
     s = Star(name=name, project=project, ra=star['RA_gaia'], dec=star['Dec_gaia'], classification=star['class'],
@@ -86,14 +72,6 @@ for index, star in data.iterrows():
 
 
     print( name, note )
-
-    #-- Add photometry
-    #passbands = ['GALEX.FUV', 'GALEX.NUV',
-                    #'APASS.B', 'APASS.V', 'APASS.G', 'APASS.R', 'APASS.I', 
-                    #'2MASS.J', '2MASS.H', '2MASS.KS']
-    #units = ['ABmag', 'ABmag',
-                #'mag', 'mag', 'ABmag', 'ABmag', 'ABmag',
-                #'mag', 'mag', 'mag']
 
     passbands = ['GAIA2.G', 'GAIA2.BP', 'GAIA2.RP']
     units = ['mag', 'mag', 'mag']

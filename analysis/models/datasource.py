@@ -55,7 +55,7 @@ class Method(models.Model):
       super(Method, self).save(**kwargs)
 
 
-class AbstractDataSource(models.Model):
+class DataSource(models.Model):
    """
    Super class for any object that has parameters attached.
    """
@@ -90,31 +90,7 @@ class AbstractDataSource(models.Model):
    def __str__(self):
       return "{} {}".format(self.name, '({})'.format(self.reference) if self.reference else '')
 
-
-class DataSource(AbstractDataSource):
-   
-   pass
-
-class AverageDataSource(AbstractDataSource):
-   """
-   Data source class to contain the average parameters of this project. Can only be one per project
-   """
-   
-   name = models.TextField(default='AVG')
-   
-   #-- A datasource belongs to a specific project. If the project is 
-   #   deleted, the method should go to. Has to be unique as there is only 
-   #   one set of average parameters for each project
-   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False, unique=True)
-   
-   
-   def save_parameters_as_csv(self):
-      """
-      Method to save all average parameters to a text file in CSV format.
-      """
-      pass
-
-class DataTable(AbstractDataSource):
+class DataTable(DataSource):
    
    #-- the table is stored in a txt file
    datafile = models.FileField(upload_to='datatables/')
@@ -127,7 +103,7 @@ class DataTable(AbstractDataSource):
    xdim = models.IntegerField(default=0)
    ydim = models.IntegerField(default=0)
 
-class DataSet(AbstractDataSource):
+class DataSet(DataSource):
    
    #-- the dataset belongs to one star, and is deleted when the star is
    #   removed.

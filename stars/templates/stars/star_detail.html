@@ -216,7 +216,7 @@
       <section class='data-section'  id="dataset-{{dataset.pk}}">
          
          <h3> 
-         <a href="/analysis/datasets/{{dataset.pk}}/">{{dataset.method.name}}</a> 
+         <a href={% url 'analysis:dataset_detail' project.slug dataset.pk %}>{{dataset.method.name}}</a> 
          {% if dataset.valid %}
          (<i class="material-icons status-icon valid bold" title='Valid'></i>)
          {% else %}

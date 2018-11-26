@@ -133,10 +133,12 @@ def star_detail(request, star_id, project=None, **kwargs):
    return render(request, 'stars/star_detail.html', context)
 
 @login_required
-def star_edit(request, star_id):
+def star_edit(request, star_id, project=None, **kwargs):
    """
    View to handle editing of the basic star details
    """
+   
+   project = get_object_or_404(Project, slug=project)
    
    star = get_object_or_404(Star, pk=star_id)
    
@@ -147,7 +149,7 @@ def star_edit(request, star_id):
          # Delete this star and return to index
          messages.success(request, "The system: {} was successfully deleted".format(star.name))
          star.delete()
-         return redirect('stars:star_list')
+         return redirect('systems:star_list')
       
       else:
          # Update the star based on the form
@@ -159,11 +161,11 @@ def star_edit(request, star_id):
             
             # redirect details page
             messages.success(request, "This system was successfully updated")
-            return redirect('stars:star_detail', star.pk)
+            return redirect('systems:star_detail', project.slug, star.pk)
          
          
    # if a GET (or any other method) create a form for the given star
    else:
       form = StarForm(instance=star)
 
-   return render(request, 'stars/star_edit.html', {'form': form, 'star':star})
+   return render(request, 'stars/star_edit.html', {'form': form, 'star':star, 'project': project})

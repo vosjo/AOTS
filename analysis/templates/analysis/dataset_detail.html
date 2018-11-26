@@ -27,11 +27,11 @@
    {% for d in related_datasets %}
       {% if d.id == dataset.id %}
       <li> 
-         <a href="/analysis/datasets/{{ d.id }}" class="active">-- {{ d.method.name }} --</a> 
+         <a href={% url 'analysis:dataset_detail' project.slug d.pk %} class="active">-- {{ d.method.name }} --</a> 
       </li>
       {% else %}
       <li> 
-         <a href="/analysis/datasets/{{ d.id }}">{{ d.method.name }}</a> 
+         <a href={% url 'analysis:dataset_detail' project.slug d.pk %}>{{ d.method.name }}</a> 
       </li>
       {% endif %}
    {% endfor %}
@@ -46,11 +46,11 @@
    {% for d in related_stars %}
       {% if d.id == dataset.id %}
       <li> 
-         <a href="/analysis/datasets/{{ d.id }}" class="active">-- {{ d.star.name }} --</a> 
+         <a href={% url 'analysis:dataset_detail' project.slug d.pk %} class="active">-- {{ d.star.name }} --</a> 
       </li>
       {% else %}
       <li> 
-         <a href="/analysis/datasets/{{ d.id }}">{{ d.star.name }}</a> 
+         <a href={% url 'analysis:dataset_detail' project.slug d.pk %}>{{ d.star.name }}</a> 
       </li>
       {% endif %}
    {% endfor %}
@@ -72,7 +72,7 @@
       
       <div class='header-item'>
       <p class="material-icons">star</p> 
-      <h3><a href="/stars/stars/{{dataset.star.pk}}">{{ dataset.star.name }}</a></h3>  
+      <h3><a href={% url 'systems:star_detail' project.slug dataset.star.pk %}>{{ dataset.star.name }}</a></h3>  
       </div>
       
       <div class='header-item'>

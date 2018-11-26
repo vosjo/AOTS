@@ -7,6 +7,8 @@ def read2dict(filename):
    """
    Read the filestructure of a hdf5 file to a dictionary.
    
+   automatically convert attributes of type bytes to a string using utf-8 encoding
+   
    @param filename: the name of the hdf5 file to read
    @type filename: str
    @return: dictionary with read filestructure
@@ -14,7 +16,6 @@ def read2dict(filename):
    """
    
    if not os.path.isfile(filename):
-      logger.error('The file you try to read does not exist!')
       raise IOError
    
    def read_rec(hdf):
@@ -30,8 +31,10 @@ def read2dict(filename):
                res[name] = grp.value
                
       #-- read all the attributes
-      for name, atr in hdf.attrs.iteritems():
-            res[name] = atr
+      for name, atr in hdf.attrs.items():
+         if type(atr) == bytes:
+            atr = atr.decode("utf-8")
+         res[name] = atr
                
       return res
    

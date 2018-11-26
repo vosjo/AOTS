@@ -1,5 +1,5 @@
  
-from .datasource import DataTable, DataSet, DataSource, Method
+from .datasource import DataTable, DataSet, DataSource, AverageDataSource, Method
 
 from .parameters import Parameter, DerivedParameter, combine_parameter_name
 

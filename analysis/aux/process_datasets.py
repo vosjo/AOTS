@@ -65,7 +65,6 @@ def process_analysis_file(file_id):
    try:
       data = analfile.get_data()
    except Exception as e:
-      print( e )
       return False, 'Not added, file has wrong format / file is unreadable'
    
    # read the basic data
@@ -78,7 +77,8 @@ def process_analysis_file(file_id):
    try:
       analfile.method = Method.objects.get(slug__iexact = atype)
    except Exception as e:
-      return False, 'Not added, analysis method not known'
+      print ( type(atype), atype)
+      return False, 'Not added, analysis method ({}) not known'.format(atype)
       
    analfile.name = name
    analfile.note = note
@@ -88,9 +88,10 @@ def process_analysis_file(file_id):
    #-- try to find corresponding star
    if ra != 0.0 and dec != 0.0:
       star = Star.objects.filter(ra__range = (ra - 0.01, ra + 0.01), 
-                                 dec__range = (dec - 0.01, dec + 0.01))
+                                 dec__range = (dec - 0.01, dec + 0.01),
+                                 project__exact = analfile.project.pk)
    else:
-      star = Star.objects.filter(name__iexact = systemname)
+      star = Star.objects.filter(name__iexact = systemname, project__exact = analfile.project.pk)
       if not star: # there is no way to add this star, cause no coordinates are known.
          return False, "Not added, no system information present"
    
@@ -103,7 +104,7 @@ def process_analysis_file(file_id):
       message += ", added to existing System {}".format(star)
    else:
       # Need to create a new star
-      star = Star(name=systemname, ra=ra, dec=dec, classification='')
+      star = Star(name=systemname, project=analfile.project, ra=ra, dec=dec, classification='')
       star.save()
       star.dataset_set.add(analfile)
       message += ", created new System {}".format(star)
@@ -118,6 +119,7 @@ def process_analysis_file(file_id):
       else:
          message += ", ({} parameters)".format(npars)
    except Exception as e:
+      raise e
       return False, 'Not added, error reading parameters'
    
    #-- add derived parameters

@@ -31,7 +31,7 @@ def plot_generic(datafile):
    """
    hdf = h5py.File(datafile, 'r') 
    
-   fig = bpl.figure(plot_width=600, plot_height=400, responsive=False, toolbar_location=None)
+   fig = bpl.figure(plot_width=600, plot_height=400, toolbar_location=None)
    colors = ['red', 'blue', 'green']
    
    #-- plot the data
@@ -180,7 +180,7 @@ def plot_generic_ci(datafile):
          
          title = "{} = {:.2f} + {:.2f} - {:.2f}".format(name, value, emax, emin)
          
-         fig = bpl.figure(plot_width=280, plot_height=280, tools=[], responsive=False, title=title)
+         fig = bpl.figure(plot_width=280, plot_height=280, tools=[], title=title)
          
          fig.ray(x=dataset['Chi2Val']['x'], y=dataset['Chi2Val']['y'], length=0, 
                angle=np.pi/2., line_width=3)
@@ -252,7 +252,7 @@ def plot_sedfit(datafile):
    xmin = np.min(wave) - 500
    xmax = np.max(wave) + 1000
    
-   fig = bpl.figure(plot_width=600, plot_height=400, responsive=False, toolbar_location=None,
+   fig = bpl.figure(plot_width=600, plot_height=400, toolbar_location=None,
                     y_axis_type="log", y_range=(ymin, ymax),
                     x_axis_type="log", x_range=(xmin, xmax))
    
@@ -338,7 +338,7 @@ def plot_sedfit_large(datafile):
    xmin = np.min(wave) - 500
    xmax = np.max(wave) + 1000
    
-   fig = bpl.figure(plot_width=800, plot_height=600, responsive=False, toolbar_location="right",
+   fig = bpl.figure(plot_width=800, plot_height=600, toolbar_location="right",
                     y_axis_type="log", y_range=(ymin, ymax),
                     x_axis_type="log", x_range=(xmin, xmax),
                     tools=tools)
@@ -418,7 +418,7 @@ def plot_sedfit_ci2d(datafile):
       
       
       fig = bpl.figure(plot_width=280, plot_height=280, 
-                       title = name, tools=[], responsive=False)
+                       title = name, tools=[])
       
       for i in np.linspace(0, 1, 10):
          res = c.trace(i)
@@ -452,7 +452,7 @@ def plot_sedfit_ci2d(datafile):
 
 def plot_error():
    
-   fig = bpl.figure(plot_width=600, plot_height=400, responsive=False, 
+   fig = bpl.figure(plot_width=600, plot_height=400, 
                     toolbar_location=None)
    
    error_text = mpl.Label(x=300, y=200, x_units='screen', y_units='screen', 
@@ -465,7 +465,7 @@ def plot_error():
 
 def plot_error_large():
    
-   fig = bpl.figure(plot_width=800, plot_height=600, responsive=False, 
+   fig = bpl.figure(plot_width=800, plot_height=600, 
                     toolbar_location=None)
    
    error_text = mpl.Label(x=400, y=300, x_units='screen', y_units='screen', 

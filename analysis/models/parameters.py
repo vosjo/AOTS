@@ -7,7 +7,7 @@ from django.db.models.signals import pre_delete, post_delete, post_save, pre_sav
 from django.dispatch import receiver
 
 from stars.models import Star
-from .datasource import  DataSet, DataTable, DataSource
+from .datasource import  DataSource, AverageDataSource
 
 from analysis.aux import parameter_derivation
 
@@ -269,10 +269,10 @@ def average_parameter_bookkeeping(sender, **kwargs):
             
             #-- first get the datasource containing the average parameters
             try:
-               ds = DataSource.objects.get(name__exact='AVG', project__exact=param.star.project)
-            except DataSource.DoesNotExist:
+               ds = AverageDataSource.objects.get(project__exact=param.star.project)
+            except AverageDataSource.DoesNotExist:
                print( 'project: ', param.star.project)
-               ds = DataSource.objects.create(name='AVG', project=param.star.project)
+               ds = AverageDataSource.objects.create(name='AVG', project=param.star.project)
             
             ap = Parameter.objects.create(star        = param.star, 
                                           name        = param.name, 

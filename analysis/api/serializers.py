@@ -1,8 +1,10 @@
 
+from django.urls import reverse
+
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, HyperlinkedRelatedField
 
 from analysis.models import Method, DataSet, Parameter
-
+from stars.api.serializers import SimpleStarSerializer
 
 class MethodSerializer(ModelSerializer):
    
@@ -29,15 +31,14 @@ class MethodSerializer(ModelSerializer):
 class DataSetListSerializer(ModelSerializer):
    
    star = SerializerMethodField()
-   star_pk = SerializerMethodField()
-   
    method = SerializerMethodField()
+   href = SerializerMethodField()
+   
    
    class Meta:
       model = DataSet
       fields = [
             'star',
-            'star_pk',
             'pk',
             'name',
             'note',
@@ -45,26 +46,24 @@ class DataSetListSerializer(ModelSerializer):
             'valid',
             'added_on',
             'project',
+            'href',
       ]
       read_only_fields = ('pk',)
       
    def get_star(self, obj):
       if obj.star:
-         return obj.star.name
+         return SimpleStarSerializer(obj.star).data
       else:
-         return ''
-   
-   def get_star_pk(self, obj):
-      if obj.star:
-         return obj.star.pk
-      else:
-         return ''
+         return {}
    
    def get_method(self, obj):
       if obj.method:
          return MethodSerializer(obj.method).data
       else:
          return {}
+      
+   def get_href(self, obj):
+      return reverse('analysis:dataset_detail', kwargs={'project':obj.project.slug, 'dataset_id':obj.pk})
       
 class ParameterListSerializer(ModelSerializer):
    

@@ -37,11 +37,11 @@ $(document).ready(function () {
 });
 
 function star_render( data, type, full, meta ) {
-   return "<a href='/systems/stars/"+full['star_pk']+"/'>"+data+"</a>";
+   return "<a href='" + data['href'] + "' >" + data['name'] + "</a>";
 }
 
 function name_render( data, type, full, meta ) {
-   return "<a href='/analysis/datasets/"+full['pk']+"/'>"+data+"</a>";
+   return "<a href='" + full['href'] + "' >" + data + "</a>";
 }
 
 function note_render( data, type, full, meta ) {

@@ -5,18 +5,20 @@
 
 {% block content %}
 
+<i display="none" id="project-pk" project={{project.pk}}></i>
+
 <section id="summary">
 
    <h3>Edit {{ star.name }}</h3> 
    
-   <form action="/stars/stars/{{ star.id }}/edit" method="post">
+   <form action={% url 'systems:star_edit' project.slug star.pk %} method="post">
       {% csrf_token %}
       <input type="submit" value="Delete System" name="delete"  onclick="confirm_delete(event)"/>
    </form>
    
    <div class="block">
 
-   <form action="/stars/stars/{{ star.id }}/edit" method="post">
+   <form action={% url 'systems:star_edit' project.slug star.pk %} method="post">
       {% csrf_token %}
       <table>
       <tbody>

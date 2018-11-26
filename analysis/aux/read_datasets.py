@@ -17,6 +17,8 @@ def basic_info_generic(data):
             - type code of analysis method
    """
    
+   print (data)
+   
    systemname = data.get('systemname', 'UK')
    
    ra = data.get('ra', 0.0)
@@ -26,7 +28,7 @@ def basic_info_generic(data):
    if type(dec) == str:
       dec = Angle(dec, unit='degree').degree
    
-   atype = data.get('type', '??')
+   atype =data.get('type', '??')
    
    name = data.get('name', 'generic dataformat')
    

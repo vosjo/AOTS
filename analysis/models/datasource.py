@@ -60,9 +60,6 @@ class DataSource(models.Model):
    Super class for any object that has parameters attached.
    """
    
-   class Meta:
-        abstract = True
-   
    name = models.TextField(default='')
    note = models.TextField(default='')
    reference = models.TextField(default='')
@@ -90,10 +87,30 @@ class DataSource(models.Model):
    def __str__(self):
       return "{} {}".format(self.name, '({})'.format(self.reference) if self.reference else '')
 
+
+
+class AverageDataSource(DataSource):
+   """
+   Data source class to contain the average parameters of this project. Can only be one per project
+   """
+   
+   def __init__(self, *args, **kwargs):
+      kwargs['name'] = 'AVG'
+      super(AverageDataSource, self).__init__(*args, **kwargs)
+   
+   #-- the table with all average parameters is stored in as a csv file
+   datafile = models.FileField(upload_to='datatables/', null=True)
+   
+   def save_parameters_as_csv(self):
+      """
+      Method to save all average parameters to a text file in CSV format.
+      """
+      pass
+
 class DataTable(DataSource):
    
    #-- the table is stored in a txt file
-   datafile = models.FileField(upload_to='datatables/')
+   datafile = models.FileField(upload_to='datatables/', null=True)
    
    #-- ';' separated list of the column names, each name should correspond
    #   with a recognizable parameter name.
@@ -102,6 +119,7 @@ class DataTable(DataSource):
    #-- table dimentions
    xdim = models.IntegerField(default=0)
    ydim = models.IntegerField(default=0)
+
 
 class DataSet(DataSource):
    

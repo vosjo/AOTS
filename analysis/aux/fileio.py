@@ -28,12 +28,15 @@ def read2dict(filename):
                res[name] = read_rec(grp)
             else:
                # in case of dataset, read the value
-               res[name] = grp.value
+               if type(grp.value) == bytes:
+                  res[name] = str(grp.value.decode("utf-8"))
+               else:
+                  res[name] = grp.value
                
       #-- read all the attributes
       for name, atr in hdf.attrs.items():
          if type(atr) == bytes:
-            atr = atr.decode("utf-8")
+            atr = str(atr.decode("utf-8"))
          res[name] = atr
                
       return res

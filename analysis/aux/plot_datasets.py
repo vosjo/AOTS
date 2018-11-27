@@ -24,6 +24,19 @@ def plot_errorbars(fig, x, y, e, **kwargs):
       err_ys.append((y - yerr, y + yerr))
    fig.multi_line(err_xs, err_ys, **kwargs)
 
+def get_attr(dataset, attr, default=None):
+   """
+   Function necessary to deal with the weird bytes storages of strings in hdf5s
+   """
+   if not dataset.attrs.__contains__(attr):
+      return default
+   
+   attr = dataset.attrs.get(attr)
+   if type(attr) == bytes:
+      return attr.decode('ascii')
+   else:
+      return attr
+
 def plot_generic(datafile):
    """
    Generic plotting interface
@@ -34,44 +47,36 @@ def plot_generic(datafile):
    fig = bpl.figure(plot_width=600, plot_height=400, toolbar_location=None)
    colors = ['red', 'blue', 'green']
    
-   #-- plot the data
-   if 'DATA' in hdf:
-      data = hdf['DATA']
-         
+   def plot(data, mode='DATA'):
       for i, (name, dataset) in enumerate(data.items()):
-         xpar = dataset.attrs.get('xpar', 'x')
-         ypar = dataset.attrs.get('ypar', 'y')
+         xpar = get_attr(dataset, 'xpar', 'x')
+         ypar = get_attr(dataset, 'ypar', 'y')
          
-         lim = [dataset.attrs.get('xmin', -np.inf), dataset.attrs.get('xmax', +np.inf)]
+         lim = [get_attr(dataset, 'xmin', -np.inf), get_attr(dataset, 'xmax', +np.inf)]
          s = np.where((dataset[xpar] > lim[0]) & (dataset[xpar] < lim[1]))
          
-         if dataset.attrs.get('datatype', None) == 'continuous':
-            fig.line(dataset[xpar][s], dataset[ypar][s], color=colors[i], line_dash='dashed', legend=name)
-         elif dataset.attrs.get('datatype', None) == 'discrete':
+         if get_attr(dataset, 'datatype', None) == 'continuous':
+            line_dash = 'dashed' if mode == 'DATA' else 'solid'
+            fig.line(dataset[xpar][s], dataset[ypar][s], color=colors[i], line_dash=line_dash, legend=name)
+         elif get_attr(dataset, 'datatype', None) == 'discrete':
             fig.circle(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
          
          if ypar+'_err' in dataset.dtype.names:
             plot_errorbars(fig, dataset[xpar], dataset[ypar], dataset[ypar+'_err'], color=colors[i])
    
+   #-- plot the data
+   if 'DATA' in hdf:
+      data = hdf['DATA']
+      plot(data, mode='DATA')
+   
    #-- plot the models
    if 'MODEL' in hdf:
-      models = hdf['MODEL']
-      
-      for i, (name, dataset) in enumerate(models.items()):
-         xpar = dataset.attrs.get('xpar', 'x')
-         ypar = dataset.attrs.get('ypar', 'y')
-         
-         lim = [dataset.attrs.get('xmin', -np.inf), dataset.attrs.get('xmax', +np.inf)]
-         s = np.where((dataset[xpar] > lim[0]) & (dataset[xpar] < lim[1]))
-         
-         if dataset.attrs.get('datatype', None) == 'continuous':
-            fig.line(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
-         elif dataset.attrs.get('datatype', None) == 'discrete':
-            fig.square(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
+      data = hdf['MODEL']
+      plot(data, mode='MODEL')
    
    fig.toolbar.logo=None
-   fig.yaxis.axis_label = data.attrs['ylabel']
-   fig.xaxis.axis_label = data.attrs['xlabel']
+   fig.yaxis.axis_label = get_attr(data, 'ylabel', 'y')
+   fig.xaxis.axis_label = get_attr(data, 'xlabel', 'x')
    fig.yaxis.axis_label_text_font_size = '10pt'
    fig.xaxis.axis_label_text_font_size = '10pt'
    fig.min_border = 5
@@ -79,6 +84,7 @@ def plot_generic(datafile):
    hdf.close()
    
    return fig
+
 
 def plot_generic_large(datafile):
    """
@@ -99,26 +105,26 @@ def plot_generic_large(datafile):
       bokehsource = bpl.ColumnDataSource()
       
       for i, (name, dataset) in enumerate(data.items()):
-         xpar = dataset.attrs.get('xpar', 'x')
-         ypar = dataset.attrs.get('ypar', 'y')
+         xpar = get_attr(dataset, 'xpar', 'x')
+         ypar = get_attr(dataset, 'ypar', 'y')
          
-         if dataset.attrs.get('datatype', None) == 'continuous':
+         if get_attr(dataset, 'datatype', None) == 'continuous':
             fig.line(dataset[xpar], dataset[ypar], color=colors[i], line_dash='dashed', legend=name)
-         elif dataset.attrs.get('datatype', None) == 'discrete':
+         elif get_attr(dataset, 'datatype', None) == 'discrete':
             bokehsource.add(dataset[xpar], name=name+'_x')
             bokehsource.add(dataset[ypar], name=name+'_y')
             rend = fig.circle(name+'_x', name+'_y', color=colors[i], source=bokehsource,
                               size=7, legend=name)
             
-            tooltips = [(data.attrs['xlabel'], "@"+name+"_x")]
+            tooltips = [(get_attr(data, 'xlabel', 'x'), "@"+name+"_x")]
             if ypar+'_err' in dataset.dtype.names:
                bokehsource.add(dataset[ypar+'_err'], name=name+'_yerr')
-               tooltips += [(data.attrs['ylabel'], "@"+name+"_y +- @"+name+"_yerr")]
+               tooltips += [(get_attr(data, 'ylabel', 'y'), "@"+name+"_y +- @"+name+"_yerr")]
                
                plot_errorbars(fig, dataset[xpar], dataset[ypar], dataset[ypar+'_err'], 
                               line_width=1, color=colors[i])
             else:
-               tooltips += [(data.attrs['ylabel'], "@"+name+"_y")]
+               tooltips += [(get_attr(data, 'ylabel', 'y'), "@"+name+"_y")]
             
             hover_tool = mpl.HoverTool(renderers=[rend], tooltips=tooltips)
             fig.add_tools(hover_tool)
@@ -129,17 +135,17 @@ def plot_generic_large(datafile):
    if 'MODEL' in hdf:
       models = hdf['MODEL']
       for i, (name, dataset) in enumerate(models.items()):
-         xpar = dataset.attrs.get('xpar', 'x')
-         ypar = dataset.attrs.get('ypar', 'y')
+         xpar = get_attr(dataset, 'xpar', 'x')
+         ypar = get_attr(dataset, 'ypar', 'y')
          
-         if dataset.attrs.get('datatype', None) == 'continuous':
+         if get_attr(dataset, 'datatype', None) == 'continuous':
             fig.line(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
-         elif dataset.attrs.get('datatype', None) == 'discrete':
-            fig.square(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
+         elif get_attr(dataset, 'datatype', None) == 'discrete':
+            fig.circle(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
    
    fig.toolbar.logo=None
-   fig.yaxis.axis_label = data.attrs['ylabel']
-   fig.xaxis.axis_label = data.attrs['xlabel']
+   fig.yaxis.axis_label = get_attr(data, 'ylabel', 'y')
+   fig.xaxis.axis_label = get_attr(data, 'xlabel', 'x')
    fig.yaxis.axis_label_text_font_size = '10pt'
    fig.xaxis.axis_label_text_font_size = '10pt'
    fig.min_border = 5
@@ -203,249 +209,6 @@ def plot_generic_ci(datafile):
    return figures
 
 
-
-#============================================================================================
-# SED fit plotting code
-#============================================================================================
-
-sed_colors = {'2MASS': 'black',
-              'APASS' : 'blue',
-             'STROMGREN': 'olive',
-             'JOHNSON': 'gold',
-             'GALEX': 'powderblue',
-             'SDSS': 'aqua',
-             'COUSINS': 'maroon',
-             'DENIS': 'orange',
-             'GENEVA': 'forestgreen ',}
-
-def get_band_color(band):
-   if band in sed_colors:
-      return sed_colors[band]
-   else:
-      return 'black'
-
-def plot_sedfit(datafile):
-   """
-   Plot an SED fit, including plotting the photometry, the synthetic photometry,
-   and the best fitting model
-   Small version for summary page. Not interactive.
-   """
-   
-   flux_units='erg/s/cm2'
-   
-   data = fileio.read2dict(datafile)
-   phot = data['master']
-   
-   wave = phot['cwave']
-   flux,e_flux = conversions.convert('erg/s/cm2/AA', flux_units, phot['cmeas'], 
-                                     phot['e_cmeas'], wave=(wave,'AA'))
-   
-   sel = np.where( ~np.isnan(flux) & phot['include'])
-   wave, flux, e_flux = wave[sel], flux[sel], e_flux[sel]
-   
-   magorder = int( np.log10(np.max(flux)) ) - 1
-   scale = 10**magorder
-   flux, e_flux = flux / scale, e_flux / scale
-   
-   ymin = np.min(flux-e_flux) * 0.90 
-   ymax = np.max(flux+e_flux) * 1.10
-   xmin = np.min(wave) - 500
-   xmax = np.max(wave) + 1000
-   
-   fig = bpl.figure(plot_width=600, plot_height=400, toolbar_location=None,
-                    y_axis_type="log", y_range=(ymin, ymax),
-                    x_axis_type="log", x_range=(xmin, xmax))
-   
-   #-- Plot the model
-   try:
-      model = data['results']['igrid_search']['model']
-      x,y = model
-      y = y / scale
-      y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
-      fig.line(x, y, color='red', legend='binary model')
-   except Exception:
-      pass
-   
-   #-- plot integrated photometry
-   try:
-      sflux = data['results']['igrid_search']['synflux']
-      x, y = sflux['iwave'], sflux['iflux'] / scale
-      y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
-      fig.x(x, y, color='black', fill_alpha=0.7, line_alpha=1.0, size=9, line_width=3, legend='synthetic')
-   except Exception:
-      pass
-   
-   #-- plot the observations
-   fig.circle(wave, flux, color='blue', 
-                 fill_alpha=0.3, line_alpha=1.0, size=9, line_width=1.5, legend='observed')
-   plot_errorbars(fig, wave, flux, e_flux, color='blue')
-      
-   fig.toolbar.logo=None
-   fig.yaxis.axis_label = 'Flux_lambda * 10^{} (erg/s/cm2)'.format(-magorder)
-   fig.xaxis.axis_label = 'Wavelength (AA)'
-   fig.yaxis.axis_label_text_font_size = '10pt'
-   fig.xaxis.axis_label_text_font_size = '10pt'
-   fig.min_border = 5
-   
-   return fig
-
-def plot_sedfit_large(datafile):
-   """
-   Plot an SED fit, including plotting the photometry in different colors depeding on 
-   the photometric system, and the best fitting model
-   Large version with hover function showing the observed points.
-   """
-   
-   flux_units='erg/s/cm2'
-   
-   data = fileio.read2dict(datafile)
-   phot = data['master']
-   
-   
-   wave = phot['cwave']
-   flux,e_flux = conversions.convert('erg/s/cm2/AA', flux_units, phot['cmeas'], 
-                                     phot['e_cmeas'], wave=(wave,'AA'))
-   fsystem = np.array([b.split('.')[0] for b in phot['photband']], dtype=str)
-   
-   sel = np.where( ~np.isnan(flux) & phot['include'])
-   wave, flux, e_flux, fsystem = wave[sel], flux[sel], e_flux[sel], fsystem[sel]
-   phot = phot[sel]
-   
-   #-- scale flux so that y axes is better readable
-   magorder = int( np.log10(np.max(flux)) ) - 1
-   scale = 10**magorder
-   flux, e_flux = flux / scale, e_flux / scale
-   
-   
-   #-- create data source for bokeh and hover information
-   photd = dict(wave = wave,
-                flux = flux,
-                band = phot['photband'],
-                mag = phot['meas'],
-                e_mag = phot['e_meas'],
-                unit = phot['unit'],
-                source = phot['source'],)
-   photsource = bpl.ColumnDataSource(data=photd)
-   hover = mpl.HoverTool(tooltips=[("band", "@band"), ("measurement", "@mag +- @e_mag (@unit)"),
-                                   ("source", "@source")], names=['hover'])
-   
-   
-   tools = [mpl.PanTool(), mpl.WheelZoomTool(), 
-            mpl.BoxZoomTool(), mpl.ResetTool(), hover]
-   
-   ymin = np.min(flux-e_flux) * 0.90 
-   ymax = np.max(flux+e_flux) * 1.10
-   xmin = np.min(wave) - 500
-   xmax = np.max(wave) + 1000
-   
-   fig = bpl.figure(plot_width=800, plot_height=600, toolbar_location="right",
-                    y_axis_type="log", y_range=(ymin, ymax),
-                    x_axis_type="log", x_range=(xmin, xmax),
-                    tools=tools)
-   
-   #-- Plot the model
-   try:
-      model = data['results']['igrid_search']['model']
-      x,y = model
-      y = y / scale
-      y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
-      fig.line(x, y, color='red')
-   except Exception:
-      pass
-   
-   #-- plot integrated photometry
-   try:
-      sflux = data['results']['igrid_search']['synflux']
-      x, y = sflux['iwave'], sflux['iflux'] / scale
-      y = conversions.convert('erg/s/cm2/AA',flux_units,y,wave=(x,'AA'))
-      fig.x(x, y, color='black', fill_alpha=0.7, line_alpha=1.0, size=12, line_width=3)
-   except Exception:
-      pass
-   
-   #-- plot the observations
-   fig.circle('wave', 'flux', color='white', source=photsource, name='hover',
-                 fill_alpha=0.0, line_alpha=0.0, size=14, line_width=2)
-   
-   for band in set(fsystem):
-      sel = np.where(fsystem == band)
-      fig.circle(wave[sel], flux[sel], color=get_band_color(band), 
-                 fill_alpha=0.4, line_alpha=1.0, size=12, line_width=2, legend=band)
-      
-      plot_errorbars(fig, wave[sel], flux[sel], e_flux[sel], color=get_band_color(band),
-                     line_width = 3.0)
-      
-   fig.toolbar.logo=None
-   fig.yaxis.axis_label = 'Flux_lambda * 10^{} (erg/s/cm2)'.format(-magorder)
-   fig.xaxis.axis_label = 'Wavelength (AA)'
-   fig.yaxis.axis_label_text_font_size = '10pt'
-   fig.xaxis.axis_label_text_font_size = '10pt'
-   fig.min_border = 5
-   
-   return fig
-
-def plot_sedfit_ci2d(datafile):
-   """
-   Plot the CI2D images for the SED fit
-   """
-   from matplotlib import _cntr as cntr
-   
-   figures = {}
-   
-   try:
-      data = fileio.read2dict(datafile)
-      ci2d = data['results']['igrid_search']['CI2D']
-   except Exception:
-      return figures
-   
-   for name, ci in ci2d.items():
-      
-      print (name, ci.keys())
-      
-      x0, x1 = ci['x'][0], ci['x'][-1]
-      y0, y1 = ci['y'][0], ci['y'][-1]
-      data = ci['ci_red']
-      x, y = np.mgrid[:data.shape[0], :data.shape[1]]
-      
-      c = cntr.Cntr(x, y, data)
-      
-      
-      def scale(segments, rmin, rmax):
-         smin = np.min(segments)
-         ds = np.max(segments) - np.min(segments)
-         dr = rmax - rmin
-         return rmin + (segments - smin) / ds * dr
-      
-      
-      
-      fig = bpl.figure(plot_width=280, plot_height=280, 
-                       title = name, tools=[])
-      
-      for i in np.linspace(0, 1, 10):
-         res = c.trace(i)
-         nseg = len(res) // 2
-         segments, codes = res[:nseg], res[nseg:]
-         
-         if segments == []: continue
-         
-         xseg = scale(segments[0][:,0], x0, x1)
-         yseg = scale(segments[0][:,1], y0, y1)
-         
-         fig.patch(xseg, yseg, line_width=2, fill_alpha=0.0)
-                       
-      
-      fig.min_border = 10
-      fig.min_border_top = 1
-      fig.min_border_bottom = 40
-      fig.toolbar.logo = None
-      fig.toolbar_location = None
-      fig.title.align = 'center'
-      
-      figures[name] = fig
-      
-   
-   return figures
-
-
 #============================================================================================
 # Error plots (empty plot in case an exception is thrown
 #============================================================================================
@@ -476,19 +239,18 @@ def plot_error_large():
    
    return fig
 
+
+
 def plot_dataset(datafile, method):
    """
    General plotting function for analysis
    """
-   
    try:
-      if method.name == 'SED fit':
-         return plot_sedfit(datafile)
-      else:
-         return plot_generic(datafile)
+      return plot_generic(datafile)
    except Exception as e:
       print (e)
       return plot_error()
+   
    
 def plot_dataset_large(datafile, method):
    """
@@ -496,10 +258,7 @@ def plot_dataset_large(datafile, method):
    the detail pages including extra info when hovering over a figure
    """
    try:
-      if method.name == 'SED fit':
-         return plot_sedfit_large(datafile)
-      else:
-         return plot_generic_large(datafile)
+      return plot_generic_large(datafile)
    except Exception as e:
       print (e)
       return plot_error_large()
@@ -511,7 +270,8 @@ def plot_parameter_ci(datafile, method):
    in the datafile
    """
    
-   if method.name == 'SED fit':
-      return plot_sedfit_ci2d(datafile)
-   else:
+   try:
       return plot_generic_ci(datafile)
+   except Exception as e:
+      print (e)
+      return plot_error()

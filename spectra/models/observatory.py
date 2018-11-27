@@ -27,7 +27,9 @@ class Observatory(models.Model):
    altitude = models.FloatField(default=0)
    
    
-   url = models.URLField(default='')
+   url = models.CharField(max_length=150, default='')
+   
+   weatherurl = models.CharField(max_length=150, default='')
    
    note = models.TextField(default='')
    

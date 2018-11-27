@@ -18,6 +18,7 @@ $(document).ready(function () {
       },
       columns: [
          { data: 'name', render: name_render },
+         { data: 'telescopes'},
          { data: 'latitude'},
          { data: 'longitude'},
          { data: 'altitude' },
@@ -75,18 +76,17 @@ function openObservatoryAddBox() {
 
 function addObservatory() {
    
-   var obs_url = $('#observatoryEditUrl').val()
-   if (obs_url.substring(0, 8) != "http://") { obs_url = "http://" + obs_url };
-   
    $.ajax({
       url : "/api/observations/observatories/", 
       type : "POST",
       data : { name :        $('#observatoryEditName').val(), 
+               telescopes :  $('#observatoryEditTelescopes').val(),
                latitude :    $('#observatoryEditLatitude').val(),
                longitude :   $('#observatoryEditLongitude').val(),
                altitude :    $('#observatoryEditAltitude').val(),
                note :        $('#observatoryEditNote').val(),
-               url :         obs_url,
+               url :         $('#observatoryEditUrl').val(),
+               weatherurl :  $('#observatoryEditWeatherUrl').val(),
                },
       
       success : function(json) {
@@ -112,27 +112,28 @@ function openObservatoryEditBox(tabelrow, data) {
    
    observatory_window.dialog( "open" );
    $("#observatoryEditName").val( data['name'] );
+   $("#observatoryEditTelescopes").val( data['telescopes'] );
    $("#observatoryEditLatitude").val( data['latitude'] );
    $("#observatoryEditLongitude").val( data['longitude'] );
    $("#observatoryEditAltitude").val( data['altitude'] );
    $("#observatoryEditNote").val( data['note'] );
    $("#observatoryEditUrl").val( data['url'] );
+   $("#observatoryEditWeatherUrl").val( data['weatherurl'] );
 };
 
 function editObservatory(tabelrow, data) {
-   
-   var obs_url = $('#observatoryEditUrl').val()
-   if (obs_url.substring(0, 8) != "http://") { obs_url = "http://" + obs_url };
    
    $.ajax({
       url : "/api/observations/observatories/"+data['pk']+'/', 
       type : "PATCH",
       data : { name :        $('#observatoryEditName').val(), 
+               telescopes :  $('#observatoryEditTelescopes').val(),
                latitude :    $('#observatoryEditLatitude').val(),
                longitude :   $('#observatoryEditLongitude').val(),
                altitude :    $('#observatoryEditAltitude').val(),
                note :        $('#observatoryEditNote').val(),
-               url :         obs_url,
+               url :         $('#observatoryEditUrl').val(),
+               weatherurl :  $('#observatoryEditWeatherUrl').val(), 
                },
       
       success : function(json) {

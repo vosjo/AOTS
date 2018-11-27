@@ -44,13 +44,13 @@ def get_observatory(header):
       loc = EarthLocation.from_geocentric(x=x*u.m, y=y*u.m, z=z*u.m,)
    elif 'ESO TEL GEOLAT' in header:
       lat, lon, alt = header.get('ESO TEL GEOLAT', 0), header.get('ESO TEL GEOLON', 0), header.get('ESO TEL GEOELEV', 0)
-      loc = EarthLocation.from_geocentric(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m,)
+      loc = EarthLocation.from_geodetic(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m,)
    else:
-      loc = EarthLocation.from_geocentric(lat=0*u.deg, lon=0*u.deg, height=0*u.m,)
+      loc = EarthLocation.from_geodetic(lat=0*u.deg, lon=0*u.deg, height=0*u.m,)
    
-   obs = Observatory.objects.filter(latitude__range(loc.lat.degree-1, loc.lat.degree+1), 
-                                    longitude__range(loc.lon.degree-1, loc.lon.degree+1),
-                                    altitude__range(loc.height.value-50, loc.height.value+50))
+   obs = Observatory.objects.filter(latitude__range = (loc.lat.degree-1, loc.lat.degree+1), 
+                                    longitude__range = (loc.lon.degree-1, loc.lon.degree+1),
+                                    altitude__range = (loc.height.value-50, loc.height.value+50))
    
    if len(obs) > 0:
       return obs[0]

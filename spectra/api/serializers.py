@@ -36,7 +36,10 @@ class SpectrumSerializer(ModelSerializer):
       read_only_fields = ('pk',)
       
    def get_star(self, obj):
-      return SimpleStarSerializer(obj.star).data
+      if obj.star is None:
+         return ''
+      else:
+         return SimpleStarSerializer(obj.star).data
       #return Star.objects.get(pk=obj.star).name
       
    def get_observatory(self, obj):
@@ -76,7 +79,7 @@ class SpecFileSerializer(ModelSerializer):
       read_only_fields = ('pk', 'star')
       
    def get_star(self, obj):
-      if obj.spectrum is None:
+      if obj.spectrum is None or obj.spectrum.star is None:
          return ''
       return obj.spectrum.star.name
    
@@ -98,10 +101,12 @@ class ObservatorySerializer(ModelSerializer):
       fields = [
             'pk',
             'name',
+            'telescopes', 
             'latitude',
             'longitude',
             'altitude',
             'note',
             'url',
+            'weatherurl',
             ]
       read_only_fields = ('pk',)

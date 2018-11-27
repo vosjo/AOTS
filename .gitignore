@@ -8,6 +8,8 @@
 *.py[co]
 .tox/
 *.sqlite3
+db_clean
+db_reset
 populate_db.py
 __pycache__
 MANIFEST
@@ -23,3 +25,7 @@ build/
 tests/report/
 */migrations
 static/
+populate*
+observed_systems*
+RGB_*
+sd_catalog*

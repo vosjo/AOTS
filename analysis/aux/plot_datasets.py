@@ -10,10 +10,6 @@ from bokeh import plotting as bpl
 from bokeh import models as mpl
 from bokeh.models import widgets 
 
-#from ivs.io import fileio
-from analysis.aux import fileio
-#from analysis.aux.units import conversions
-
 def plot_errorbars(fig, x, y, e, **kwargs):
    """
    Plot errorbars on a bokeh plot

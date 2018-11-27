@@ -129,17 +129,37 @@ function get_filter_keywords( d ) {
       d = $.extend( {}, d, {
         "project": $('#project-pk').attr('project'),
         "name": $('#filter_name').val(),
-        "ra_min": parseFloat( $('#filter_ra').val().split(':')[0] ) / 24 * 360 || 0,
-        "ra_max": parseFloat( $('#filter_ra').val().split(':')[1] ) / 24 * 360 || 360,
-        "dec_min": parseFloat( $('#filter_dec').val().split(':')[0] ) || -90,
-        "dec_max": parseFloat( $('#filter_dec').val().split(':')[1] ) || 90,
-        "mag_min": parseFloat( $('#filter_mag').val().split(':')[0] ) || -1,
-        "mag_max": parseFloat( $('#filter_mag').val().split(':')[1] ) || 90,
         "classification": $('#filter_class').val(),
         "status": selected_status[0],
         "tags": selected_tags[0],
         
       } );
+      
+      if ($('#filter_ra').val() != '') {
+         d = $.extend( {}, d, {
+            "ra_min": parseFloat( $('#filter_ra').val().split(':')[0] ) / 24 * 360 || 0,
+            "ra_max": parseFloat( $('#filter_ra').val().split(':')[1] ) / 24 * 360 || 360,
+         } );
+      }
+      
+      if ($('#filter_dec').val() != '') {
+         var min = parseFloat( $('#filter_dec').val().split(':')[0] );
+         var max = parseFloat( $('#filter_dec').val().split(':')[1] );
+         if ( min == NaN ){min = -90};
+         if ( max == NaN ){max = 90};
+         
+         d = $.extend( {}, d, {
+            "dec_min": min,
+            "dec_max": max,
+         } );
+      }
+      
+      if ($('#filter_mag').val() != '') {
+         d = $.extend( {}, d, {
+            "mag_min": parseFloat( $('#filter_mag').val().split(':')[0] ) || -1,
+            "mag_max": parseFloat( $('#filter_mag').val().split(':')[1] ) || 90,
+         } );
+      }
       
       return d
 }

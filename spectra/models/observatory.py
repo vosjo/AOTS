@@ -15,6 +15,8 @@ class Observatory(models.Model):
    
    name = models.CharField(max_length=100, default='')
    
+   telescopes = models.TextField(default='')
+   
    # latitude in degrees
    latitude = models.FloatField(default=0)
    
@@ -27,7 +29,7 @@ class Observatory(models.Model):
    
    url = models.URLField(default='')
    
-   note = models.CharField(max_length=300, default='')
+   note = models.TextField(default='')
    
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)

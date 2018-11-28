@@ -64,6 +64,12 @@ class Spectrum(models.Model):
       else:
          return files[0].get_spectrum()
    
+   def get_weather_url(self):
+      if not self.observatory is None:
+         return self.observatory.get_weather_url(hjd=self.hjd)
+      else:
+         return ''
+   
    #-- representation of self
    def __str__(self):
       return "{}@{} - {}".format(self.instrument, self.telescope, self.hjd)

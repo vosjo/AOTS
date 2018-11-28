@@ -176,9 +176,12 @@ def process_specfile(specfile_id):
    else:
       # need to make a new star
       w, f, header = specfile.get_spectrum()
-      star_id = add_star_from_spectrum(header)
+      #star_id = add_star_from_spectrum(header)
       
-      star = Star.objects.get(pk=star_id)
+      star = Star(name= header.get('OBJECT', ''), ra=spectrum.ra, dec=spectrum.dec, project=spectrum.project)
+      star.save()
+      
+      star = Star.objects.get(pk=star.pk)
       star.spectrum_set.add(spectrum)
       
       message += ", and added to new System {}".format(star)

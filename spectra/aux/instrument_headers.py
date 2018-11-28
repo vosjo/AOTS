@@ -48,9 +48,9 @@ def get_observatory(header):
    else:
       loc = EarthLocation.from_geodetic(lat=0*u.deg, lon=0*u.deg, height=0*u.m,)
    
+   #-- we look for an observatory that is within 1 degree from location stored in the header, altitude is not checked.
    obs = Observatory.objects.filter(latitude__range = (loc.lat.degree-1, loc.lat.degree+1), 
-                                    longitude__range = (loc.lon.degree-1, loc.lon.degree+1),
-                                    altitude__range = (loc.height.value-50, loc.height.value+50))
+                                    longitude__range = (loc.lon.degree-1, loc.lon.degree+1),)
    
    if len(obs) > 0:
       return obs[0]

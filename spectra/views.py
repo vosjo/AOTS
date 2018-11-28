@@ -89,7 +89,7 @@ def specfile_list(request, project=None,  **kwargs):
                level = messages.SUCCESS if success else messages.ERROR
                messages.add_message(request, level, message)
                
-            return HttpResponseRedirect(reverse('spectra:specfile_list', kwargs={'project':project.slug}))
+            return HttpResponseRedirect(reverse('observations:specfile_list', kwargs={'project':project.slug}))
    
    elif request.method != 'GET' and not request.user.is_authenticated:
       messages.add_message(request, messages.ERROR, "You need to login for that action!")

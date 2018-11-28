@@ -57,6 +57,14 @@ class Observatory(models.Model):
       
       return sunset, sunrise
    
+   def get_weather_url(self, hjd=None):
+      if self.weatherurl != '':
+         print (hjd)
+         t = Time(hjd, format='jd').datetime
+         return self.weatherurl.format(year=t.year, month=t.month, day=t.day, hjd=hjd)
+      else:
+         return ''
+   
    #-- representation of self
    def __str__(self):
       return "{}: lat={}, lon={}, alt={}".format(self.name, self.latitude, self.longitude, self.altitude)

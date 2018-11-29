@@ -1,17 +1,17 @@
 import re
-import ephem
 
 import numpy as np
 
+import astropy.units as u
 from astropy.time import Time
+from astropy.coordinates import SkyCoord, AltAz, get_moon
+from astroplan.moon import moon_illumination
+
 from spectra.models import Spectrum, SpecFile
 from stars.models import Star
-from stars.aux import add_star_from_spectrum
 
 from . import instrument_headers
-from . import observatories
 
-from django.contrib import messages
 
 def get_wind_direction(degrees):
    """
@@ -36,20 +36,6 @@ def get_wind_direction(degrees):
    else:
       return 'NW'
 
-def get_seeing_paranal(date):
-   """
-   queries the paranal historical ambient conditions to get seeing at given date
-   
-   Weather links:
-   http://archive.eso.org/cms/eso-data/ambient-conditions/paranal-ambient-query-forms.html
-   http://archive.eso.org/wdb/wdb/asm/dimm_paranal/form
-   http://archive.eso.org/wdb/wdb/asm/meteo_paranal/form
-   http://archive.eso.org/wdb/wdb/asm/historical_ambient_paranal/form
-   
-   http://archive.eso.org/asm/ambient-server?night=14+oct+2011&site=paranal
-   """
-   
-   return 0
 
 def derive_spectrum_info(spectrum_pk):
    """
@@ -64,29 +50,39 @@ def derive_spectrum_info(spectrum_pk):
    instrument_headers.get_header_info(spectrum_pk)
    
    
-   #-- calculate moon parameters with ephem
-   
-   # get spectrum
+   #-- get spectrum
    spectrum = Spectrum.objects.get(pk=spectrum_pk)
    
-   # the observatory
-   observatory = observatories.get_observatory(spectrum.telescope)
-   observatory.date = Time(spectrum.hjd, format='jd').iso
-   moon = ephem.Moon()
+   #-- calculate moon parameters
+   time = Time(spectrum.hjd, format='jd')
    
-   # the star
-   star = ephem.FixedBody()
-   star._ra = ephem.degrees(spectrum.ra/180.*np.pi)
-   star._dec = ephem.degrees(spectrum.dec/180*np.pi)
+   # moon illumination wit astroplan
+   spectrum.moon_illumination =  np.round(moon_illumination(time=time), 1)
    
-   # the actual calculation
-   star.compute(observatory)
-   moon.compute(observatory)
-   spectrum.moon_illumination =  np.round(moon.phase, 1)
-   spectrum.moon_separation = str(ephem.separation(moon,star)).split(':')[0]
+   # get the star and moon coordinates at time and location of observations
+   star = SkyCoord(ra=spectrum.ra*u.deg, dec=spectrum.dec*u.deg,)
+   moon = get_moon(time)
+   
+   observatory = spectrum.observatory.get_EarthLocation()
+   frame = AltAz(obstime=time, location=observatory)
+   
+   star = star.transform_to(frame)
+   moon = moon.transform_to(frame)
+   
+   # store the separation between moon and target
+   spectrum.moon_separation = np.round(star.separation(moon).degree, 1)
+   
+   #-- get object alt-az and airmass if not stored in header
+   if spectrum.alt == 0:
+      spectrum.alt = star.alt.degree
+   if spectrum.az == 0:
+      spectrum.az = star.az.degree
+   if spectrum.airmass <= 0:
+      spectrum.airmass = np.round(star.secz.value, 2)
    
    #-- save the changes
    spectrum.save()
+
 
 def derive_specfile_info(specfile_id):
    """
@@ -176,7 +172,6 @@ def process_specfile(specfile_id):
    else:
       # need to make a new star
       w, f, header = specfile.get_spectrum()
-      #star_id = add_star_from_spectrum(header)
       
       star = Star(name= header.get('OBJECT', ''), ra=spectrum.ra, dec=spectrum.dec, project=spectrum.project)
       star.save()

@@ -52,6 +52,11 @@ class Spectrum(models.Model):
    #   prevent deletion of an observatory that is referenced by a spectrum
    observatory = models.ForeignKey(Observatory, on_delete=models.PROTECT, null=True,)
    
+   #-- flag if the spectrum is flux calibrated, defaults to False
+   fluxcal = models.BooleanField(default=False)
+   
+   note = models.TextField(default='')
+   
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)

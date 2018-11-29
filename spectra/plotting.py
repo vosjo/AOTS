@@ -11,8 +11,6 @@ from astropy.coordinates import SkyCoord, AltAz, get_moon
 
 from .models import Spectrum
 
-from .aux import observatories
-
 from bokeh import plotting as bpl
 from bokeh import models as mpl
 from bokeh.models import widgets, FuncTickFormatter

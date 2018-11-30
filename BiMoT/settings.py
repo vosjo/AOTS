@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'stars.apps.StarsConfig',
     'spectra.apps.SpectraConfig',
     'analysis.apps.AnalysisConfig',
+    'users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -140,6 +141,8 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
+
+AUTH_USER_MODEL = 'users.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

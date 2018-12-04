@@ -21,7 +21,8 @@ $(document).ready(function () {
       { data: 'spectrum', render : processed_render },
       { data: 'pk', render: action_render, width: '100', 
         className: 'dt-center', visible: user_authenticated},
-   ]
+   ],
+   scrollY: $(window).height() - $('header').outerHeight(true) - $('.upload').outerHeight(true) - $('#messages').outerHeight(true) - 186,
    });
    
    function processed_render( data, type, full, meta ) {

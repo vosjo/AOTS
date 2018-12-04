@@ -6,7 +6,7 @@ var all_tags = null;
 
 
 $(document).ready(function () {
-
+   
    star_table = $('#datatable').DataTable({
    dom: 'l<"toolbar">frtip',
    serverSide: true, 
@@ -41,7 +41,7 @@ $(document).ready(function () {
    paging: true,
    pageLength: 50,
    lengthMenu: [[10, 25, 50, 100, 1000], [10, 25, 50, 100, 1000]], // Use -1 for all. 
-   scrollY: '900px',
+   scrollY: $(window).height() - $('header').outerHeight(true) - 196,
    scrollCollapse: true,
    autoWidth: true,
    });

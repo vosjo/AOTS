@@ -41,7 +41,7 @@ def dataset_list(request, project=None,  **kwargs):
             
             messages.add_message(request, level, message)
             
-            return HttpResponseRedirect(reverse('analysis:dataset_list', kwargs={'project':project.slug}))
+         return HttpResponseRedirect(reverse('analysis:dataset_list', kwargs={'project':project.slug}))
             
    elif request.method != 'GET' and not request.user.is_authenticated:
       messages.add_message(request, messages.ERROR, "You need to login for that action!")

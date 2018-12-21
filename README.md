@@ -84,7 +84,7 @@ python manage.py createsuperuser
 
 ### 3. collect static files
 ```
-python manage collectstatic
+python manage.py collectstatic
 ```
 
 ### 3. start the development server
@@ -94,20 +94,43 @@ python manage.py runserver
 
 ## setup gunicorn
 
+### create socket
+
 ```
-sudo nano /etc/systemd/system/gunicorn.service
+sudo nano /etc/systemd/system/gunicorn_aots.socket
 ```
 
 ```
 [Unit]
-Description=gunicorn daemon
+Description=gunicorn socket
+
+[Socket]
+ListenStream=/home/aots/www/bimot/BiMoT/BiMoT/run/gunicorn.sock
+
+[Install]
+WantedBy=sockets.target
+```
+
+```
+sudo nano /etc/systemd/system/gunicorn_aots.service
+```
+
+```
+[Unit]
+Description=AOTS gunicorn daemon
+Requires=gunicorn_aots.socket
 After=network.target
 
+
 [Service]
-User=root
+User=aots
 Group=www-data
-WorkingDirectory=/home/joris/webapps/BiMoT
-ExecStart=/home/joris/webapps/bimotenv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/joris/webapps/BiMoT/BiMoT.sock BiMoT.wsgi:application --log-level debug
+WorkingDirectory=/home/aots/www/bimot/BiMoT
+ExecStart=/home/aots/www/bimot/bimotenv/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind unix:/home/aots/www/bimot/BiMoT/BiMoT/run/gunicorn.sock \
+          BiMoT.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -115,47 +138,51 @@ WantedBy=multi-user.target
 
 start gunicorn and set it up to start at boot
 ```
-sudo systemctl start gunicorn
-sudo systemctl enable gunicorn
+sudo systemctl start gunicorn_aots.socket
+sudo systemctl enable gunicorn_aots.socket
 ```
 
 check status of gunicorn with and the log files with:
 ```
-sudo systemctl status gunicorn
-sudo journalctl -u gunicorn
+sudo systemctl status gunicorn_aots.socket
+sudo journalctl -u gunicorn_aots.socket
 ```
-check that a BiMoT.sock file is created:
+check that a gunicorn.sock file is created:
 ```
-ls ~/webapps/BiMoT
->>> BiMoT.sock
+ls /home/aots/www/bimot/BiMoT/BiMoT/run/
+>>> gunicorn.sock
 ```
 
 When changes are made to the gunicorn.service file run:
 ```
 sudo systemctl daemon-reload
-sudo systemctl restart gunicorn
+sudo systemctl restart gunicorn_aots
+```
+
+check status
+```
+sudo systemctl status gunicorn_aots
 ```
 
 ## Configure NGNIX
 
 ```
-sudo vi /etc/nginx/sites-available/BiMoT
+sudo nano /etc/nginx/sites-available/aots
 ```
 
 ```
 server {
     listen 80;
-    server_name 46.101.118.100;
+    server_name a15.astro.physik.uni-potsdam.de;
 
     location = /favicon.ico { access_log off; log_not_found off; }
     location /static/ {
-        root /home/joris/webapps/BiMoT;
+        root /home/aots/www/bimot/BiMoT;
     }
 
     location / {
         include proxy_params;
-        proxy_pass http://unix:/home/joris/webapps/BiMoT/BiMoT.sock;
-        #proxy_pass http://unix:/run/gunicorn.sock;
+        proxy_pass http://unix:/home/aots/www/bimot/BiMoT/BiMoT/run/gunicorn.sock;
     }
 
 }
@@ -163,7 +190,7 @@ server {
 
 Now, we can enable the file by linking it to the sites-enabled directory:
 ```
-sudo ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
+sudo ln -s /etc/nginx/sites-available/aots /etc/nginx/sites-enabled
 ```
 
 test for syntax errors:

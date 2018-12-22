@@ -50,9 +50,6 @@ def spectra_detail(request, spectrum_id, project=None,  **kwargs):
    spec = plot_spectrum(spectrum_id, rebin=rebin)
    script, div = components({'spec':spec, 'visibility':vis}, CDN)
    
-   #spec = plot_spectrum(spectrum_id, rebin=rebin)
-   #script, div = components({'spec':spec}, CDN)
-   
    
    context = {
       'project': project,
@@ -81,7 +78,7 @@ def specfile_list(request, project=None,  **kwargs):
             files = request.FILES.getlist('specfile')
             for f in files:
                #-- save the new specfile
-               newspec = SpecFile(specfile=f, project=project)
+               newspec = SpecFile(specfile=f, project=project, added_by=request.user)
                newspec.save()
                
                #-- now process it and add it to a Spectrum and Object

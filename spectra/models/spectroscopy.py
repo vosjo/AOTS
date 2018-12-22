@@ -4,9 +4,12 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
+from django.conf import settings
+
 from django.utils.encoding import python_2_unicode_compatible
 
 from stars.models import Star, Project
+from users.models import get_sentinel_user
 from .observatory import Observatory
 
 from spectra.aux import fileio 
@@ -60,6 +63,7 @@ class Spectrum(models.Model):
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)
+   added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
    
    #-- function to get the spectrum
    def get_spectrum(self):
@@ -111,6 +115,8 @@ class SpecFile(models.Model):
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)
+   
+   added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
    
    def get_spectrum(self):
       return fileio.read_spectrum(self.specfile.path, return_header=True)

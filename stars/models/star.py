@@ -12,13 +12,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from .project import Project
-
-
-def get_sentinel_user():
-   """
-   Sets a default 'deleted' user if the user is deleted.
-   """
-   return get_user_model().objects.get_or_create(username='deleted')[0]
+from users.models import get_sentinel_user
 
 
 @python_2_unicode_compatible  # to support Python 2

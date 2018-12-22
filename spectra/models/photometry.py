@@ -1,7 +1,10 @@
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
+from django.conf import settings
+
 from stars.models import Star
+from users.models import get_sentinel_user
 
 band_wavelengths = {'GALEX.FUV':  1535, 
                     'GALEX.NUV':  2300, 
@@ -42,6 +45,7 @@ class Photometry(models.Model):
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)
+   added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
    
    #-- representation of self
    def __str__(self):

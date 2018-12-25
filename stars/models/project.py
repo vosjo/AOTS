@@ -5,6 +5,9 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
+from django.conf import settings
+
+from users.models.bookkeeping import get_sentinel_user
 
 from django.utils.text import slugify
 
@@ -24,10 +27,12 @@ class Project(models.Model):
    
    logo = models.FileField(upload_to='projects/', null=True, blank=True)
    
+   allowed_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='allowed_projects')
+   
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)
-   
+   added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
    
    #-- representation of self
    def __str__(self):

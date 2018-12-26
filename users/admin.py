@@ -11,11 +11,12 @@ class CustomUserAdmin(UserAdmin):
    
    model = User
    
-   list_display = ['username', 'email', 'first_name', 'last_name', 'is_active', 'is_student', 'is_projectmanager', 'is_superuser']
+   list_display = ['username', 'email', 'first_name', 'last_name', 'is_active', 'is_student', 'is_superuser', 'note']
    
    fieldsets = (
                (None, {'fields': ('username', 'email', 'password')}),
-               ('Permissions', {'fields': ('is_superuser', 'is_staff', 'is_active', 'is_student', 'is_projectmanager')}),
+               ('Extra Info', {'fields': ('first_name', 'last_name', 'note')}),
+               ('Permissions', {'fields': ('is_superuser', 'is_staff', 'is_active', 'is_student')}),
    )
    
 admin.site.register(User, CustomUserAdmin,)

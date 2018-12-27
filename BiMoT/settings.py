@@ -25,7 +25,7 @@ SECRET_KEY = '!4ls$1ketyn!-=__-c9oy!nfj@i&cimyni32jbe&@u4x*0*suq'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['46.101.118.100', '127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 
@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'stars.apps.StarsConfig',
     'spectra.apps.SpectraConfig',
     'analysis.apps.AnalysisConfig',
+    'users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -140,6 +141,8 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
+
+AUTH_USER_MODEL = 'users.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

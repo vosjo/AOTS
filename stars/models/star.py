@@ -2,6 +2,9 @@
 
 from astropy.coordinates.angles import Angle
 
+from django.conf import settings
+from django.contrib.auth import get_user_model
+
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
@@ -9,6 +12,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from .project import Project
+from users.models import get_sentinel_user
 
 
 @python_2_unicode_compatible  # to support Python 2
@@ -86,6 +90,7 @@ class Star(models.Model):
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)
+   added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
    
    def get_system_summary_parameter(self):
       """

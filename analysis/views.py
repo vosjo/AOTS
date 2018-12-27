@@ -26,7 +26,7 @@ def dataset_list(request, project=None,  **kwargs):
          files = request.FILES.getlist('datafile')
          for f in files:
             #-- save the new specfile
-            new_dataset = DataSet(datafile=f, project=project)
+            new_dataset = DataSet(datafile=f, project=project, added_by=request.user)
             new_dataset.save()
             
             #-- now process it and add it to a system.

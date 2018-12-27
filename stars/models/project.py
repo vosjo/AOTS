@@ -5,6 +5,9 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
+from django.conf import settings
+
+from users.models import get_sentinel_user
 
 from django.utils.text import slugify
 
@@ -24,10 +27,18 @@ class Project(models.Model):
    
    logo = models.FileField(upload_to='projects/', null=True, blank=True)
    
+   is_public = model.BooleanField(default=True)
+   
+   readonly_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readonly_projects')
+   readwriteown_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwriteown_projects')
+   readwrite_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwrite_projects')
+   project_managers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='managed_projects')
+   
+   
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)
-   
+   added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True, related_name='added_projects')
    
    #-- representation of self
    def __str__(self):

@@ -27,8 +27,10 @@ class Project(models.Model):
    
    logo = models.FileField(upload_to='projects/', null=True, blank=True)
    
+   is_public = model.BooleanField(default=True)
+   
    readonly_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readonly_projects')
-   readwriteown_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwriteown')
+   readwriteown_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwriteown_projects')
    readwrite_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwrite_projects')
    project_managers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='managed_projects')
    

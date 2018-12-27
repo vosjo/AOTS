@@ -22,3 +22,46 @@ class User(AbstractUser):
    
    note = models.TextField(default='')
    
+   
+   def can_read(self, project):
+      """
+      Returns true if this user has read access to objects of this project
+      """
+      
+      if project.is_public or self.is_superuser:
+         # Public projects can be read by everyone
+         return True
+      elif project in self.readonly_users.objects.all() or 
+           project in self.readwriteown_projects.objects.all() or
+           project in self.readwrite_users.objects.all():
+         # private projects require read access
+         return True
+      else:
+         return False
+      
+   def can_add(self, project):
+      """
+      Returns true if this user can add new objects to this project
+      """
+      
+      if self.is_superuser:
+         return True
+      elif project in self.readwriteown_projects.objects.all() or
+         project in self.readwrite_users.objects.all():
+         return True
+      else:
+         return False
+      
+   def can_edit(self, obj):
+      """
+      Returns true if this user can edit this specific object
+      """
+      if self.is_superuser:
+         return True
+      elif obj.project in self.readwrite_users.objects.all():
+         return True
+      elif obj.project in self.readwriteown_projects.objects.all() and
+           obj.added_by == self
+         return True
+      else:
+         return False

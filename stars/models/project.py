@@ -27,7 +27,7 @@ class Project(models.Model):
    
    logo = models.FileField(upload_to='projects/', null=True, blank=True)
    
-   is_public = model.BooleanField(default=True)
+   is_public = models.BooleanField(default=True)
    
    readonly_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readonly_projects')
    readwriteown_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwriteown_projects')
@@ -57,7 +57,11 @@ def set_project_slug(sender, **kwargs):
    
    project = kwargs['instance']
    
+   if project.slug != '':
+      return
+   
    unique_slug = slugify(project.name[0:17], allow_unicode=False)
+   slug = unique_slug.copy()
    
    extension = 1
    while Project._default_manager.filter( **{'slug': unique_slug} ).exists() or extension > 99:

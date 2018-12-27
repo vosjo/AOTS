@@ -149,7 +149,7 @@ def star_edit(request, star_id, project=None, **kwargs):
          # Delete this star and return to index
          messages.success(request, "The system: {} was successfully deleted".format(star.name))
          star.delete()
-         return redirect('systems:star_list')
+         return redirect('systems:star_list', project.slug)
       
       else:
          # Update the star based on the form

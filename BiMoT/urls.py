@@ -35,23 +35,23 @@ urlpatterns = [
    path('w/projects/', star_views.project_list, name='projects'),
    path('w/<slug:project>/', RedirectView.as_view(pattern_name='systems:star_list')),
    path('w/<slug:project>/systems/', include('stars.urls', namespace='systems')),
-   path('w/<slug:project>/observations/', include('spectra.urls', namespace='observations')),
+   path('w/<slug:project>/observations/', include('observations.urls', namespace='observations')),
    path('w/<slug:project>/analysis/', include('analysis.urls', namespace='analysis')),
    
    path('api/', include(router.urls), name='project-api'),
    path('api/systems/', include("stars.api.urls", namespace='systems-api') ),
-   path('api/observations/', include("spectra.api.urls", namespace='observations-api') ),
+   path('api/observations/', include("observations.api.urls", namespace='observations-api') ),
    path('api/analysis/', include("analysis.api.urls", namespace='analysis-api') ),
    
    path(r'admin/', admin.site.urls),
    
    #path('', RedirectView.as_view(url='/stars/stars/', permanent=False)),
    #path('stars/', include('stars.urls', namespace='stars'), name='stars'),
-   #path('spectra/', include('spectra.urls'), name='spectra'),
+   #path('observations/', include('observations.urls'), name='observations'),
    #path('analysis/', include('analysis.urls'), name='analysis'),
    
    #path(r'api/stars/', include("stars.api.urls"), name='stars-api'),
-   #path(r'api/spectra/', include("spectra.api.urls"), name='spectra-api'),
+   #path(r'api/observations/', include("observations.api.urls"), name='observations-api'),
    #path(r'api/analysis/', include("analysis.api.urls"), name='analysis-api'),
    
    #path(r'^login/$', auth_views.login, name='login'),

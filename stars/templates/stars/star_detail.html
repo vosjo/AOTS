@@ -190,7 +190,7 @@
          <tbody>
          {% for spec in star.spectrum_set.all|order_by:"hjd" %}
             <tr>
-            <td><a href={% url 'observations:spectra_detail' project.slug spec.pk %}>{{ spec.hjd|floatformat:3 }}</a></td>
+            <td><a href={% url 'observations:spectrum_detail' project.slug spec.pk %}>{{ spec.hjd|floatformat:3 }}</a></td>
             <td>{{ spec.hjd|hjd2date }}</td>
             <td>{{ spec.instrument }} @ {{spec.telescope}}</td>
             <td>{{ spec.exptime }}</td>

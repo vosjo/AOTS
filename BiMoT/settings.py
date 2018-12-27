@@ -33,7 +33,7 @@ ALLOWED_HOSTS = ['127.0.0.1']
 
 INSTALLED_APPS = [
     'stars.apps.StarsConfig',
-    'spectra.apps.SpectraConfig',
+    'observations.apps.ObservationsConfig',
     'analysis.apps.AnalysisConfig',
     'users.apps.UsersConfig',
     'django.contrib.admin',

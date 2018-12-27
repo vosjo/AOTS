@@ -31,8 +31,8 @@ class User(AbstractUser):
       if project.is_public or self.is_superuser:
          # Public projects can be read by everyone
          return True
-      elif project in self.readonly_users.objects.all() or 
-           project in self.readwriteown_projects.objects.all() or
+      elif project in self.readonly_users.objects.all() or \
+           project in self.readwriteown_projects.objects.all() or \
            project in self.readwrite_users.objects.all():
          # private projects require read access
          return True
@@ -46,7 +46,7 @@ class User(AbstractUser):
       
       if self.is_superuser:
          return True
-      elif project in self.readwriteown_projects.objects.all() or
+      elif project in self.readwriteown_projects.objects.all() or \
          project in self.readwrite_users.objects.all():
          return True
       else:
@@ -60,8 +60,8 @@ class User(AbstractUser):
          return True
       elif obj.project in self.readwrite_users.objects.all():
          return True
-      elif obj.project in self.readwriteown_projects.objects.all() and
-           obj.added_by == self
+      elif obj.project in self.readwriteown_projects.objects.all() and \
+           obj.added_by == self:
          return True
       else:
          return False

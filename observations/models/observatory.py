@@ -7,6 +7,7 @@ from django.conf import settings
 
 from django.utils.encoding import python_2_unicode_compatible
 
+from stars.models import Project
 from users.models import get_sentinel_user
 
 import astropy.units as u
@@ -16,6 +17,10 @@ from astroplan import Observer
 
 @python_2_unicode_compatible  # to support Python 2
 class Observatory(models.Model):
+   
+   #-- an observatory belongs to a specific project
+   #   when that project is deleted, the observatory is also deleted.
+   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
    
    name = models.CharField(max_length=100, default='')
    
@@ -63,10 +68,20 @@ class Observatory(models.Model):
       return sunset, sunrise
    
    def get_weather_url(self, hjd=None):
+      """
+      Returns the weather url set to the given time (hjd). If no time is given, the current time
+      is used.
+      """
+      if hjd is None:
+         hjd = Time.now()
+      
       if self.weatherurl != '':
          print (hjd)
-         t = Time(hjd, format='jd').datetime
-         return self.weatherurl.format(year=t.year, month=t.month, day=t.day, hjd=hjd)
+         t = Time(hjd, format='jd')
+         dt = t.datetime
+         return self.weatherurl.format(year=dt.year, month=dt.month, day=dt.day, 
+                                       hour=dt.hour, min=dt.minute, sec=dt.second,
+                                       mjd=t.mjd, hjd=t.jd)
       else:
          return ''
    

@@ -83,7 +83,7 @@ class ObservatoryFilter(filters.FilterSet):
    
    class Meta:
       model = Observatory
-      fields = ['latitude', 'longitude', 'altitude']
+      fields = ['latitude', 'longitude', 'altitude', 'project']
 
 
 class ObservatoryViewSet(viewsets.ModelViewSet):

@@ -61,7 +61,7 @@ def set_project_slug(sender, **kwargs):
       return
    
    unique_slug = slugify(project.name[0:17], allow_unicode=False)
-   slug = unique_slug.copy()
+   slug = slugify(project.name[0:17], allow_unicode=False)
    
    extension = 1
    while Project._default_manager.filter( **{'slug': unique_slug} ).exists() or extension > 99:

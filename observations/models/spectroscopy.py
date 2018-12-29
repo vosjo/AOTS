@@ -25,7 +25,7 @@ class Spectrum(models.Model):
    star = models.ForeignKey(Star, on_delete=models.CASCADE, blank=True, null=True)
    
    #-- a spectrum belongs to a specific project
-   #   when that project is deleted, the star is also deleted.
+   #   when that project is deleted, the spectrum is also deleted.
    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
    
    hjd = models.FloatField(default=0)

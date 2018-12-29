@@ -15,6 +15,9 @@ $(document).ready(function () {
       autoWidth: false,
       ajax: {
          url: '/api/observations/observatories/?format=datatables&keep=url',
+         data: function ( d ) {
+           d.project = $('#project-pk').attr('project');
+         },
       },
       columns: [
          { data: 'name', render: name_render },
@@ -79,7 +82,8 @@ function addObservatory() {
    $.ajax({
       url : "/api/observations/observatories/", 
       type : "POST",
-      data : { name :        $('#observatoryEditName').val(), 
+      data : { project:      $('#project-pk').attr('project'),
+               name :        $('#observatoryEditName').val(), 
                telescopes :  $('#observatoryEditTelescopes').val(),
                latitude :    $('#observatoryEditLatitude').val(),
                longitude :   $('#observatoryEditLongitude').val(),

@@ -25,15 +25,17 @@ def get_header_info(spectrum_pk):
    else:
       derive_generic_info(spectrum_pk, header)
 
-def get_observatory(header):
+def get_observatory(header, project):
    """
    Finds a suitable observatory or if not possible, create a new one.
    """
    
+   d = 0.1  # a difference of 0.1 degree in latitude and longitude is roughly 10 km
+   
    #-- try to find the observatory on name match
    if 'TELESCOP' in header:
       try:
-         obs = Observatory.objects.get(name__exact = header['TELESCOP'])
+         obs = Observatory.objects.get(name__exact = header['TELESCOP'], project__exact = project)
          return obs
       except Exception as e:
          telescope = header.get('TELESCOP', 'UK')
@@ -49,15 +51,17 @@ def get_observatory(header):
       loc = EarthLocation.from_geodetic(lat=0*u.deg, lon=0*u.deg, height=0*u.m,)
    
    #-- we look for an observatory that is within 1 degree from location stored in the header, altitude is not checked.
-   obs = Observatory.objects.filter(latitude__range = (loc.lat.degree-1, loc.lat.degree+1), 
-                                    longitude__range = (loc.lon.degree-1, loc.lon.degree+1),)
+   obs = Observatory.objects.filter(latitude__range = (loc.lat.degree-d, loc.lat.degree+d), 
+                                    longitude__range = (loc.lon.degree-d, loc.lon.degree+d),
+                                    project__exact = project)
    
    if len(obs) > 0:
       return obs[0]
       
 
    #-- if still no observatory exists, create a new one.
-   obs = Observatory(name=telescope, latitude=loc.lat.degree, longitude=loc.lon.degree, altitude=loc.height.value)
+   obs = Observatory(name=telescope, latitude=loc.lat.degree, longitude=loc.lon.degree,
+                     altitude=loc.height.value, project=project)
    obs.save()
       
    return obs
@@ -90,7 +94,7 @@ def derive_generic_info(spectrum_pk, header):
    spectrum.telescope = header.get('TELESCOP', 'UK')
    spectrum.exptime = np.round(header.get('EXPTIME', -1), 0)
    
-   spectrum.observatory = get_observatory(header)
+   spectrum.observatory = get_observatory(header, spectrum.project)
    
    
    # save changes
@@ -124,7 +128,7 @@ def derive_uves_info(spectrum_pk, header):
    spectrum.barycor = header.get('ESO QC VRAD BARYCOR', -1)
    spectrum.observer = header.get('OBSERVER', 'UK')
    
-   spectrum.observatory = get_observatory(header)
+   spectrum.observatory = get_observatory(header, spectrum.project)
    
    # observing conditions
    spectrum.wind_speed = np.round(header.get('ESO TEL AMBI WINDSP', -1), 1)
@@ -160,7 +164,7 @@ def derive_feros_info(spectrum_pk, header):
    spectrum.barycor = -1
    spectrum.observer = header.get('OBSERVER', 'UK')
    
-   spectrum.observatory = get_observatory(header)
+   spectrum.observatory = get_observatory(header, spectrum.project)
    
    # observing conditions
    spectrum.wind_speed = np.round(header.get('ESO TEL AMBI WINDSP', -1), 1)
@@ -198,7 +202,7 @@ def derive_hermes_info(spectrum_pk, header):
    spectrum.barycor = header.get('BVCOR', -1)
    spectrum.observer = header.get('OBSERVER', 'UK')
    
-   spectrum.observatory = get_observatory(header)
+   spectrum.observatory = get_observatory(header, spectrum.project)
    
    # observing conditions
    spectrum.wind_speed = -1

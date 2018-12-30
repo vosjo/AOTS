@@ -14,7 +14,7 @@ $(document).ready(function () {
    observatory_table = $('#observatorytable').DataTable({
       autoWidth: false,
       ajax: {
-         url: '/api/observations/observatories/?format=datatables&keep=url',
+         url: '/api/observations/observatories/?format=datatables&keep=url&keep=short_name',
          data: function ( d ) {
            d.project = $('#project-pk').attr('project');
          },
@@ -84,6 +84,7 @@ function addObservatory() {
       type : "POST",
       data : { project:      $('#project-pk').attr('project'),
                name :        $('#observatoryEditName').val(), 
+               short_name :  $('#observatoryEditShortName').val(), 
                telescopes :  $('#observatoryEditTelescopes').val(),
                latitude :    $('#observatoryEditLatitude').val(),
                longitude :   $('#observatoryEditLongitude').val(),
@@ -112,10 +113,9 @@ function openObservatoryEditBox(tabelrow, data) {
       close: function() { observatory_window.dialog( "close" ); }
    });
    
-   console.log(data);
-   
    observatory_window.dialog( "open" );
    $("#observatoryEditName").val( data['name'] );
+   $("#observatoryEditShortName").val( data['short_name'] );
    $("#observatoryEditTelescopes").val( data['telescopes'] );
    $("#observatoryEditLatitude").val( data['latitude'] );
    $("#observatoryEditLongitude").val( data['longitude'] );
@@ -131,6 +131,7 @@ function editObservatory(tabelrow, data) {
       url : "/api/observations/observatories/"+data['pk']+'/', 
       type : "PATCH",
       data : { name :        $('#observatoryEditName').val(), 
+               short_name :  $('#observatoryEditShortName').val(), 
                telescopes :  $('#observatoryEditTelescopes').val(),
                latitude :    $('#observatoryEditLatitude').val(),
                longitude :   $('#observatoryEditLongitude').val(),
@@ -143,6 +144,7 @@ function editObservatory(tabelrow, data) {
       success : function(json) {
             observatory_window.dialog( "close" );
             observatory_table.row(tabelrow).data(json).draw();
+            console.log(json);
       },
 
       error : function(xhr,errmsg,err) {

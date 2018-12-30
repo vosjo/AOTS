@@ -100,7 +100,9 @@ class ObservatorySerializer(ModelSerializer):
       model = Observatory
       fields = [
             'pk',
+            'project',
             'name',
+            'short_name',
             'telescopes', 
             'latitude',
             'longitude',

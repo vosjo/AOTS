@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.db.models.signals import pre_delete, post_delete, post_save, pre_save, post_init
+from django.dispatch import receiver
 
 from django.conf import settings
 
@@ -24,7 +26,9 @@ class Observatory(models.Model):
    
    name = models.CharField(max_length=100, default='')
    
-   telescopes = models.TextField(default='')
+   short_name = models.CharField(max_length=15, default='', blank=True)
+   
+   telescopes = models.TextField(default='', blank=True)
    
    # latitude in degrees
    latitude = models.FloatField(default=0)
@@ -36,11 +40,11 @@ class Observatory(models.Model):
    altitude = models.FloatField(default=0)
    
    
-   url = models.CharField(max_length=150, default='')
+   url = models.CharField(max_length=150, default='', blank=True)
    
-   weatherurl = models.CharField(max_length=150, default='')
+   weatherurl = models.CharField(max_length=150, default='', blank=True)
    
-   note = models.TextField(default='')
+   note = models.TextField(default='', blank=True)
    
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
@@ -88,3 +92,33 @@ class Observatory(models.Model):
    #-- representation of self
    def __str__(self):
       return "{}: lat={}, lon={}, alt={}".format(self.name, self.latitude, self.longitude, self.altitude)
+
+
+@receiver(pre_save, sender=Observatory)
+def set_short_name(sender, **kwargs):
+   """
+   When an observatory is saved, create a short name is none was set.
+   """
+   
+   if kwargs.get('raw', False):
+      return
+   
+   observatory = kwargs['instance']
+   
+   print (observatory)
+   
+   if observatory.short_name == '':
+      # create short name
+      short_name = ''
+      if len(observatory.name) <= 15:
+         # if name is less than 15 chars, just use the name
+         short_name = observatory.name
+         
+      else:
+         # take the first letter of each word longer than 3 chars.
+         for word in observatory.name.split():
+            if len(word) > 3: short_name += word[0].upper()
+      
+      print ('shortname: ', short_name)
+      observatory.short_name = short_name
+            

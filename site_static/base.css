@@ -282,6 +282,15 @@ div.circle {
    float: center;
 }
 
+.wfull {
+   display: inline-block;
+   width: 96%;
+   margin-left: 2%;
+   margin-right: 2%;
+   border: 1px solid gray;
+   float: center;
+}
+
 hr {
    clear: left;
    margin-top: 10px;
@@ -961,4 +970,50 @@ span.header-value {
 
 .ui-dialog .error-message {
    color: red;
+}
+
+
+/* Footer stuff */
+* {
+  margin: 0;
+}
+html, body {
+  height: 100%;
+}
+.page-wrap {
+  min-height: 100%;
+  /* equal to footer height */
+  margin-bottom: -40px; 
+}
+.page-wrap:after {
+  content: "";
+  display: block;
+}
+.site-footer, .page-wrap:after {
+  height: 40px; 
+}
+.site-footer {
+  background-image: linear-gradient(rgba(64, 117, 144, 0.1), rgba(64, 117, 144, 0.4));
+/*   background: rgba(64, 117, 144, 0.3); */
+/*   box-shadow: 0 3px 10px -2px rgba(64, 117, 144, 0.3); */
+}
+
+footer div {
+   display: inline-block;
+   width: 96%;
+   height: 36px;
+   margin-left: 2%;
+   margin-right: 2%;
+   margin-top: 2px;
+   margin-bottom: 2px;
+   float: center;
+   text-align: center;
+}
+
+footer i {
+   margin-left: 5px;
+   margin-right: 5px;
+   text-align: center;
+   vertical-align: middle;
+   line-height: 36px;       /* the same as your div height */
 }

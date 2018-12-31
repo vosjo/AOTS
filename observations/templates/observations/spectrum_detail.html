@@ -66,7 +66,7 @@
       <tr> <th>Wind speed:</th> <td class="mono">{{ spectrum.wind_speed }} km/h</td> </tr>
       <tr> <th>Wind direction:</th> <td class="mono">{{ spectrum.wind_direction }}&deg; ({{ spectrum.wind_direction|dgr2cardinal }})</td> </tr>
       <tr> <th>Observer:</th> <td class="mono">{{ spectrum.observer}}</td> </tr>
-      <tr> <th>Weather link:</th> <td class="mono"> <a target="_blank" href="{{ spectrum.get_weather_url }}"> {{ spectrum.observatory.name }} </a></td> </tr>
+      <tr> <th>Weather link:</th> <td class="mono"> <a target="_blank" href="{{ spectrum.get_weather_url }}"> {{ spectrum.observatory.short_name }} </a></td> </tr>
    </tbody>
    </table>
    </div>

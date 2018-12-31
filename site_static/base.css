@@ -985,6 +985,9 @@ html, body {
   /* equal to footer height */
   margin-bottom: -40px; 
 }
+.page-wrap-base {
+  min-height: 100%;
+}
 .page-wrap:after {
   content: "";
   display: block;
@@ -994,8 +997,6 @@ html, body {
 }
 .site-footer {
   background-image: linear-gradient(rgba(64, 117, 144, 0.1), rgba(64, 117, 144, 0.4));
-/*   background: rgba(64, 117, 144, 0.3); */
-/*   box-shadow: 0 3px 10px -2px rgba(64, 117, 144, 0.3); */
 }
 
 footer div {

@@ -58,7 +58,7 @@ class Spectrum(models.Model):
    #-- flag if the spectrum is flux calibrated, defaults to False
    fluxcal = models.BooleanField(default=False)
    
-   note = models.TextField(default='')
+   note = models.TextField(default='', blank=True)
    
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)

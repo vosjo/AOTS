@@ -1,5 +1,5 @@
  
-# BiMoT
+# AOTS
 
 ## Setup postgres
 
@@ -10,13 +10,13 @@ sudo -u postgres psql
 
 connect to our database and list all tables:
 ```
-\c bimotdb
+\c aotsdb
 \dt
 ```
 
 ## Instaling Django
 
-This will install BiMoT using a python virtualenv to avoid conflicts with other packages.
+This will install AOTS using a python virtualenv to avoid conflicts with other packages.
 
 ### 1. Prerequisits
 
@@ -28,10 +28,10 @@ pip install virtualenv
 
 ### 2. Create the virtual environment
 
-Create a new virtual python environment for BiMoT and activate it
+Create a new virtual python environment for AOTS and activate it
 ```
-virtualenv bimotenv
-source bimotenv/bin/activate
+virtualenv aotsenv
+source aotsenv/bin/activate
 ```
 
 if this fails with an error similar to: Error: unsupported locale setting
@@ -40,21 +40,21 @@ do:
 export LC_ALL=C
 ```
 
-### 3. Clone BiMoT from github
+### 3. Clone AOTS from github
 ```
-git clone https://github.com/Alegria01/BiMoT.git
+git clone https://github.com/Alegria01/AOTS.git
 ```
 
 ### 4. Install the requirements
 ```
-cd BiMoT
+cd AOTS
 pip install -r requirements.txt
 pip install django gunicorn psycopg2
 ```
 
-## Running BiMoT
+## Running AOTS
 
-To run BiMoT localy, using the simple sqlite database and the included server:
+To run AOTS localy, using the simple sqlite database and the included server:
 
 ### 1. setup the database
 ```
@@ -105,7 +105,7 @@ sudo nano /etc/systemd/system/gunicorn_aots.socket
 Description=gunicorn socket
 
 [Socket]
-ListenStream=/home/aots/www/bimot/BiMoT/BiMoT/run/gunicorn.sock
+ListenStream=/home/aots/www/aots/AOTS/AOTS/run/gunicorn.sock
 
 [Install]
 WantedBy=sockets.target
@@ -125,12 +125,12 @@ After=network.target
 [Service]
 User=aots
 Group=www-data
-WorkingDirectory=/home/aots/www/bimot/BiMoT
-ExecStart=/home/aots/www/bimot/bimotenv/bin/gunicorn \
+WorkingDirectory=/home/aots/www/aots/AOTS
+ExecStart=/home/aots/www/aots/aotsenv/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
-          --bind unix:/home/aots/www/bimot/BiMoT/BiMoT/run/gunicorn.sock \
-          BiMoT.wsgi:application
+          --bind unix:/home/aots/www/aots/AOTS/AOTS/run/gunicorn.sock \
+          AOTS.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -149,7 +149,7 @@ sudo journalctl -u gunicorn_aots.socket
 ```
 check that a gunicorn.sock file is created:
 ```
-ls /home/aots/www/bimot/BiMoT/BiMoT/run/
+ls /home/aots/www/aots/AOTS/AOTS/run/
 >>> gunicorn.sock
 ```
 
@@ -177,12 +177,12 @@ server {
 
     location = /favicon.ico { access_log off; log_not_found off; }
     location /static/ {
-        root /home/aots/www/bimot/BiMoT;
+        root /home/aots/www/aots/AOTS;
     }
 
     location / {
         include proxy_params;
-        proxy_pass http://unix:/home/aots/www/bimot/BiMoT/BiMoT/run/gunicorn.sock;
+        proxy_pass http://unix:/home/aots/www/aots/AOTS/AOTS/run/gunicorn.sock;
     }
 
 }

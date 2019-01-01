@@ -9,7 +9,20 @@ $(document).ready(function() {
          title: "File Header",
          width: 'auto',
          modal: true});
+   
+   var update_note_window = $("#noteEdit").dialog({autoOpen: false, 
+            width: 'auto',
+            modal: true});
+   
+   var edit_spectrum_window = $("#spectrumEdit").dialog({autoOpen: false, 
+            width: 'auto',
+            modal: true});
 
+   
+   // add event listeners
+   $( "#noteEditButton").click( openNoteUpdateBox );
+   $( "#spectrumEditButton").click( openSpectrumEditBox );
+   
    $(".showheader").click(function( event ){
       event.preventDefault();
       // get the header information
@@ -40,3 +53,69 @@ $(document).ready(function() {
    });
 
 });
+
+
+// Functionality to open the edit/update windows
+function openNoteUpdateBox() {
+   update_note_window = $("#noteEdit").dialog({
+      buttons: { "Update": updateNote },
+      close: function() { update_note_window.dialog( "close" ); }
+   });
+      
+   update_note_window.dialog( "open" );
+   $("#edit-message").val( $("#noteField").text().trim() ); 
+};
+
+
+function openSpectrumEditBox() {
+   edit_spectrum_window = $("#spectrumEdit").dialog({
+      buttons: { "Update": editSpectrum },
+      close: function() { edit_spectrum_window.dialog( "close" ); }
+   });
+      
+   edit_spectrum_window.dialog( "open" );
+   $("#spectrum-valid").val( true ); 
+   $("#spectrum-fluxcal").val( false ); 
+   $("#spectrum-fluxunits").val( 'test' ); 
+};
+
+
+// Update the note of the spectrum
+function updateNote() {
+//    var star_id = $('#noteEditButton').attr('star_id')
+//    $.ajax({
+//       url : "/api/systems/stars/"+star_id+'/', 
+//       type : "PATCH",
+//       data : { note: $("#edit-message").val().trim() },
+//       
+//       success : function(json) {
+//             update_note_window.dialog( "close" );
+//             $("#noteField").text(json.note);
+//             star.note = json.note;
+//       },
+// 
+//       error : function(xhr,errmsg,err) {
+//             console.log(xhr.status + ": " + xhr.responseText);
+//       }
+//    });
+};
+
+
+function editSpectrum() {
+//    var star_id = $('#noteEditButton').attr('star_id')
+//    $.ajax({
+//       url : "/api/systems/stars/"+star_id+'/', 
+//       type : "PATCH",
+//       data : { note: $("#edit-message").val().trim() },
+//       
+//       success : function(json) {
+//             update_note_window.dialog( "close" );
+//             $("#noteField").text(json.note);
+//             star.note = json.note;
+//       },
+// 
+//       error : function(xhr,errmsg,err) {
+//             console.log(xhr.status + ": " + xhr.responseText);
+//       }
+//    });
+};

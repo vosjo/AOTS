@@ -296,6 +296,13 @@ hr {
    margin-top: 10px;
 }
 
+hr.box {
+   margin-top: 10px;
+   margin-bottom: 10px;
+   width: 95%;
+   border-top: 1px solid rgba(64, 117, 144, 0.3);
+}
+
 /* Status icons */
 
 .status-icon {
@@ -746,6 +753,10 @@ table.obs-table td {
 
 
 /* ICON stuff */
+
+.inline-icon {
+   vertical-align: middle;
+}
 
 .button {
    color: #aaa;

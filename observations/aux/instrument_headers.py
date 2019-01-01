@@ -86,6 +86,7 @@ def derive_generic_info(spectrum_pk, header):
       spectrum.hjd = 2400000
    
    # pointing info
+   spectrum.objectname = header.get('OBJECT', '')
    spectrum.ra = header.get('RA', -1)
    spectrum.dec = header.get('DEC', -1)
    
@@ -115,6 +116,7 @@ def derive_uves_info(spectrum_pk, header):
    spectrum.hjd = Time(header.get('MJD-OBS', 0.0), format='mjd', scale='utc').jd
    
    # pointing info
+   spectrum.objectname = header.get('OBJECT', '')
    spectrum.ra = header.get('RA', -1)
    spectrum.dec = header.get('DEC', -1)
    spectrum.alt = header.get('ESO TEL ALT', -1)
@@ -151,6 +153,7 @@ def derive_feros_info(spectrum_pk, header):
    spectrum.hjd = Time(header.get('MJD-OBS', 0.0), format='mjd', scale='utc').jd
    
    # pointing info
+   spectrum.objectname = header.get('OBJECT', '')
    spectrum.ra = header.get('RA', -1)
    spectrum.dec = header.get('DEC', -1)
    spectrum.alt = header.get('ESO TEL ALT', -1)
@@ -189,6 +192,7 @@ def derive_hermes_info(spectrum_pk, header):
    spectrum.hjd = header.get('BJD', 2400000)
    
    # pointing info
+   spectrum.objectname = header.get('OBJECT', '')
    spectrum.ra = header.get('RA', -1)
    spectrum.dec = header.get('DEC', -1)
    spectrum.alt = header.get('TELALT', -1)

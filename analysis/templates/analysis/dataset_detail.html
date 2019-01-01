@@ -15,7 +15,7 @@
 
 {% block content %}
 
-<i display="none" id="project-pk" project={{project.pk}}></i>
+   <i display="none" id="project-pk" project={{project.pk}}></i>
 
    <div id="sidenav">
    <h2> Related datasets </h2>
@@ -64,7 +64,9 @@
    
    <div class="main-container-h border">
       
+      {% if user.is_authenticated %}
       <i id="nameEditButton" class="material-icons button edit" title="edit name" dataset_id={{dataset.pk}}>edit</i>
+      {% endif %}
       
       <div class='header-item'>
       <h3 id="nameField"> {{ dataset.name }}</h3> 
@@ -81,7 +83,8 @@
       </div>
       
       <div class='header-item'>
-      <input type="checkbox" id="dataset-valid-{{dataset.pk}}" {% if dataset.valid %} checked="checked" {% endif %} onchange='toggleDatasetValid(this);' dataset_id="{{dataset.pk}}">
+      <input type="checkbox" id="dataset-valid-{{dataset.pk}}" {% if dataset.valid %} checked="checked" {% endif %} onchange='toggleDatasetValid(this);' dataset_id="{{dataset.pk}}"
+      {% if not user.is_authenticated %} disabled {% endif %}>
       <h3> Valid </h3> 
       </div>
       
@@ -102,8 +105,10 @@
       
       <div class="main-container border">
          <h3>Parameters</h3>
-      
+         
+         {% if user.is_authenticated %}
          <i id="switchParameterComponentButton" class="material-icons button edit" title="Switch primary/secondary">cached</i>
+         {% endif %}
       
          <table class="paramtable">
          <thead>
@@ -114,7 +119,8 @@
             <tr> <th>{{p.cname}} ({{p.unit}})</th>
                  <td>{{p.rvalue}}</td>  
                  <td>{{p.rerror}}</td>
-                 <td> <input type="checkbox" id="cb-parameter-valid-{{p.pk}}" {% if p.valid %} checked="checked" {% endif %} onchange='toggleParameterValid(this);' parameter_id="{{p.pk}}"> </td>
+                 <td> <input type="checkbox" id="cb-parameter-valid-{{p.pk}}" {% if p.valid %} checked="checked" {% endif %} onchange='toggleParameterValid(this);' parameter_id="{{p.pk}}"
+                 {% if not user.is_authenticated %} disabled {% endif %}> </td>
          {% endfor %}
          </tbody>
          </table>
@@ -122,7 +128,9 @@
       
       <div class="main-container border">
       <h3>Notes</h3>
+      {% if user.is_authenticated %}
       <i id="noteEditButton" class="material-icons button edit" title="edit note" dataset_id={{dataset.pk}}>edit</i>
+      {% endif %}
          <div id="noteField">
          {{dataset.note|linebreaks}}
          </div>

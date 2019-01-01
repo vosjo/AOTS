@@ -4,7 +4,7 @@ var star = {}
 $(document).ready(function() {
    
    // load the star info
-   var star_id = $('#noteEditButton').attr('star_id')
+   var star_id = $('#tag_list').attr('star_id')
    $.ajax({
       url : "/api/systems/stars/"+star_id+'/', 
       type : "GET",

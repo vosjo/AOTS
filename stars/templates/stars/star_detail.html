@@ -56,7 +56,9 @@
    
    <div class="tag-container j-center">
    <h3>Basic Data </h3>
+   {% if user.is_authenticated %}
    <a href={% url 'systems:star_edit' project.slug star.id %} class="material-icons button edit" title="Edit">edit</a>
+   {% endif %}
    <table class="datatable">
    <tbody>
       <tr> <th>Name:</th> <td class="mono">{{ star.name }}</td> </tr>
@@ -89,7 +91,9 @@
    
    <div class="tag-container">
       <h3>Notes</h3>
+      {% if user.is_authenticated %}
       <i id="noteEditButton" class="material-icons button edit" title="Edit" star_id={{star.pk}}>edit</i>
+      {% endif %}
       <div id="noteField">{{star.note|linebreaks}}</div>
    </div>
    
@@ -100,7 +104,9 @@
    <div class="tag-container">
       
       <h3>Aliases</h3>
+      {% if user.is_authenticated %}
       <i id="identifierAddButton" class="material-icons button add" title="Add new" star_id={{star.pk}}>add_box</i>
+      {% endif %}
    
       <div class="flex-data-container" id="identifier_list">
       {% for name in star.identifier_set.all %}
@@ -109,8 +115,10 @@
          {% else %}
              <div class="identifier" id="identifier-{{name.pk}}">{{ name.name }} 
          {% endif %}
-     
+      
+      {% if user.is_authenticated %}
       <i class="material-icons button delete" id="delete-identifier-{{name.pk}}" title="Delete">delete</i>
+      {% endif %}
       </div>
       {% empty %}
       <p> None known.</p>
@@ -122,9 +130,11 @@
    <div class="tag-container">
    
       <h3>Tags</h3>
+      {% if user.is_authenticated %}
       <i id="tagEditButton" class="material-icons button edit" title="Edit" star_id={{star.pk}}>edit</i>
+      {% endif %}
    
-      <div class="flex-data-container" id="tag_list">
+      <div class="flex-data-container" id="tag_list" star_id={{star.pk}}>
       <p>Loading...</p>
       </div>
       

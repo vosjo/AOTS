@@ -31,6 +31,7 @@ class Spectrum(models.Model):
    hjd = models.FloatField(default=0)
    
    #-- pointing info
+   objectname = models.CharField(max_length=50, default='')
    ra = models.FloatField(default=0)
    dec = models.FloatField(default=0)
    alt = models.FloatField(default=0)  # average altitude angle of observation
@@ -55,8 +56,12 @@ class Spectrum(models.Model):
    #   prevent deletion of an observatory that is referenced by a spectrum
    observatory = models.ForeignKey(Observatory, on_delete=models.PROTECT, null=True,)
    
-   #-- flag if the spectrum is flux calibrated, defaults to False
+   #-- flag if the spectrum is flux calibrated, defaults to False. And the flux unit.
    fluxcal = models.BooleanField(default=False)
+   flux_units = models.CharField(max_length=50, default='ergs/cm/cm/s/A')
+   
+   #-- flag to indicate that the spectrum is of good quality
+   valid = models.BooleanField(default=True)
    
    note = models.TextField(default='', blank=True)
    

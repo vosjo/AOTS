@@ -53,18 +53,18 @@
       
       <div class='header-item'>
       {% if spectrum.valid %}
-      <i class="material-icons status-icon valid bold" title='Good quality'></i>
+      <i id="spectrum-valid-icon" class="material-icons status-icon valid bold" title='Good quality'></i>
       {% else %}
-      <i class="material-icons status-icon invalid bold" title='Bad quality'></i>
+      <i id="spectrum-valid-icon" class="material-icons status-icon invalid bold" title='Bad quality'></i>
       {% endif %}
       <h3> Valid</h3> 
       </div>
       
       <div class='header-item'>
       {% if spectrum.fluxcal %}
-      <i class="material-icons status-icon valid bold" title='Flux calibrated'></i>
+      <i id="spectrum-fluxcal-icon" class="material-icons status-icon valid bold" title='Flux calibrated'></i>
       {% else %}
-      <i class="material-icons status-icon invalid bold" title='Not flux calibrated'></i>
+      <i id="spectrum-fluxcal-icon" class="material-icons status-icon invalid bold" title='Not flux calibrated'></i>
       {% endif %}
       <h3> Flux calibrated </h3> 
       </div>

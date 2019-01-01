@@ -82,40 +82,58 @@ function openSpectrumEditBox() {
 
 // Update the note of the spectrum
 function updateNote() {
-//    var star_id = $('#noteEditButton').attr('star_id')
-//    $.ajax({
-//       url : "/api/systems/stars/"+star_id+'/', 
-//       type : "PATCH",
-//       data : { note: $("#edit-message").val().trim() },
-//       
-//       success : function(json) {
-//             update_note_window.dialog( "close" );
-//             $("#noteField").text(json.note);
+   var spectrum_id = $('#noteEditButton').attr('spectrum_id')
+   $.ajax({
+      url : "/api/observations/spectra/"+spectrum_id+'/', 
+      type : "PATCH",
+      data : { note: $("#edit-message").val().trim() },
+      
+      success : function(json) {
+            update_note_window.dialog( "close" );
+            $("#noteField").text(json.note);
 //             star.note = json.note;
-//       },
-// 
-//       error : function(xhr,errmsg,err) {
-//             console.log(xhr.status + ": " + xhr.responseText);
-//       }
-//    });
+      },
+
+      error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText);
+      }
+   });
 };
 
 
 function editSpectrum() {
-//    var star_id = $('#noteEditButton').attr('star_id')
-//    $.ajax({
-//       url : "/api/systems/stars/"+star_id+'/', 
-//       type : "PATCH",
-//       data : { note: $("#edit-message").val().trim() },
-//       
-//       success : function(json) {
-//             update_note_window.dialog( "close" );
-//             $("#noteField").text(json.note);
-//             star.note = json.note;
-//       },
-// 
-//       error : function(xhr,errmsg,err) {
-//             console.log(xhr.status + ": " + xhr.responseText);
-//       }
-//    });
+   var spectrum_id = $('#spectrumEditButton').attr('spectrum_id')
+   
+   $.ajax({
+      url : "/api/observations/spectra/"+spectrum_id+'/',
+      type : "PATCH",
+      data : { valid: $("#spectrum-valid").is(':checked'),
+               fluxcal: $("#spectrum-fluxcal").is(':checked'),
+               flux_units: $("#spectrum-fluxunits").val().trim()
+             },
+      
+      success : function(json) {
+            edit_spectrum_window.dialog( "close" );
+            
+            if (json.valid) {
+               $("#spectrum-valid-icon").removeClass("invalid")
+               $("#spectrum-valid-icon").addClass("valid")
+            } else {
+               $("#spectrum-valid-icon").addClass("invalid")
+               $("#spectrum-valid-icon").removeClass("valid")
+            };
+            
+            if (json.fluxcal) {
+               $("#spectrum-fluxcal-icon").removeClass("invalid")
+               $("#spectrum-fluxcal-icon").addClass("valid")
+            } else {
+               $("#spectrum-fluxcal-icon").addClass("invalid")
+               $("#spectrum-fluxcal-icon").removeClass("valid")
+            };
+      },
+
+      error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText);
+      }
+   });
 };

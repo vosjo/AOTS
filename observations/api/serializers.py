@@ -23,6 +23,7 @@ class SpectrumSerializer(ModelSerializer):
       fields = [
             'pk',
             'star',
+            'project',
             'hjd',
             'ra',
             'dec',
@@ -30,6 +31,10 @@ class SpectrumSerializer(ModelSerializer):
             'instrument',
             'telescope',
             'observatory',
+            'valid',
+            'fluxcal',
+            'flux_units',
+            'note',
             'specfiles',
             'href',
             ]

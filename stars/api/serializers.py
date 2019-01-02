@@ -80,6 +80,8 @@ class StarListSerializer(ModelSerializer):
    tags = SerializerMethodField()
    vmag = SerializerMethodField()
    href = SerializerMethodField()
+   nphot = SerializerMethodField()
+   nspec = SerializerMethodField()
    classification_type_display = SerializerMethodField()
    observing_status_display = SerializerMethodField()
    tag_ids = PrimaryKeyRelatedField(
@@ -108,6 +110,8 @@ class StarListSerializer(ModelSerializer):
             'tags',
             'tag_ids',
             'vmag',
+            'nphot',
+            'nspec',
             'href',
       ]
       read_only_fields = ('pk',)
@@ -124,6 +128,12 @@ class StarListSerializer(ModelSerializer):
    
    def get_href(self, obj):
       return reverse('systems:star_detail', kwargs={'project':obj.project.slug, 'star_id':obj.pk})
+   
+   def get_nphot(self, obj):
+      return len(obj.photometry_set.all())
+   
+   def get_nspec(self, obj):
+      return len(obj.spectrum_set.all())
    
    def get_classification_type_display(self, obj):
       return obj.get_classification_type_display()

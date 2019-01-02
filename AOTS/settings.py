@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
+import platform
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,13 +23,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '!4ls$1ketyn!-=__-c9oy!nfj@i&cimyni32jbe&@u4x*0*suq'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['127.0.0.1']
-
-
 
 # Application definition
 
@@ -119,24 +114,6 @@ WSGI_APPLICATION = 'AOTS.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-#DATABASES = {
-    #'default': {
-        #'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        #'NAME': 'bimotdb',
-        #'USER': 'bimotuser',
-        #'PASSWORD': 'DuV3Lpwd',
-        #'HOST': 'localhost',
-        #'PORT': '',
-    #}
-#}
-
 
 
 # Password validation
@@ -184,3 +161,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 MEDIA_ROOT = 'media'
 MEDIA_URL = '/media/'
+
+
+# Load specific settings for developement of production
+if 'OptiPlex' in platform.node():
+   from .settings_production import DEBUG, ALLOWED_HOSTS, DATABASES
+else:
+   from .settings_development import DEBUG, ALLOWED_HOSTS, DATABASES

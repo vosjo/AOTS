@@ -3,15 +3,44 @@
 
 ## Setup postgres
 
+This is only necessary if you want to run in production
+
 start postgres comand line
 ```
 sudo -u postgres psql
+```
+
+create the database, user and connect them
+```
+CREATE DATABASE aotsdb;
+CREATE USER aotsuser WITH PASSWORD 'password';
+ALTER ROLE aotsuser SET client_encoding TO 'utf8';
+ALTER ROLE aotsuser SET default_transaction_isolation TO 'read committed';
+ALTER ROLE aotsuser SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE aotsdb TO aotsuser;
+```
+
+list all databases:
+```
+\l
 ```
 
 connect to our database and list all tables:
 ```
 \c aotsdb
 \dt
+```
+
+to drop the database and recreate it when you want to completely reset everything (the user does not get deteled in this process):
+```
+DROP DATABASE aotsdb;
+CREATE DATABASE aotsdb;
+GRANT ALL PRIVILEGES ON DATABASE aotsdb TO aotsuser;
+```
+
+exit the psql
+```
+\q
 ```
 
 ## Instaling Django
@@ -42,24 +71,24 @@ export LC_ALL=C
 
 ### 3. Clone AOTS from github
 ```
-git clone https://github.com/Alegria01/AOTS.git
+git clone https://github.com/vosjo/AOTS.git
 ```
 
 ### 4. Install the requirements
 ```
 cd AOTS
 pip install -r requirements.txt
-pip install django gunicorn psycopg2
 ```
 
-## Running AOTS
+## Running AOTS localy
 
 To run AOTS localy, using the simple sqlite database and the included server:
 
 ### 1. setup the database
 ```
+python manage.py makemigrations users
 python manage.py makemigrations stars
-python manage.py makemigrations spectra
+python manage.py makemigrations observations
 python manage.py makemigrations analysis
 python manage.py migrate
 ```
@@ -82,15 +111,72 @@ python manage.py createsuperuser
 >>> Superuser created successfully.
 ```
 
-### 3. collect static files
-```
-python manage.py collectstatic
-```
-
 ### 3. start the development server
 ```
 python manage.py runserver
 ```
+
+## Running AOTS in development using a postgres database
+
+Instructions modified from: https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-18-04
+
+### 1. change the settings.py script
+```
+DEBUG = False
+
+ALLOWED_HOSTS = ['a15.astro.physik.uni-potsdam.de', '141.89.178.17', 'localhost']
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'aotsdb',
+        'USER': 'aotsuser',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '',
+    }
+}
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = 'media'
+```
+
+### 2. setup the database
+```
+python manage.py makemigrations users
+python manage.py makemigrations stars
+python manage.py makemigrations observations
+python manage.py makemigrations analysis
+python manage.py migrate
+```
+
+In case you want a fresh start, run:
+
+```
+find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
+find . -path "*/migrations/*.pyc"  -delete
+```
+and drop the database or remove the db.sqlite3 file
+
+### 3. create a admin user
+```
+python manage.py createsuperuser
+>>> Username: admin
+>>> Email address: admin@example.com
+>>> Password: **********
+>>> Password (again): *********
+>>> Superuser created successfully.
+```
+
+### 4. collect static files
+```
+python manage.py collectstatic
+```
+
+
 
 ## setup gunicorn
 
@@ -105,7 +191,7 @@ sudo nano /etc/systemd/system/gunicorn_aots.socket
 Description=gunicorn socket
 
 [Socket]
-ListenStream=/home/aots/www/aots/AOTS/AOTS/run/gunicorn.sock
+ListenStream=/home/aots/www/aots/run/gunicorn.sock
 
 [Install]
 WantedBy=sockets.target
@@ -129,7 +215,7 @@ WorkingDirectory=/home/aots/www/aots/AOTS
 ExecStart=/home/aots/www/aots/aotsenv/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
-          --bind unix:/home/aots/www/aots/AOTS/AOTS/run/gunicorn.sock \
+          --bind unix:/home/aots/www/aots/run/gunicorn.sock \
           AOTS.wsgi:application
 
 [Install]
@@ -182,7 +268,7 @@ server {
 
     location / {
         include proxy_params;
-        proxy_pass http://unix:/home/aots/www/aots/AOTS/AOTS/run/gunicorn.sock;
+        proxy_pass http://unix:/home/aots/www/aots/run/gunicorn.sock;
     }
 
 }

@@ -265,6 +265,10 @@ server {
     location /static/ {
         root /home/aots/www/aots/AOTS;
     }
+    
+    location /media/ {
+      root /home/aots/www/aots/AOTS;
+    }
 
     location / {
         include proxy_params;

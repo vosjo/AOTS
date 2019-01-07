@@ -303,6 +303,42 @@ hr.box {
    border-top: 1px solid rgba(64, 117, 144, 0.3);
 }
 
+/* Project Page */
+
+div.project-container {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 400x;
+  width: 400px;
+  height: 500px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 5px;
+  border: solid 2px rgba(64, 117, 144, 0.3);
+  align-items: center;
+}
+
+div.project-container div {
+  min-width: 400px; 
+}
+
+
+div.project-container h3 {
+   font-weight: bold;
+   font-size: 20px;
+   margin: 0 0 0 0;
+   text-align:center;
+}
+
+img.project-logo {
+   display: block;
+   max-width: 350px;
+   max-height: 400px;
+   margin-left: auto;
+   margin-right: auto;
+}
+
+
 /* Status icons */
 
 .status-icon {
@@ -553,17 +589,6 @@ div.flex-data-container {
 
 .j-spacearound {
    justify-content: space-around;
-}
-
-.project-container {
-  display: flex;
-  flex-wrap: wrap;
-  width: 500px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 5px;
-  border: solid 2px rgba(64, 117, 144, 0.3);
-  align-items: center;
 }
 
 div.tag-container {

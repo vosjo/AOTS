@@ -22,7 +22,7 @@ def project_list(request):
    Simplified view of the project page
    """
    
-   projects = Project.objects.all()
+   projects = Project.objects.order_by('name')
    
    context = {'projects': projects}
    

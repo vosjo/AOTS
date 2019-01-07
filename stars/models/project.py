@@ -29,10 +29,10 @@ class Project(models.Model):
    
    is_public = models.BooleanField(default=True)
    
-   readonly_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readonly_projects')
-   readwriteown_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwriteown_projects')
-   readwrite_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwrite_projects')
-   project_managers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='managed_projects')
+   readonly_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readonly_projects', blank=True)
+   readwriteown_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwriteown_projects', blank=True)
+   readwrite_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwrite_projects', blank=True)
+   project_managers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='managed_projects', blank=True)
    
    
    #-- bookkeeping

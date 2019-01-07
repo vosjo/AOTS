@@ -26,12 +26,12 @@
    {% for project in projects %}
       
       <div class='project-container'  id="project-{{project.pk}}">
-         
-         <div>
-         
+      
          <h3>
          <a href= {% url 'systems:star_list' project.slug %}>{{project.name}}</a>
          </h3>
+         
+         <div>
          
          {% if project.logo %}
          <img class="project-logo" src="{{project.logo.url}}" alt="{{project.name}} logo">
@@ -39,9 +39,9 @@
          <img class="project-logo" src="{% static "images/default_logo.png" %}" alt="{{project.name}} logo">
          {% endif %}
          
-         <i>{{project.description}}</i>
-         
          </div>
+         
+         <i>{{project.description}}</i>
          
       </div>
    {% endfor %}

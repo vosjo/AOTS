@@ -320,13 +320,19 @@ div.project-container {
 
 div.project-container div {
   min-width: 400px; 
+  max-height: 400px;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 
 div.project-container h3 {
+   position: absolute;
+   top: 20px;
    font-weight: bold;
    font-size: 20px;
    margin: 0 0 0 0;
+   width: 400px;
    text-align:center;
 }
 
@@ -336,8 +342,9 @@ img.project-logo {
    max-height: 400px;
    margin-left: auto;
    margin-right: auto;
+   margin-top: 20px;
+   margin-bottom: 20px;
 }
-
 
 /* Status icons */
 

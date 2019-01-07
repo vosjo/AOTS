@@ -122,9 +122,9 @@ def process_analysis_file(file_id):
       raise e
       return False, 'Not added, error reading parameters'
    
-   #-- add derived parameters
-   npars = create_derived_parameters(analfile)
-   if npars > 0: message += ", ({} derived parameters)".format(npars)
+   ##-- add derived parameters
+   #npars = create_derived_parameters(analfile)
+   #if npars > 0: message += ", ({} derived parameters)".format(npars)
    
    #-- check if star already has this type of dataset, if so, replace
    #   only do so at the end so only valid datasets can replace an old one.

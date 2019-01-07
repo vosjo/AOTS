@@ -252,9 +252,7 @@ def plot_dataset_large(datafile, method):
    """
    General plotting function for analysis, makes the large version plot for 
    the detail pages including extra info when hovering over a figure
-   """
-   return plot_generic_large(datafile)
-   
+   """  
    try:
       return plot_generic_large(datafile)
    except Exception as e:

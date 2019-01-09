@@ -17,8 +17,6 @@ def basic_info_generic(data):
             - type code of analysis method
    """
    
-   print (data)
-   
    systemname = data.get('systemname', 'UK')
    
    ra = data.get('ra', 0.0)

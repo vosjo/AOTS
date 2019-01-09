@@ -32,6 +32,7 @@ $(document).ready(function () {
       { data: 'classification', render: classification_render , searchable: false },
       { data: 'vmag' , searchable: false },
       { data: 'nphot' , render: nobs_render, searchable: false },
+      { data: 'datasets', render: dataset_render , searchable: false },
       { data: 'tags', render: tag_render , searchable: false },
       { data: 'observing_status', render: status_render, 
          width: '70', 
@@ -179,6 +180,17 @@ function selection_render( data, type, full, meta ) {
 function name_render( data, type, full, meta ) {
    // Create a link to the detail for the star name
    return "<a href='"+full['href']+"'>"+data+"</a>";
+}
+
+function dataset_render( data, type, full, meta ) {
+   // Render the tags as a list of divs with the correct color.
+   var result = ""
+   var ds = data[0];
+   for (i = 0; i < data.length; i++) {
+      ds = data[i];
+      result += "<div class='dataset' style='background-color:"+ds.color+"' title='"+ds.name+"'>"+ds.name.charAt(0)+"</div>";
+   }
+   return result;
 }
 
 function tag_render( data, type, full, meta ) {

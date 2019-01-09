@@ -34,7 +34,9 @@ def basic_info_generic(data):
    
    note = data.get('note', '')
    
-   return systemname, ra, dec, name, note, atype
+   reference = data.get('reference', '')
+   
+   return systemname, ra, dec, name, note, reference, atype
 
 def basic_info_sedfit(data):
    """
@@ -62,7 +64,7 @@ def basic_info_sedfit(data):
    
    name = 'SED fit of {} using {}'.format(systemname, method)
    
-   return systemname, ra, dec, name, '', 'sedfit'
+   return systemname, ra, dec, name, '', '', 'sedfit'
 
 
 def get_basic_info(data):

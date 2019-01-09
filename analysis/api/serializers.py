@@ -64,7 +64,8 @@ class DataSetListSerializer(ModelSerializer):
       
    def get_href(self, obj):
       return reverse('analysis:dataset_detail', kwargs={'project':obj.project.slug, 'dataset_id':obj.pk})
-      
+
+
 class ParameterListSerializer(ModelSerializer):
    
    class Meta:

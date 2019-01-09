@@ -53,7 +53,7 @@ class Star(models.Model):
    dec = models.FloatField()
    
    #-- spectral classification
-   classification = models.CharField(max_length=50)
+   classification = models.CharField(max_length=50, blank=True)
    
    SPECTROSCOPIC = 'SP'
    PHOTOMETRIC = 'PH'
@@ -82,10 +82,10 @@ class Star(models.Model):
       default=NEW                     )
    
    
-   note = models.TextField(default='')
+   note = models.TextField(default='', blank=True)
    
    #-- tags
-   tags = models.ManyToManyField(Tag, related_name='stars')
+   tags = models.ManyToManyField(Tag, related_name='stars', blank=True)
    
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)

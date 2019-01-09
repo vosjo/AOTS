@@ -70,6 +70,15 @@ class TagSerializer(ModelSerializer):
       ]
       read_only_fields = ('pk',)
 
+class SimpleTagSerializer(ModelSerializer):
+   
+   class Meta:
+      model = Tag
+      fields = [
+            'name',
+            'color',
+            'description',
+      ]
 
 # ===============================================================
 # STARS
@@ -78,6 +87,7 @@ class TagSerializer(ModelSerializer):
 class StarListSerializer(ModelSerializer):
    
    tags = SerializerMethodField()
+   datasets = SerializerMethodField()
    vmag = SerializerMethodField()
    href = SerializerMethodField()
    nphot = SerializerMethodField()
@@ -108,6 +118,7 @@ class StarListSerializer(ModelSerializer):
             'observing_status_display',
             'note',
             'tags',
+            'datasets',
             'tag_ids',
             'vmag',
             'nphot',
@@ -119,8 +130,16 @@ class StarListSerializer(ModelSerializer):
       datatables_always_serialize = ('href','pk')
       
    def get_tags(self, obj):
-      tags = TagSerializer(obj.tags, many=True).data
+      tags = SimpleTagSerializer(obj.tags, many=True).data
       return tags
+   
+   def get_datasets(self, obj):
+      try:
+         datasets = obj.dataset_set.all()
+         return [{'name':d.name, 'color':d.method.color} for d in datasets]
+      except Exception as e:
+         print (e)
+         return []
    
    def get_vmag(self, obj):
       mag = obj.photometry_set.filter(band__icontains='GAIA2.G')

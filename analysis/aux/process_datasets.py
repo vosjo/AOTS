@@ -69,7 +69,7 @@ def process_analysis_file(file_id):
    
    # read the basic data
    try:
-      systemname, ra, dec, name, note, atype = read_datasets.get_basic_info(data)
+      systemname, ra, dec, name, note, reference, atype = read_datasets.get_basic_info(data)
    except Exception as e:
       print( e )
       return False, 'Not added, basic info unreadable'
@@ -82,6 +82,7 @@ def process_analysis_file(file_id):
       
    analfile.name = name
    analfile.note = note
+   analfile.reference = reference
    
    analfile.save()
    

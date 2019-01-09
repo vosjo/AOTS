@@ -89,10 +89,15 @@ class DataSource(models.Model):
       except DataSet.DoesNotExist:
          return self.reference if self.reference != '' else self.name
    
+   def get_reference_url(self):
+      if self.reference != '':
+         return 'http://adsabs.harvard.edu/abs/' + self.reference
+      else:
+         return ''
+   
    #-- representation of self
    def __str__(self):
       return "{} {}".format(self.name, '({})'.format(self.reference) if self.reference else '')
-
 
 
 class AverageDataSource(DataSource):

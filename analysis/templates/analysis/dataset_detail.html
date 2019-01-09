@@ -83,6 +83,11 @@
       </div>
       
       <div class='header-item'>
+      <p class="material-icons">book</p>
+      <h3><a href="{{ dataset.get_reference_url }}">{{ dataset.reference }}</a></h3>
+      </div>
+      
+      <div class='header-item'>
       <input type="checkbox" id="dataset-valid-{{dataset.pk}}" {% if dataset.valid %} checked="checked" {% endif %} onchange='toggleDatasetValid(this);' dataset_id="{{dataset.pk}}"
       {% if not user.is_authenticated %} disabled {% endif %}>
       <h3> Valid </h3> 

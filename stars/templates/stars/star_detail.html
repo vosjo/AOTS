@@ -7,6 +7,7 @@
    {% include "bokeh.html" %}
    
    <script type="text/javascript" src="{% static 'js/stars_detail.js' %}"></script>
+   <link rel="stylesheet" href="//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css" />
    
 {% endblock %}
 
@@ -54,7 +55,7 @@
    
    <div class="flex-data-container j-center">
    
-   <div class="tag-container j-center">
+   <div class="tag-container">
    <h3>Basic Data </h3>
    {% if user.is_authenticated %}
    <a href={% url 'systems:star_edit' project.slug star.id %} class="material-icons button edit" title="Edit">edit</a>
@@ -62,8 +63,9 @@
    <table class="datatable">
    <tbody>
       <tr> <th>Name:</th> <td class="mono">{{ star.name }}</td> </tr>
-      <tr> <th>RA:</th> <td class="mono">{{ star.ra|dgr2hms }}</td> </tr>
-      <tr> <th>Dec:</th> <td class="mono">{{ star.dec|dgr2dms }}</td> </tr>
+      <tr> <th>Coordinates:</th> <td class="mono">{{ star.ra|dgr2hms }} {{ star.dec|dgr2dms }}</td> </tr>
+      <tr> <th></th> <td class="mono">{{ star.ra }} {{ star.dec }}</td> </tr>
+<!--       <tr> <th>Dec:</th> <td class="mono">{{ star.dec|dgr2dms }}</td> </tr> -->
       <tr> <th>Classification:</th> <td class="mono">{{ star.classification }}</td> </tr>
       <tr> <th>Class. type:</th> <td class="mono">{{ star.get_classification_type_display}}</td> </tr>
       <tr> <th>Observing Status:</th> <td class="mono">{{ star.get_observing_status_display }}</td> </tr>
@@ -95,6 +97,15 @@
       <i id="noteEditButton" class="material-icons button edit" title="Edit" star_id={{star.pk}}>edit</i>
       {% endif %}
       <div id="noteField">{{star.note|linebreaks}}</div>
+   </div>
+   
+   <div class="tag-container" style="max-width:250px; height:255px;">
+      <div id="aladin-lite-div" style="width:250px;height:250px;"></div>
+      <script type="text/javascript" src="//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>
+      <script type="text/javascript">
+      var aladin = A.aladin('#aladin-lite-div', {survey: "P/DSS2/color", fov:1.01/60, target: "{{star.ra}} {{star.dec}}", showZoomControl: false, showLayersControl: false, showGotoControl: false, showFrame: false});
+//       aladin.addCatalog(A.catalogFromVizieR('I/345', '{{star.ra}} {{star.dec}}', 1.01/60, {onClick: 'showTable'}));
+      </script>
    </div>
    
    </div>

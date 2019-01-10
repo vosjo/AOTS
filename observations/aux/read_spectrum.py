@@ -56,8 +56,8 @@ def derive_spectrum_info(spectrum_pk):
    #-- calculate moon parameters
    time = Time(spectrum.hjd, format='jd')
    
-   # moon illumination wit astroplan
-   spectrum.moon_illumination =  np.round(moon_illumination(time=time), 1)
+   # moon illumination wit astroplan (astroplan returns a fraction, but we store percentage)
+   spectrum.moon_illumination =  np.round(moon_illumination(time=time)*100, 1)
    
    # get the star and moon coordinates at time and location of observations
    star = SkyCoord(ra=spectrum.ra*u.deg, dec=spectrum.dec*u.deg,)

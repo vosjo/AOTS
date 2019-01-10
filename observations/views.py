@@ -34,11 +34,17 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
    
    project = get_object_or_404(Project, slug=project)
    
-   rebin = 1
-   if request.method == 'GET':
-      rebin = int(request.GET.get('rebin', 1))
-   
    spectrum = get_object_or_404(Spectrum, pk=spectrum_id)
+   
+   if spectrum.specfile_set.all()[0].specfile.size > 125000: # spectrum larger than 1 Mb gets rebinned
+      rebin = 10
+      #request.GET._mutable = True
+      #request.GET['rebin'] = 10
+   else:
+      print (spectrum.specfile_set.all()[0].specfile.size)
+      rebin = 1
+   if request.method == 'GET':
+      rebin = int(request.GET.get('rebin', rebin))
    
    #-- order all spectra
    all_instruments = spectrum.star.spectrum_set.values_list('instrument', flat=True)

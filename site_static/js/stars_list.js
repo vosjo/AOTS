@@ -188,7 +188,7 @@ function dataset_render( data, type, full, meta ) {
    var ds = data[0];
    for (i = 0; i < data.length; i++) {
       ds = data[i];
-      result += "<div class='dataset' style='background-color:"+ds.color+"' title='"+ds.name+"'>"+ds.name.charAt(0)+"</div>";
+      result += "<div class='dataset' style='background-color:"+ds.color+"' title='"+ds.name+"'>"+ "<a href='"+ds.href+"'>"+ds.name.charAt(0)+"</a></div>";
    }
    return result;
 }

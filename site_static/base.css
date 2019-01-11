@@ -477,6 +477,14 @@ div.dataset {
    font-weight: bold;
 }
 
+.dataset a:link{
+   color: white;
+}
+
+.dataset a:visited {
+   color: white;
+}
+
 /* Hidden Sidenav Bar */
 
 div#sidenav {

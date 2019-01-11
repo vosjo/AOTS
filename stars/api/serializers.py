@@ -136,7 +136,7 @@ class StarListSerializer(ModelSerializer):
    def get_datasets(self, obj):
       try:
          datasets = obj.dataset_set.all()
-         return [{'name':d.name, 'color':d.method.color} for d in datasets]
+         return [{'name':d.name, 'color':d.method.color, 'href':reverse('analysis:dataset_detail', kwargs={'project':d.project.slug, 'dataset_id':d.pk})} for d in datasets]
       except Exception as e:
          print (e)
          return []

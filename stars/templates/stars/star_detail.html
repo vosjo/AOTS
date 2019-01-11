@@ -185,8 +185,8 @@
          {% for phot in star.photometry_set.all %}
             <tr>
             <td class="mono">{{ phot.band }}</td>
-            <td>{{ phot.measurement }}</td>
-            <td>{{ phot.error }}</td>
+            <td>{{ phot.get_value }}</td>
+            <td>{{ phot.get_error }}</td>
             <td>{{ phot.unit }}</td>
             </tr>
          {% endfor %}

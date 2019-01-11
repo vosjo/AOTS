@@ -8,11 +8,22 @@ from users.models import get_sentinel_user
 
 band_wavelengths = {'GALEX.FUV':  1535, 
                     'GALEX.NUV':  2300, 
+                    'GAIA2.G':    6742,
+                    'GAIA2.BP':   5279,
+                    'GAIA2.RP':   7883,
                     'APASS.B':    4303,
                     'APASS.V':    5437,
+                    'APASS.G':    4718,
+                    'APASS.R':    6185,
+                    'APASS.I':    7499,
                     '2MASS.J':    12393,
                     '2MASS.H':    16494,
-                    '2MASS.K':    21638,}  
+                    '2MASS.K':    21638,
+                    'WISE.W1':    33526,
+                    'WISE.W2':    46028,
+                    'WISE.W3':    115608,
+                    'WISE.W4':    220883,
+                    }  
                  
       
 
@@ -51,8 +62,25 @@ class Photometry(models.Model):
    last_modified = models.DateTimeField(auto_now=True)
    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
    
+   def get_value(self):
+      if self.upper_limit:
+         return "< {:0.3f}".format(self.measurement)
+      if self.lower_limit:
+         return "> {:0.3f}".format(self.measurement)
+      return "{:0.3f}".format(self.measurement)
+   
+   def get_error(self):
+      if self.upper_limit or self.lower_limit:
+         return "/"
+      else:
+         return "{:0.3f}".format(self.error)
+   
    #-- representation of self
    def __str__(self):
+      if self.upper_limit:
+         return "{} < {} {}".format(self.band, self.measurement, self.unit)
+      if self.lower_limit:
+         return "{} > {} {}".format(self.band, self.measurement, self.unit)
       return "{} = {} +- {} {}".format(self.band, self.measurement, self.error, self.unit)
    
    def save(self, *args, **kwargs):

@@ -6,6 +6,8 @@ from .models import Star, Tag, Project
 from analysis.models import Method, DataSet, DataSource, Parameter
 from analysis import models as analModels
 
+from observations.plotting import plot_sed
+
 from .forms import StarForm
 
 from .plotting import plot_photometry
@@ -79,6 +81,9 @@ def star_detail(request, star_id, project=None, **kwargs):
    methods = Method.objects.all()
    
    datasets, figures = [], []
+   
+   figures.append(plot_sed(star.pk))
+   
    for method in methods:
       dataset = star.dataset_set.filter(method__exact = method)
       if dataset:
@@ -91,10 +96,11 @@ def star_detail(request, star_id, project=None, **kwargs):
       script, div = components(figures, CDN)
       
       datasections = []
-      for fig, dataset in zip(div, datasets):
+      for fig, dataset in zip(div[1:], datasets):
          datasections.append((fig, dataset))
       
       context['datasets'] = datasections
+      context['sed_plot'] = div[0]
       context['script'] = script
    
    #-- get all parameters for the parameter overview

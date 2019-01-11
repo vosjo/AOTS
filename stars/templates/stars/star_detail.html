@@ -169,6 +169,12 @@
    <div id="obs_detail" class='data-detail'>
    
     <div class="flex-data-container j-center">
+      
+      <div class="block w600">
+         <h3 class="center"> Photometry </h3> 
+         {{ sed_plot|safe }}
+      </div>
+    
       {% if star.photometry_set.all %}
       <div class="block">
          <h3 class="center"> Photometry </h3> 

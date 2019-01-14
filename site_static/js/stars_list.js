@@ -42,7 +42,7 @@ $(document).ready(function () {
    ],
    paging: true,
    pageLength: 50,
-   lengthMenu: [[10, 25, 50, 100, 1000], [10, 25, 50, 100, 1000]], // Use -1 for all. 
+   lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all. 
    scrollY: $(window).height() - $('header').outerHeight(true) - 196,
    scrollCollapse: true,
    autoWidth: true,

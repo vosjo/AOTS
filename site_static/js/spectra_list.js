@@ -21,12 +21,14 @@ $(document).ready(function () {
    // Table functionality
    spectra_table = $('#spectratable').DataTable({
    autoWidth: false,
+   serverSide: true, 
    ajax: {
       url: '/api/observations/spectra/?format=datatables',
       data: function ( d ) {
         d.project = $('#project-pk').attr('project');
       },
    },
+   searching: false,
    columns: [
       {
          className:      'details-control',
@@ -42,7 +44,11 @@ $(document).ready(function () {
       { data: 'pk', render: action_render, width: '100', 
         className: 'dt-center', visible: user_authenticated},
    ],
+   paging: true,
+   pageLength: 20,
+   lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all. 
    scrollY: $(window).height() - $('header').outerHeight(true) - 196,
+   scrollCollapse: true,
    });
    
    function hjd_render( data, type, full, meta ) {

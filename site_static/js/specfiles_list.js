@@ -6,6 +6,7 @@ $(document).ready(function () {
    // Table functionality
    specfile_table = $('#specfiletable').DataTable({
    autoWidth: false,
+   serverSide: true, 
    ajax: {
       url: '/api/observations/specfiles/?format=datatables',
       data: function ( d ) {
@@ -22,7 +23,11 @@ $(document).ready(function () {
       { data: 'pk', render: action_render, width: '100', 
         className: 'dt-center', visible: user_authenticated},
    ],
+   paging: true,
+   pageLength: 20,
+   lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all. 
    scrollY: $(window).height() - $('header').outerHeight(true) - $('.upload').outerHeight(true) - $('#messages').outerHeight(true) - 186,
+   scrollCollapse: true,
    });
    
    function processed_render( data, type, full, meta ) {

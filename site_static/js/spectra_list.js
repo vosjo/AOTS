@@ -23,7 +23,7 @@ $(document).ready(function () {
    autoWidth: false,
    serverSide: true, 
    ajax: {
-      url: '/api/observations/spectra/?format=datatables&keep=specfiles',
+      url: '/api/observations/spectra/?format=datatables&keep=specfiles,telescope',
       data: function ( d ) {
         d.project = $('#project-pk').attr('project');
       },

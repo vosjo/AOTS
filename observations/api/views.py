@@ -15,7 +15,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .serializers import SpectrumSerializer, SpecFileSerializer, ObservatorySerializer
+from .serializers import SpectrumSerializer, SpectrumListSerializer, SpecFileSerializer, ObservatorySerializer
 
 from observations.models import Spectrum, SpecFile, Observatory
 
@@ -27,6 +27,23 @@ from observations.aux import read_spectrum
 # ===============================================================
 
 class SpectrumFilter(filters.FilterSet):
+   
+   target = filters.CharFilter(field_name="target", method="star_name_icontains", lookup_expr='icontains')
+   
+   hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
+   hjd_max = filters.NumberFilter(field_name="hjd", lookup_expr='lte')
+   
+   exptime_min = filters.NumberFilter(field_name="exptime", lookup_expr='gte')
+   exptime_max = filters.NumberFilter(field_name="exptime", lookup_expr='lte')
+   
+   instrument = filters.CharFilter(field_name="instrument", lookup_expr='icontains')
+   
+   telescope = filters.CharFilter(field_name="telescope", lookup_expr='icontains')
+   
+   fluxcal = filters.BooleanFilter(field_name='fluxcal')
+   
+   def star_name_icontains(self, queryset, name, value):
+      return queryset.filter(star__name__icontains=value)
    
    class Meta:
       model = Spectrum
@@ -44,6 +61,21 @@ class SpectrumViewSet(viewsets.ModelViewSet):
 # ===============================================================
 
 class SpecFileFilter(filters.FilterSet):
+   
+   target = filters.CharFilter(field_name="target", method="star_name_icontains", lookup_expr='icontains')
+   
+   hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
+   hjd_max = filters.NumberFilter(field_name="hjd", lookup_expr='lte')
+   
+   instrument = filters.CharFilter(field_name="instrument", lookup_expr='icontains')
+   
+   #processed = filters.BooleanFilter(field_name="Processed", method="is_processed")
+   
+   def star_name_icontains(self, queryset, name, value):
+      return queryset.filter(spectrum__star__name__icontains=value)
+   
+   #def is_processed(self, queryset, name, value):
+      #return False
    
    class Meta:
       model = SpecFile

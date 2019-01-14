@@ -11,6 +11,49 @@ from stars.api.serializers import SimpleStarSerializer
 # SPECTRA
 # ===============================================================
 
+class SpectrumListSerializer(ModelSerializer):
+   
+   star = SerializerMethodField()
+   specfiles = SerializerMethodField()
+   href = SerializerMethodField()
+   
+   class Meta:
+      model = Spectrum
+      fields = [
+            'pk',
+            'star',
+            'project',
+            'hjd',
+            'exptime',
+            'instrument',
+            'telescope',
+            'valid',
+            'fluxcal',
+            'specfiles',
+            'href',
+            ]
+      read_only_fields = ('pk',)
+      
+   def get_star(self, obj):
+      if obj.star is None:
+         return ''
+      else:
+         return SimpleStarSerializer(obj.star).data
+      #return Star.objects.get(pk=obj.star).name
+      
+   def get_observatory(self, obj):
+      try:
+         return obj.observatory.name
+      except:
+         return ''
+      
+   def get_specfiles(self, obj):
+      specfiles = SimpleSpecFileSerializer(obj.specfile_set, many=True).data
+      return specfiles
+   
+   def get_href(self, obj):
+      return reverse('observations:spectrum_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.pk})
+
 class SpectrumSerializer(ModelSerializer):
    
    star = SerializerMethodField()
@@ -54,7 +97,7 @@ class SpectrumSerializer(ModelSerializer):
          return ''
       
    def get_specfiles(self, obj):
-      specfiles = SpecFileSerializer(obj.specfile_set, many=True).data
+      specfiles = SimpleSpecFileSerializer(obj.specfile_set, many=True).data
       return specfiles
    
    def get_href(self, obj):
@@ -94,6 +137,18 @@ class SpecFileSerializer(ModelSerializer):
       else:
          return reverse('observations:spectrum_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.spectrum.pk})
    
+
+class SimpleSpecFileSerializer(ModelSerializer):
+   
+   class Meta:
+      model = SpecFile
+      fields = [
+            'pk',
+            'hjd',
+            'instrument',
+            'filetype',
+            ]
+      read_only_fields = ('pk',)
 
 # ===============================================================
 # Observatory

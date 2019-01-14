@@ -36,6 +36,34 @@
    </form>
 </div>
 
+<i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
+
+<div id="filter-dashboard">
+
+   <form method="get" action="/observations/" class="table-filter" id="filter-form">
+   <h3 class="center"> Filter Specfiles </h3>
+   
+   <div class="table-filter-item">
+      <p class="filter-label">Target:</p>
+      <input class="filter-input" id="filter_target" type="text" placeholder="identifier">
+   </div>
+   
+   <hr>
+   
+   <div class="table-filter-item">
+      <p class="filter-label">HJD:</p>
+      <input class="filter-input" id="filter_hjd" type="text" placeholder="min:max">
+   </div>
+   
+   <div class="table-filter-item">
+      <p class="filter-label">Instrument:</p>
+      <input class="filter-input" id="filter_instrument" type="text" placeholder="instrument">
+   </div>
+   
+   <input type="submit" class="button filter" id="submit-search" value="Apply">
+   </form>
+   
+</div>
 
 <section>
 

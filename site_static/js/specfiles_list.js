@@ -9,10 +9,9 @@ $(document).ready(function () {
    serverSide: true, 
    ajax: {
       url: '/api/observations/specfiles/?format=datatables',
-      data: function ( d ) {
-        d.project = $('#project-pk').attr('project');
-      },
+      data: get_filter_keywords,
    },
+   searching: false,
    columns: [
       { data: 'hjd' },
       { data: 'instrument' },
@@ -30,22 +29,25 @@ $(document).ready(function () {
    scrollCollapse: true,
    });
    
-   function processed_render( data, type, full, meta ) {
-      if ( data ){
-         return "<a href='" + data + "' >" + 'Yes' + "</a>";
-      } else {
-         return 'No';
-      }
-//       if ( data ){ return 'Yes'; } else { return 'No'; }
-   }
+   // Event listener to the two range filtering inputs to redraw on input
+   $('#filter-form').submit( function(event) {
+      event.preventDefault();
+      specfile_table.draw();
+   } );
    
-   function action_render( data, type, full, meta ) {
-      var res = "<i class='material-icons button delete' id='delete-specfile-"+data+"'>delete</i>"
-      if ( !full['spectrum'] ) { 
-         res = res + "<i class='material-icons button process' id='process-specfile-"+data+"' title='Process'>build</i>"
+   // make the filter button open the filter menu
+   $('#filter-dashboard-button').on('click', openNav);
+   function openNav() {
+      $("#filter-dashboard").toggleClass('visible');
+      $("#filter-dashboard-button").toggleClass('open');
+      
+      var text = $('#filter-dashboard-button').text();
+      if (text == "filter_list"){
+            $('#filter-dashboard-button').text("close");
+      } else {
+            $('#filter-dashboard-button').text("filter_list");
       }
-      return res
-   }
+   };
    
    // Event listeners
    $("#specfiletable").on('click', 'i[id^=process-specfile-]', function() {
@@ -60,6 +62,46 @@ $(document).ready(function () {
    });
    
 });
+
+// Table filter functionality
+
+function get_filter_keywords( d ) {
+
+   d = $.extend( {}, d, {
+      "project": $('#project-pk').attr('project'),
+      "target": $('#filter_target').val(),
+      "instrument": $('#filter_instrument').val(),
+   } );
+   
+   if ($('#filter_hjd').val() != '') {
+      d = $.extend( {}, d, {
+         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] ),
+         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] ),
+      } );
+   }
+   
+   return d
+}
+
+
+// Table renderers
+
+function processed_render( data, type, full, meta ) {
+   if ( data ){
+      return "<a href='" + data + "' >" + 'Yes' + "</a>";
+   } else {
+      return 'No';
+   }
+//       if ( data ){ return 'Yes'; } else { return 'No'; }
+}
+   
+function action_render( data, type, full, meta ) {
+   var res = "<i class='material-icons button delete' id='delete-specfile-"+data+"'>delete</i>"
+   if ( !full['spectrum'] ) { 
+      res = res + "<i class='material-icons button process' id='process-specfile-"+data+"' title='Process'>build</i>"
+   }
+   return res
+}
 
 function processSpecfile(row, data) {
    $.ajax({

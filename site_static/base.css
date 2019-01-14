@@ -988,6 +988,8 @@ p.upload {
    flex-direction: row;
    align-items: center;
    overflow: hidden;
+   margin-top: 5px;
+   margin-bottom: 5px;
 }
 
 .filter-label {

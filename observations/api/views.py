@@ -48,6 +48,23 @@ class SpectrumFilter(filters.FilterSet):
    class Meta:
       model = Spectrum
       fields = ['project',]
+      
+   @property
+   def qs(self):
+      parent = super(SpectrumFilter, self).qs
+      #user = getattr(self.request, 'user', None)
+      
+      # get the column order from the GET dictionary
+      getter = self.request.query_params.get
+      if not getter('order[0][column]') is None:
+         order_column = int(getter('order[0][column]'))
+         order_name = getter('columns[%i][data]' % order_column)
+         if getter('order[0][dir]') == 'desc': order_name = '-'+order_name
+         
+         return parent.order_by(order_name)
+      else:
+         return parent
+      
 
 class SpectrumViewSet(viewsets.ModelViewSet):
    queryset = Spectrum.objects.all()
@@ -80,6 +97,22 @@ class SpecFileFilter(filters.FilterSet):
    class Meta:
       model = SpecFile
       fields = ['project',]
+      
+   @property
+   def qs(self):
+      parent = super(SpecFileFilter, self).qs
+      #user = getattr(self.request, 'user', None)
+      
+      # get the column order from the GET dictionary
+      getter = self.request.query_params.get
+      if not getter('order[0][column]') is None:
+         order_column = int(getter('order[0][column]'))
+         order_name = getter('columns[%i][data]' % order_column)
+         if getter('order[0][dir]') == 'desc': order_name = '-'+order_name
+         
+         return parent.order_by(order_name)
+      else:
+         return parent
 
 class SpecFileViewSet(viewsets.ModelViewSet):
    queryset = SpecFile.objects.all()

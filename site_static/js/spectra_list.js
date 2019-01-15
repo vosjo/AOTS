@@ -27,6 +27,8 @@ $(document).ready(function () {
       data: get_filter_keywords,
    },
    searching: false,
+   orderMulti: false, //Can only order on one column at a time
+   order: [1],
    columns: [
       {
          className:      'details-control',
@@ -34,13 +36,14 @@ $(document).ready(function () {
          data:           null,
          defaultContent: '<i class="material-icons button show" title="Expand/hide">visibility</i>',
          width:          '10',
+         orderable:      false,
       },
       { data: 'hjd', render : hjd_render },
       { data: 'star', render : star_render },
       { data: 'instrument', render : instrument_render },
       { data: 'exptime' },
       { data: 'pk', render: action_render, width: '100', 
-        className: 'dt-center', visible: user_authenticated},
+        className: 'dt-center', visible: user_authenticated, orderable: false},
    ],
    paging: true,
    pageLength: 20,
@@ -124,15 +127,15 @@ function get_filter_keywords( d ) {
    
    if ($('#filter_hjd').val() != '') {
       d = $.extend( {}, d, {
-         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] ),
-         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] ),
+         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
+         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
       } );
    }
    
    if ($('#filter_exptime').val() != '') {
       d = $.extend( {}, d, {
-         "exptime_min": parseFloat( $('#filter_exptime').val().split(':')[0] ),
-         "exptime_max": parseFloat( $('#filter_exptime').val().split(':')[1] ),
+         "exptime_min": parseFloat( $('#filter_exptime').val().split(':')[0] | 0 ),
+         "exptime_max": parseFloat( $('#filter_exptime').val().split(':')[1] | 1000000000),
       } );
    }
    

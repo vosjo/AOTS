@@ -12,15 +12,17 @@ $(document).ready(function () {
       data: get_filter_keywords,
    },
    searching: false,
+   orderMulti: false, //Can only order on one column at a time
+   order: [0],
    columns: [
       { data: 'hjd' },
       { data: 'instrument' },
       { data: 'filetype' },
       { data: 'added_on' },
-      { data: 'star' },
+      { data: 'star' , orderable: false},
       { data: 'spectrum', render : processed_render },
       { data: 'pk', render: action_render, width: '100', 
-        className: 'dt-center', visible: user_authenticated},
+        className: 'dt-center', visible: user_authenticated, orderable: false},
    ],
    paging: true,
    pageLength: 20,
@@ -75,8 +77,8 @@ function get_filter_keywords( d ) {
    
    if ($('#filter_hjd').val() != '') {
       d = $.extend( {}, d, {
-         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] ),
-         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] ),
+         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
+         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
       } );
    }
    

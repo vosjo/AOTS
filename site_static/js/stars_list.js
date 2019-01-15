@@ -11,15 +11,17 @@ $(document).ready(function () {
    dom: 'l<"toolbar">frtip',
    serverSide: true, 
    ajax: {
-      url: '/api/systems/stars/?format=datatables&keep=nphot,nspec',  //adding "&keep=id,rank" will force return of id and rank fields
+      url: '/api/systems/stars/?format=datatables&keep=nphot,nspec,ra_hms,dec_dms',  //adding "&keep=id,rank" will force return of id and rank fields
       data: get_filter_keywords,
       contentType: "application/json; charset=utf-8",
       dataType: "json",
 
    },
    searching: false,
+   orderMulti: false, //Can only order on one column at a time
+   order: [2],
    columns: [
-      { orderable:      false,
+      {  orderable:      false,
          className:      'select-control',
          data:           null,
          render: selection_render,
@@ -27,13 +29,13 @@ $(document).ready(function () {
          searchable: false,
       },
       { data: 'name', render: name_render },
-      { data: 'ra_hms' , searchable: false},
-      { data: 'dec_dms' , searchable: false},
+      { data: 'ra' , searchable: false, render: ra_render},
+      { data: 'dec' , searchable: false, render: dec_render},
       { data: 'classification', render: classification_render , searchable: false },
-      { data: 'vmag' , searchable: false },
-      { data: 'nphot' , render: nobs_render, searchable: false },
-      { data: 'datasets', render: dataset_render , searchable: false },
-      { data: 'tags', render: tag_render , searchable: false },
+      { data: 'vmag' , searchable: false, orderable: false },
+      { data: 'nphot' , render: nobs_render, searchable: false, orderable: false },
+      { data: 'datasets', render: dataset_render , searchable: false, orderable: false },
+      { data: 'tags', render: tag_render , searchable: false, orderable: false },
       { data: 'observing_status', render: status_render, 
          width: '70', 
          className: "dt-center",
@@ -180,6 +182,14 @@ function selection_render( data, type, full, meta ) {
 function name_render( data, type, full, meta ) {
    // Create a link to the detail for the star name
    return "<a href='"+full['href']+"'>"+data+"</a>";
+}
+
+function ra_render( data, type, full, meta ) {
+   return full['ra_hms'];
+}
+
+function dec_render( data, type, full, meta ) {
+   return full['dec_dms'];
 }
 
 function dataset_render( data, type, full, meta ) {

@@ -141,7 +141,7 @@ def process_specfile(specfile_id):
    
    
    #-- add specfile to existing or new spectrum
-   spectrum = Spectrum.objects.filter(instrument__iexact = specfile.instrument) \
+   spectrum = Spectrum.objects.filter(instrument__iexact = specfile.instrument, project__exact=specfile.project) \
                               .filter(hjd__range = (specfile.hjd - 0.001, specfile.hjd + 0.001))
    
    if len(spectrum) > 0:
@@ -160,7 +160,8 @@ def process_specfile(specfile_id):
    
    
    #-- add the spectrum to existing or new star
-   star = Star.objects.filter(ra__range = (spectrum.ra - 0.1, spectrum.ra + 0.1)) \
+   star = Star.objects.filter(project__exact=spectrum.project) \
+                       .filter(ra__range = (spectrum.ra - 0.1, spectrum.ra + 0.1)) \
                        .filter(dec__range = (spectrum.dec - 0.01, spectrum.dec + 0.01))
    
    if len(star) > 0:

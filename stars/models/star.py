@@ -189,7 +189,7 @@ def identifier_bookkeeping(sender, **kwargs):
    
    #-- create an identifier with the same name as the star if non exist
    try:
-      Identifier.objects.get(name__exact=star.name, project__exact=star.project)
+      Identifier.objects.get(name__exact=star.name, star__exact=star)
    except Identifier.DoesNotExist:
       Identifier.objects.create(name=star.name, star=star)
 

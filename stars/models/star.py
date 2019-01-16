@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from .project import Project
@@ -157,6 +157,10 @@ class Identifier(models.Model):
    #-- Altnames should be removed when the star is removed
    star = models.ForeignKey(Star, on_delete=models.CASCADE)
    
+   #-- an identifier belongs to a specific project
+   #   when that project is deleted, the identiefers are also deleted.
+   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
+   
    name = models.CharField(max_length=200)
    
    href = models.CharField(max_length=400, blank=True)
@@ -185,7 +189,17 @@ def identifier_bookkeeping(sender, **kwargs):
    
    #-- create an identifier with the same name as the star if non exist
    try:
-      Identifier.objects.get(name__exact=star.name)
+      Identifier.objects.get(name__exact=star.name, project__exact=star.project)
    except Identifier.DoesNotExist:
       Identifier.objects.create(name=star.name, star=star)
+
+
+
+@receiver(pre_save, sender=Identifier)
+def identifier_add_project(sender, **kwargs):
+   """
+   Add the project of the star this belongs to to the identifier
+   """
    
+   identifier = kwargs['instance']
+   identifier.project = identifier.star.project

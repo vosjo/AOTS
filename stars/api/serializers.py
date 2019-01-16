@@ -258,7 +258,8 @@ class IdentifierListSerializer(ModelSerializer):
       fields = [
             'pk',
             'star',
+            'project', 
             'name',
             'href',
       ]
-      read_only_fields = ('pk',)
+      read_only_fields = ('pk','project')

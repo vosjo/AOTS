@@ -1,4 +1,6 @@
- 
+
+from django.db.models import F
+
 from analysis.models import DataSource, DataSet, DataTable, Method, DerivedParameter
 from stars.models import Star
 
@@ -99,10 +101,10 @@ def process_analysis_file(file_id):
    
    message = "Validated the analysis file"
    if len(star) > 0:
-      # there is an existing star
-      star = star[0]
+      # there is an existing star, pick the closest star
+      star = star.annotate(distance=((F('ra')-ra)**2 + (F('dec')-dec)**2)**(1./2.)).order_by('distance')[0]
       star.dataset_set.add(analfile)
-      message += ", added to existing System {}".format(star)
+      message += ", added to existing System {} (_r = {})".format(star, star.distance)
    else:
       # Need to create a new star
       star = Star(name=systemname, project=analfile.project, ra=ra, dec=dec, classification='')

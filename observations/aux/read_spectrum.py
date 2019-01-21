@@ -2,6 +2,8 @@ import re
 
 import numpy as np
 
+from django.db.models import F
+
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, AltAz, get_moon
@@ -162,13 +164,13 @@ def process_specfile(specfile_id):
    #-- add the spectrum to existing or new star
    star = Star.objects.filter(project__exact=spectrum.project) \
                        .filter(ra__range = (spectrum.ra - 0.1, spectrum.ra + 0.1)) \
-                       .filter(dec__range = (spectrum.dec - 0.01, spectrum.dec + 0.01))
+                       .filter(dec__range = (spectrum.dec - 0.1, spectrum.dec + 0.1))
    
    if len(star) > 0:
-      # there is an existing star
-      star = star[0]
+      # there is one or more stars returned, select the closest star
+      star = star.annotate(distance=((F('ra')-spectrum.ra)**2 + (F('dec')-spectrum.dec)**2)**(1./2.)).order_by('distance')[0]
       star.spectrum_set.add(spectrum)
-      message += ", and added to existing System {}".format(star)
+      message += ", and added to existing System {} (_r = {})".format(star, star.distance)
       return True, message
    else:
       # need to make a new star

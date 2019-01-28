@@ -95,7 +95,9 @@ def derive_specfile_info(specfile_id):
    wave, flux, h = specfile.get_spectrum()
    
    if 'MJD-OBS' in h:
-      specfile.hjd = Time(h['MJD-OBS'], format='mjd', scale='utc').jd
+      specfile.hjd = Time(h['MJD-OBS'], format='mjd', scale='utc').jd # ESO
+   elif 'MJD' in h:
+      specfile.hjd = Time(h['MJD'], format='mjd', scale='utc').jd # SDSS
    elif 'BJD' in h:
       specfile.hjd = h['BJD'] # HERMES
    else:
@@ -107,6 +109,8 @@ def derive_specfile_info(specfile_id):
       specfile.filetype = h['PIPEFILE']
    elif 'INSTRUME' in h and h['INSTRUME'] == 'HERMES':
       specfile.filetype = 'MERGE_REBIN'
+   elif 'SDSS' in h.get('telescop', ''):
+      specfile.filetype = 'SDSS_final'
    else:
       specfile.filetype = 'UK'
    

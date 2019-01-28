@@ -6,3 +6,4 @@ CTIO,SMARTS,-30.169208,-70.806198,2200,http://www.ctio.noao.edu/,http://www.ctio
 LCO,"BAADE, CLAY",-29.017382,-70.691734,2380,http://www.lco.cl/,http://weather.lco.cl/clima/weather/magellan/Weathercalendar.html?date1={year:}-{month:}-{day:},
 Ondrejov,Perek,49.909167,14.781535,500,https://stelweb.asu.cas.cz/web/,,http://www.asu.cas.cz/en/about/about-the-institute
 Potsdam-University,OST,52.409216,12.973218,32,https://polaris.astro.physik.uni-potsdam.de/wiki/doku.php?id=en:start,,
+Apache Point Observatory,SDSS,32.78019,-105.819878,2788,https://www.apo.nmsu.edu/,https://weather.apo.nmsu.edu/weather/logs/,Weather archive only has logs

@@ -16,12 +16,14 @@ def get_header_info(spectrum_pk):
    spectrum = Spectrum.objects.get(pk=spectrum_pk)
    wave, flux, header = spectrum.get_spectrum()
    
-   if header['INSTRUME'] == 'UVES':
+   if header.get('INSTRUME', '') == 'UVES':
       derive_uves_info(spectrum_pk, header)
-   elif header['INSTRUME'] == 'FEROS':
+   elif header.get('INSTRUME', '') == 'FEROS':
       derive_feros_info(spectrum_pk, header)
-   elif header['INSTRUME'] == 'HERMES':
+   elif header.get('INSTRUME', '') == 'HERMES':
       derive_hermes_info(spectrum_pk, header)
+   elif 'SDSS' in header.get('TELESCOP', ''):
+      derive_SDSS_info(spectrum_pk, header)
    else:
       derive_generic_info(spectrum_pk, header)
 
@@ -215,3 +217,40 @@ def derive_hermes_info(spectrum_pk, header):
    # save changes
    spectrum.save()
 
+
+def derive_SDSS_info(spectrum_pk, header):
+   """
+   Read header information from an SDSS spectrum
+   
+   This information is stored in the spectrum database entry
+   """
+   
+   #-- load info from spectrum files
+   spectrum = Spectrum.objects.get(pk=spectrum_pk)
+   
+   # HJD
+   spectrum.hjd = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
+   
+   # pointing info
+   spectrum.objectname = header.get('NAME', '')
+   spectrum.ra = header.get('RADEG', -1)
+   spectrum.dec = header.get('DECDEG', -1)
+   spectrum.alt = -1
+   spectrum.az = -1
+   spectrum.airmass = -1
+   
+   # telescope and instrument info
+   spectrum.instrument = 'SDSS'
+   spectrum.telescope = header.get('TELESCOP', 'UK')
+   spectrum.exptime = np.round(header.get('EXPTIME', -1), 0)
+   spectrum.barycor = header.get('HELIO_RV', -1)
+   spectrum.observer = header.get('OBSERVER', 'UK')
+   
+   spectrum.observatory = get_observatory(header, spectrum.project)
+   
+   # observing conditions
+   spectrum.wind_speed = header.get('WINDS', -1)
+   spectrum.wind_direction = header.get('WINDD', -1)
+   
+   # save changes
+   spectrum.save()

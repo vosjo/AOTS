@@ -37,7 +37,7 @@ def get_observatory(header, project):
    #-- try to find the observatory on name match
    if 'TELESCOP' in header:
       try:
-         obs = Observatory.objects.get(name__exact = header['TELESCOP'], project__exact = project)
+         obs = Observatory.objects.get(telescopes__icontains = header['TELESCOP'], project__exact = project)
          return obs
       except Exception as e:
          telescope = header.get('TELESCOP', 'UK')

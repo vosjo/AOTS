@@ -88,7 +88,7 @@ def specfile_list(request, project=None,  **kwargs):
                newspec.save()
                
                #-- now process it and add it to a Spectrum and Object
-               success, message = read_spectrum.process_specfile(newspec.pk)
+               success, message = read_spectrum.process_specfile(newspec.pk, create_new_star=True)
                level = messages.SUCCESS if success else messages.ERROR
                messages.add_message(request, level, message)
                

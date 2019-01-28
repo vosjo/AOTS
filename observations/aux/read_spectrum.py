@@ -103,7 +103,12 @@ def derive_specfile_info(specfile_id):
    else:
       specfile.hjd = 0
    
-   specfile.instrument = h.get('INSTRUME', 'UK')
+   if 'INSTRUME' in h:
+      specfile.instrument = h.get('INSTRUME', 'UK')
+   elif 'TELESCOP' in h:
+      specfile.instrument = h.get('TELESCOP', 'UK')
+   else:
+      specfile.instrument = 'UK'
    
    if 'PIPEFILE' in h:
       specfile.filetype = h['PIPEFILE']
@@ -116,7 +121,7 @@ def derive_specfile_info(specfile_id):
    
    specfile.save()
    
-def process_specfile(specfile_id):
+def process_specfile(specfile_id, create_new_star=True):
    """
    Check if the specfile is a duplicate, and if not, add it to a spectrum
    and target star.
@@ -154,6 +159,7 @@ def process_specfile(specfile_id):
       spectrum = spectrum[0]
       spectrum.specfile_set.add(specfile)
       message += "Specfile added to existing Spectrum {}".format(spectrum)
+      return True, message
    else:
       spectrum = Spectrum(project=specfile.project)
       spectrum.save()
@@ -165,7 +171,7 @@ def process_specfile(specfile_id):
       message += "Specfile added to new Spectrum {}".format(spectrum)
    
    
-   #-- add the spectrum to existing or new star
+   #-- add the spectrum to existing or new star if the spectrum is newly created
    star = Star.objects.filter(project__exact=spectrum.project) \
                        .filter(ra__range = (spectrum.ra - 0.1, spectrum.ra + 0.1)) \
                        .filter(dec__range = (spectrum.dec - 0.1, spectrum.dec + 0.1))
@@ -177,10 +183,16 @@ def process_specfile(specfile_id):
       message += ", and added to existing System {} (_r = {})".format(star, star.distance)
       return True, message
    else:
+      
+      if not create_new_star:
+         specfile.delete()
+         message += ", no star found, spectrum NOT added to database."
+         return False, message
+      
       # need to make a new star
       w, f, header = specfile.get_spectrum()
       
-      star = Star(name= header.get('OBJECT', ''), ra=spectrum.ra, dec=spectrum.dec, project=spectrum.project)
+      star = Star(name= spectrum.objectname, ra=spectrum.ra, dec=spectrum.dec, project=spectrum.project)
       star.save()
       
       star = Star.objects.get(pk=star.pk)

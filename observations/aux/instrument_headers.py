@@ -240,7 +240,7 @@ def derive_SDSS_info(spectrum_pk, header):
    spectrum.airmass = -1
    
    # telescope and instrument info
-   spectrum.instrument = 'SDSS'
+   spectrum.instrument = header.get('INSTRUME', 'SDSS')
    spectrum.telescope = header.get('TELESCOP', 'UK')
    spectrum.exptime = np.round(header.get('EXPTIME', -1), 0)
    spectrum.barycor = header.get('HELIO_RV', -1)

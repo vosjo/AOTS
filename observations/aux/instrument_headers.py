@@ -232,9 +232,9 @@ def derive_SDSS_info(spectrum_pk, header):
    spectrum.hjd = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
    
    # pointing info
-   spectrum.objectname = header.get('NAME', '')
-   spectrum.ra = header.get('RADEG', -1)
-   spectrum.dec = header.get('DECDEG', -1)
+   spectrum.objectname = header.get('SPEC_ID', '')
+   spectrum.ra = header.get('PLUG_RA', -1)
+   spectrum.dec = header.get('PLUG_DEC=', -1)
    spectrum.alt = -1
    spectrum.az = -1
    spectrum.airmass = -1

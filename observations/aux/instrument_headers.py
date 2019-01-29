@@ -234,7 +234,7 @@ def derive_SDSS_info(spectrum_pk, header):
    # pointing info
    spectrum.objectname = header.get('SPEC_ID', '')
    spectrum.ra = header.get('PLUG_RA', -1)
-   spectrum.dec = header.get('PLUG_DEC=', -1)
+   spectrum.dec = header.get('PLUG_DEC', -1)
    spectrum.alt = -1
    spectrum.az = -1
    spectrum.airmass = -1

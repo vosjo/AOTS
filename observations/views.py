@@ -88,9 +88,14 @@ def specfile_list(request, project=None,  **kwargs):
                newspec.save()
                
                #-- now process it and add it to a Spectrum and Object
-               success, message = read_spectrum.process_specfile(newspec.pk, create_new_star=True)
-               level = messages.SUCCESS if success else messages.ERROR
-               messages.add_message(request, level, message)
+               try:
+                  success, message = read_spectrum.process_specfile(newspec.pk, create_new_star=True)
+                  level = messages.SUCCESS if success else messages.ERROR
+                  messages.add_message(request, level, message)
+               except Exception:
+                  newspec.delete()
+                  messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f))
+                  
                
             return HttpResponseRedirect(reverse('observations:specfile_list', kwargs={'project':project.slug}))
    

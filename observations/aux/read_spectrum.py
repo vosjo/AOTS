@@ -48,12 +48,44 @@ def derive_spectrum_info(spectrum_pk):
    This information is stored in the spectrum database entry
    """
    
-   #-- load info from spectrum header
-   instrument_headers.get_header_info(spectrum_pk)
-   
-   
    #-- get spectrum
    spectrum = Spectrum.objects.get(pk=spectrum_pk)
+   wave, flux, header = spectrum.get_spectrum()
+   
+   
+   #-- load info from spectrum header
+   data = instrument_headers.extract_header_info(header)
+   
+   # HJD
+   spectrum.hjd = data.get('hjd', 2400000)
+   
+   # pointing info
+   spectrum.objectname = data.get('objectname', '')
+   spectrum.ra = data.get('ra', -1)
+   spectrum.dec = data.get('dec', -1)
+   spectrum.alt = data.get('alt', -1)
+   spectrum.az = data.get('az', -1)
+   spectrum.airmass = data.get('airmass', -1)
+   
+   # telescope and instrument info
+   spectrum.instrument = data.get('instrument', 'UK')
+   spectrum.telescope = data.get('telescope', 'UK')
+   spectrum.exptime = data.get('exptime', -1)
+   spectrum.barycor = data.get('barycor', -1)
+   spectrum.observer = data.get('observer', 'UK')
+   
+   # observing conditions
+   spectrum.wind_speed = data.get('wind_speed', -1)
+   spectrum.wind_direction = data.get('wind_direction', -1)
+   
+   
+   #-- observatory
+   spectrum.observatory = instrument_headers.get_observatory(header, spectrum.project)
+   
+   #-- save the changes
+   spectrum.save()
+   
+   
    
    #-- calculate moon parameters
    time = Time(spectrum.hjd, format='jd')
@@ -94,33 +126,17 @@ def derive_specfile_info(specfile_id):
    specfile = SpecFile.objects.get(pk=specfile_id)
    wave, flux, h = specfile.get_spectrum()
    
-   if 'MJD-OBS' in h:
-      specfile.hjd = Time(h['MJD-OBS'], format='mjd', scale='utc').jd # ESO
-   elif 'MJD' in h:
-      specfile.hjd = Time(h['MJD'], format='mjd', scale='utc').jd # SDSS
-   elif 'BJD' in h:
-      specfile.hjd = h['BJD'] # HERMES
-   else:
-      specfile.hjd = 0
-   
-   if 'INSTRUME' in h:
-      specfile.instrument = h.get('INSTRUME', 'UK')
-   elif 'TELESCOP' in h:
-      specfile.instrument = h.get('TELESCOP', 'UK')
-   else:
-      specfile.instrument = 'UK'
-   
-   if 'PIPEFILE' in h:
-      specfile.filetype = h['PIPEFILE']
-   elif 'INSTRUME' in h and h['INSTRUME'] == 'HERMES':
-      specfile.filetype = 'MERGE_REBIN'
-   elif 'SDSS' in h.get('telescop', ''):
-      specfile.filetype = 'SDSS_final'
-   else:
-      specfile.filetype = 'UK'
+   data = instrument_headers.extract_header_info(h)
+      
+   specfile.hjd = data['hjd']
+   specfile.instrument = data['instrument']
+   specfile.filetype = data['filetype']
+   specfile.ra = data['ra']
+   specfile.dec = data['dec']
    
    specfile.save()
    
+
 def process_specfile(specfile_id, create_new_star=True):
    """
    Check if the specfile is a duplicate, and if not, add it to a spectrum
@@ -139,6 +155,8 @@ def process_specfile(specfile_id, create_new_star=True):
    
    #-- check for duplicates
    duplicates = SpecFile.objects.exclude(id__exact = specfile_id) \
+                   .filter(ra__range = [specfile.ra-1/3600., specfile.ra+1/3600.]) \
+                   .filter(dec__range = [specfile.dec-1/3600., specfile.dec+1/3600.]) \
                    .filter(hjd__exact = specfile.hjd) \
                    .filter(instrument__iexact = specfile.instrument) \
                    .filter(filetype__iexact = specfile.filetype) \
@@ -152,7 +170,10 @@ def process_specfile(specfile_id, create_new_star=True):
    
    
    #-- add specfile to existing or new spectrum
-   spectrum = Spectrum.objects.filter(instrument__iexact = specfile.instrument, project__exact=specfile.project) \
+   spectrum = Spectrum.objects.filter(project__exact=specfile.project) \
+                              .filter(ra__range = [specfile.ra-1/3600., specfile.ra+1/3600.]) \
+                              .filter(dec__range = [specfile.dec-1/3600., specfile.dec+1/3600.]) \
+                              .filter(instrument__iexact = specfile.instrument)  \
                               .filter(hjd__range = (specfile.hjd - 0.001, specfile.hjd + 0.001))
    
    if len(spectrum) > 0:

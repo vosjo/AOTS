@@ -109,8 +109,10 @@ class SpecFile(models.Model):
    #   when that project is deleted, the star is also deleted.
    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
    
-   #-- fields necesary to detect doubles. If spectra have same hjd, instrument and file
-   #   type, they are probably the same spectrum
+   #-- fields necesary to detect doubles. If spectra have same ra, dec, hjd, instrument and file
+   #   type, they are probably the same spectrum. ra and dec is necessary for multi object spectrographs
+   ra = models.FloatField(default=0)
+   dec = models.FloatField(default=0)
    hjd = models.FloatField(default=0)
    instrument = models.CharField(max_length=200, default='')
    filetype = models.CharField(max_length=200, default='')

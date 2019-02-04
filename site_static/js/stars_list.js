@@ -160,8 +160,22 @@ function get_filter_keywords( d ) {
       
       if ($('#filter_mag').val() != '') {
          d = $.extend( {}, d, {
-            "mag_min": parseFloat( $('#filter_mag').val().split(':')[0] ) || -1,
-            "mag_max": parseFloat( $('#filter_mag').val().split(':')[1] ) || 90,
+            "mag_min": parseFloat( $('#filter_mag').val().split(':')[0] ) || '',
+            "mag_max": parseFloat( $('#filter_mag').val().split(':')[1] ) || '',
+         } );
+      }
+      
+      if ($('#filter_nspec').val() != '') {
+         d = $.extend( {}, d, {
+            "nspec_min": parseFloat( $('#filter_nspec').val().split(':')[0] ) || '',
+            "nspec_max": parseFloat( $('#filter_nspec').val().split(':')[1] ) || '',
+         } );
+      }
+      
+      if ($('#filter_nphot').val() != '') {
+         d = $.extend( {}, d, {
+            "nphot_min": parseFloat( $('#filter_nphot').val().split(':')[0] ) || '',
+            "nphot_max": parseFloat( $('#filter_nphot').val().split(':')[1] ) || '',
          } );
       }
       

@@ -11,6 +11,8 @@
 from django.http import JsonResponse
 import json
 
+from django.db.models import Count
+
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
 
@@ -71,6 +73,11 @@ class StarFilter(filters.FilterSet):
    
    #name = filters.CharFilter(field_name='name', method='filter_identifier', lookup_expr='icontains')
    
+   nspec_min = filters.NumberFilter(field_name="spectrum", method='filter_nspec_gt', lookup_expr='gte')
+   nspec_max = filters.NumberFilter(field_name="spectrum", method='filter_nspec_lt', lookup_expr='lte')
+   
+   nphot_min = filters.NumberFilter(field_name="photometry", method='filter_nphot_gt', lookup_expr='gte')
+   nphot_max = filters.NumberFilter(field_name="photometry", method='filter_nphot_lt', lookup_expr='lte')
    
    def filter_magnitude_gt(self, queryset, name, value):
       return queryset.filter(photometry__band="GAIA2.G",  photometry__measurement__gte=value)
@@ -80,6 +87,18 @@ class StarFilter(filters.FilterSet):
    
    def filter_identifier(self, queryset, name, value):
       return queryset.filter(identifier__name__icontains=value)
+   
+   def filter_nspec_gt(self, queryset, name, value):
+      return queryset.annotate(num_spec=Count('spectrum')).filter(num_spec__gte=value)
+   
+   def filter_nspec_lt(self, queryset, name, value):
+      return queryset.annotate(num_spec=Count('spectrum')).filter(num_spec__lte=value)
+   
+   def filter_nphot_gt(self, queryset, name, value):
+      return queryset.annotate(num_phot=Count('photometry')).filter(num_phot__gte=value)
+   
+   def filter_nphot_lt(self, queryset, name, value):
+      return queryset.annotate(num_phot=Count('photometry')).filter(num_phot__lte=value)
    
    class Meta:
       model = Star

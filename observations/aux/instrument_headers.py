@@ -212,11 +212,22 @@ def derive_SDSS_info(header):
    data = {}
    
    # HJD
-   t = Time('1858-11-17', format='iso') + header.get('TAI', 0.0) * u.second
-   data['hjd'] = t.jd
+   if 'TAI' in header:
+      t = Time('1858-11-17', format='iso') + header.get('TAI', 0.0) * u.second
+      data['hjd'] = t.jd
+   elif 'MJD' in header:
+      data['hjd'] = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
+   else:
+      data['hjd'] = 2400000
    
    # pointing info
-   data['objectname'] = header.get('SPEC_ID', '')
+   if 'SPEC_ID' in header:
+      data['objectname'] = header.get('SPEC_ID', '')
+   else:
+      ra_ = "J{:02.0f}{:02.0f}{:05.2f}".format(*Angle(header.get('PLUG_RA', -1), unit='degree').hms)
+      dec_ = Angle(header.get('PLUG_DEC', -1), unit='degree').dms
+      data['objectname'] = ra_ + "{:+03.0f}{:02.0f}{:05.2f}".format(dec_[0], abs(dec_[1]), abs(dec_[2]))
+      
    data['ra'] = header.get('PLUG_RA', -1)
    data['dec'] = header.get('PLUG_DEC', -1)
    
@@ -232,6 +243,7 @@ def derive_SDSS_info(header):
    data['wind_speed'] = header.get('WINDS', -1)
    data['wind_direction'] = header.get('WINDD', -1)
    
-   data['url'] = "http://skyserver.sdss.org/dr15/en/tools/quicklook/summary.aspx?sid="+header['SPEC_ID']
+   if 'SPEC_ID' in header:
+      data['url'] = "http://skyserver.sdss.org/dr15/en/tools/quicklook/summary.aspx?sid="+header['SPEC_ID']
    
    return data

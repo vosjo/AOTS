@@ -2,6 +2,8 @@ from django.shortcuts import get_object_or_404, render, reverse
 from django.http import HttpResponseRedirect
 from django.contrib import messages
 
+from django.db.models import Sum
+
 from .models import Spectrum, SpecFile
 from stars.models import Star, Project
 
@@ -36,12 +38,12 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
    
    spectrum = get_object_or_404(Spectrum, pk=spectrum_id)
    
-   if spectrum.specfile_set.all()[0].specfile.size > 125000: # spectrum larger than 1 Mb gets rebinned
+   total_size = sum([s.specfile.size for s in spectrum.specfile_set.all()])
+   if total_size > 500000: # spectrum larger than 1 Mb gets rebinned
       rebin = 10
       #request.GET._mutable = True
       #request.GET['rebin'] = 10
    else:
-      print (spectrum.specfile_set.all()[0].specfile.size)
       rebin = 1
    if request.method == 'GET':
       rebin = int(request.GET.get('rebin', rebin))

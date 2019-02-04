@@ -229,7 +229,8 @@ def derive_SDSS_info(spectrum_pk, header):
    spectrum = Spectrum.objects.get(pk=spectrum_pk)
    
    # HJD
-   spectrum.hjd = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
+   t = Time('1858-11-17', format='iso') + header.get('TAI', 0.0) * u.second
+   spectrum.hjd = t.jd
    
    # pointing info
    spectrum.objectname = header.get('SPEC_ID', '')
@@ -251,6 +252,8 @@ def derive_SDSS_info(spectrum_pk, header):
    # observing conditions
    spectrum.wind_speed = header.get('WINDS', -1)
    spectrum.wind_direction = header.get('WINDD', -1)
+   
+   #url = "http://skyserver.sdss.org/dr15/en/tools/quicklook/summary.aspx?sid="+header['SPEC_ID']
    
    # save changes
    spectrum.save()

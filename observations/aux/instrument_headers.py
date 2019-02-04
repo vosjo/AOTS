@@ -8,6 +8,7 @@ from observations.models import Spectrum, Observatory
 
 import astropy.units as u
 from astropy.coordinates import EarthLocation
+from astropy.coordinates.angles import Angle
 
 
 def extract_header_info(header):

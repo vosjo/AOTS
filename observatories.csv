@@ -7,3 +7,4 @@ LCO,"BAADE, CLAY",-29.017382,-70.691734,2380,http://www.lco.cl/,http://weather.l
 Ondrejov,Perek,49.909167,14.781535,500,https://stelweb.asu.cas.cz/web/,,http://www.asu.cas.cz/en/about/about-the-institute
 Potsdam-University,OST,52.409216,12.973218,32,https://polaris.astro.physik.uni-potsdam.de/wiki/doku.php?id=en:start,,
 Apache Point Observatory,SDSS 2.5-M,32.78019,-105.819878,2788,https://www.apo.nmsu.edu/,https://weather.apo.nmsu.edu/weather/logs/,Weather archive only has logs
+Xinglong Station,LAMOST,40.395761,117.575861,960,http://www.lamost.org/public/?locale=en,,Weather info is stored in the fits files

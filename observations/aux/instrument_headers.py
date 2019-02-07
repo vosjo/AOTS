@@ -24,6 +24,9 @@ def extract_header_info(header):
       return derive_hermes_info(header)
    elif 'SDSS' in header.get('TELESCOP', ''):
       return derive_SDSS_info(header)
+   elif 'LAMOST' in header.get('TELESCOP', ''):
+      return derive_LAMOST_info(header)
+   
    else:
       return derive_generic_info(header)
    
@@ -125,6 +128,7 @@ def derive_uves_info(header):
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution'] = 40000
    data['barycor'] = header.get('ESO QC VRAD BARYCOR', -1)
    data['observer'] = header.get('OBSERVER', 'UK')
    data['filetype'] = header['PIPEFILE']
@@ -160,6 +164,7 @@ def derive_feros_info(header):
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution'] = 48000
    data['barycor'] = -1
    data['observer'] = header.get('OBSERVER', 'UK')
    data['filetype'] = header['PIPEFILE']
@@ -196,6 +201,7 @@ def derive_hermes_info(header):
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution'] = 85000
    data['barycor'] = header.get('BVCOR', -1)
    data['observer'] = header.get('OBSERVER', 'UK')
    data['filetype'] = 'MERGE_REBIN'
@@ -234,8 +240,9 @@ def derive_SDSS_info(header):
    
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'SDSS')
-   data['telescope'] = header.get('TELESCOP', 'UK')
+   data['telescope'] = header.get('TELESCOP', 'SDSS 2.5-M')
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution'] = 1900
    data['barycor'] = header.get('HELIO_RV', -1)
    data['observer'] = header.get('OBSERVER', 'UK')
    data['filetype'] = 'SDSS_final'
@@ -246,5 +253,42 @@ def derive_SDSS_info(header):
    
    if 'SPEC_ID' in header:
       data['url'] = "http://skyserver.sdss.org/dr15/en/tools/quicklook/summary.aspx?sid="+header['SPEC_ID']
+   
+   return data
+
+
+
+def derive_LAMOST_info(header):
+   """
+   Read header information from an SDSS spectrum
+   
+   This information is stored in the spectrum database entry
+   """
+   
+   data = {}
+   
+   # HJD
+   data['hjd'] = Time(header.get('DATE-OBS', 0), format='fits').jd
+   
+   # pointing info
+   data['objectname'] = header.get('DESIG', 'UK')
+      
+   data['ra'] = header.get('RA_OBS', -1)
+   data['dec'] = header.get('DEC_OBS', -1)
+   
+   # telescope and instrument info
+   data['instrument'] = header.get('INSTRUME', 'LRS')
+   data['telescope'] = header.get('TELESCOP', 'LAMOST')
+   data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution'] = 1500
+   data['barycor'] = header.get('HELIO_RV', -1)
+   data['observer'] = 'UK'
+   data['filetype'] = str(header.get('DATA_V', '').replace(' ', '_')) + '_' + str(header.get('ORIGIN', '')) + '_' + str(header.get('OBSID', ''))
+   
+   # observing conditions
+   data['wind_speed'] = header.get('WINDS', -1)
+   data['wind_direction'] = header.get('WINDD', -1)
+   data['seeing'] = header.get('SEEING', -1)
+   
    
    return data

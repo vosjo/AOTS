@@ -28,9 +28,11 @@ def read_spectrum(filename, return_header=False):
       """
       data = fits.getdata(filename, 1)
       wave, flux = 10**data['loglam'], data['flux']
-      
+   
    else:
       flux = fits.getdata(filename)
+      if 'LAMOST' in header.get('TELESCOP', ''):
+         flux = flux[0]
       
       #-- Make the equidistant wavelengthgrid using the Fits standard info
       #   in the header
@@ -38,7 +40,14 @@ def read_spectrum(filename, return_header=False):
          ref_pix = int(header["CRPIX1"])-1
       else:
          ref_pix = 0
-      dnu = float(header["CDELT1"])
+         
+      if "CDELT1" in header:
+         dnu = float(header["CDELT1"])
+      elif "CD1_1" in header:
+         dnu = float(header["CD1_1"])
+      else:
+         raise Exception('Can not find wavelength dispersion in header. Looked for CDELT1 and CD1_1')
+         
       nu0 = float(header["CRVAL1"]) - ref_pix*dnu
       nun = nu0 + (len(flux)-1)*dnu
       wave = np.linspace(nu0,nun,len(flux))
@@ -48,6 +57,9 @@ def read_spectrum(filename, return_header=False):
       elif 'ctype1' in header and header['CTYPE1']=='AWAV-LOG':
          # for PHOENIX spectra
          wave = np.exp(wave)
+      elif 'LAMOST' in header.get('TELESCOP', ''):
+         # lamost uses log10 dispersion
+         wave = 10**wave
    
    if return_header:
       return wave,flux,header

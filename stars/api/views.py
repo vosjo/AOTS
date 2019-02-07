@@ -27,6 +27,9 @@ from .serializers import ProjectListSerializer, ProjectSerializer, StarListSeria
 
 from stars.models import Project, Star, Identifier, Tag
 
+from astropy.coordinates import Angle
+from astroquery.simbad import Simbad
+
 # ===============================================================
 # PROJECTS
 # ===============================================================
@@ -54,7 +57,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
 class StarFilter(filters.FilterSet):
    
    
-   name = filters.CharFilter(field_name="name", lookup_expr='icontains')
+   name = filters.CharFilter(field_name="name", method='filter_name', lookup_expr='icontains')
+   
+   coordinates = filters.CharFilter(field_name="ra", method='filter_coordinates', lookup_expr='icontains')
    
    ra = filters.RangeFilter(field_name="ra",)
    
@@ -78,6 +83,29 @@ class StarFilter(filters.FilterSet):
    
    nphot_min = filters.NumberFilter(field_name="photometry", method='filter_nphot_gt', lookup_expr='gte')
    nphot_max = filters.NumberFilter(field_name="photometry", method='filter_nphot_lt', lookup_expr='lte')
+   
+   
+   def filter_name(self, queryset, name, value):
+      try:
+         data = Simbad.query_object(value)
+         ra = Angle(data['RA'][0], unit='hour').degree
+         dec = Angle(data['DEC'][0], unit='degree').degree
+         return queryset.filter(ra__range=[ra-15./3600., ra+15./3600.]).filter(dec__range=[dec-5./3600., dec+5./3600.])
+      except Exception:
+         return queryset.filter(name__icontains=value)
+   
+   def filter_coordinates(self, queryset, name, value):
+      ra, dec = value.split()
+      
+      if ':' in ra:
+         ra = Angle(ra, unit='hour').degree
+      else:
+         ra = Angle(ra, unit='degree').degree
+         
+      dec = Angle(dec, unit='degree').degree
+      
+      return queryset.filter(ra__range=[ra-15./3600., ra+15./3600.]).filter(dec__range=[dec-5./3600., dec+5./3600.])
+
    
    def filter_magnitude_gt(self, queryset, name, value):
       return queryset.filter(photometry__band="GAIA2.G",  photometry__measurement__gte=value)

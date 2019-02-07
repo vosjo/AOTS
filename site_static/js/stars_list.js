@@ -133,6 +133,7 @@ function get_filter_keywords( d ) {
       d = $.extend( {}, d, {
         "project": $('#project-pk').attr('project'),
         "name": $('#filter_name').val(),
+        "coordinates": $('#filter_co').val(),
         "classification": $('#filter_class').val(),
         "status": selected_status[0],
         "tags": selected_tags[0],

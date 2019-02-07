@@ -38,6 +38,12 @@ def get_wind_direction(degrees):
    else:
       return 'NW'
 
+def isfloat(value):
+  try:
+    float(value)
+    return True
+  except ValueError:
+    return False
 
 def derive_spectrum_info(spectrum_pk):
    """
@@ -75,8 +81,12 @@ def derive_spectrum_info(spectrum_pk):
    spectrum.observer = data.get('observer', 'UK')
    
    # observing conditions
-   spectrum.wind_speed = data.get('wind_speed', -1)
-   spectrum.wind_direction = data.get('wind_direction', -1)
+   if isfloat(data.get('wind_speed', -1)):
+      spectrum.wind_speed = data.get('wind_speed', -1)
+   
+   if isfloat(data.get('wind_direction', -1)):
+      spectrum.wind_direction = data.get('wind_direction', -1)
+
    
    
    #-- observatory

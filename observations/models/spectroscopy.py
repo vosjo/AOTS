@@ -48,8 +48,8 @@ class Spectrum(models.Model):
    #-- observing conditions
    moon_illumination = models.FloatField(default=0) # percent of illumination of the moon
    moon_separation = models.FloatField(default=0) # angle between target and moon
-   wind_speed = models.FloatField(default=0) # in m/s
-   wind_direction = models.FloatField(default=0) # in degrees
+   wind_speed = models.FloatField(default=-1) # in m/s
+   wind_direction = models.FloatField(default=-1) # in degrees
    seeing = models.FloatField(default=0) # in mas
    
    #-- observatory

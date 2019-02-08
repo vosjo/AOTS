@@ -65,3 +65,19 @@ def read_spectrum(filename, return_header=False):
       return wave,flux,header
    else:
       return wave,flux
+
+
+def read_lightcurve(filename, return_header=False):
+   
+   header = fits.getheader(filename)
+   
+   data = fits.getdata(filename)
+   
+   time = data['time']
+   flux = data['SAP_FLUX']
+   
+   
+   if return_header:
+      return time,flux,header
+   else:
+      return time,flux

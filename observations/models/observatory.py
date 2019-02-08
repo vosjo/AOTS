@@ -39,6 +39,9 @@ class Observatory(models.Model):
    # altitude in meter
    altitude = models.FloatField(default=0)
    
+   # if observatory is a space craft no coordinates are necessary
+   space_craft = models.BooleanField(default=False)
+   
    
    url = models.CharField(max_length=150, default='', blank=True)
    

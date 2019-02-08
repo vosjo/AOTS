@@ -4,15 +4,15 @@ from django.contrib import messages
 
 from django.db.models import Sum
 
-from .models import Spectrum, SpecFile
+from .models import Spectrum, SpecFile, LightCurve
 from stars.models import Star, Project
 
-from .forms import UploadSpecFileForm
+from .forms import UploadSpecFileForm, UploadLightCurveForm
 
 
-from .aux import read_spectrum
+from .aux import read_spectrum, read_lightcurve
 
-from .plotting import plot_visibility, plot_spectrum
+from .plotting import plot_visibility, plot_spectrum, plot_lightcurve
 
 from bokeh.resources import CDN
 from bokeh.embed import components
@@ -54,7 +54,7 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
    for inst in set(all_instruments):
       all_spectra[inst] = spectrum.star.spectrum_set.filter(instrument__exact=inst).order_by('hjd')
    
-   vis = plot_visibility(spectrum_id)
+   vis = plot_visibility(spectrum)
    spec = plot_spectrum(spectrum_id, rebin=rebin)
    script, div = components({'spec':spec, 'visibility':vis}, CDN)
    
@@ -109,6 +109,74 @@ def specfile_list(request, project=None,  **kwargs):
    
    return render(request, 'observations/specfiles_list.html', context)
 
+
+def lightcurve_list(request, project=None,  **kwargs):
+   """
+   simplified version of spectra index page using datatables and restframework api
+   """
+   
+   project = get_object_or_404(Project, slug=project)
+   
+   upload_form = UploadLightCurveForm()
+   
+   
+   # Handle file upload
+   if request.method == 'POST' and request.user.is_authenticated:
+      if 'lcfile' in request.FILES:
+         upload_form = UploadLightCurveForm(request.POST, request.FILES)
+         if upload_form.is_valid():
+            
+            files = request.FILES.getlist('lcfile')
+            for f in files:
+               #-- save the new specfile
+               newlc = LightCurve(lcfile=f, project=project, added_by=request.user)
+               newlc.save()
+               
+               #-- now process it and add it to a Spectrum and Object
+               success, message = read_lightcurve.process_lightcurve(newlc.pk, create_new_star=True)
+               level = messages.SUCCESS if success else messages.ERROR
+               messages.add_message(request, level, message)
+               #try:
+                  #success, message = read_lightcurve.process_lightcurve(newlc.pk, create_new_star=True)
+                  #level = messages.SUCCESS if success else messages.ERROR
+                  #messages.add_message(request, level, message)
+               #except Exception as e:
+                  #print(e)
+                  #newlc.delete()
+                  #messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f))
+                  
+               
+            return HttpResponseRedirect(reverse('observations:lightcurve_list', kwargs={'project':project.slug}))
+   
+   elif request.method != 'GET' and not request.user.is_authenticated:
+      messages.add_message(request, messages.ERROR, "You need to login for that action!")
+   
+   
+   context = {'project': project, 'upload_form': upload_form}
+   
+   return render(request, 'observations/lightcurve_list.html', context)
+
+
+def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
+   #-- show detailed spectrum information
+   
+   project = get_object_or_404(Project, slug=project)
+   
+   lightcurve = get_object_or_404(LightCurve, pk=lightcurve_id)
+   
+   vis = plot_visibility(lightcurve)
+   spec = plot_lightcurve(lightcurve_id)
+   script, div = components({'spec':spec, 'visibility':vis}, CDN)
+   
+   
+   context = {
+      'project': project,
+      'lightcurve': lightcurve,
+      'figures': div,
+      'script': script,
+   }
+   
+   return render(request, 'observations/lightcurve_detail.html', context)
 
 def observatory_list(request, project=None,  **kwargs):
    """

@@ -26,6 +26,8 @@ def extract_header_info(header):
       return derive_SDSS_info(header)
    elif 'LAMOST' in header.get('TELESCOP', ''):
       return derive_LAMOST_info(header)
+   elif 'TESS' in header.get('TELESCOP', ''):
+      return derive_TESS_info(header)
    
    else:
       return derive_generic_info(header)
@@ -260,15 +262,13 @@ def derive_SDSS_info(header):
 
 def derive_LAMOST_info(header):
    """
-   Read header information from an SDSS spectrum
-   
-   This information is stored in the spectrum database entry
+   Read header information from a LAMOST spectrum
    """
    
    data = {}
    
    # HJD
-   data['hjd'] = Time(header.get('DATE-OBS', 0), format='fits').jd
+   data['hjd'] = Time(header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'), format='fits').jd
    
    # pointing info
    data['objectname'] = header.get('DESIG', 'UK')
@@ -290,5 +290,36 @@ def derive_LAMOST_info(header):
    data['wind_direction'] = header.get('WINDD', -1)
    data['seeing'] = header.get('SEEING', -1)
    
+   
+   return data
+
+
+def derive_TESS_info(header):
+   """
+   Read header information from a TESS lightcurve
+   """
+   
+   data = {}
+   
+   # HJD
+   data['hjd_start'] = 2440000.5 + header.get('TSTART', 0)
+   data['hjd_end'] = 2440000.5 + header.get('TSTOP', 0)
+   
+   data['hjd'] = np.average([data['hjd_start'], data['hjd_end']])
+   
+   # pointing info
+   data['objectname'] = header.get('OBJECT', 'UK')
+      
+   data['ra'] = header.get('RA_OBJ', -1)
+   data['dec'] = header.get('DEC_OBJ', -1)
+   
+   # telescope and instrument info
+   data['instrument'] = header.get('INSTRUME', 'TESS Photometer')
+   data['telescope'] = header.get('TELESCOP', 'TESS')
+   data['exptime'] = 120
+   data['cadence'] = 120
+   data['observer'] = 'SPACE CRAFT'
+   data['filetype'] = header.get('CREATOR', '').replace(' ', '_') + '_v_' + str(header.get('FILEVER', '')).strip() \
+                      + '_rel_' + str(header.get('DATA_REL=', '')).strip()
    
    return data

@@ -221,12 +221,9 @@ def process_specfile(specfile_id, create_new_star=True):
          return False, message
       
       # need to make a new star
-      w, f, header = specfile.get_spectrum()
-      
       star = Star(name= spectrum.objectname, ra=spectrum.ra, dec=spectrum.dec, project=spectrum.project)
       star.save()
       
-      star = Star.objects.get(pk=star.pk)
       star.spectrum_set.add(spectrum)
       
       message += ", and added to new System {}".format(star)

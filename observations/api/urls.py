@@ -10,6 +10,8 @@ from .views import (
    SpecFileViewSet,
    processSpecfile,
    getSpecfileHeader,
+   LightCurveViewSet,
+   processLightCurve,
    ObservatoryViewSet,
    )
 
@@ -18,6 +20,7 @@ app_name = 'observations-api'
 router = routers.DefaultRouter()
 router.register(r'spectra', SpectrumViewSet)
 router.register(r'specfiles', SpecFileViewSet)
+router.register(r'lightcurves', LightCurveViewSet)
 router.register(r'observatories', ObservatoryViewSet)
 
 
@@ -25,4 +28,5 @@ urlpatterns = [
    path('', include(router.urls) ),
    path('specfiles/<int:specfile_pk>/process/', processSpecfile, name='process_specfile'),
    path('specfiles/<int:specfile_pk>/header/', getSpecfileHeader, name='specfile_header'),
+   path('lightcurves/<int:lightcurve_pk>/process/', processLightCurve, name='process_lightcurve'),
 ]

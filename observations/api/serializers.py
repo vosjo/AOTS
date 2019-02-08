@@ -3,7 +3,7 @@ from django.urls import reverse
  
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from observations.models import Spectrum, SpecFile, Observatory
+from observations.models import Spectrum, SpecFile, LightCurve, Observatory
 from stars.models import Star
 from stars.api.serializers import SimpleStarSerializer
 
@@ -39,13 +39,6 @@ class SpectrumListSerializer(ModelSerializer):
          return ''
       else:
          return SimpleStarSerializer(obj.star).data
-      #return Star.objects.get(pk=obj.star).name
-      
-   def get_observatory(self, obj):
-      try:
-         return obj.observatory.name
-      except:
-         return ''
       
    def get_specfiles(self, obj):
       specfiles = SimpleSpecFileSerializer(obj.specfile_set, many=True).data
@@ -151,6 +144,40 @@ class SimpleSpecFileSerializer(ModelSerializer):
       read_only_fields = ('pk',)
 
 # ===============================================================
+# Licht Curves
+# ===============================================================
+
+class LightCurveSerializer(ModelSerializer):
+   
+   star = SerializerMethodField()
+   href = SerializerMethodField()
+   
+   class Meta:
+      model = LightCurve
+      fields = [
+            'pk',
+            'star',
+            'project',
+            'hjd',
+            'exptime',
+            'cadence',
+            'instrument',
+            'telescope',
+            'valid',
+            'href',
+            ]
+      read_only_fields = ('pk',)
+      
+   def get_star(self, obj):
+      if obj.star is None:
+         return ''
+      else:
+         return SimpleStarSerializer(obj.star).data
+   
+   def get_href(self, obj):
+      return reverse('observations:lightcurve_detail', kwargs={'project':obj.project.slug, 'lightcurve_id':obj.pk})
+
+# ===============================================================
 # Observatory
 # ===============================================================
 
@@ -167,6 +194,7 @@ class ObservatorySerializer(ModelSerializer):
             'latitude',
             'longitude',
             'altitude',
+            'space_craft',
             'note',
             'url',
             'weatherurl',

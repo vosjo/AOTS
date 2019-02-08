@@ -9,7 +9,7 @@ import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, AltAz, get_moon
 
-from .models import Spectrum
+from .models import Spectrum, LightCurve
 from stars.models import Star
 
 from bokeh import plotting as bpl
@@ -44,7 +44,8 @@ zeropoints = {
             }
 
 
-def plot_visibility(spectrum_id):
+
+def plot_visibility(observation):
    """
    Plot airmass and moondistance on the night of observations
    """
@@ -52,20 +53,37 @@ def plot_visibility(spectrum_id):
    fig = bpl.figure(plot_width=400, plot_height=240, toolbar_location=None,
                      y_range=(0, 90), x_axis_type="datetime")
    
-   try:
+   fig.toolbar.logo=None
+   fig.title.align = 'center'
+   fig.yaxis.axis_label = 'Altitude (dgr)'
+   fig.xaxis.axis_label = 'UT'
+   fig.yaxis.axis_label_text_font_size = '10pt'
+   fig.xaxis.axis_label_text_font_size = '10pt'
+   fig.min_border = 5
    
-      spectrum = Spectrum.objects.get(pk=spectrum_id)
-      observatory = spectrum.observatory.get_EarthLocation()
+   try:
       
-      time = Time(spectrum.hjd, format='jd')
+      if observation.observatory.space_craft:
+         label = mpl.Label(x=75, y=40, x_units='screen', text='Observatory is a Space Craft', render_mode='css',
+         border_line_color='red', border_line_alpha=1.0, text_color='red',
+         background_fill_color='white', background_fill_alpha=1.0)
+         
+         fig.add_layout(label)
+         
+         return fig
       
-      sunset, sunrise = spectrum.observatory.get_sunset_sunrise(time)
+      
+      observatory = observation.observatory.get_EarthLocation()
+      
+      time = Time(observation.hjd, format='jd')
+      
+      sunset, sunrise = observation.observatory.get_sunset_sunrise(time)
       
       times = np.linspace(sunset.jd, sunrise.jd, 100)
       times = Time(times, format='jd')
       
       
-      star = SkyCoord(ra=spectrum.ra*u.deg, dec=spectrum.dec*u.deg,)
+      star = SkyCoord(ra=observation.ra*u.deg, dec=observation.dec*u.deg,)
       
       
       
@@ -84,7 +102,7 @@ def plot_visibility(spectrum_id):
       fig.line(times, moon_altaz.alt, color='orange', line_dash='dashed', line_width=2)
       
       
-      obsstart = (time-spectrum.exptime/2*u.second).to_datetime()
+      obsstart = (time-observation.exptime/2*u.second).to_datetime()
       obsend = (time+spectrum.exptime/2*u.second).to_datetime()
       obs = mpl.BoxAnnotation(left=obsstart, right=obsend, fill_alpha=0.5, fill_color='red')
       fig.add_layout(obs)
@@ -96,14 +114,6 @@ def plot_visibility(spectrum_id):
       background_fill_color='white', background_fill_alpha=1.0)
       
       fig.add_layout(label)
-   
-   fig.toolbar.logo=None
-   fig.title.align = 'center'
-   fig.yaxis.axis_label = 'Altitude (dgr)'
-   fig.xaxis.axis_label = 'UT'
-   fig.yaxis.axis_label_text_font_size = '10pt'
-   fig.xaxis.axis_label_text_font_size = '10pt'
-   fig.min_border = 5
    
    return fig
 
@@ -156,6 +166,24 @@ def plot_spectrum(spectrum_id, rebin=1):
    
    tabs = widgets.Tabs(tabs=tabs)
    return tabs
+
+def plot_lightcurve(lightcurve_id):
+   
+   lightcurve = LightCurve.objects.get(pk=lightcurve_id)
+   
+   time, flux, header = lightcurve.get_lightcurve()
+   
+   fig = bpl.figure(plot_width=1600, plot_height=400) #, sizing_mode='scale_width'
+   fig.line(time, flux, line_width=1, color="blue")
+   
+   fig.toolbar.logo=None
+   fig.yaxis.axis_label = 'Flux'
+   fig.xaxis.axis_label = 'Time (TJD)'
+   fig.yaxis.axis_label_text_font_size = '10pt'
+   fig.xaxis.axis_label_text_font_size = '10pt'
+   fig.min_border = 5
+   
+   return fig
 
 def plot_sed(star_id):
    

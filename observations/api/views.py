@@ -15,11 +15,11 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .serializers import SpectrumSerializer, SpectrumListSerializer, SpecFileSerializer, ObservatorySerializer
+from .serializers import SpectrumSerializer, SpectrumListSerializer, SpecFileSerializer,LightCurveSerializer, ObservatorySerializer
 
-from observations.models import Spectrum, SpecFile, Observatory
+from observations.models import Spectrum, SpecFile, LightCurve, Observatory
 
-from observations.aux import read_spectrum
+from observations.aux import read_spectrum, read_lightcurve
 
 
 # ===============================================================
@@ -137,6 +137,25 @@ def getSpecfileHeader(request, specfile_pk):
    
    return Response(header)
 
+
+# ===============================================================
+# LightCurve
+# ===============================================================
+
+class LightCurveViewSet(viewsets.ModelViewSet):
+   queryset = LightCurve.objects.all()
+   serializer_class = LightCurveSerializer
+   
+   #filter_backends = (DjangoFilterBackend,)
+   #filterset_class = SpecFileFilter
+
+
+@api_view(['POST'])
+def processLightCurve(request, lightcurve_pk):
+   success, message = read_lightcurve.process_lightcurve(lightcurve_pk)
+   lightcurve = SpecFile.objects.get(pk=lightcurve_pk)
+   
+   return Response(LightCurveSerializer(lightcurve).data)
 
 # ===============================================================
 # Observatory

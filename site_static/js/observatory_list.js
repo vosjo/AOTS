@@ -13,6 +13,7 @@ $(document).ready(function () {
    // Table functionality
    observatory_table = $('#observatorytable').DataTable({
       autoWidth: false,
+      pageLength: 25,
       ajax: {
          url: '/api/observations/observatories/?format=datatables&keep=url&keep=short_name',
          data: function ( d ) {
@@ -25,6 +26,7 @@ $(document).ready(function () {
          { data: 'latitude'},
          { data: 'longitude'},
          { data: 'altitude' },
+         { data: 'space_craft', render: spacecraft_render },
          { data: 'note' },
          { data: 'pk', render: action_render, width: '100', 
          className: 'dt-center', visible: user_authenticated},
@@ -33,6 +35,14 @@ $(document).ready(function () {
    
    function name_render( data, type, full, meta ) {
       return "<a href='" + full['url'] + "' >" + data + "</a>"
+   }
+   
+   function spacecraft_render( data, type, full, meta ) {
+      if ( data ) {
+         return "<i class='material-icons status-icon valid'></i>"
+      } else {
+         return "<i class='material-icons status-icon invalid'></i>"
+      }
    }
    
    function action_render( data, type, full, meta ) {
@@ -89,6 +99,7 @@ function addObservatory() {
                latitude :    $('#observatoryEditLatitude').val(),
                longitude :   $('#observatoryEditLongitude').val(),
                altitude :    $('#observatoryEditAltitude').val(),
+               space_craft:  $('#observatoryEditSpacecraft').is(':checked'),
                note :        $('#observatoryEditNote').val(),
                url :         $('#observatoryEditUrl').val(),
                weatherurl :  $('#observatoryEditWeatherUrl').val(),
@@ -120,6 +131,7 @@ function openObservatoryEditBox(tabelrow, data) {
    $("#observatoryEditLatitude").val( data['latitude'] );
    $("#observatoryEditLongitude").val( data['longitude'] );
    $("#observatoryEditAltitude").val( data['altitude'] );
+   $("#observatoryEditSpacecraft").prop('checked', data['space_craft'] );
    $("#observatoryEditNote").val( data['note'] );
    $("#observatoryEditUrl").val( data['url'] );
    $("#observatoryEditWeatherUrl").val( data['weatherurl'] );
@@ -136,6 +148,7 @@ function editObservatory(tabelrow, data) {
                latitude :    $('#observatoryEditLatitude').val(),
                longitude :   $('#observatoryEditLongitude').val(),
                altitude :    $('#observatoryEditAltitude').val(),
+               space_craft:  $('#observatoryEditSpacecraft').is(':checked'),
                note :        $('#observatoryEditNote').val(),
                url :         $('#observatoryEditUrl').val(),
                weatherurl :  $('#observatoryEditWeatherUrl').val(), 

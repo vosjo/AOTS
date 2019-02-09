@@ -253,7 +253,7 @@ sudo systemctl status gunicorn_aots
 ## Configure NGNIX
 
 ```
-sudo nano /etc/nginx/sites-available/aots
+sudo nano /etc/nginx/sites-available/aots 
 ```
 
 ```
@@ -281,6 +281,17 @@ server {
 Now, we can enable the file by linking it to the sites-enabled directory:
 ```
 sudo ln -s /etc/nginx/sites-available/aots /etc/nginx/sites-enabled
+```
+
+Set the maximum body size for uploads by clients in the ngnix configuration file
+```
+sudo nano /etc/nginx/nginx.conf
+```
+
+add the following text in the http configuration block
+```
+# set client body size to 10M #
+client_max_body_size 10M;
 ```
 
 test for syntax errors:

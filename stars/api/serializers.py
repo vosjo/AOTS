@@ -92,6 +92,7 @@ class StarListSerializer(ModelSerializer):
    href = SerializerMethodField()
    nphot = SerializerMethodField()
    nspec = SerializerMethodField()
+   nlc = SerializerMethodField()
    classification_type_display = SerializerMethodField()
    observing_status_display = SerializerMethodField()
    tag_ids = PrimaryKeyRelatedField(
@@ -123,6 +124,7 @@ class StarListSerializer(ModelSerializer):
             'vmag',
             'nphot',
             'nspec',
+            'nlc',
             'href',
       ]
       read_only_fields = ('pk',)
@@ -153,6 +155,9 @@ class StarListSerializer(ModelSerializer):
    
    def get_nspec(self, obj):
       return len(obj.spectrum_set.all())
+   
+   def get_nlc(self, obj):
+      return len(obj.lightcurve_set.all())
    
    def get_classification_type_display(self, obj):
       return obj.get_classification_type_display()

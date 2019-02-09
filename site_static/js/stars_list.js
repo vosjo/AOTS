@@ -11,7 +11,7 @@ $(document).ready(function () {
    dom: 'l<"toolbar">frtip',
    serverSide: true, 
    ajax: {
-      url: '/api/systems/stars/?format=datatables&keep=nphot,nspec,ra_hms,dec_dms',  //adding "&keep=id,rank" will force return of id and rank fields
+      url: '/api/systems/stars/?format=datatables&keep=nphot,nspec,nlc,ra_hms,dec_dms',  //adding "&keep=id,rank" will force return of id and rank fields
       data: get_filter_keywords,
       contentType: "application/json; charset=utf-8",
       dataType: "json",
@@ -180,6 +180,13 @@ function get_filter_keywords( d ) {
          } );
       }
       
+      if ($('#filter_nlc').val() != '') {
+         d = $.extend( {}, d, {
+            "nlc_min": parseFloat( $('#filter_nlc').val().split(':')[0] ) || '',
+            "nlc_max": parseFloat( $('#filter_nlc').val().split(':')[1] ) || '',
+         } );
+      }
+      
       return d
 }
 
@@ -230,7 +237,7 @@ function tag_render( data, type, full, meta ) {
 }
 
 function nobs_render( data, type, full, meta ) {
-   return full['nphot'] + " / " + full['nspec'];
+   return full['nphot'] + " / " + full['nspec'] + " / " + full['nlc'];
 }
 
 function classification_render( data, type, full, meta ) {

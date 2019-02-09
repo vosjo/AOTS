@@ -78,11 +78,14 @@ class StarFilter(filters.FilterSet):
    
    #name = filters.CharFilter(field_name='name', method='filter_identifier', lookup_expr='icontains')
    
+   nphot_min = filters.NumberFilter(field_name="photometry", method='filter_nphot_gt', lookup_expr='gte')
+   nphot_max = filters.NumberFilter(field_name="photometry", method='filter_nphot_lt', lookup_expr='lte')
+   
    nspec_min = filters.NumberFilter(field_name="spectrum", method='filter_nspec_gt', lookup_expr='gte')
    nspec_max = filters.NumberFilter(field_name="spectrum", method='filter_nspec_lt', lookup_expr='lte')
    
-   nphot_min = filters.NumberFilter(field_name="photometry", method='filter_nphot_gt', lookup_expr='gte')
-   nphot_max = filters.NumberFilter(field_name="photometry", method='filter_nphot_lt', lookup_expr='lte')
+   nlc_min = filters.NumberFilter(field_name="lightcurve", method='filter_nlc_gt', lookup_expr='gte')
+   nlc_max = filters.NumberFilter(field_name="lightcurve", method='filter_nlc_lt', lookup_expr='lte')
    
    
    def filter_name(self, queryset, name, value):
@@ -127,6 +130,12 @@ class StarFilter(filters.FilterSet):
    
    def filter_nphot_lt(self, queryset, name, value):
       return queryset.annotate(num_phot=Count('photometry')).filter(num_phot__lte=value)
+   
+   def filter_nlc_gt(self, queryset, name, value):
+      return queryset.annotate(num_lc=Count('lightcurve')).filter(num_lc__gte=value)
+   
+   def filter_nlc_lt(self, queryset, name, value):
+      return queryset.annotate(num_lc=Count('lightcurve')).filter(num_lc__lte=value)
    
    class Meta:
       model = Star

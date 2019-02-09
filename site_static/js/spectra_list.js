@@ -159,7 +159,11 @@ function hjd_render( data, type, full, meta ) {
 }
 
 function star_render( data, type, full, meta ) {
-   return "<a href='" + data['href'] + "' >" + data['name'] + "</a>" + " (" + data['ra'].toFixed(5) + " " + data['dec'].toFixed(5) + ")"
+   if (data['href'] != '') {
+      return "<a href='" + data['href'] + "' >" + data['name'] + "</a>" + " (" + data['ra'].toFixed(5) + " " + data['dec'].toFixed(5) + ")"
+   } else {
+      return ''
+   }
 }
 
 function instrument_render( data, type, full, meta ) {

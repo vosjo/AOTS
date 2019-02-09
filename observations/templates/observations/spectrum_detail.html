@@ -105,7 +105,7 @@
       <tr> <th>Moon Separation:</th> <td class="mono">{{ spectrum.moon_separation|format_float_negative_na:'1|°' }}</td> </tr>
       <tr> <th>Wind speed:</th> <td class="mono">{{ spectrum.wind_speed|format_float_negative_na:'1|km/s' }}</td> </tr>
       <tr> <th>Wind direction:</th> <td class="mono">{{ spectrum.wind_direction|format_wind_direction }}</td> </tr>
-      {% if lightcurve.get_weather_url != '' %}
+      {% if spectrum.get_weather_url != '' %}
          <tr> <th>Weather link:</th> <td class="mono"> <a target="_blank" href="{{ spectrum.get_weather_url }}"> {{ spectrum.observatory.short_name }} </a></td> </tr>
       {% else %}
          <tr> <th>Weather link:</th> <td class="mono">NA</td> </tr>

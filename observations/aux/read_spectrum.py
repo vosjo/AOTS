@@ -87,7 +87,7 @@ def derive_spectrum_info(spectrum_pk):
    if isfloat(data.get('wind_direction', -1)):
       spectrum.wind_direction = data.get('wind_direction', -1)
 
-   
+   spectrum.seeing = data.get('seeing', -1)
    
    #-- observatory
    spectrum.observatory = instrument_headers.get_observatory(header, spectrum.project)

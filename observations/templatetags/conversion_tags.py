@@ -65,3 +65,36 @@ def dgr2cardinal(degrees):
       return 'W'
    else:
       return 'NW'
+
+@register.filter
+def format_float_negative_na(value,args):
+   """
+   Formats a float up to a given set of decimals, display NA if negative
+   """
+   
+   decimals,unit = args.split("|")
+   
+   if value >= 0:
+      return "{{:0.{}f}} ".format(decimals).format(value) + unit
+   else:
+      return "NA"
+
+@register.filter
+def format_wind_speed(speed):
+   """
+   Formats the wind speed and displays NA if not available
+   """
+   if speed >= 0:
+      return "{:0.1f} km/s".format(speed)
+   else:
+      return "NA"
+   
+@register.filter
+def format_wind_direction(direction):
+   """
+   Formats the wind speed and displays NA if not available
+   """
+   if direction >= 0:
+      return "{:0.0f}° ({}) ".format(direction, dgr2cardinal(direction))
+   else:
+      return "NA"

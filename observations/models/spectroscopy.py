@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from collections import OrderedDict
+
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -32,25 +34,26 @@ class Spectrum(models.Model):
    
    #-- pointing info
    objectname = models.CharField(max_length=50, default='')
-   ra = models.FloatField(default=0)
-   dec = models.FloatField(default=0)
-   alt = models.FloatField(default=0)  # average altitude angle of observation
-   az = models.FloatField(default=0)   # average azimut angle of observation
-   airmass = models.FloatField(default=0) # average airmass
+   ra = models.FloatField(default=-1)
+   dec = models.FloatField(default=-1)
+   alt = models.FloatField(default=-1)  # average altitude angle of observation
+   az = models.FloatField(default=-1)   # average azimut angle of observation
+   airmass = models.FloatField(default=-1) # average airmass
    
    #-- telescope and instrument info
-   exptime = models.FloatField(default=0) # s
-   barycor = models.FloatField(default=0) # km/s
+   exptime = models.FloatField(default=-1) # s
+   barycor = models.FloatField(default=-1) # km/s
    telescope = models.CharField(max_length=200, default='')
    instrument = models.CharField(max_length=200, default='')
+   resolution = models.FloatField(default=-1) # R
    observer = models.CharField(max_length=50, default='')
    
    #-- observing conditions
-   moon_illumination = models.FloatField(default=0) # percent of illumination of the moon
-   moon_separation = models.FloatField(default=0) # angle between target and moon
+   moon_illumination = models.FloatField(default=-1) # percent of illumination of the moon
+   moon_separation = models.FloatField(default=-1) # angle between target and moon
    wind_speed = models.FloatField(default=-1) # in m/s
    wind_direction = models.FloatField(default=-1) # in degrees
-   seeing = models.FloatField(default=0) # in mas
+   seeing = models.FloatField(default=-1) # in mas
    
    #-- observatory
    #   prevent deletion of an observatory that is referenced by a spectrum
@@ -111,9 +114,9 @@ class SpecFile(models.Model):
    
    #-- fields necesary to detect doubles. If spectra have same ra, dec, hjd, instrument and file
    #   type, they are probably the same spectrum. ra and dec is necessary for multi object spectrographs
-   ra = models.FloatField(default=0)
-   dec = models.FloatField(default=0)
-   hjd = models.FloatField(default=0)
+   ra = models.FloatField(default=-1)
+   dec = models.FloatField(default=-1)
+   hjd = models.FloatField(default=-1)
    instrument = models.CharField(max_length=200, default='')
    filetype = models.CharField(max_length=200, default='')
    
@@ -131,9 +134,9 @@ class SpecFile(models.Model):
    def get_header(self, hdu=0):
       try:
          header = fits.getheader(self.specfile.path, hdu)
-         h = {}
+         h = OrderedDict()
          for k, v in header.items():
-            if k != 'comment' and k != 'history' and k != '':
+            if k != 'comment' and k != 'history' and k != '' and not type(v) is fits.card.Undefined:
                h[k] = v
       except Exception as e:
          print (e)

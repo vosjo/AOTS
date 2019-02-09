@@ -103,11 +103,13 @@ def plot_visibility(observation):
       
       
       obsstart = (time-observation.exptime/2*u.second).to_datetime()
-      obsend = (time+spectrum.exptime/2*u.second).to_datetime()
+      obsend = (time+observation.exptime/2*u.second).to_datetime()
       obs = mpl.BoxAnnotation(left=obsstart, right=obsend, fill_alpha=0.5, fill_color='red')
       fig.add_layout(obs)
    
-   except:
+   except Exception as e:
+      
+      print (e)
       
       label = mpl.Label(x=75, y=40, x_units='screen', text='Could not calculate visibility', render_mode='css',
       border_line_color='red', border_line_alpha=1.0, text_color='red',

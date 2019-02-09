@@ -7,7 +7,7 @@
 
    {% include "bokeh.html" %}
    {% include "bokeh_widgets.html" %}
-   <script type="text/javascript" src="{% static 'js/spectrum_detail.js' %}"></script>
+   <script type="text/javascript" src="{% static 'js/lightcurve_detail.js' %}"></script>
    
 {% endblock %}
 
@@ -38,7 +38,7 @@
    <div class="main-container-h border">
       
       {% if user.is_authenticated %}
-      <i id="spectrumEditButton" class="material-icons button edit" title="edit" spectrum_id={{spectrum.pk}}>edit</i>
+      <i id="spectrumEditButton" class="material-icons button edit" title="edit" spectrum_id={{lightcurve.pk}}>edit</i>
       {% endif %}
       
       <div class='header-item'>
@@ -53,9 +53,9 @@
       
       <div class='header-item'>
       {% if lightcurve.valid %}
-      <i id="spectrum-valid-icon" class="material-icons status-icon valid bold" title='Good quality'></i>
+      <i id="lightcurve-valid-icon" class="material-icons status-icon valid bold" title='Good quality'></i>
       {% else %}
-      <i id="spectrum-valid-icon" class="material-icons status-icon invalid bold" title='Bad quality'></i>
+      <i id="lightcurve-valid-icon" class="material-icons status-icon invalid bold" title='Bad quality'></i>
       {% endif %}
       <h3> Valid</h3> 
       </div>
@@ -79,8 +79,9 @@
       <tr> <th>Obs. Coord.:</th> <td class="mono">{{ lightcurve.ra|dgr2hms }}  {{ lightcurve.dec|dgr2dms }}</td> </tr>
       <tr> <th>HJD:</th> <td class="mono">{{ lightcurve.hjd }}</td> </tr>
       <tr> <th>Date:</th> <td class="mono">{{ lightcurve.hjd|hjd2datetime }}</td> </tr>
-      <tr> <th>Exposure:</th> <td class="mono">{{ lightcurve.exptime }}s</td> </tr>
       <tr> <th>Instrument:</th> <td class="mono">{{ lightcurve.instrument }} @ {{ lightcurve.telescope }}</td> </tr>
+      <tr> <th>Passband:</th> <td class="mono">{{ lightcurve.passband }}</td> </tr>
+      <tr> <th>Observer:</th> <td class="mono">{{ lightcurve.observer}}</td> </tr>
    </tbody>
    </table>
    </div>
@@ -88,13 +89,18 @@
    <div class="block">
    <table class='datatable'>
    <tbody>
-      <tr> <th>Airmass:</th> <td class="mono">{{ lightcurve.airmass}}</td> </tr>
-      <tr> <th>Moon Illumination:</th> <td class="mono">{{ lightcurve.moon_illumination }} &#37</td> </tr>
-      <tr> <th>Moon Separation:</th> <td class="mono">{{ lightcurve.moon_separation }}&deg;</td> </tr>
-      <tr> <th>Wind speed:</th> <td class="mono">{{ lightcurve.wind_speed }} km/h</td> </tr>
-      <tr> <th>Wind direction:</th> <td class="mono">{{ lightcurve.wind_direction }}&deg; ({{ lightcurve.wind_direction|dgr2cardinal }})</td> </tr>
-      <tr> <th>Observer:</th> <td class="mono">{{ lightcurve.observer}}</td> </tr>
-      <tr> <th>Weather link:</th> <td class="mono"> <a target="_blank" href="{{ lightcurve.get_weather_url }}"> {{ lightcurve.observatory.short_name }} </a></td> </tr>
+      <tr> <th>Exposure:</th> <td class="mono">{{ lightcurve.exptime|format_float_negative_na:'1|s' }}</td> </tr>
+      <tr> <th>Cadence:</th> <td class="mono">{{ lightcurve.cadence|format_float_negative_na:'1|s' }}</td> </tr>
+      <tr> <th>Duration:</th> <td class="mono">{{ lightcurve.duration|format_float_negative_na:'2|h' }}</td> </tr>
+      <tr> <th>Seeing:</th> <td class="mono">{{ lightcurve.seeing|format_float_negative_na:'1|"' }}</td> </tr>
+      <tr> <th>Moon Illumination:</th> <td class="mono">{{ lightcurve.moon_illumination|format_float_negative_na:'1|%' }} </td> </tr>
+      <tr> <th>Wind speed:</th> <td class="mono">{{ lightcurve.wind_speed|format_float_negative_na:'1|km/s' }}</td> </tr>
+      <tr> <th>Wind direction:</th> <td class="mono">{{ lightcurve.wind_direction|format_wind_direction }}</td> </tr>
+      {% if lightcurve.get_weather_url != '' %}
+         <tr> <th>Weather link:</th> <td class="mono"> <a target="_blank" href="{{ lightcurve.get_weather_url }}"> {{ lightcurve.observatory.short_name }} </a></td> </tr>
+      {% else %}
+         <tr> <th>Weather link:</th> <td class="mono">NA</td> </tr>
+      {% endif %}
    </tbody>
    </table>
    </div>
@@ -111,15 +117,25 @@
    </div>
    
    <div class="tag-container">
+      <h3>Light cuve files</h3>
+      <ul>
+         <li>{{ lightcurve.filetype }} 
+             <a href={% url 'observations-api:lightcurve_header' lightcurve.id %} class='showheader' name='{{lightcurve.filetype}}'>(header)</a>
+             {% if user.is_authenticated %}
+             <a href="{{ lightcurve.lcfile.url }}"><p class="material-icons inline-icon" title="Download">cloud_download</p></a>
+             {% endif %}
+         </li>
+      </ul>
+      
       
       <h3>
       Note  
       {% if user.is_authenticated %}
-         (<i id="noteEditButton" class="material-icons button inline-icon" title="edit" spectrum_id={{spectrum.pk}}>edit</i>)
+         (<i id="noteEditButton" class="material-icons button inline-icon" title="edit" lightcurve_id={{lightcurve.pk}}>edit</i>)
       {% endif %}
       </h3>
       
-      <div id="noteField">{{spectrum.note|linebreaks}}</div>
+      <div id="noteField">{{lightcurve.note|linebreaks}}</div>
       
    </div>
    
@@ -133,7 +149,7 @@
 
    <!--<h3>The Spectrum</h3>
    
-   <p>The spectrum is shifted with a barycentric correction of {{spectrum.barycor}} km/s.</p>-->
+   <p>The lightcurve is shifted with a barycentric correction of {{lightcurve.barycor}} km/s.</p>-->
    
    <div class="flex-data-container">
    
@@ -158,11 +174,11 @@
    
    
    <!-- Div ect necessary for editing on page stuff with ajax -->
-   <div id="noteEdit" title="Edit spectrum Note">
+   <div id="noteEdit" title="Edit lightcurve Note">
       <textarea name="edit-message" id="edit-message" cols="80" rows="5"></textarea>
    </div>
    
-   <div id="spectrumEdit" title="Edit lightcurve">
+   <div id="lightcurveEdit" title="Edit lightcurve">
    
       <ul>
          <li>
@@ -177,11 +193,6 @@
          </label>
          </li>
          
-         <li>
-         <label for="lightcurve-fluxunits"> Cadence: 
-         <input id="spectrum-fluxunits" type='text' size="100">
-         </label>
-         </li>
       </ul>
    </div>
 

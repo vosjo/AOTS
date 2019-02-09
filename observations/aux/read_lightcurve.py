@@ -40,6 +40,8 @@ def derive_lightcurve_info(lightcurve_pk):
    
    # HJD
    lightcurve.hjd = data.get('hjd', 2400000)
+   lightcurve.hjd_start = data.get('hjd_start', 2400000)
+   lightcurve.hjd_end = data.get('hjd_end', 2400000)
    
    # pointing info
    lightcurve.objectname = data.get('objectname', '')
@@ -52,10 +54,12 @@ def derive_lightcurve_info(lightcurve_pk):
    # telescope and instrument info
    lightcurve.instrument = data.get('instrument', 'UK')
    lightcurve.telescope = data.get('telescope', 'UK')
+   lightcurve.passband = data.get('passband', 'UK')
    lightcurve.exptime = data.get('exptime', -1)
    lightcurve.cadence = data.get('cadence', -1)
-   lightcurve.barycor = data.get('barycor', -1)
+   lightcurve.duration = data.get('duration', -1)
    lightcurve.observer = data.get('observer', 'UK')
+   lightcurve.filetype = data.get('filetype', 'UK')
    
    # observing conditions
    if isfloat(data.get('wind_speed', -1)):
@@ -63,6 +67,8 @@ def derive_lightcurve_info(lightcurve_pk):
    
    if isfloat(data.get('wind_direction', -1)):
       lightcurve.wind_direction = data.get('wind_direction', -1)
+      
+   lightcurve.seeing = data.get('seeing', -1)
 
    
    
@@ -139,6 +145,8 @@ def process_lightcurve(lightcurve_id, create_new_star=True):
       return False, "This light curve is a duplicate and was not added!"
    
    
+   message += "New light curve"
+   
    #-- add the lightcurve to existing or new star if the spectrum is newly created
    star = Star.objects.filter(project__exact=lightcurve.project) \
                        .filter(ra__range = (lightcurve.ra - 0.1, lightcurve.ra + 0.1)) \
@@ -148,7 +156,7 @@ def process_lightcurve(lightcurve_id, create_new_star=True):
       # there is one or more stars returned, select the closest star
       star = star.annotate(distance=((F('ra')-lightcurve.ra)**2 + (F('dec')-lightcurve.dec)**2)**(1./2.)).order_by('distance')[0]
       star.lightcurve_set.add(lightcurve)
-      message += ", and added to existing System {} (_r = {})".format(star, star.distance)
+      message += ", added to existing System {} (_r = {})".format(star, star.distance)
       return True, message
    else:
       
@@ -164,5 +172,5 @@ def process_lightcurve(lightcurve_id, create_new_star=True):
       
       star.lightcurve_set.add(lightcurve)
       
-      message += ", and added to new System {}".format(star)
+      message += ", added to new System {}".format(star)
       return True, message

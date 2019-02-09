@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from collections import OrderedDict
+
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -13,17 +15,18 @@ from users.models import get_sentinel_user
 from .observatory import Observatory
 
 from observations.aux import fileio 
+from astropy.io import fits
 
 
 @python_2_unicode_compatible  # to support Python 2
 class LightCurve(models.Model):
    
-   #-- a spectrum belongs to one star only and is deleted when the star 
+   #-- a lightcurve belongs to one star only and is deleted when the star 
    #   is deleted. However, a star can be added after creation.
    star = models.ForeignKey(Star, on_delete=models.CASCADE, blank=True, null=True)
    
-   #-- a spectrum belongs to a specific project
-   #   when that project is deleted, the spectrum is also deleted.
+   #-- a lightcurve belongs to a specific project
+   #   when that project is deleted, the lightcurve is also deleted.
    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
    
    hjd = models.FloatField(default=0)
@@ -31,30 +34,34 @@ class LightCurve(models.Model):
    hjd_start = models.FloatField(default=0)
    hjd_end = models.FloatField(default=0)
    
+   duration = models.FloatField(default=0) # duration in hours
+   
    #-- pointing info
    objectname = models.CharField(max_length=50, default='')
-   ra = models.FloatField(default=0)
-   dec = models.FloatField(default=0)
-   alt = models.FloatField(default=0)  # average altitude angle of observation
-   az = models.FloatField(default=0)   # average azimut angle of observation
-   airmass = models.FloatField(default=0) # average airmass
+   ra = models.FloatField(default=-1)
+   dec = models.FloatField(default=-1)
+   alt = models.FloatField(default=-1)  # average altitude angle of observation
+   az = models.FloatField(default=-1)   # average azimut angle of observation
+   airmass = models.FloatField(default=-1) # average airmass
    
    #-- telescope and instrument info
-   exptime = models.FloatField(default=0) # s
-   cadence = models.FloatField(default=0) # s
+   exptime = models.FloatField(default=-1) # s
+   cadence = models.FloatField(default=-1) # s
+   passband = models.CharField(max_length=100, default='')
    telescope = models.CharField(max_length=200, default='')
    instrument = models.CharField(max_length=200, default='')
    observer = models.CharField(max_length=50, default='')
+   filetype = models.CharField(max_length=200, default='UK')
    
    #-- observing conditions
-   moon_illumination = models.FloatField(default=0) # percent of illumination of the moon
-   moon_separation = models.FloatField(default=0) # angle between target and moon
+   moon_illumination = models.FloatField(default=-1) # percent of illumination of the moon
+   moon_separation = models.FloatField(default=-1) # angle between target and moon
    wind_speed = models.FloatField(default=-1) # in m/s
    wind_direction = models.FloatField(default=-1) # in degrees
-   seeing = models.FloatField(default=0) # in mas
+   seeing = models.FloatField(default=-1) # in mas
    
    #-- observatory
-   #   prevent deletion of an observatory that is referenced by a spectrum
+   #   prevent deletion of an observatory that is referenced by a lightcurve
    observatory = models.ForeignKey(Observatory, on_delete=models.PROTECT, null=True,)
    
    
@@ -70,9 +77,21 @@ class LightCurve(models.Model):
    last_modified = models.DateTimeField(auto_now=True)
    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
    
-   #-- function to get the spectrum
+   #-- function to get the lightcurve
    def get_lightcurve(self):
       return fileio.read_lightcurve(self.lcfile.path, return_header=True)
+   
+   def get_header(self, hdu=0):
+      try:
+         header = fits.getheader(self.lcfile.path, hdu)
+         h = OrderedDict()
+         for k, v in header.items():
+            if k != 'comment' and k != 'history' and k != '' and not type(v) is fits.card.Undefined:
+               h[k] = v
+      except Exception as e:
+         print (e)
+         h = {}
+      return h
    
    def get_weather_url(self):
       if not self.observatory is None:
@@ -86,7 +105,7 @@ class LightCurve(models.Model):
    
    
 # Handler to assure the deletion of a specfile removes the actual file, and if necessary the 
-# spectrum that belongs to this file
+# lightcurve that belongs to this file
 @receiver(post_delete, sender=LightCurve)
 def specFile_post_delete_handler(sender, **kwargs):
     lc = kwargs['instance']

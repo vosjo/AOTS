@@ -12,6 +12,7 @@ from .views import (
    getSpecfileHeader,
    LightCurveViewSet,
    processLightCurve,
+   getLightCurveHeader,
    ObservatoryViewSet,
    )
 
@@ -29,4 +30,5 @@ urlpatterns = [
    path('specfiles/<int:specfile_pk>/process/', processSpecfile, name='process_specfile'),
    path('specfiles/<int:specfile_pk>/header/', getSpecfileHeader, name='specfile_header'),
    path('lightcurves/<int:lightcurve_pk>/process/', processLightCurve, name='process_lightcurve'),
+   path('lightcurves/<int:lightcurve_pk>/header/', getLightCurveHeader, name='lightcurve_header'),
 ]

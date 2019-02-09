@@ -74,7 +74,7 @@ def read_lightcurve(filename, return_header=False):
    data = fits.getdata(filename)
    
    time = data['time']
-   flux = data['SAP_FLUX']
+   flux = data['PDCSAP_FLUX']
    
    
    if return_header:

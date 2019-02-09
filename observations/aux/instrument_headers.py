@@ -302,10 +302,13 @@ def derive_TESS_info(header):
    data = {}
    
    # HJD
-   data['hjd_start'] = 2440000.5 + header.get('TSTART', 0)
-   data['hjd_end'] = 2440000.5 + header.get('TSTOP', 0)
+   # TESS uses truncated julian date with zero at JD=2457000
+   data['hjd_start'] = 2457000 + header.get('TSTART', 0)
+   data['hjd_end'] = 2457000 + header.get('TSTOP', 0)
    
    data['hjd'] = np.average([data['hjd_start'], data['hjd_end']])
+   
+   data['duration'] = Time(data['hjd_end']-data['hjd_start'], format='jd').jd * 24 # duration in hours
    
    # pointing info
    data['objectname'] = header.get('OBJECT', 'UK')
@@ -318,8 +321,9 @@ def derive_TESS_info(header):
    data['telescope'] = header.get('TELESCOP', 'TESS')
    data['exptime'] = 120
    data['cadence'] = 120
+   data['passband'] = 'TESS.RED'
    data['observer'] = 'SPACE CRAFT'
    data['filetype'] = header.get('CREATOR', '').replace(' ', '_') + '_v_' + str(header.get('FILEVER', '')).strip() \
-                      + '_rel_' + str(header.get('DATA_REL=', '')).strip()
+                      + '_rel_' + str(header.get('DATA_REL', '')).strip()
    
    return data

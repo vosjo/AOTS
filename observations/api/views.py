@@ -153,9 +153,17 @@ class LightCurveViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 def processLightCurve(request, lightcurve_pk):
    success, message = read_lightcurve.process_lightcurve(lightcurve_pk)
-   lightcurve = SpecFile.objects.get(pk=lightcurve_pk)
+   lightcurve = LightCurve.objects.get(pk=lightcurve_pk)
    
    return Response(LightCurveSerializer(lightcurve).data)
+
+
+@api_view(['GET'])
+def getLightCurveHeader(request, lightcurve_pk):
+   lightcurve = LightCurve.objects.get(pk=lightcurve_pk)
+   header = lightcurve.get_header()
+   
+   return Response(header)
 
 # ===============================================================
 # Observatory

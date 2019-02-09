@@ -159,9 +159,9 @@ function hjd_render( data, type, full, meta ) {
 }
 
 function star_render( data, type, full, meta ) {
-   if (data['href'] != '') {
+   try {
       return "<a href='" + data['href'] + "' >" + data['name'] + "</a>" + " (" + data['ra'].toFixed(5) + " " + data['dec'].toFixed(5) + ")"
-   } else {
+   } catch(err) {
       return ''
    }
 }

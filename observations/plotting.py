@@ -64,8 +64,8 @@ def plot_visibility(observation):
    try:
       
       if observation.observatory.space_craft:
-         label = mpl.Label(x=75, y=40, x_units='screen', text='Observatory is a Space Craft', render_mode='css',
-         border_line_color='red', border_line_alpha=1.0, text_color='red',
+         label = mpl.Label(x=180, y=110, x_units='screen', y_units='screen', text='Observatory is a Space Craft', render_mode='css',
+         border_line_color='red', border_line_alpha=1.0, text_color='red', text_align='center', text_baseline='middle',
          background_fill_color='white', background_fill_alpha=1.0)
          
          fig.add_layout(label)
@@ -169,23 +169,57 @@ def plot_spectrum(spectrum_id, rebin=1):
    tabs = widgets.Tabs(tabs=tabs)
    return tabs
 
-def plot_lightcurve(lightcurve_id):
+def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
    
    lightcurve = LightCurve.objects.get(pk=lightcurve_id)
    
    time, flux, header = lightcurve.get_lightcurve()
    
-   fig = bpl.figure(plot_width=1600, plot_height=400) #, sizing_mode='scale_width'
-   fig.line(time, flux, line_width=1, color="blue")
+   fig1 = bpl.figure(plot_width=1600, plot_height=400) #, sizing_mode='scale_width'
+   fig1.line(time, flux, line_width=1, color="blue")
    
-   fig.toolbar.logo=None
-   fig.yaxis.axis_label = 'Flux'
-   fig.xaxis.axis_label = 'Time (TJD)'
-   fig.yaxis.axis_label_text_font_size = '10pt'
-   fig.xaxis.axis_label_text_font_size = '10pt'
-   fig.min_border = 5
+   fig1.toolbar.logo=None
+   fig1.yaxis.axis_label = 'Flux'
+   fig1.xaxis.axis_label = 'Time (TJD)'
+   fig1.yaxis.axis_label_text_font_size = '10pt'
+   fig1.xaxis.axis_label_text_font_size = '10pt'
+   fig1.min_border = 5
    
-   return fig
+   
+   fig2 = bpl.figure(plot_width=1600, plot_height=400) #, sizing_mode='scale_width'
+   
+   if not period is None:
+      # calculate phase and sort on phase
+      phase = time % period / period
+      inds = phase.argsort()
+      phase, flux = phase[inds], flux[inds]
+      
+      # rebin the phase light curve
+      phase, flux = spectools.rebin_phased_lightcurve(phase, flux, binsize=binsize)
+      
+      phase = np.hstack([phase,phase+1])
+      flux = np.hstack([flux, flux])
+      
+      fig2.line(phase, flux, line_width=1, color="blue")
+      
+   else:
+      
+      label = mpl.Label(x=800, y=200, x_units='screen', y_units='screen',
+                        text='No period provided, cannot phase fold lightcurve', render_mode='css', text_align='center',
+                        border_line_color='red', border_line_alpha=1.0, text_color='red',
+                        background_fill_color='white', background_fill_alpha=1.0)
+      
+      fig2.add_layout(label)
+      
+   fig2.toolbar.logo=None
+   fig2.yaxis.axis_label = 'Flux'
+   fig2.xaxis.axis_label = 'Phase'
+   fig2.yaxis.axis_label_text_font_size = '10pt'
+   fig2.xaxis.axis_label_text_font_size = '10pt'
+   fig2.min_border = 5
+   
+   
+   return fig1, fig2
 
 def plot_sed(star_id):
    

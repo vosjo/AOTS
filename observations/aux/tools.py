@@ -47,3 +47,26 @@ def rebin_spectrum(wave, flux, binsize=2):
    
    return wave, flux
    
+
+def rebin_phased_lightcurve(phase, flux, binsize=0.1):
+   """
+   rebins the lightcurve into phase bins with the given lenght. 
+   
+   Returns: the center of the phase bins and average flux in that bin
+   """
+   
+   s = np.where(~np.isnan(flux))
+   phase, flux = phase[s], flux[s]
+   
+   bins = np.arange(0,1,binsize)
+   
+   inds = np.digitize(phase,bins)
+   
+   times, fluxes = [], []
+   for i in np.arange(1,len(bins)):
+      if i in inds:
+         fluxes.append(np.average(flux[inds==i]))
+         times.append(bins[i]+binsize/2.)
+   
+   return np.array(times), np.array(fluxes)
+   

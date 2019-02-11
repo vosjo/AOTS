@@ -147,15 +147,40 @@
    
    <section class='data-section'>
 
-   <!--<h3>The Spectrum</h3>
-   
-   <p>The lightcurve is shifted with a barycentric correction of {{lightcurve.barycor}} km/s.</p>-->
    
    <div class="flex-data-container">
    
-   {% if figures.spec %}
+   {% if figures.lc_time %}
 <!--    <div class="block w1100"> -->
-      {{ figures.spec|safe }}
+      {{ figures.lc_time|safe }}
+<!--    </div> -->
+   {% endif %} 
+   
+   </div>
+   
+   <div>
+   
+   <form action="{% url "observations:lightcurve_detail" project.slug lightcurve.pk %}" method="get" enctype="multipart/form-data">
+      
+      <tbody>
+      <tr> 
+         <td>Period (hours):</td>
+         <td> <input type="number" name='period' step=0.00000000001> </td>
+         <td>Phase bins size:</td>
+         <td> <input type="number" name='binsize' min=0.0001 max=1 step=0.0001 value=0.01> </td>
+         <td> <input type="submit" value="phase lightcurve"/> </td>
+      </tr>
+      </tbody>
+
+   </form>
+   
+   </div>
+   
+   <div class="flex-data-container">
+   
+   {% if figures.lc_phase %}
+<!--    <div class="block w1100"> -->
+      {{ figures.lc_phase|safe }}
 <!--    </div> -->
    {% endif %} 
    

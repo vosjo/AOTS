@@ -164,9 +164,23 @@ def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
    
    lightcurve = get_object_or_404(LightCurve, pk=lightcurve_id)
    
+   period, binsize = None, 0.01
+   if request.method == 'GET':
+      period = request.GET.get('period', None)
+      try:
+         period = float(period) / 24.
+      except Exception:
+         period = None
+         
+      binsize = request.GET.get('binsize', 0.01)
+      try:
+         binsize = float(binsize)
+      except Exception:
+         binsize = 0.01
+   
    vis = plot_visibility(lightcurve)
-   spec = plot_lightcurve(lightcurve_id)
-   script, div = components({'spec':spec, 'visibility':vis}, CDN)
+   lc_time, lc_phase = plot_lightcurve(lightcurve_id, period=period, binsize=binsize)
+   script, div = components({'lc_time':lc_time, 'lc_phase':lc_phase, 'visibility':vis}, CDN)
    
    
    context = {

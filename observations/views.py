@@ -133,17 +133,14 @@ def lightcurve_list(request, project=None,  **kwargs):
                newlc.save()
                
                #-- now process it and add it to a Spectrum and Object
-               success, message = read_lightcurve.process_lightcurve(newlc.pk, create_new_star=True)
-               level = messages.SUCCESS if success else messages.ERROR
-               messages.add_message(request, level, message)
-               #try:
-                  #success, message = read_lightcurve.process_lightcurve(newlc.pk, create_new_star=True)
-                  #level = messages.SUCCESS if success else messages.ERROR
-                  #messages.add_message(request, level, message)
-               #except Exception as e:
-                  #print(e)
-                  #newlc.delete()
-                  #messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f))
+               try:
+                  success, message = read_lightcurve.process_lightcurve(newlc.pk, create_new_star=True)
+                  level = messages.SUCCESS if success else messages.ERROR
+                  messages.add_message(request, level, message)
+               except Exception as e:
+                  print(e)
+                  newlc.delete()
+                  messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f))
                   
                
             return HttpResponseRedirect(reverse('observations:lightcurve_list', kwargs={'project':project.slug}))
@@ -164,31 +161,38 @@ def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
    
    lightcurve = get_object_or_404(LightCurve, pk=lightcurve_id)
    
-   period, binsize = None, 0.01
+   context = {'period' : None}
+   
+   period, binsize = None, 0.001
    if request.method == 'GET':
       period = request.GET.get('period', None)
       try:
          period = float(period) / 24.
+         context['period'] = period * 24.0
       except Exception:
          period = None
          
-      binsize = request.GET.get('binsize', 0.01)
+      
+         
+      binsize = request.GET.get('binsize', 0.001)
       try:
          binsize = float(binsize)
       except Exception:
-         binsize = 0.01
+         binsize = 0.001
+         
+      context['binsize'] = binsize
+   
+   
    
    vis = plot_visibility(lightcurve)
    lc_time, lc_phase = plot_lightcurve(lightcurve_id, period=period, binsize=binsize)
    script, div = components({'lc_time':lc_time, 'lc_phase':lc_phase, 'visibility':vis}, CDN)
    
    
-   context = {
-      'project': project,
-      'lightcurve': lightcurve,
-      'figures': div,
-      'script': script,
-   }
+   context['project'] =  project
+   context['lightcurve'] = lightcurve
+   context['figures'] = div
+   context['script'] = script
    
    return render(request, 'observations/lightcurve_detail.html', context)
 

@@ -286,7 +286,7 @@ function deselect_row(row) {
 function load_tags () {
    // load all tags and add them to the window
    $.ajax({
-      url : "/api/systems/tags/", 
+      url : "/api/systems/tags/?project="+$('#project-pk').attr('project'), 
       type : "GET",
       success : function(json) {
          all_tags = json.results;

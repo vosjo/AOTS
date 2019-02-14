@@ -99,7 +99,7 @@ class Star(models.Model):
       """
       pars = []
       
-      for name in ['p', 't0', 'e']:
+      for name in ['M_G', 'parallax', 'p', 't0', 'e']:
          p = self.parameter_set.filter(name__exact=name, average__exact=True)
          if len(p) > 0:
             p = p[0]

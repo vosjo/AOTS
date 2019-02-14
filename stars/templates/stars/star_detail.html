@@ -77,6 +77,7 @@
       <h3>Parameters</h3>
       <i id="allParameterButton" class="material-icons button edit" title="View all parameters">visibility</i>
       <table class="paramtable">
+      {% if star.get_component_summary_parameter %}
       <thead>
          <tr> <th>Parameter</th> <th>Prim.</th> <th>Sec.</th> </tr>
       </thead>
@@ -89,6 +90,19 @@
          {% endfor %}
       </tbody>
       </table>
+      {% else %}
+      <thead>
+         <tr> <th>Parameter</th> <th>Value.</th> </tr>
+      </thead>
+      <tbody>
+         {% for p in star.get_system_summary_parameter %}
+            <tr> <th>{{p.0}} ({{p.1}})</th>  <td> {{p.2|safe}} </td> </tr>
+         {% endfor %}
+      </tbody>
+      </table>
+      {% endif %}
+      
+      
    </div>
    
    <div class="tag-container">

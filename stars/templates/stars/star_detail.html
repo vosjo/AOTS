@@ -24,22 +24,35 @@
    <span><i class="material-icons status-icon small RE"></i>Rejected</span>
    </div>
    
-   {% for systems in related_stars %}
+   {% for tag in related_stars %}
    <div>
-   <h3 title="{{systems.tag.description}}" style="border-color: {{systems.tag.color}};"> {{systems.tag.name}} </h2>
+   <h3 title="{{tag.tag.description}}" style="border-color: {{tag.tag.color}};"> {{tag.tag.name}} </h2>
    <ul>
-   {% for s in systems.stars %}
-      {% if s.id == star.id %}
+   {% if tag.stars_lower_hidden > 0 %}
       <li> 
-         <a href={% url 'systems:star_detail' project.slug s.id %} class="active">-- {{ s.name }} --</a> 
+         (... {{ tag.stars_lower_hidden }} more ...)
       </li>
-      {% else %}
+   {% endif %}
+   {% for s in tag.stars_lower %}
       <li> 
          <i class="material-icons status-icon small {{s.observing_status}}"></i>
          <a href={% url 'systems:star_detail' project.slug s.id %}>{{ s.name }}</a> 
       </li>
-      {% endif %}
    {% endfor %}
+      <li> 
+         <a href={% url 'systems:star_detail' project.slug star.id %} class="active">-- {{ star.name }} --</a> 
+      </li>
+   {% for s in tag.stars_upper %}
+      <li> 
+         <i class="material-icons status-icon small {{s.observing_status}}"></i>
+         <a href={% url 'systems:star_detail' project.slug s.id %}>{{ s.name }}</a> 
+      </li>
+   {% endfor %}
+   {% if tag.stars_upper_hidden > 0 %}
+      <li> 
+         (... {{ tag.stars_upper_hidden }} more ...)
+      </li>
+   {% endif %}
    </ul>
    </div>
    {% empty %}

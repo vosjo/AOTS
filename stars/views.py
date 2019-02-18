@@ -75,12 +75,20 @@ def star_detail(request, star_id, project=None, **kwargs):
    print( 'project + star load: ', time.time()-t0)
    logger.info('project + star load: {}'.format(time.time()-t0))
    
-   #-- make related systems list
+   #-- make related systems list, but only show 10 systems befor and after the current system to avoid long loading times
    t0 = time.time()
    tags = star.tags.all()
    related_stars = []
    for tag in tags:
-      related_stars.append({'tag': tag, 'stars': tag.stars.order_by('ra')})
+      
+      s1 = tag.stars.filter(ra__lt=star.ra).order_by('-ra')
+      s2 = tag.stars.filter(ra__gt=star.ra).order_by('ra')
+      
+      related_stars.append({'tag': tag, 
+                            'stars_lower': s1[:10][::-1], 
+                            'stars_upper': s2[:10], 
+                            'stars_lower_hidden':max(0, len(s1)-10),
+                            'stars_upper_hidden':max(0, len(s2)-10), })
    
    context['related_stars'] = related_stars
    print( 'related system list: ', time.time()-t0)

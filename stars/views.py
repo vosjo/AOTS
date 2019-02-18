@@ -58,11 +58,6 @@ def star_detail(request, star_id, project=None, **kwargs):
    interesting for input fields: https://leaverou.github.io/awesomplete/
    and also: https://gist.github.com/conor10/8085ac62fd81ad3002e582d1be65c398
    """
-   import time
-   import logging
-   logger = logging.getLogger(__name__)
-   
-   t0 = time.time()
    project = get_object_or_404(Project, slug=project)
    
    star = get_object_or_404(Star, pk=star_id)
@@ -72,11 +67,7 @@ def star_detail(request, star_id, project=None, **kwargs):
       'project': project,
    }
    
-   print( 'project + star load: ', time.time()-t0)
-   logger.info('project + star load: {}'.format(time.time()-t0))
-   
    #-- make related systems list, but only show 10 systems befor and after the current system to avoid long loading times
-   t0 = time.time()
    tags = star.tags.all()
    related_stars = []
    for tag in tags:
@@ -91,11 +82,8 @@ def star_detail(request, star_id, project=None, **kwargs):
                             'stars_upper_hidden':max(0, len(s2)-10), })
    
    context['related_stars'] = related_stars
-   print( 'related system list: ', time.time()-t0)
-   logger.info('related system list: {}'.format(time.time()-t0))
    
    #-- add analysis methods
-   t0 = time.time()
    methods = Method.objects.all()
    
    datasets, figures = [], []
@@ -120,11 +108,8 @@ def star_detail(request, star_id, project=None, **kwargs):
       context['datasets'] = datasections
       context['sed_plot'] = div[0]
       context['script'] = script
-   print( 'bokeh figures: ', time.time()-t0)
-   logger.info('bokeh figures: {}'.format(time.time()-t0))
    
    #-- get all parameters for the parameter overview
-   t0 = time.time()
    component_names = {0:'System', 1:'Primary', 2:'Secondary'}
    
    parameters = []
@@ -155,15 +140,8 @@ def star_detail(request, star_id, project=None, **kwargs):
    
    context['allParameters'] = parameters
    context['parameterSources'] = pSource
-   print( 'parameters: ', time.time()-t0)
-   logger.info('parameters: {}'.format(time.time()-t0))
    
-   t0 = time.time()
-   res = render(request, 'stars/star_detail.html', context)
-   print( 'rendering: ', time.time()-t0)
-   logger.info('rendering:  {}'.format(time.time()-t0))
-   
-   return res
+   return render(request, 'stars/star_detail.html', context)
 
 @login_required
 def star_edit(request, star_id, project=None, **kwargs):

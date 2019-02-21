@@ -182,7 +182,11 @@ def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
          
       context['binsize'] = binsize
    
-   
+   #-- order all lightcurves belonging to the same star
+   all_instruments = lightcurve.star.lightcurve_set.values_list('instrument', flat=True)
+   all_lightcurves = {}
+   for inst in set(all_instruments):
+      all_lightcurves[inst] = lightcurve.star.lightcurve_set.filter(instrument__exact=inst).order_by('hjd')
    
    vis = plot_visibility(lightcurve)
    lc_time, lc_phase = plot_lightcurve(lightcurve_id, period=period, binsize=binsize)
@@ -191,6 +195,7 @@ def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
    
    context['project'] =  project
    context['lightcurve'] = lightcurve
+   context['all_lightcurves'] = all_lightcurves
    context['figures'] = div
    context['script'] = script
    

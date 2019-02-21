@@ -19,14 +19,14 @@
    
    <div id="sidenav">
    <h2> All Lightcurves for <span class="nobreak">{{lightcurve.star.name}}</span> </h2>
-   {% for inst, spectra in all_spectra.items %}
+   {% for inst, lightcurves in all_lightcurves.items %}
       <h3> {{ inst }} </h3>
       <ul>
-      {% for spec in spectra %}
-         {% if spec.id == spectrum.id %}
-         <li> <a href={% url 'observations:spectrum_detail' project.slug spec.id %} class="active"> {{ spec.hjd|floatformat:3 }} - {{ spec.hjd|hjd2date }}</a> </li>
+      {% for lc in lightcurves %}
+         {% if lc.id == lightcurve.id %}
+         <li> <a href={% url 'observations:lightcurve_detail' project.slug lc.id %} class="active"> {{ lc.hjd|floatformat:3 }} - {{ lc.hjd|hjd2date }}</a> </li>
          {% else %}
-         <li> <a href={% url 'observations:spectrum_detail' project.slug spec.id %}> {{ spec.hjd|floatformat:3 }} - {{ spec.hjd|hjd2date }}</a> </li>
+         <li> <a href={% url 'observations:lightcurve_detail' project.slug lc.id %}> {{ lc.hjd|floatformat:3 }} - {{ lc.hjd|hjd2date }}</a> </li>
          {% endif %}
       {% endfor %}
       </ul>

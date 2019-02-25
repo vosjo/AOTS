@@ -18,6 +18,8 @@ def extract_header_info(header):
    
    if header.get('INSTRUME', '') == 'UVES':
       return derive_uves_info(header)
+   elif 'ESO TEL ALT' in header:
+      return derive_eso_info(header)
    elif header.get('INSTRUME', '') == 'FEROS':
       return derive_feros_info(header)
    elif header.get('INSTRUME', '') == 'HERMES':
@@ -86,8 +88,10 @@ def derive_generic_info(header):
    # HJD
    if 'HJD' in header:
       data['hjd'] = header['HJD']
-   if 'BJD' in header:
+   elif 'BJD' in header:
       data['hjd'] = header['BJD']
+   elif 'MJD' in header:
+      data['hjd'] = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
    else:
       data['hjd'] = 2400000
    
@@ -100,6 +104,7 @@ def derive_generic_info(header):
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+   data['observer'] = header.get('OBSERVER', 'UK')
    
    data['filetype'] = 'UK'
    
@@ -138,9 +143,54 @@ def derive_uves_info(header):
    # observing conditions
    data['wind_speed'] = np.round(header.get('ESO TEL AMBI WINDSP', -1), 1)
    data['wind_direction'] = np.round(header.get('ESO TEL AMBI WINDDIR', -1), 0)
+   if 'ESO TEL AMBI FWHM END' in header and 'ESO TEL AMBI FWHM START' in header:
+      data['seeing'] = np.average([header.get('ESO TEL AMBI FWHM END', -1), header.get('ESO TEL AMBI FWHM START', -1)])
+   elif 'ESO TEL AMBI FWHM START' in header:
+      data['seeing'] = header.get('ESO TEL AMBI FWHM START', -1)
+   elif 'ESO TEL AMBI FWHM END' in header:
+      data['seeing'] = header.get('ESO TEL AMBI FWHM END', -1)
    
    return data
 
+def derive_eso_info(header):
+   """
+   Reads header information from a standard ESO fits file
+   """
+   
+   data = {}
+   
+   # HJD
+   data['hjd'] = Time(header.get('MJD-OBS', 0.0), format='mjd', scale='utc').jd
+   
+   # pointing info
+   data['objectname'] = header.get('OBJECT', '')
+   data['ra'] = header.get('RA', -1)
+   data['dec'] = header.get('DEC', -1)
+   data['alt'] = header.get('ESO TEL ALT', -1)
+   data['az'] = header.get('ESO TEL AZ', -1)
+   data['airmass'] = header.get('ESO TEL AIRM END', -1)
+   
+   # telescope and instrument info
+   data['instrument'] = header.get('INSTRUME', 'UK')
+   data['telescope'] = header.get('TELESCOP', 'UK')
+   data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution'] = 40000
+   data['barycor'] = header.get('ESO QC VRAD BARYCOR', -1)
+   data['observer'] = header.get('OBSERVER', 'UK')
+   data['filetype'] = header['PIPEFILE']
+   
+   
+   # observing conditions
+   data['wind_speed'] = np.round(header.get('ESO TEL AMBI WINDSP', -1), 1)
+   data['wind_direction'] = np.round(header.get('ESO TEL AMBI WINDDIR', -1), 0)
+   if 'ESO TEL AMBI FWHM END' in header and 'ESO TEL AMBI FWHM START' in header:
+      data['seeing'] = np.average([header.get('ESO TEL AMBI FWHM END', -1), header.get('ESO TEL AMBI FWHM START', -1)])
+   elif 'ESO TEL AMBI FWHM START' in header:
+      data['seeing'] = header.get('ESO TEL AMBI FWHM START', -1)
+   elif 'ESO TEL AMBI FWHM END' in header:
+      data['seeing'] = header.get('ESO TEL AMBI FWHM END', -1)
+   
+   return data
 
 def derive_feros_info(header):
    """

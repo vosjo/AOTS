@@ -27,6 +27,8 @@ from .serializers import ProjectListSerializer, ProjectSerializer, StarListSeria
 
 from stars.models import Project, Star, Identifier, Tag
 
+from AOTS.api_permissions import get_allowed_objects_to_view_for_user
+
 from astropy.coordinates import Angle
 from astroquery.simbad import Simbad
 
@@ -146,6 +148,8 @@ class StarFilter(filters.FilterSet):
       parent = super(StarFilter, self).qs
       #user = getattr(self.request, 'user', None)
       
+      parent = get_allowed_objects_to_view_for_user(parent, self.request.user)
+      
       # get the column order from the GET dictionary
       getter = self.request.query_params.get
       if not getter('order[0][column]') is None:
@@ -226,6 +230,13 @@ class TagFilter(filters.FilterSet):
    class Meta:
       model = Tag
       fields = ['project',]
+      
+   @property
+   def qs(self):
+      parent = super(StarFilter, self).qs
+      
+      return get_allowed_objects_to_view_for_user(parent, self.request.user)
+      
 
 class TagViewSet(viewsets.ModelViewSet):
    queryset = Tag.objects.all()
@@ -239,9 +250,12 @@ class TagViewSet(viewsets.ModelViewSet):
 # IDENTIFIERS
 # ===============================================================
 
+# identifiers doesn't have a special filter, but still only returns the identifiers from allowed projects
+# this does require to define a custom get_queryset, which also requires the addition of a basename in the
+# router in urls.py
    
 class IdentifierViewSet(viewsets.ModelViewSet):
-   queryset = Identifier.objects.all()
+   #queryset = Identifier.objects.all()
    serializer_class = IdentifierListSerializer
    
    def list(self, request):
@@ -252,4 +266,6 @@ class IdentifierViewSet(viewsets.ModelViewSet):
       serializer = IdentifierListSerializer(queryset, many=True)
       return Response(serializer.data)
       
-   
+   def get_queryset(self):
+      qs = Identifier.objects.all()
+      return get_allowed_objects_to_view_for_user(parent, self.request.user)

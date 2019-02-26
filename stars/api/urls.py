@@ -14,7 +14,7 @@ app_name = 'stars-api'
 router = routers.DefaultRouter()
 router.register(r'stars', StarViewSet)
 router.register(r'tags', TagViewSet)
-router.register(r'identifiers', IdentifierViewSet)
+router.register(r'identifiers', IdentifierViewSet, base_name='identifier')
 
 urlpatterns = [
    #url(r'^stars', StarListAPIView.as_view(), name='star_list'),

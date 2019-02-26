@@ -3,7 +3,7 @@ import numpy as np
 
 from django.urls import reverse
 
-from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField, SlugRelatedField
+from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField, SlugRelatedField, ReadOnlyField
 
 from stars.models import Project, Star, Tag, Identifier
 
@@ -126,8 +126,9 @@ class StarListSerializer(ModelSerializer):
             'nspec',
             'nlc',
             'href',
+            'added_by',
       ]
-      read_only_fields = ('pk',)
+      read_only_fields = ('pk', 'added_by')
       
       datatables_always_serialize = ('href','pk')
       
@@ -180,7 +181,7 @@ class StarSerializer(ModelSerializer):
    classification_type_display = SerializerMethodField()
    observing_status_display = SerializerMethodField()
    
-   
+   owner = ReadOnlyField(source='added_by.username')
    
    class Meta:
       model = Star
@@ -202,6 +203,7 @@ class StarSerializer(ModelSerializer):
             'tag_ids',
             'vmag',
             'href',
+            'owner',
       ]
       read_only_fields = ('pk', 'tags', 'vmag', 
                           'classification_type_display', 'observing_status_display')

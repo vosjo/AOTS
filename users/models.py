@@ -22,6 +22,9 @@ class User(AbstractUser):
    
    note = models.TextField(default='')
    
+   def get_read_projects(self):
+      return self.readonly_projects.all().union(self.readwriteown_projects.all(), 
+                                                self.readwrite_projects.all())
    
    def can_read(self, project):
       """
@@ -31,9 +34,9 @@ class User(AbstractUser):
       if project.is_public or self.is_superuser:
          # Public projects can be read by everyone
          return True
-      elif project in self.readonly_users.objects.all() or \
-           project in self.readwriteown_projects.objects.all() or \
-           project in self.readwrite_users.objects.all():
+      elif project in self.readonly_projects.all() or \
+           project in self.readwriteown_projects.all() or \
+           project in self.readwrite_projects.all():
          # private projects require read access
          return True
       else:
@@ -46,8 +49,8 @@ class User(AbstractUser):
       
       if self.is_superuser:
          return True
-      elif project in self.readwriteown_projects.objects.all() or \
-         project in self.readwrite_users.objects.all():
+      elif project in self.readwriteown_projects.all() or \
+         project in self.readwrite_projects.all():
          return True
       else:
          return False
@@ -58,10 +61,27 @@ class User(AbstractUser):
       """
       if self.is_superuser:
          return True
-      elif obj.project in self.readwrite_users.objects.all():
+      elif obj.project in self.readwrite_projects.all():
          return True
-      elif obj.project in self.readwriteown_projects.objects.all() and \
+      elif obj.project in self.readwriteown_projects.all() and \
            obj.added_by == self:
+         return True
+      else:
+         return False
+   
+   def can_delete(self, obj):
+      """
+      Returns true if this user can delete this specific object
+      """
+      if self.is_superuser:
+         return True
+      elif obj.project in self.readwrite_projects.all() and \
+           obj.added_by == self:
+         return True
+      elif obj.project in self.readwriteown_projects.all() and \
+           obj.added_by == self:
+         return True
+      elif obj.project in self.managed_projects.all():
          return True
       else:
          return False

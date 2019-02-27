@@ -1,12 +1,4 @@
 
-#from django.db.models import Q
-
-
-#from rest_framework.filters import (
-      #SearchFilter,
-      #OrderingFilter,
-   #)
-
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
 
@@ -20,9 +12,8 @@ from stars.models import Project
 from analysis.models import Method, DataSet, Parameter
 from analysis.aux import process_datasets
 
-#class DatasetListAPIView(ListAPIView):
-   #queryset = DataSet.objects.all()
-   #serializer_class = DataSetListSerializer
+from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
+
 
 # ===============================================================
 # DataSet
@@ -33,6 +24,23 @@ class DataSetFilter(filters.FilterSet):
    class Meta:
       model = DataSet
       fields = ['project',]
+      
+   @property
+   def qs(self):
+      parent = super(DataSetFilter, self).qs
+      
+      parent = get_allowed_objects_to_view_for_user(parent, self.request.user)
+      
+      # get the column order from the GET dictionary
+      getter = self.request.query_params.get
+      if not getter('order[0][column]') is None:
+         order_column = int(getter('order[0][column]'))
+         order_name = getter('columns[%i][data]' % order_column)
+         if getter('order[0][dir]') == 'desc': order_name = '-'+order_name
+         
+         return parent.order_by(order_name)
+      else:
+         return parent
 
 class DatasetViewSet(viewsets.ModelViewSet):
    queryset = DataSet.objects.all()
@@ -51,6 +59,12 @@ class MethodFilter(filters.FilterSet):
    class Meta:
       model = Method
       fields = ['project',]
+      
+   @property
+   def qs(self):
+      parent = super(MethodFilter, self).qs
+      return get_allowed_objects_to_view_for_user(parent, self.request.user)
+   
 
 class MethodViewSet(viewsets.ModelViewSet):
    queryset = Method.objects.all()
@@ -71,6 +85,12 @@ class ParameterFilter(filters.FilterSet):
    class Meta:
       model = Parameter
       fields = ['star',]
+      
+   @property
+   def qs(self):
+      parent = super(ParameterFilter, self).qs
+      
+      parent = get_allowed_objects_to_view_for_user(parent, self.request.user)
 
 
 class ParameterViewSet(viewsets.ModelViewSet):

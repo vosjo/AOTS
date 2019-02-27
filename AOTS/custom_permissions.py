@@ -1,22 +1,9 @@
 
-import copy
-
+from django.shortcuts import redirect
+from django.contrib import messages
 from rest_framework import permissions
 
-
-class IsOwnerOrReadOnly(permissions.BasePermission):
-   """
-   Custom permission to only allow owners of an object to edit it.
-   """
-
-   def has_object_permission(self, request, view, obj):
-      # Read permissions are allowed to any request,
-      # so we'll always allow GET, HEAD or OPTIONS requests.
-      if request.method in permissions.SAFE_METHODS:
-            return True
-
-      # Write permissions are only allowed to the owner of the snippet.
-      return obj.added_by == request.user 
+from stars.models import Project
 
 
 class IsAllowedOnProject(permissions.BasePermission):
@@ -53,12 +40,37 @@ def get_allowed_objects_to_view_for_user(qs, user):
    This filtering is based on the project that the object belongs too. An anonymous user can 
    see objects from all public projects. A logged in user can also see private projects that 
    he/she has viewing rights for.
+   
+   for some reason qs1.union(qs2) can not be used here instead of using th | operator!!!
    """
    
+   public = qs.filter(project__is_public__exact=True)
+   
    if user.is_anonymous:
-      qs = qs.filter(project__is_public__exact=True)
+      return public
    else:
-      public = qs.filter(project__is_public__exact=True)
-      qs = public.union( qs.filter(project__pk__in=user.get_read_projects().values('pk')) )
-         
-   return qs
+      return qs.filter(project__pk__in=user.get_read_projects().values('pk')) | public
+   
+
+def check_user_can_view_project(function):
+   """
+   Decorator that loads the funtion if the user is allowed to see the project, 
+   redirects to login page otherwise.
+   """
+   def wrapper(request, *args, **kwargs):
+      user = request.user
+      try:
+         project = Project.objects.get(slug=kwargs['project'])
+      except Exceptions:
+         messages.error(request, "That page requires login to view")
+         return redirect('login')
+      
+      if request.user.is_anonymous and obj.project.is_public:
+         return function(request, *args, **kwargs)
+      elif not request.user.is_anonymous and request.user.can_read(project):
+         return function(request, *args, **kwargs)
+      else:
+         messages.error(request, "Project: {} requires login to see".format(project))
+         return redirect('login')
+   
+   return wrapper

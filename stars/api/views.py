@@ -27,7 +27,7 @@ from .serializers import ProjectListSerializer, ProjectSerializer, StarListSeria
 
 from stars.models import Project, Star, Identifier, Tag
 
-from AOTS.api_permissions import get_allowed_objects_to_view_for_user
+from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 
 from astropy.coordinates import Angle
 from astroquery.simbad import Simbad
@@ -146,7 +146,6 @@ class StarFilter(filters.FilterSet):
    @property
    def qs(self):
       parent = super(StarFilter, self).qs
-      #user = getattr(self.request, 'user', None)
       
       parent = get_allowed_objects_to_view_for_user(parent, self.request.user)
       
@@ -175,7 +174,6 @@ class StarViewSet(viewsets.ModelViewSet):
    filterset_class = StarFilter
    
    def get_serializer_class(self):
-      
       if self.action == 'list':
          return StarListSerializer
       if self.action == 'retrieve':
@@ -268,4 +266,4 @@ class IdentifierViewSet(viewsets.ModelViewSet):
       
    def get_queryset(self):
       qs = Identifier.objects.all()
-      return get_allowed_objects_to_view_for_user(parent, self.request.user)
+      return get_allowed_objects_to_view_for_user(qs, self.request.user)

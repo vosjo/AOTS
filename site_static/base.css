@@ -306,6 +306,7 @@ hr.box {
 /* Project Page */
 
 div.project-container {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   min-width: 400x;

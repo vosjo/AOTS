@@ -12,8 +12,11 @@ from .forms import UploadAnalysisFileForm, ParameterPlotterForm
 from bokeh.resources import CDN
 from bokeh.embed import components
 
-# Create your views here.
+from AOTS.custom_permissions import check_user_can_view_project
 
+
+
+@check_user_can_view_project
 def dataset_list(request, project=None,  **kwargs):
    
    project = get_object_or_404(Project, slug=project)
@@ -53,6 +56,7 @@ def dataset_list(request, project=None,  **kwargs):
    return render(request, 'analysis/dataset_list.html', context)
 
 
+@check_user_can_view_project
 def dataset_detail(request, dataset_id, project=None,  **kwargs):
    # show details dataset information
    
@@ -88,6 +92,7 @@ def dataset_detail(request, dataset_id, project=None,  **kwargs):
    return render(request, 'analysis/dataset_detail.html', context)
 
 
+@check_user_can_view_project
 def method_list(request, project=None,  **kwargs):
    
    project = get_object_or_404(Project, slug=project)
@@ -95,6 +100,7 @@ def method_list(request, project=None,  **kwargs):
    return render(request, 'analysis/method_list.html', {'project': project,})
 
 
+@check_user_can_view_project
 def parameter_plotter(request, project=None,  **kwargs):
    
    project = get_object_or_404(Project, slug=project)

@@ -79,7 +79,7 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-        'AOTS.api_permissions.IsAllowedOnProject',
+        'AOTS.custom_permissions.IsAllowedOnProject',
     ),
     
     'DEFAULT_RENDERER_CLASSES': (

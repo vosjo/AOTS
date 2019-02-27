@@ -15,6 +15,8 @@ from .plotting import plot_photometry
 from bokeh.resources import CDN
 from bokeh.embed import components
 
+from AOTS.custom_permissions import check_user_can_view_project
+
 import json
 
 # Create your views here.
@@ -24,13 +26,23 @@ def project_list(request):
    Simplified view of the project page
    """
    
-   projects = Project.objects.order_by('name')
+   public_projects = Project.objects.filter(is_public__exact=True).order_by('name')
+   private_projects = None
    
-   context = {'projects': projects}
+   if not request.user.is_anonymous:
+      user = request.user
+      private_projects = Project.objects.filter(is_public__exact=False) \
+                         .filter(pk__in=user.get_read_projects().values('pk')).order_by('name')
+      
+   
+   context = {'public_projects': public_projects,
+              'private_projects': private_projects,
+              }
    
    return render(request, 'stars/project_list.html', context)
 
 
+@check_user_can_view_project
 def star_list(request, project=None,  **kwargs):
    """
    Simplified version of the index page using datatables and the json api from rest_framework.
@@ -40,7 +52,8 @@ def star_list(request, project=None,  **kwargs):
    
    return render(request, 'stars/star_list.html', {'project': project, 'tags': Tag.objects.all()})
 
-   
+
+@check_user_can_view_project
 def tag_list(request, project=None,  **kwargs):
    """
    Simple view showing all defined tags, and allowing for deletion and creation of new ones.
@@ -52,6 +65,7 @@ def tag_list(request, project=None,  **kwargs):
    return render(request, 'stars/tag_list.html', {'project': project})
 
 
+@check_user_can_view_project
 def star_detail(request, star_id, project=None, **kwargs):
    """
    Detailed view for star
@@ -143,6 +157,7 @@ def star_detail(request, star_id, project=None, **kwargs):
    
    return render(request, 'stars/star_detail.html', context)
 
+@check_user_can_view_project
 @login_required
 def star_edit(request, star_id, project=None, **kwargs):
    """

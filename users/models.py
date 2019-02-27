@@ -2,6 +2,8 @@ from django.db import models
 
 from django.contrib.auth.models import AbstractUser
 
+from stars import models as star_models
+
 def get_sentinel_user():
    """
    Sets a default 'deleted' user if the user is deleted.
@@ -23,7 +25,10 @@ class User(AbstractUser):
    note = models.TextField(default='')
    
    def get_read_projects(self):
-      return self.readonly_projects.all().union(self.readwriteown_projects.all(), 
+      if self.is_superuser:
+         return star_models.Project.objects.all()
+      else:
+         return self.readonly_projects.all().union(self.readwriteown_projects.all(), 
                                                 self.readwrite_projects.all())
    
    def can_read(self, project):

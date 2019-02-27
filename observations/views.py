@@ -17,10 +17,10 @@ from .plotting import plot_visibility, plot_spectrum, plot_lightcurve
 from bokeh.resources import CDN
 from bokeh.embed import components
 
-# Create your views here.
+from AOTS.custom_permissions import check_user_can_view_project
 
 
-
+@check_user_can_view_project
 def spectra_list(request, project=None,  **kwargs):
    """
    simplified version of spectra index page using datatables and restframework api
@@ -31,6 +31,7 @@ def spectra_list(request, project=None,  **kwargs):
    return render(request, 'observations/spectra_list.html', {'project': project})
 
 
+@check_user_can_view_project
 def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
    #-- show detailed spectrum information
    
@@ -71,6 +72,7 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
    return render(request, 'observations/spectrum_detail.html', context)
 
 
+@check_user_can_view_project
 def specfile_list(request, project=None,  **kwargs):
    
    project = get_object_or_404(Project, slug=project)
@@ -110,6 +112,7 @@ def specfile_list(request, project=None,  **kwargs):
    return render(request, 'observations/specfiles_list.html', context)
 
 
+@check_user_can_view_project
 def lightcurve_list(request, project=None,  **kwargs):
    """
    simplified version of spectra index page using datatables and restframework api
@@ -154,6 +157,7 @@ def lightcurve_list(request, project=None,  **kwargs):
    return render(request, 'observations/lightcurve_list.html', context)
 
 
+@check_user_can_view_project
 def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
    #-- show detailed spectrum information
    
@@ -201,6 +205,8 @@ def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
    
    return render(request, 'observations/lightcurve_detail.html', context)
 
+
+@check_user_can_view_project
 def observatory_list(request, project=None,  **kwargs):
    """
    simplified version of observatory index page using datatables and restframework api

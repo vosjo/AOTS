@@ -149,7 +149,7 @@ def derive_specfile_info(specfile_id):
    specfile.save()
    
 
-def process_specfile(specfile_id, create_new_star=True):
+def process_specfile(specfile_id, create_new_star=True, add_to_existing_spectrum=True):
    """
    Check if the specfile is a duplicate, and if not, add it to a spectrum
    and target star.
@@ -188,7 +188,7 @@ def process_specfile(specfile_id, create_new_star=True):
                               .filter(instrument__iexact = specfile.instrument)  \
                               .filter(hjd__range = (specfile.hjd - 0.001, specfile.hjd + 0.001))
    
-   if len(spectrum) > 0:
+   if len(spectrum) > 0 and add_to_existing_spectrum:
       spectrum = spectrum[0]
       spectrum.specfile_set.add(specfile)
       message += "Specfile added to existing Spectrum {}".format(spectrum)

@@ -79,6 +79,8 @@ def derive_spectrum_info(spectrum_pk):
    spectrum.exptime = data.get('exptime', -1)
    spectrum.barycor = data.get('barycor', -1)
    spectrum.observer = data.get('observer', 'UK')
+   spectrum.resolution = data.get('resolution', -1)
+   spectrum.snr = data.get('snr', -1)
    
    # observing conditions
    if isfloat(data.get('wind_speed', -1)):

@@ -133,8 +133,13 @@ def derive_eso_info(header):
    data['barycor'] = header.get('ESO QC VRAD BARYCOR', -1)
    data['observer'] = header.get('OBSERVER', 'UK')
    data['filetype'] = header['PIPEFILE']
-   if 'UVES' in header.get('INSTRUME', 'UK'):
+   
+   if 'SPEC_RES' in header:
+      data['resolution'] = header['SPEC_RES']
+   elif 'UVES' in header.get('INSTRUME', 'UK'):
       data['resolution'] = 40000
+      
+   data['snr'] = header.get('SNR', -1)
    
    
    # observing conditions

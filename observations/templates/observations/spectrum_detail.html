@@ -89,7 +89,7 @@
       <tr> <th>HJD:</th> <td class="mono">{{ spectrum.hjd }}</td> </tr>
       <tr> <th>Date:</th> <td class="mono">{{ spectrum.hjd|hjd2datetime }}</td> </tr>
       <tr> <th>Instrument:</th> <td class="mono">{{ spectrum.instrument }} @ {{ spectrum.telescope }}</td> </tr>
-      <tr> <th>Resolution:</th> <td class="mono">{{ spectrum.resolution|format_float_negative_na:'0|s' }}</td> </tr>
+      <tr> <th>Resolution:</th> <td class="mono">{{ spectrum.resolution|format_float_negative_na:'0|' }}</td> </tr>
       <tr> <th>Observer:</th> <td class="mono">{{ spectrum.observer}}</td> </tr>
    </tbody>
    </table>
@@ -99,12 +99,12 @@
    <table class='datatable'>
    <tbody>
       <tr> <th>Exposure:</th> <td class="mono">{{ spectrum.exptime|format_float_negative_na:'1|s' }}</td> </tr>
+      <tr> <th>SNR:</th> <td class="mono">{{ spectrum.snr|format_float_negative_na:'0|' }}</td> </tr>
       <tr> <th>Seeing:</th> <td class="mono">{{ spectrum.seeing|format_float_negative_na:'1|"'}}</td> </tr>
       <tr> <th>Airmass:</th> <td class="mono">{{ spectrum.airmass|format_float_negative_na:'2|'}}</td> </tr>
       <tr> <th>Moon Illumination:</th> <td class="mono">{{ spectrum.moon_illumination|format_float_negative_na:'1|%' }}</td> </tr>
       <tr> <th>Moon Separation:</th> <td class="mono">{{ spectrum.moon_separation|format_float_negative_na:'1|°' }}</td> </tr>
-      <tr> <th>Wind speed:</th> <td class="mono">{{ spectrum.wind_speed|format_float_negative_na:'1|km/s' }}</td> </tr>
-      <tr> <th>Wind direction:</th> <td class="mono">{{ spectrum.wind_direction|format_wind_direction }}</td> </tr>
+      <tr> <th>Wind:</th> <td class="mono">{{ spectrum.wind_speed|format_float_negative_na:'1|km/s' }} {{ spectrum.wind_direction|format_wind_direction }}</td> </tr>
       {% if spectrum.get_weather_url != '' %}
          <tr> <th>Weather link:</th> <td class="mono"> <a target="_blank" href="{{ spectrum.get_weather_url }}"> {{ spectrum.observatory.short_name }} </a></td> </tr>
       {% else %}

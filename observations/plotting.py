@@ -142,11 +142,12 @@ def plot_spectrum(spectrum_id, rebin=1):
       else:
          wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
       
-      #-- set the maximum so that weird peaks are cut off automatically. 
+      #-- set the maximum and minimum so that weird peaks are cut off automatically. 
       fsort = np.sort(flux)[::-1]
       maxf = fsort[int(np.floor(len(flux)/100.))] * 1.10
+      minf = np.max([np.min(flux)*0.95, 0])
       
-      fig = bpl.figure(plot_width=1600, plot_height=400, y_range=[np.min(flux) * 0.95, maxf]) #, sizing_mode='scale_width'
+      fig = bpl.figure(plot_width=1600, plot_height=400, y_range=[minf, maxf]) #, sizing_mode='scale_width'
       fig.line(wave, flux, line_width=1, color="blue")
       
       #-- annotate He lines

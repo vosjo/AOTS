@@ -15,12 +15,19 @@ def read_spectrum(filename, return_header=False):
    """
    header = fits.getheader(filename)
    
-   if header.get('instrume', '') == 'FEROS' and not "CRVAL1" in header:
+      
+   if header.get('instrume', '') in ['FEROS', 'UVES'] and not "CRVAL1" in header:
       """
-      FEROS phase 3 dataproduct
+      FEROS or UVES phase 3 dataproduct
       """
       data = fits.getdata(filename, 1)
-      wave, flux = data['wave'][0], data['flux'][0]
+      
+      if 'flux' in data.dtype.names:
+         flux = data['flux'][0]
+      else:
+         flux = data['FLUX_REDUCED'][0]
+      
+      wave = data['wave'][0]
    
    elif 'SDSS' in header.get('telescop', ''):
       """

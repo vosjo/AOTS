@@ -46,6 +46,7 @@ class Spectrum(models.Model):
    telescope = models.CharField(max_length=200, default='')
    instrument = models.CharField(max_length=200, default='')
    resolution = models.FloatField(default=-1) # R
+   snr = models.FloatField(default=-1)
    observer = models.CharField(max_length=50, default='')
    
    #-- observing conditions

@@ -65,7 +65,7 @@ def check_user_can_view_project(function):
          messages.error(request, "That page requires login to view")
          return redirect('login')
       
-      if request.user.is_anonymous and obj.project.is_public:
+      if request.user.is_anonymous and project.is_public:
          return function(request, *args, **kwargs)
       elif not request.user.is_anonymous and request.user.can_read(project):
          return function(request, *args, **kwargs)

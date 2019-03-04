@@ -58,6 +58,9 @@ def derive_spectrum_info(spectrum_pk):
    spectrum = Spectrum.objects.get(pk=spectrum_pk)
    wave, flux, header = spectrum.get_spectrum()
    
+   #-- get min and max wavelength
+   spectrum.minwave = np.min(wave)
+   spectrum.maxwave = np.max(wave)
    
    #-- load info from spectrum header
    data = instrument_headers.extract_header_info(header)
@@ -128,7 +131,8 @@ def derive_spectrum_info(spectrum_pk):
    
    #-- save the changes
    spectrum.save()
-
+   
+   return "Spectrum details added/updated", True
 
 def derive_specfile_info(specfile_id):
    """

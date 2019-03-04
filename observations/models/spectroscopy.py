@@ -47,6 +47,8 @@ class Spectrum(models.Model):
    instrument = models.CharField(max_length=200, default='')
    resolution = models.FloatField(default=-1) # R
    snr = models.FloatField(default=-1)
+   minwave = models.FloatField(default=-1) # starting wavelength
+   maxwave = models.FloatField(default=-1) # ending wavelength
    observer = models.CharField(max_length=50, default='')
    
    #-- observing conditions

@@ -76,6 +76,14 @@ class SpectrumViewSet(viewsets.ModelViewSet):
    filter_backends = (DjangoFilterBackend,)
    filterset_class = SpectrumFilter
 
+
+@api_view(['POST'])
+def processSpectrum(request, spectrum_pk):
+   success, message = read_spectrum.derive_spectrum_info(spectrum_pk)
+   spectrum = Spectrum.objects.get(pk=spectrum_pk)
+   
+   return Response(SpectrumSerializer(spectrum).data)
+
 # ===============================================================
 # SpecFile
 # ===============================================================

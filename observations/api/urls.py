@@ -8,6 +8,7 @@ from rest_framework import routers
 from .views import (
    SpectrumViewSet,
    SpecFileViewSet,
+   processSpectrum,
    processSpecfile,
    getSpecfileHeader,
    LightCurveViewSet,
@@ -27,6 +28,7 @@ router.register(r'observatories', ObservatoryViewSet)
 
 urlpatterns = [
    path('', include(router.urls) ),
+   path('spectra/<int:spectrum_pk>/process/', processSpectrum, name='process_spectrum'),
    path('specfiles/<int:specfile_pk>/process/', processSpecfile, name='process_specfile'),
    path('specfiles/<int:specfile_pk>/header/', getSpecfileHeader, name='specfile_header'),
    path('lightcurves/<int:lightcurve_pk>/process/', processLightCurve, name='process_lightcurve'),

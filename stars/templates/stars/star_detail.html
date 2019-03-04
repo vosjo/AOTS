@@ -240,7 +240,10 @@
             <th>HJD</th>
             <th>Date</th>
             <th>Instrument</th>
-            <th>Exp time</th>
+            <th>Resolution</th>
+            <th>Exp time (s)</th>
+            <th>SNR</th>
+            <th>Range (&Aring;)</th>
             </tr>
          </thead>
          <tbody>
@@ -249,7 +252,10 @@
             <td><a href={% url 'observations:spectrum_detail' project.slug spec.pk %}>{{ spec.hjd|floatformat:3 }}</a></td>
             <td>{{ spec.hjd|hjd2date }}</td>
             <td>{{ spec.instrument }} @ {{spec.telescope}}</td>
+            <td>{{ spec.resolution|format_float_negative_na:'0|' }}</td>
             <td>{{ spec.exptime }}</td>
+            <td>{{ spec.snr|format_float_negative_na:'0|' }}</td>
+            <td>{{ spec.minwave|format_float_negative_na:'0|' }} - {{ spec.maxwave|format_float_negative_na:'0|' }}</td>
             </tr>
          {% empty %}
          <tr><td colspan="3">No spectra available.</td></tr>
@@ -269,8 +275,8 @@
             <th>Date</th>
 <!--             <th>Instrument</th> -->
             <th>Passband</th>
-            <th>Exptime</th>
-            <th>Duration</th>
+            <th>Exptime (s)</th>
+            <th>Duration (h)</th>
             </tr>
          </thead>
          <tbody>
@@ -281,7 +287,7 @@
 <!--             <td>{{ lc.instrument }} @ {{lc.telescope}}</td> -->
             <td>{{ lc.passband }}</td>
             <td>{{ lc.exptime }}</td>
-            <td>{{ lc.duration|floatformat:2 }}</td>
+            <td>{{ lc.duration|floatformat:1 }}</td>
             </tr>
          {% empty %}
          <tr><td colspan="3">No light curves available.</td></tr>

@@ -22,10 +22,12 @@ def read_spectrum(filename, return_header=False):
       """
       data = fits.getdata(filename, 1)
       
-      if 'flux' in data.dtype.names:
-         flux = data['flux'][0]
-      else:
+      if 'FLUX' in data.dtype.names:
+         flux = data['FLUX'][0]
+      elif 'FLUX_REDUCED' in data.dtype.names:
          flux = data['FLUX_REDUCED'][0]
+      else:
+         flux = data['BGFLUX_REDUCED'][0]
       
       wave = data['wave'][0]
    

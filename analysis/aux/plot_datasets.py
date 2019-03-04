@@ -104,9 +104,14 @@ def plot_generic_large(datafile):
          xpar = get_attr(dataset, 'xpar', 'x')
          ypar = get_attr(dataset, 'ypar', 'y')
          
+         # we might evenutally need this to convert bytes crap from hdf5 to string
+         #datatable = astropy.io.misc.hdf5.read_table_hdf5(dataset, path=None, character_as_bytes=False)
+         
          if get_attr(dataset, 'datatype', None) == 'continuous':
             fig.line(dataset[xpar], dataset[ypar], color=colors[i], line_dash='dashed', legend=name)
+            
          elif get_attr(dataset, 'datatype', None) == 'discrete':
+            
             bokehsource.add(dataset[xpar], name=name+'_x')
             bokehsource.add(dataset[ypar], name=name+'_y')
             rend = fig.circle(name+'_x', name+'_y', color=colors[i], source=bokehsource,
@@ -235,7 +240,7 @@ def plot_error_large():
    
    return fig
 
-
+import traceback
 
 def plot_dataset(datafile, method):
    """
@@ -245,6 +250,7 @@ def plot_dataset(datafile, method):
       return plot_generic(datafile)
    except Exception as e:
       print (e)
+      print(traceback.format_exc())
       return plot_error()
    
    
@@ -257,6 +263,7 @@ def plot_dataset_large(datafile, method):
       return plot_generic_large(datafile)
    except Exception as e:
       print (e)
+      print(traceback.format_exc())
       return plot_error_large()
    
 def plot_parameter_ci(datafile, method):
@@ -270,4 +277,5 @@ def plot_parameter_ci(datafile, method):
       return plot_generic_ci(datafile)
    except Exception as e:
       print (e)
+      print(traceback.format_exc())
       return plot_error()

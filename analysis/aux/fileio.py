@@ -1,7 +1,8 @@
  
 import os
 import h5py
- 
+
+import astropy
  
 def read2dict(filename):
    """
@@ -28,10 +29,12 @@ def read2dict(filename):
                res[name] = read_rec(grp)
             else:
                # in case of dataset, read the value
-               if type(grp.value) == bytes:
-                  res[name] = str(grp.value.decode("utf-8"))
-               else:
-                  res[name] = grp.value
+               #if type(grp.value) == bytes:
+                  #res[name] = str(grp.value.decode("utf-8"))
+               #else:
+                  #res[name] = grp.value
+                  
+               res[name] = astropy.io.misc.hdf5.read_table_hdf5(grp, path=None, character_as_bytes=False)
                
       #-- read all the attributes
       for name, atr in hdf.attrs.items():

@@ -40,7 +40,10 @@ def plot_generic(datafile):
    """
    hdf = h5py.File(datafile, 'r') 
    
-   fig = bpl.figure(plot_width=600, plot_height=400, toolbar_location=None)
+   xscale = get_attr(hdf['DATA'], 'xscale', default='linear') if 'DATA' in hdf else 'linear'
+   yscale = get_attr(hdf['DATA'], 'yscale', default='linear') if 'DATA' in hdf else 'linear'
+   
+   fig = bpl.figure(plot_width=600, plot_height=400, toolbar_location=None, x_axis_type=xscale, y_axis_type=yscale)
    colors = ['red', 'blue', 'green']
    
    def plot(data, mode='DATA'):
@@ -54,8 +57,12 @@ def plot_generic(datafile):
          if get_attr(dataset, 'datatype', None) == 'continuous':
             line_dash = 'dashed' if mode == 'DATA' else 'solid'
             fig.line(dataset[xpar][s], dataset[ypar][s], color=colors[i], line_dash=line_dash, legend=name)
-         elif get_attr(dataset, 'datatype', None) == 'discrete':
+            
+         elif get_attr(dataset, 'datatype', None) == 'discrete' and mode == 'DATA':
             fig.circle(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
+            
+         elif get_attr(dataset, 'datatype', None) == 'discrete' and mode == 'MODEL':
+            fig.x(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
          
          if ypar+'_err' in dataset.dtype.names:
             plot_errorbars(fig, dataset[xpar], dataset[ypar], dataset[ypar+'_err'], color=colors[i])
@@ -91,8 +98,12 @@ def plot_generic_large(datafile):
    
    TOOLS = "pan, box_zoom, wheel_zoom, reset"
    
+   
+   xscale = get_attr(hdf['DATA'], 'xscale', default='linear') if 'DATA' in hdf else 'linear'
+   yscale = get_attr(hdf['DATA'], 'yscale', default='linear') if 'DATA' in hdf else 'linear'
+   
    fig = bpl.figure(plot_width=800, plot_height=600, toolbar_location='right',
-                    tools=TOOLS)
+                    tools=TOOLS, x_axis_type=xscale, y_axis_type=yscale)
    colors = ['red', 'blue', 'green']
    
    #-- plot the data
@@ -114,6 +125,7 @@ def plot_generic_large(datafile):
             
             bokehsource.add(dataset[xpar], name=name+'_x')
             bokehsource.add(dataset[ypar], name=name+'_y')
+            
             rend = fig.circle(name+'_x', name+'_y', color=colors[i], source=bokehsource,
                               size=7, legend=name)
             
@@ -142,7 +154,7 @@ def plot_generic_large(datafile):
          if get_attr(dataset, 'datatype', None) == 'continuous':
             fig.line(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
          elif get_attr(dataset, 'datatype', None) == 'discrete':
-            fig.circle(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
+            fig.x(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
    
    fig.toolbar.logo=None
    fig.yaxis.axis_label = get_attr(data, 'ylabel', 'y')

@@ -202,6 +202,11 @@
       <div class="block w600">
          <h3 class="center"> Photometry </h3> 
          {{ sed_plot|safe }}
+         <i style="display:block;text-align:center">
+         <a target="_blank" href="https://stilism.obspm.fr/reddening?frame=icrs&vlong={{star.ra}}&ulong=deg&vlat={{star.dec}}&ulat=deg"> 
+         Stilism Reddening Map (Lallement+2018)
+         </a> 
+         </i>
       </div>
     
       {% if star.photometry_set.all %}

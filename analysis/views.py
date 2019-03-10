@@ -71,13 +71,17 @@ def dataset_detail(request, dataset_id, project=None,  **kwargs):
    # make the main figure
    fit = dataset.make_large_figure()
    
+   oc = dataset.make_OC_figure()
+   
    # make the CI figures if they are available
-   ci = dataset.make_parameter_CI_figures()
+   hist = dataset.make_parameter_hist_figures()
    
    # create necessary javascript
-   cinames = ci.keys()
-   ci.update({'fit':fit})
-   script, figures = components(ci, CDN)
+   histnames = hist.keys()
+   hist.update({'fit':fit, 'oc':oc})
+   script, figures = components(hist, CDN)
+   
+   print (histnames)
    
    context = {
       'project': project,
@@ -85,7 +89,8 @@ def dataset_detail(request, dataset_id, project=None,  **kwargs):
       'related_datasets': related_datasets,
       'related_stars': related_stars,
       'fit': figures['fit'],
-      'ci': [figures[name] for name in cinames],
+      'oc': figures['oc'],
+      'hist': [figures[name] for name in histnames],
       'script': script,
    }
    

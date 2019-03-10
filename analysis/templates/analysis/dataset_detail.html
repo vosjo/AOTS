@@ -103,6 +103,11 @@
       <div class='block'>
          {{ fit|safe }}
       </div>
+      
+      <div class='block'>
+         {{ oc|safe }}
+      </div>
+      
       </div>
       
       
@@ -152,10 +157,10 @@
    
    <section class='data-section'>
       
-      <h3> Parameter confidence intervals </h3>
+      <h3> Parameter distribution </h3>
       
       <div class="flex-data-container j-center">
-      {% for fig in ci %}
+      {% for fig in hist %}
       
       <div class="block">
          {{ fig|safe }}

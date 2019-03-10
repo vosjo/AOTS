@@ -165,6 +165,21 @@ class DataSet(DataSource):
       """
       return plot_datasets.plot_dataset_large(self.datafile.path, self.method)
    
+   def make_OC_figure(self):
+      """
+      Method for returning a bokeh figure showing the O-C  
+      of this dataset.
+      """
+      return plot_datasets.plot_dataset_oc(self.datafile.path, self.method)
+   
+   
+   def make_parameter_hist_figures(self):
+      """
+      Returns a figure for each parameters that plots the distribution as a histogram
+      """
+      return plot_datasets.plot_generic_hist(self.datafile.path)
+   
+   
    def make_parameter_CI_figures(self):
       """
       Returns a figure for each parameters that has confidence interval information

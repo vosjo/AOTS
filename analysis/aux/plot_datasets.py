@@ -102,7 +102,7 @@ def plot_generic_large(datafile):
    xscale = get_attr(hdf['DATA'], 'xscale', default='linear') if 'DATA' in hdf else 'linear'
    yscale = get_attr(hdf['DATA'], 'yscale', default='linear') if 'DATA' in hdf else 'linear'
    
-   fig = bpl.figure(plot_width=800, plot_height=600, toolbar_location='right',
+   fig = bpl.figure(plot_width=800, plot_height=500, toolbar_location='right',
                     tools=TOOLS, x_axis_type=xscale, y_axis_type=yscale)
    colors = ['red', 'blue', 'green']
    
@@ -154,8 +154,9 @@ def plot_generic_large(datafile):
          if get_attr(dataset, 'datatype', None) == 'continuous':
             fig.line(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
          elif get_attr(dataset, 'datatype', None) == 'discrete':
-            fig.x(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
-   
+            fig.x(dataset[xpar], dataset[ypar], color=colors[i], legend=name, size=10)
+      
+      
    fig.toolbar.logo=None
    fig.yaxis.axis_label = get_attr(data, 'ylabel', 'y')
    fig.xaxis.axis_label = get_attr(data, 'xlabel', 'x')
@@ -176,6 +177,106 @@ def plot_generic_large(datafile):
    #http://stackoverflow.com/questions/39972162/dynamically-change-the-shape-of-bokeh-figure
    
    return fig#, button
+
+def plot_generic_OC(datafile):
+   
+   hdf = h5py.File(datafile, 'r') 
+   
+   TOOLS = "pan, box_zoom, wheel_zoom, reset"
+   
+   
+   xscale = get_attr(hdf['O-C'], 'xscale', default='linear') if 'O-C' in hdf else 'linear'
+   yscale = get_attr(hdf['O-C'], 'yscale', default='linear') if 'O-C' in hdf else 'linear'
+   
+   fig = bpl.figure(plot_width=800, plot_height=200, toolbar_location='right',
+                    tools=TOOLS, x_axis_type=xscale, y_axis_type=yscale)
+   colors = ['red', 'blue', 'green']
+   
+   #-- plot the O-C
+   
+   if 'O-C' in hdf:
+      models = hdf['O-C']
+      for i, (name, dataset) in enumerate(models.items()):
+         xpar = get_attr(dataset, 'xpar', 'x')
+         ypar = get_attr(dataset, 'ypar', 'y')
+         
+         if get_attr(dataset, 'datatype', None) == 'continuous':
+            fig.line(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
+         elif get_attr(dataset, 'datatype', None) == 'discrete':
+            fig.circle(dataset[xpar], dataset[ypar], color=colors[i], legend=name, size=7)
+            
+      hline = mpl.Span(location=0, dimension='width', line_color='black', line_width=2, line_dash='dashed')
+      fig.add_layout(hline)     
+      
+      fig.yaxis.axis_label = get_attr(models, 'ylabel', 'y')
+      fig.xaxis.axis_label = get_attr(models, 'xlabel', 'x')
+      
+   else:
+      
+      error_text = mpl.Label(x=400, y=100, x_units='screen', y_units='screen', 
+                          text='No O-C data available.',
+                          text_color='red', text_align='center')
+
+      fig.add_layout(error_text)
+   
+      
+   fig.toolbar.logo=None
+   fig.yaxis.axis_label_text_font_size = '10pt'
+   fig.xaxis.axis_label_text_font_size = '10pt'
+   fig.min_border = 5
+   
+   hdf.close()
+   
+   return fig
+   
+def plot_generic_hist(datafile):
+   
+   hdf = h5py.File(datafile, 'r') 
+   
+   
+   figures = {}
+   
+   if not 'PARAMETERS' in hdf:
+      return figures
+   
+   data = hdf['PARAMETERS']
+   for i, (name, dataset) in enumerate(data.items()):
+      
+      if 'DISTRIBUTION' in dataset:
+         
+         err = dataset.attrs.get('err', 0.0)
+         emin = dataset.attrs.get('emin', err)
+         emax = dataset.attrs.get('emax', err)
+         value = dataset.attrs.get('value', 0.0)
+         
+         title = "{} = {:.2f} + {:.2f} - {:.2f}".format(name, value, emax, emin)
+         
+         fig = bpl.figure(plot_width=280, plot_height=280, tools=[], title=title)
+         
+         xpar = get_attr(dataset, 'xpar', 'x')
+         ypar = get_attr(dataset, 'ypar', 'y')
+         
+         x = dataset['DISTRIBUTION'][xpar]
+         y = dataset['DISTRIBUTION'][ypar]
+         width = np.average(x[1:] - x[0:-1])
+         
+         fig.vbar(x=x, width=width, bottom=0, top=y, color="black", fill_alpha=0)
+         
+         best = mpl.Span(location=value, dimension='height', line_color='red', line_width=2, line_dash='solid')
+         minv = mpl.Span(location=value-emin, dimension='height', line_color='red', line_width=2, line_dash='dashed')
+         maxv = mpl.Span(location=value+emin, dimension='height', line_color='red', line_width=2, line_dash='dashed')
+         fig.renderers.extend([best, minv, maxv]) 
+         
+         fig.min_border = 10
+         fig.min_border_top = 1
+         fig.min_border_bottom = 40
+         fig.toolbar.logo = None
+         fig.toolbar_location = None
+         fig.title.align = 'center'
+      
+         figures[name] = fig
+      
+   return figures
 
 def plot_generic_ci(datafile):
    
@@ -226,12 +327,12 @@ def plot_generic_ci(datafile):
 # Error plots (empty plot in case an exception is thrown
 #============================================================================================
 
-def plot_error():
+def plot_error(width, height):
    
-   fig = bpl.figure(plot_width=600, plot_height=400, 
+   fig = bpl.figure(plot_width=width, plot_height=height, 
                     toolbar_location=None)
    
-   error_text = mpl.Label(x=300, y=200, x_units='screen', y_units='screen', 
+   error_text = mpl.Label(x=width/2., y=height/2., x_units='screen', y_units='screen', 
                           text='An error occured when trying to plot this dataset!',
                           text_color='red', text_align='center')
 
@@ -241,10 +342,10 @@ def plot_error():
 
 def plot_error_large():
    
-   fig = bpl.figure(plot_width=800, plot_height=600, 
+   fig = bpl.figure(plot_width=800, plot_height=500, 
                     toolbar_location=None)
    
-   error_text = mpl.Label(x=400, y=300, x_units='screen', y_units='screen', 
+   error_text = mpl.Label(x=400, y=250, x_units='screen', y_units='screen', 
                           text='An error occured when trying to plot this dataset!',
                           text_color='red', text_align='center')
 
@@ -263,7 +364,7 @@ def plot_dataset(datafile, method):
    except Exception as e:
       print (e)
       print(traceback.format_exc())
-      return plot_error()
+      return plot_error(600, 400)
    
    
 def plot_dataset_large(datafile, method):
@@ -277,6 +378,14 @@ def plot_dataset_large(datafile, method):
       print (e)
       print(traceback.format_exc())
       return plot_error_large()
+   
+def plot_dataset_oc(datafile, method):
+   try:
+      return plot_generic_OC(datafile)
+   except Exception as e:
+      print (e)
+      print(traceback.format_exc())
+      return plot_error(800, 200)
    
 def plot_parameter_ci(datafile, method):
    """

@@ -7,7 +7,7 @@ from django.db.models import Sum
 from .models import Spectrum, SpecFile, LightCurve
 from stars.models import Star, Project
 
-from .forms import UploadSpecFileForm, UploadLightCurveForm
+from .forms import UploadSpecFileForm, UploadLightCurveForm, UploadSpectraDetailForm
 
 
 from .aux import read_spectrum, read_lightcurve
@@ -70,6 +70,17 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
    
    
    return render(request, 'observations/spectrum_detail.html', context)
+
+
+def add_spectra(request, project=None, **kwargs):
+   
+   project = get_object_or_404(Project, slug=project)
+   
+   upload_form = UploadSpectraDetailForm()
+   
+   context = {'project': project, 'upload_form': upload_form}
+   
+   return render(request, 'observations/spectra_new.html', context)
 
 
 @check_user_can_view_project

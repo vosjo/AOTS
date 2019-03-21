@@ -108,16 +108,16 @@ class Parameter(models.Model):
    
    #-- Rounded value and errors
    def rvalue(self):
-      return round_value(self.value, self.name)
+      return round_value(self.value, self.name, self.error)
    
    def rerror(self):
-      return round_value(self.error, self.name)
+      return round_value(self.error, self.name, self.error)
    
    def rerror_l(self):
-      return round_value(self.error_l, self.name)
+      return round_value(self.error_l, self.name, self.error_l)
    
    def rerror_u(self):
-      return round_value(self.error_u, self.name)
+      return round_value(self.error_u, self.name, self.error_u)
    
    
    #-- representation of self

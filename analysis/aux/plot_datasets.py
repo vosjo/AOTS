@@ -205,6 +205,9 @@ def plot_generic_OC(datafile):
          elif get_attr(dataset, 'datatype', None) == 'discrete':
             fig.circle(dataset[xpar], dataset[ypar], color=colors[i], legend=name, size=7)
             
+            plot_errorbars(fig, dataset[xpar], dataset[ypar], dataset[ypar+'_err'], 
+                              line_width=1, color=colors[i])
+            
       hline = mpl.Span(location=0, dimension='width', line_color='black', line_width=2, line_dash='dashed')
       fig.add_layout(hline)     
       

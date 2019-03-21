@@ -53,17 +53,35 @@ def split_parameter_name(name):
       component = 0
    return name, component
 
-def round_value(value, name):
+def round_value(value, name=None, error=None):
    """
    Rounds a value based on the parameter name
    """
-   name, component = split_parameter_name(name)
    
-   decimals = PARAMETER_DECIMALS.get(name, 3)
-   if decimals > 0:
-      return np.round(value, decimals)
-   else:
-      return int(value)
+   # try to round based on the number of significant digits in the error if possible
+   if not error is None and error != 0:
+      sd = -1 * np.floor(np.log10(abs(error))) + 1
+      value = np.round(value, int(sd))
+      
+      if sd <= 0:
+         return int(value)
+      else:
+         return value
+   
+   # else round based on the type of parameter
+   if not name is None:
+      name, component = split_parameter_name(name)
+      
+      decimals = PARAMETER_DECIMALS.get(name, 3)
+      if decimals > 0:
+         return np.round(value, decimals)
+      else:
+         return int(value)
+      
+   # is no name or error is given, round to 3 decimals by default
+   return np.round(value, 3)
+
+
 
 #-- PARAMETER sorting
 PARAMETER_ORDER = {

@@ -5,22 +5,35 @@
 {% block content %}
 
 <section class='data-section' id="login">
+   
+{% if form.errors or form.password.errors or form.usename.errors %}
+   <div class="flex-data-container j-center">
 
-<div class="flex-data-container j-center">
+   <div class="main-container-h border j-center" style="color:#FF0000">
+      <p>Your username and password didn't match or don't exist. Please try again.</p>
+   </div>
 
-   {% if form.errors %}
-   <p>Your username and password didn't match. Please try again.</p>
-   {% endif %}
+   </div>
+{% endif %}
+   
+
+   <div class="flex-data-container j-center">
 
    <div class="block">
    
    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Login</button>
-   </form>
    
-   <p><a href="{% url 'password_reset' %}">Forgot password?</a></p>
+   {% csrf_token %}
+  
+   <table class='datatable'>
+   <tbody>
+      <tr> <th>Username:</th> <td>{{ form.username }}</td> </tr>
+      <tr> <th>Password:</th> <td>{{ form.password }}</td> </tr>
+      <tr> <th></th> <td><button type="submit">Login</button></td> </tr>
+   </tbody>
+   </table>
+   
+   </form>
    
    </div>
    

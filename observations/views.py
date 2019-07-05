@@ -4,7 +4,7 @@ from django.contrib import messages
 
 from django.db.models import Sum
 
-from .models import Spectrum, SpecFile, LightCurve
+from .models import Spectrum, SpecFile, LightCurve, Observatory
 from stars.models import Star, Project
 
 from .forms import UploadSpecFileForm, UploadLightCurveForm, UploadSpectraDetailForm
@@ -76,7 +76,50 @@ def add_spectra(request, project=None, **kwargs):
    
    project = get_object_or_404(Project, slug=project)
    
+   print ("add spectrum" )
+   
+   
+   # Handle file upload
+   if request.method == 'POST' and request.user.is_authenticated:
+      if 'spectrumfile' in request.FILES:
+         upload_form = UploadSpectraDetailForm(request.POST, request.FILES)
+         
+         if upload_form.is_valid():
+            
+            print( "valid")
+            print (upload_form.cleaned_data)
+            
+         else:
+            
+            print( "invalid")
+            print (upload_form.cleaned_data)
+            
+            #files = request.FILES.getlist('specfile')
+            #for f in files:
+               ##-- save the new specfile
+               #newspec = SpecFile(specfile=f, project=project, added_by=request.user)
+               #newspec.save()
+               
+               ##-- now process it and add it to a Spectrum and Object
+               #try:
+                  #success, message = read_spectrum.process_specfile(newspec.pk, create_new_star=True)
+                  #level = messages.SUCCESS if success else messages.ERROR
+                  #messages.add_message(request, level, message)
+               #except Exception as e:
+                  #print(e)
+                  #newspec.delete()
+                  #messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f))
+                  
+               
+            #return HttpResponseRedirect(reverse('observations:specfile_list', kwargs={'project':project.slug}))
+   
+   #elif request.method != 'GET' and not request.user.is_authenticated:
+      #messages.add_message(request, messages.ERROR, "You need to login for that action!")
+   
    upload_form = UploadSpectraDetailForm()
+   
+   upload_form.fields['observatory'].queryset = Observatory.objects.filter(project__exact=project)
+   
    
    context = {'project': project, 'upload_form': upload_form}
    

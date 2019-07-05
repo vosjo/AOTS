@@ -1,6 +1,32 @@
-from astropy.io import fits
+from astropy.io import fits, ascii
 
 import numpy as np
+
+import string
+
+def istext(filename):
+   """
+   Function that tries to estimate if a file is a text file or has a binary format.
+   taken from here: https://stackoverflow.com/questions/1446549/how-to-identify-binary-and-text-files-using-python
+   """
+   s=open(filename).read(512)
+   text_characters = "".join(map(chr, range(32, 127)) + list("\n\r\t\b"))
+   _null_trans = string.maketrans("", "")
+   if not s:
+      # Empty files are considered text
+      return True
+   if "\0" in s:
+      # Files with null bytes are likely binary
+      return False
+   # Get the non-text characters (maps a character to itself then
+   # use the 'remove' option to get rid of the text characters.)
+   t = s.translate(_null_trans, text_characters)
+   # If more than 30% non-text characters, then
+   # this is considered a binary file
+   if float(len(t))/float(len(s)) > 0.30:
+      return False
+   return True
+
 
 def read_spectrum(filename, return_header=False):
    """
@@ -13,6 +39,21 @@ def read_spectrum(filename, return_header=False):
    @return: wavelength, flux(, header)
    @rtype: array, array(, dict)
    """
+   
+   
+   if istext(filename):
+      # treat this as a text file with 2 columns containing wavelength and flux
+      # text files are considered to not contain a header!
+      
+      data = ascii.read(filename, names = ['wave', 'flux'])
+      
+      if return_header:
+         return data['wave'], data['flux'], {}
+      else:
+         return data['wave'], data['flux']
+   
+   
+   
    header = fits.getheader(filename)
    
       
@@ -30,6 +71,16 @@ def read_spectrum(filename, return_header=False):
          flux = data['BGFLUX_REDUCED'][0]
       
       wave = data['wave'][0]
+   
+   elif not "CRVAL1" in header:
+      """
+      spectrum likely included as table data
+      """
+      
+      data = fits.getdata(filename, 1)
+      
+      flux = data['flux']
+      wave = data['wave']
    
    elif 'SDSS' in header.get('telescop', ''):
       """

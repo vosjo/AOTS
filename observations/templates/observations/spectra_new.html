@@ -17,7 +17,7 @@
 
 {% block content %}
 
-   <form action="{% url "observations:specfile_list" project.slug %}" method="post" enctype="multipart/form-data" id="specfile-upload-form">
+   <form action="{% url "observations:spectra_new" project.slug %}" method="post" enctype="multipart/form-data" id="specfile-upload-form">
 
    <section class='data-section'>
       
@@ -66,7 +66,7 @@
             <tbody>
                <tr> <th>Telescope:</th> <td>{{ upload_form.telescope }}{{ upload_form.telescope.errors }}</td> </tr>
                <tr> <th>Instrument:</th> <td>{{ upload_form.instrument }}{{ upload_form.instrument.errors }}</td> </tr>
-               <tr> <th>HJD:</th> <td>{{ upload_form.hjd }}{{ upload_form.hjd.errors }}</td> </tr>
+               <tr> <th>HJD-MID:</th> <td>{{ upload_form.hjd }}{{ upload_form.hjd.errors }}</td> </tr>
                <tr> <th>exptime (s):</th> <td>{{ upload_form.exptime }}{{ upload_form.exptime.errors }}</td> </tr>
                <tr> <th>resolution:</th> <td>{{ upload_form.resolution }}{{ upload_form.resolution.errors }}</td> </tr>
                <tr> <th>snr:</th> <td>{{ upload_form.snr }}{{ upload_form.snr.errors }}</td> </tr>

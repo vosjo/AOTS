@@ -11,26 +11,33 @@ from astropy.coordinates import EarthLocation
 from astropy.coordinates.angles import Angle
 
 
-def extract_header_info(header):
+def extract_header_info(header, user_info={}):
    """
    Reads the important header information and returns it as a dictionary
    """
    
    if 'ESO TEL ALT' in header:
-      return derive_eso_info(header)
+      data = derive_eso_info(header)
    elif header.get('INSTRUME', '') == 'FEROS':
-      return derive_feros_info(header)
+      data = derive_feros_info(header)
    elif header.get('INSTRUME', '') == 'HERMES':
-      return derive_hermes_info(header)
+      data = derive_hermes_info(header)
    elif 'SDSS' in header.get('TELESCOP', ''):
-      return derive_SDSS_info(header)
+      data = derive_SDSS_info(header)
    elif 'LAMOST' in header.get('TELESCOP', ''):
-      return derive_LAMOST_info(header)
+      data = derive_LAMOST_info(header)
    elif 'TESS' in header.get('TELESCOP', ''):
-      return derive_TESS_info(header)
+      data = derive_TESS_info(header)
    
    else:
-      return derive_generic_info(header)
+      data = derive_generic_info(header)
+   
+   #-- update the data extracted from the header with data provided by the user
+   if user_info is None:
+      user_info = {}
+   data.update(user_info)
+   
+   return data
    
 def get_observatory(header, project):
    """
@@ -53,6 +60,9 @@ def get_observatory(header, project):
       loc = EarthLocation.from_geocentric(x=x*u.m, y=y*u.m, z=z*u.m,)
    elif 'ESO TEL GEOLAT' in header:
       lat, lon, alt = header.get('ESO TEL GEOLAT', 0), header.get('ESO TEL GEOLON', 0), header.get('ESO TEL GEOELEV', 0)
+      loc = EarthLocation.from_geodetic(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m,)
+   elif 'GEOLAT' in header:
+      lat, lon, alt = header.get('GEOLAT', 0), header.get('GEOLON', 0), header.get('GEOALT', 0)
       loc = EarthLocation.from_geodetic(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m,)
    else:
       loc = EarthLocation.from_geodetic(lat=0*u.deg, lon=0*u.deg, height=0*u.m,)
@@ -95,14 +105,26 @@ def derive_generic_info(header):
    
    # pointing info
    data['objectname'] = header.get('OBJECT', '')
-   data['ra'] = header.get('RA', -1)
-   data['dec'] = header.get('DEC', -1)
+   
+   try:
+      data['ra'] = float(header.get('RA', None))
+   except Exception:
+      data['ra'] = Angle(header.get('RA', None), unit='hour').degree
+   
+   try:
+      data['dec'] = float(header.get('DEC', None))
+   except Exception:
+      data['dec'] = Angle(header.get('DEC', None), unit='degree').degree
    
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
    data['observer'] = header.get('OBSERVER', 'UK')
+   
+   data['resolution'] = header.get('SPEC_RES', -1)
+   data['snr'] = header.get('SNR', -1)
+   data['seeing'] = header.get('SEEING', -1)
    
    data['filetype'] = 'UK'
    

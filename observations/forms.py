@@ -15,38 +15,38 @@ class UploadSpectraDetailForm(forms.Form):
                                widget=forms.ClearableFileInput(attrs={'multiple': True}))
    
    # target
-   objectname = forms.CharField(max_length=50)
-   ra = forms.CharField(max_length=15)
-   dec = forms.CharField(max_length=15)
+   objectname = forms.CharField(max_length=50, required=False)
+   ra = forms.CharField(max_length=15, required=False)
+   dec = forms.CharField(max_length=15, required=False)
    
    # Observatory
-   observatory = forms.ModelChoiceField(queryset=Observatory.objects.all())
-   observatory_name = forms.CharField(max_length=100)
-   observatory_latitude = forms.FloatField()
-   observatory_longitude = forms.FloatField()
-   observatory_altitude = forms.FloatField()
-   observatory_is_spacecraft = forms.BooleanField()
+   observatory = forms.ModelChoiceField(queryset=Observatory.objects.all(), required=False)
+   observatory_name = forms.CharField(max_length=100, required=False)
+   observatory_latitude = forms.FloatField(required=False)
+   observatory_longitude = forms.FloatField(required=False)
+   observatory_altitude = forms.FloatField(required=False)
+   observatory_is_spacecraft = forms.BooleanField(required=False)
    
    # instrument and setup
-   telescope = forms.CharField(max_length=200)
-   instrument = forms.CharField(max_length=200)
-   hjd = forms.FloatField()
-   exptime = forms.FloatField()
-   resolution = forms.FloatField()
-   snr = forms.FloatField()
-   observer = forms.CharField(max_length=50)
+   telescope = forms.CharField(max_length=200, required=False)
+   instrument = forms.CharField(max_length=200, required=False)
+   hjd = forms.FloatField(required=False)
+   exptime = forms.FloatField(required=False)
+   resolution = forms.FloatField(required=False)
+   snr = forms.FloatField(required=False)
+   observer = forms.CharField(max_length=50, required=False)
    
    # observing conditions
-   wind_speed = forms.FloatField()
-   wind_direction = forms.FloatField()
-   seeing = forms.FloatField()
+   wind_speed = forms.FloatField(required=False)
+   wind_direction = forms.FloatField(required=False)
+   seeing = forms.FloatField(required=False)
    
    # extra
-   fluxcal = forms.BooleanField()
-   flux_units = forms.CharField(max_length=50)
-   note = forms.CharField(widget=forms.Textarea(attrs={'cols': 70, 'rows': 10}))
-   create_new_star = forms.BooleanField()
-   merge_spectra_if_possible = forms.BooleanField()
+   fluxcal = forms.BooleanField(required=False)
+   flux_units = forms.CharField(max_length=50, required=False)
+   note = forms.CharField(widget=forms.Textarea(attrs={'cols': 70, 'rows': 10}), required=False)
+   create_new_star = forms.BooleanField(required=False)
+   merge_spectra_if_possible = forms.BooleanField(required=False)
    
 #===========================================================================================
 #  SPECFILE

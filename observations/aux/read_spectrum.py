@@ -15,6 +15,9 @@ from stars.models import Star
 from . import instrument_headers
 
 
+
+
+
 def get_wind_direction(degrees):
    """
    Converts degrees to a direction
@@ -45,7 +48,7 @@ def isfloat(value):
   except ValueError:
     return False
 
-def derive_spectrum_info(spectrum_pk):
+def derive_spectrum_info(spectrum_pk, user_info={}):
    """
    Function to derive extra information about the observations from the 
    fits files, calculate several parameters, and derive weather information
@@ -63,7 +66,7 @@ def derive_spectrum_info(spectrum_pk):
    spectrum.maxwave = np.max(wave)
    
    #-- load info from spectrum header
-   data = instrument_headers.extract_header_info(header)
+   data = instrument_headers.extract_header_info(header, user_info=user_info)
    
    # HJD
    spectrum.hjd = data.get('hjd', 2400000)
@@ -134,7 +137,7 @@ def derive_spectrum_info(spectrum_pk):
    
    return "Spectrum details added/updated", True
 
-def derive_specfile_info(specfile_id):
+def derive_specfile_info(specfile_id, user_info={}):
    """
    Read some basic info from the spectrum and store it in the database
    """
@@ -142,8 +145,8 @@ def derive_specfile_info(specfile_id):
    specfile = SpecFile.objects.get(pk=specfile_id)
    wave, flux, h = specfile.get_spectrum()
    
-   data = instrument_headers.extract_header_info(h)
-      
+   data = instrument_headers.extract_header_info(h, user_info=user_info)
+   
    specfile.hjd = data['hjd']
    specfile.instrument = data['instrument']
    specfile.filetype = data['filetype']
@@ -153,7 +156,7 @@ def derive_specfile_info(specfile_id):
    specfile.save()
    
 
-def process_specfile(specfile_id, create_new_star=True, add_to_existing_spectrum=True):
+def process_specfile(specfile_id, create_new_star=True, add_to_existing_spectrum=True, user_info={}):
    """
    Check if the specfile is a duplicate, and if not, add it to a spectrum
    and target star.
@@ -161,11 +164,14 @@ def process_specfile(specfile_id, create_new_star=True, add_to_existing_spectrum
    returns success, message
    success is True is the specfile was successfully added, False otherwise. 
    the message contains info on what went wrong, or just a success message
+   
+   if user_info is provided, this will overwrite the data extracted from 
+   the header, if a header is present.
    """
    
    message = ""
    
-   derive_specfile_info(specfile_id)
+   derive_specfile_info(specfile_id, user_info=user_info)
    
    specfile = SpecFile.objects.get(pk=specfile_id)
    

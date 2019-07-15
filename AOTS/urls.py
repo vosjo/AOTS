@@ -16,7 +16,7 @@ Including another URLconf
 from django.urls import include, path
 from django.contrib import admin
 #from django.contrib.auth import views as auth_views
-from django.views.generic import RedirectView
+from django.views.generic import RedirectView, TemplateView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -31,7 +31,7 @@ router.register(r'projects', ProjectViewSet)
 
 urlpatterns = [
    path('', RedirectView.as_view(pattern_name='projects')),
-   #path('w/<slug:project>', RedirectView.as_view(url='{}/stars/stars/', permanent=False)),
+   path('w/documentation/', TemplateView.as_view(template_name='documentation.html') ),
    path('w/projects/', star_views.project_list, name='projects'),
    path('w/<slug:project>/', RedirectView.as_view(pattern_name='systems:star_list')),
    path('w/<slug:project>/systems/', include('stars.urls', namespace='systems')),

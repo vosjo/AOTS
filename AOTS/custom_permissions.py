@@ -54,14 +54,14 @@ def get_allowed_objects_to_view_for_user(qs, user):
 
 def check_user_can_view_project(function):
    """
-   Decorator that loads the funtion if the user is allowed to see the project, 
+   Decorator that loads the function if the user is allowed to see the project, 
    redirects to login page otherwise.
    """
    def wrapper(request, *args, **kwargs):
       user = request.user
       try:
          project = Project.objects.get(slug=kwargs['project'])
-      except Exceptions:
+      except Exception:
          messages.error(request, "That page requires login to view")
          return redirect('login')
       

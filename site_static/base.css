@@ -337,6 +337,40 @@ div.project-container h3 {
    text-align:center;
 }
 
+
+div.docs-container {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 250px;
+  width: 250px;
+  height: 350px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 5px;
+  border: solid 2px rgba(64, 117, 144, 0.3);
+  align-items: center;
+}
+
+div.docs-container div {
+  min-width: 250px; 
+  max-height: 300px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+
+div.docs-container h3 {
+/*    position: absolute; */
+   top: 20px;
+   font-weight: bold;
+   font-size: 20px;
+   margin: 0 0 0 0;
+   width: 250px;
+   text-align:center;
+}
+
+
 img.project-logo {
    display: block;
    max-width: 350px;

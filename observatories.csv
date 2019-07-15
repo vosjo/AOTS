@@ -4,8 +4,9 @@ ESO-Paranal,"ESO-VLT-U1, ESO-VLT-U2, ESO-VLT-U3, ESO-VLT-U4",-24.6272,-70.4048,2
 ESO-La Silla,"NTT, EULER, MPI-2.2",-29.256363,-70.738003,2400,0,http://www.ctio.noao.edu/,http://www.eso.org/asm/ui/publicLog?name=LaSilla&hoursInterval=12&startDate={year:}-{month:}-{day:}T{hour:}:{min:}:{sec:.3f},
 CTIO,SMARTS,-30.169208,-70.806198,2200,0,http://www.ctio.noao.edu/,http://www.ctio.noao.edu/noao/night-report-sky-conditions?field_nr_date_value[value][date]={month:}/{day:}/{year:},
 LCO,"BAADE, CLAY",-29.017382,-70.691734,2380,0,http://www.lco.cl/,http://weather.lco.cl/clima/weather/magellan/Weathercalendar.html?date1={year:}-{month:}-{day:},
-Ondrejov,Perek,49.909167,14.781535,500,0,https://stelweb.asu.cas.cz/web/,,http://www.asu.cas.cz/en/about/about-the-institute
+Ondrejov,Perek,49.909167,14.781535,500,0,https://stelweb.asu.cas.cz/web/,http://www.asu.cas.cz/en/about/about-the-institute,
 Potsdam-University,OST,52.409216,12.973218,32,0,https://polaris.astro.physik.uni-potsdam.de/wiki/doku.php?id=en:start,,
 Apache Point Observatory,SDSS 2.5-M,32.78019,-105.819878,2788,0,https://www.apo.nmsu.edu/,https://weather.apo.nmsu.edu/weather/logs/,Weather archive only has logs
-Xinglong Station,LAMOST,40.395761,117.575861,960,0,http://www.lamost.org/public/?locale=en,,Weather info is stored in the fits files
+Xinglong Station,LAMOST,40.395761,117.575861,960,0,http://www.lamost.org/public/?locale=en,Weather info is stored in the fits files,
 TESS,TESS,0,0,0,1,https://tess.mit.edu/,,
+South African Astronomical Observatory,"SALT, ACT, BISON, IRSF, KELT-south",-32.3783,20.8105,1798,0,https://www.saao.ac.za/,https://suthweather.saao.ac.za/,No weather archive

@@ -107,6 +107,13 @@ def read_spectrum(filename, return_header=False):
          
          wave = data['wave'][0]
       
+      elif 'SDSS' in header.get('telescop', ''):
+         """
+         SDSS spectrum
+         """
+         data = fits.getdata(filename, 1)
+         wave, flux = 10**data['loglam'], data['flux']
+      
       elif not "CRVAL1" in header:
          """
          spectrum likely included as table data
@@ -123,13 +130,6 @@ def read_spectrum(filename, return_header=False):
             flux = data['flux']
          else:
             flux = data['FLUX_REDUCED']
-      
-      elif 'SDSS' in header.get('telescop', ''):
-         """
-         SDSS spectrum
-         """
-         data = fits.getdata(filename, 1)
-         wave, flux = 10**data['loglam'], data['flux']
       
       else:
          flux = fits.getdata(filename)

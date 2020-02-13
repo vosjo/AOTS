@@ -8,24 +8,30 @@ def istext(filename):
    """
    Function that tries to estimate if a file is a text file or has a binary format.
    taken from here: https://stackoverflow.com/questions/1446549/how-to-identify-binary-and-text-files-using-python
+   
+   13/02/2020 joris: added catch for UnicodeDecodeError
    """
-   s=open(filename).read(512)
-   text_characters = "".join(map(chr, range(32, 127))) + "".join( list("\n\r\t\b"))
-   #_null_trans = str.maketrans("", "")
-   if not s:
-      # Empty files are considered text
+   try:
+      s=open(filename).read(512)
+      text_characters = "".join(map(chr, range(32, 127))) + "".join( list("\n\r\t\b"))
+      #_null_trans = str.maketrans("", "")
+      if not s:
+         # Empty files are considered text
+         return True
+      if "\0" in s:
+         # Files with null bytes are likely binary
+         return False
+      # Get the non-text characters (maps a character to itself then
+      # use the 'remove' option to get rid of the text characters.)
+      t = s.translate(text_characters)
+      # If more than 30% non-text characters, then
+      # this is considered a binary file
+      if float(len(t))/float(len(s)) > 0.30:
+         return False
       return True
-   if "\0" in s:
-      # Files with null bytes are likely binary
+   except UnicodeDecodeError:
+      # assuming that this is not a text file if it can't be decoded
       return False
-   # Get the non-text characters (maps a character to itself then
-   # use the 'remove' option to get rid of the text characters.)
-   t = s.translate(text_characters)
-   # If more than 30% non-text characters, then
-   # this is considered a binary file
-   if float(len(t))/float(len(s)) > 0.30:
-      return False
-   return True
 
 def read_1D_spectrum(filename):
    """

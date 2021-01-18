@@ -8,7 +8,7 @@ from django.dispatch import receiver
 
 from django.conf import settings
 
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 
 from stars.models import Star, Project
 from users.models import get_sentinel_user

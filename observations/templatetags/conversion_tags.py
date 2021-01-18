@@ -34,12 +34,16 @@ def dgr2dms(value):
 
 @register.filter
 def hjd2date(hjd):
-   t = Time(hjd, format='jd', out_subfmt='date')
+   t = Time(hjd, format='jd')
+   t.format = 'iso'
+   t.out_subfmt = 'date'
    return t.iso
 
 @register.filter
 def hjd2datetime(hjd):
-   t = Time(hjd, format='jd', out_subfmt='date_hms')
+   t = Time(hjd, format='jd')
+   t.format = 'iso'
+   t.out_subfmt = 'date_hms'
    return t.iso
 
 @register.filter

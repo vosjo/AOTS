@@ -6,10 +6,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
+
+from six import python_2_unicode_compatible
 
 from .project import Project
 from users.models import get_sentinel_user

@@ -23,8 +23,8 @@ class ParameterPlotterForm(forms.Form):
    
    
    def __init__(self, *args, **kwargs):
-      super(ParameterPlotterForm, self).__init__(*args, **kwargs)
-      
+      super().__init__(*args, **kwargs)
+
       parameterNames = sorted(Parameter.objects.values_list('cname', 'cname').distinct())
       
       self.fields['xaxis'].choices = parameterNames

@@ -145,7 +145,7 @@ class StarFilter(filters.FilterSet):
 
    @property
    def qs(self):
-      parent = super(StarFilter, self).qs
+      parent = super().qs
       
       parent = get_allowed_objects_to_view_for_user(parent, self.request.user)
       
@@ -231,7 +231,7 @@ class TagFilter(filters.FilterSet):
       
    @property
    def qs(self):
-      parent = super(StarFilter, self).qs
+      parent = super().qs
       
       return get_allowed_objects_to_view_for_user(parent, self.request.user)
       

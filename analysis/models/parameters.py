@@ -1,10 +1,11 @@
 #from __future__ import unicode_literals
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 
 from django.db.models.signals import pre_delete, post_delete, post_save, pre_save, post_init
 from django.dispatch import receiver
+
+from six import python_2_unicode_compatible
 
 from stars.models import Star
 from .datasource import  DataSource, AverageDataSource

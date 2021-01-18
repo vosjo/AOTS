@@ -155,7 +155,7 @@ def plot_spectrum(spectrum_id, rebin=1):
       HeAnnot = []
       for h in Helines:
          if h[0] > wave[0] and h[0] < wave[-1]:
-            HeAnnot.append(mpl.BoxAnnotation(plot=fig, left=h[0]-2, right=h[0]+2, fill_alpha=0.3, fill_color=h[1]))
+            HeAnnot.append(mpl.BoxAnnotation(left=h[0]-2, right=h[0]+2, fill_alpha=0.3, fill_color=h[1]))
       fig.renderers.extend(HeAnnot)
       
       fig.toolbar.logo=None

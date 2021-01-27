@@ -22,6 +22,8 @@ def extract_header_info(header, user_info={}):
       data = derive_feros_info(header)
    elif header.get('INSTRUME', '') == 'HERMES':
       data = derive_hermes_info(header)
+   elif header.get('INSTRUME', '') == 'SP_1.3m_MUSI':
+       data = derive_MUSICOS_info(header)
    elif 'SDSS' in header.get('TELESCOP', ''):
       data = derive_SDSS_info(header)
    elif 'LAMOST' in header.get('TELESCOP', ''):
@@ -324,6 +326,37 @@ def derive_LAMOST_info(header):
    data['wind_direction'] = header.get('WINDD', -1)
    data['seeing'] = header.get('SEEING', -1)
    
+   
+   return data
+
+
+def derive_MUSICOS_info(header):
+   """
+   Read header infromation from a MUSICOS spectrum
+   (Skalnate pleso observatory of Astronomical Institute of Slovak Academy of Sciences)
+   """
+   
+   data = {}
+   
+   # HJD
+   data['hjd'] = header['HJD']
+   
+   # pointing info
+   data['objectname'] = header.get('OBJECT', '')
+   data['ra'] = Angle(header.get('RA', None), unit='hour').degree
+   data['dec'] = Angle(header.get('DEC', None), unit='degree').degree
+   
+   # telescope and instrument info
+   data['instrument'] = header.get('INSTRUME', 'UK')
+   data['telescope'] = header.get('TELESCOP', 'UK')
+   data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+   data['observer'] = header.get('OBSERVER', 'UK')
+   
+   data['resolution'] = header.get('SPEC_RES', -1)
+   data['snr'] = header.get('SNR5500A', -1)
+   data['seeing'] = header.get('SEEING', -1)
+   
+   data['filetype'] = 'MUSICOS_final'
    
    return data
 

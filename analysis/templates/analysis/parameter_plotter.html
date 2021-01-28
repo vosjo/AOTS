@@ -26,7 +26,7 @@
          <div class="main-container border">
             <h3> Plot Setup</h3>
             
-            <form action="{% url "analysis:parameter_plotter" %}" method="get">
+            <form action="{% url "analysis:parameter_plotter" project.slug %}" method="get">
                
                <table>
                <tbody>

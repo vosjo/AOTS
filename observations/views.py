@@ -141,8 +141,10 @@ def specfile_list(request, project=None,  **kwargs):
             
             files = request.FILES.getlist('specfile')
             for f in files:
+               filename = f.name 
                #-- save the new specfile
-               newspec = SpecFile(specfile=f, project=project, added_by=request.user)
+               newspec = SpecFile(specfile=f, project=project, added_by=request.user, 
+                                  filename=filename)
                newspec.save()
                
                #-- now process it and add it to a Spectrum and Object

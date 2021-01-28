@@ -116,6 +116,7 @@ class SpecFileSerializer(ModelSerializer):
             'instrument',
             'filetype',
             'added_on',
+            'filename',
             ]
       read_only_fields = ('pk', 'star')
       

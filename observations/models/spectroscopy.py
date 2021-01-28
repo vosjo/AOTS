@@ -122,6 +122,7 @@ class SpecFile(models.Model):
    hjd = models.FloatField(default=-1)
    instrument = models.CharField(max_length=200, default='')
    filetype = models.CharField(max_length=200, default='')
+   filename = models.CharField(max_length=200, default='')
    
    specfile = models.FileField(upload_to='spectra/')
    

@@ -120,31 +120,34 @@ python manage.py runserver
 
 Instructions modified from: https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-18-04
 
-### 1. change the settings.py script
+### 1. Create an .env file
+To protect secrets like the postgres database password or the Django security 
+key they are embedded in AOTS via environment variables. The environment 
+variables are defined in the .env file in the AOTS directory. As an example we
+provide .env.example.
+
 ```
-DEBUG = False
-
-ALLOWED_HOSTS = ['a15.astro.physik.uni-potsdam.de', '141.89.178.17', 'localhost']
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'aotsdb',
-        'USER': 'aotsuser',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': '',
-    }
-}
-
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = 'media'
+cp AOTS/.env.example  AOTS/.env
 ```
 
-### 2. setup the database
+### 2. adjust the .env file
+In .env the secret Django security key, the postgres database password, the 
+server IP and URL, as well as the name of the computer used in production needs
+to be specified. If a different log file is desired or a different database 
+user was defined during setup, this must also be entered here.
+```
+SECRET_KEY=generate_and_add_your_secret_security_key_here
+DATABASE_NAME=aotsdb
+DATABASE_USER=aotsuser
+DATABASE_PASSWORD=your_database_password
+DATABASE_HOST=localhost
+DATABASE_PORT=
+DEVICE=the_name_of_your_device_used_in_production
+ALLOWED_HOSTS=server_url,server_ip,localhost
+LOG_FILE=/home/aots/www/aots/AOTS/logs/django.log
+```
+
+### 3. setup the database
 ```
 python manage.py makemigrations users
 python manage.py makemigrations stars
@@ -161,7 +164,7 @@ find . -path "*/migrations/*.pyc"  -delete
 ```
 and drop the database or remove the db.sqlite3 file
 
-### 3. create a admin user
+### 4. create a admin user
 ```
 python manage.py createsuperuser
 >>> Username: admin
@@ -171,7 +174,7 @@ python manage.py createsuperuser
 >>> Superuser created successfully.
 ```
 
-### 4. collect static files
+### 5. collect static files
 ```
 python manage.py collectstatic
 ```

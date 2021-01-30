@@ -14,7 +14,13 @@ import os
 
 import platform
 
+import environ
+
 #from . import api_permissions
+
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +30,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '!4ls$1ketyn!-=__-c9oy!nfj@i&cimyni32jbe&@u4x*0*suq'
+SECRET_KEY = env("SECRET_KEY")
+
 
 # Application definition
 
@@ -74,7 +81,8 @@ TEMPLATES = [
 ]
       
 
-# Django rest framework with datatables support: https://github.com/izimobil/django-rest-framework-datatables
+# Django rest framework with datatables support:
+# https://github.com/izimobil/django-rest-framework-datatables
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -88,7 +96,6 @@ REST_FRAMEWORK = {
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
     
-    #'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework_datatables.filters.DatatablesFilterBackend',
     ),
@@ -165,7 +172,7 @@ MEDIA_URL = '/media/'
 
 
 # Load specific settings for developement of production
-if 'OptiPlex' in platform.node():
+if env("DEVICE") in platform.node():
    from .settings_production import DEBUG, ALLOWED_HOSTS, DATABASES, LOGGING
 else:
    from .settings_development import DEBUG, ALLOWED_HOSTS, DATABASES, LOGGING

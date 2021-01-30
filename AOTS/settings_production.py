@@ -1,19 +1,26 @@
 
 import os
 
+import environ
+
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['a15.astro.physik.uni-potsdam.de', '141.89.178.17', 'localhost']
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'aotsdb',
-        'USER': 'aotsuser',
-        'PASSWORD': 'pgrts2018',
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': env("DATABASE_NAME"),
+        'USER': env("DATABASE_USER"),
+        'PASSWORD': env("DATABASE_PASSWORD"),
+        'HOST': env("DATABASE_HOST"),
+        'PORT': env("DATABASE_PORT"),
     }
 }
 
@@ -33,9 +40,11 @@ LOGGING = {
     'handlers': {
         'file': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/home/aots/www/aots/AOTS/debug.log',
-            'maxBytes': 1024 * 1024 * 100,  # 100 mb
+#             'level': 'INFO',
+#             'class': 'logging.FileHandler',
+            'class': 'logging.handlers.WatchedFileHandler',
+            'filename': env("LOG_FILE"),
+#             'maxBytes': 1024 * 1024 * 100,  # 100 mb
             'formatter': 'standard'
         },
     },
@@ -47,7 +56,8 @@ LOGGING = {
         },
         'django': {
             'handlers': ['file'],
-            'level': 'INFO',
+#             'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': True,
         },
         'stars': {

@@ -133,8 +133,8 @@ cp AOTS/.env.example  AOTS/.env
 ### 2. adjust the .env file
 In .env the secret Django security key, the postgres database password, the 
 server IP and URL, as well as the name of the computer used in production needs
-to be specified. If a different log file is desired or a different database 
-user was defined during setup, this must also be entered here.
+to be specified. If a special log directory is required or a different database
+user was defined during setup, this has to be specified here as well.
 ```
 SECRET_KEY=generate_and_add_your_secret_security_key_here
 DATABASE_NAME=aotsdb
@@ -144,7 +144,7 @@ DATABASE_HOST=localhost
 DATABASE_PORT=
 DEVICE=the_name_of_your_device_used_in_production
 ALLOWED_HOSTS=server_url,server_ip,localhost
-LOG_FILE=/home/aots/www/aots/AOTS/logs/django.log
+LOG_DIR=/home/aots/www/aots/AOTS/logs/
 ```
 
 ### 3. setup the database
@@ -218,12 +218,17 @@ WorkingDirectory=/home/aots/www/aots/AOTS
 ExecStart=/home/aots/www/aots/aotsenv/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
+          --timeout 600 \
+          --error-logfile /home/aots/www/aots/AOTS/logs/gunicorn_error.log \
+          --capture-output --log-level debug \
           --bind unix:/home/aots/www/aots/run/gunicorn.sock \
           AOTS.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
 ```
+Adjusts the log directory and user name as needed.
+
 
 start gunicorn and set it up to start at boot
 ```
@@ -252,6 +257,27 @@ check status
 ```
 sudo systemctl status gunicorn_aots
 ```
+
+
+## setup logroate
+To enable log rotation the following file should be added to /etc/logrotate.d:
+```
+/home/aots/www/aots/AOTS/logs/* {
+  daily
+  rotate 14
+  create
+  compress
+  delaycompress
+  notifempty
+  missingok
+  su aots www-data
+}
+```
+Change user name, group, and the log directory as needed. 
+
+Alternatively, 'logging.handlers.RotatingFileHandler' can be selected as class
+for the logging handlers in settings_production.py.
+
 
 ## Configure NGNIX
 

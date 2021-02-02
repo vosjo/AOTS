@@ -1,5 +1,5 @@
 
-import os
+from os.path import join
 
 import environ
 
@@ -9,7 +9,6 @@ environ.Env.read_env()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-DEBUG = True
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
@@ -38,31 +37,34 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
+        'default': {
             'level': 'DEBUG',
-#             'level': 'INFO',
-#             'class': 'logging.FileHandler',
             'class': 'logging.handlers.WatchedFileHandler',
-            'filename': env("LOG_FILE"),
-#             'maxBytes': 1024 * 1024 * 100,  # 100 mb
+            #'class': 'logging.handlers.RotatingFileHandler',
+            #'maxBytes': 1024 * 1024 * 100,  # 100 mb
+            'filename': join(env("LOG_DIR", default='/tmp/'),'not_django.log'),
+            'formatter': 'standard'
+        },
+        'django': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.WatchedFileHandler',
+            #'class': 'logging.handlers.RotatingFileHandler',
+            #'maxBytes': 1024 * 1024 * 100,  # 100 mb
+            'filename': join(env("LOG_DIR", default='/tmp/'),'django.log'),
             'formatter': 'standard'
         },
     },
     'loggers': {
-       'gunicorn.errors': {
+        '': {
+            'handlers': ['default'],
             'level': 'DEBUG',
-            'handlers': ['file'],
-            'propagate': True,
+            'propagate': True
         },
         'django': {
-            'handlers': ['file'],
-#             'level': 'INFO',
-            'level': 'DEBUG',
-            'propagate': True,
+            'handlers': ['django'],
+            'level': 'INFO',
+            #'level': 'DEBUG',
+            'propagate': False,
         },
-        'stars': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-        }
     },
 }

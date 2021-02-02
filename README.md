@@ -3,14 +3,14 @@
 
 ## Setup postgres
 
-This is only necessary if you want to run in production
+This is only necessary if you want to run in production.
 
-start postgres comand line
+Start postgres comand line:
 ```
 sudo -u postgres psql
 ```
 
-create the database, user and connect them
+Create the database, user and connect them:
 ```
 CREATE DATABASE aotsdb;
 CREATE USER aotsuser WITH PASSWORD 'password';
@@ -20,25 +20,25 @@ ALTER ROLE aotsuser SET timezone TO 'UTC';
 GRANT ALL PRIVILEGES ON DATABASE aotsdb TO aotsuser;
 ```
 
-list all databases:
+List all databases:
 ```
 \l
 ```
 
-connect to our database and list all tables:
+Connect to our database and list all tables:
 ```
 \c aotsdb
 \dt
 ```
 
-to drop the database and recreate it when you want to completely reset everything (the user does not get deteled in this process):
+To drop the database and recreate it when you want to completely reset everything (the user does not get deteled in this process):
 ```
 DROP DATABASE aotsdb;
 CREATE DATABASE aotsdb;
 GRANT ALL PRIVILEGES ON DATABASE aotsdb TO aotsuser;
 ```
 
-exit the psql
+Exit the psql:
 ```
 \q
 ```
@@ -49,7 +49,7 @@ This will install AOTS using a python virtualenv to avoid conflicts with other p
 
 ### 1. Prerequisits
 
-You need the python-dev package and virtualenv
+You need the python-dev package and virtualenv:
 ```
 sudo apt-get install python-dev
 pip install virtualenv
@@ -57,13 +57,13 @@ pip install virtualenv
 
 ### 2. Create the virtual environment
 
-Create a new virtual python environment for AOTS and activate it
+Create a new virtual python environment for AOTS and activate it:
 ```
 virtualenv aotsenv
 source aotsenv/bin/activate
 ```
 
-if this fails with an error similar to: Error: unsupported locale setting
+If this fails with an error similar to: Error: unsupported locale setting
 do:
 ```
 export LC_ALL=C
@@ -84,7 +84,7 @@ pip install -r requirements.txt
 
 To run AOTS localy, using the simple sqlite database and the included server:
 
-### 1. setup the database
+### 1. Setup the database
 ```
 python manage.py makemigrations users
 python manage.py makemigrations stars
@@ -99,9 +99,9 @@ In case you want a fresh start, run:
 find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
 find . -path "*/migrations/*.pyc"  -delete
 ```
-and drop the database or remove the db.sqlite3 file
+and drop the database or remove the db.sqlite3 file.
 
-### 2. create a admin user
+### 2. Create a admin user
 ```
 python manage.py createsuperuser
 >>> Username: admin
@@ -111,7 +111,7 @@ python manage.py createsuperuser
 >>> Superuser created successfully.
 ```
 
-### 3. start the development server
+### 3. Start the development server
 ```
 python manage.py runserver
 ```
@@ -130,7 +130,7 @@ provide .env.example.
 cp AOTS/.env.example  AOTS/.env
 ```
 
-### 2. adjust the .env file
+### 2. Adjust the .env file
 In .env the secret Django security key, the postgres database password, the 
 server IP and URL, as well as the name of the computer used in production needs
 to be specified. If a special log directory is required or a different database
@@ -147,7 +147,7 @@ ALLOWED_HOSTS=server_url,server_ip,localhost
 LOG_DIR=/home/aots/www/aots/AOTS/logs/
 ```
 
-### 3. setup the database
+### 3. Setup the database
 ```
 python manage.py makemigrations users
 python manage.py makemigrations stars
@@ -162,9 +162,9 @@ In case you want a fresh start, run:
 find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
 find . -path "*/migrations/*.pyc"  -delete
 ```
-and drop the database or remove the db.sqlite3 file
+and drop the database or remove the db.sqlite3 file.
 
-### 4. create a admin user
+### 4. Create a admin user
 ```
 python manage.py createsuperuser
 >>> Username: admin
@@ -174,16 +174,16 @@ python manage.py createsuperuser
 >>> Superuser created successfully.
 ```
 
-### 5. collect static files
+### 5. Collect static files
 ```
 python manage.py collectstatic
 ```
 
 
 
-## setup gunicorn
+## Setup gunicorn
 
-### create socket
+### Create socket
 
 ```
 sudo nano /etc/systemd/system/gunicorn_aots.socket
@@ -230,18 +230,18 @@ WantedBy=multi-user.target
 Adjusts the log directory and user name as needed.
 
 
-start gunicorn and set it up to start at boot
+Start gunicorn and set it up to start at boot:
 ```
 sudo systemctl start gunicorn_aots.socket
 sudo systemctl enable gunicorn_aots.socket
 ```
 
-check status of gunicorn with and the log files with:
+Check status of gunicorn with and the log files with:
 ```
 sudo systemctl status gunicorn_aots.socket
 sudo journalctl -u gunicorn_aots.socket
 ```
-check that a gunicorn.sock file is created:
+Check that a gunicorn.sock file is created:
 ```
 ls /home/aots/www/aots/AOTS/AOTS/run/
 >>> gunicorn.sock
@@ -253,13 +253,13 @@ sudo systemctl daemon-reload
 sudo systemctl restart gunicorn_aots
 ```
 
-check status
+Check status:
 ```
 sudo systemctl status gunicorn_aots
 ```
 
 
-## setup logroate
+## Setup logroate
 To enable log rotation the following file should be added to /etc/logrotate.d:
 ```
 /home/aots/www/aots/AOTS/logs/* {
@@ -312,23 +312,23 @@ Now, we can enable the file by linking it to the sites-enabled directory:
 sudo ln -s /etc/nginx/sites-available/aots /etc/nginx/sites-enabled
 ```
 
-Set the maximum body size for uploads by clients in the ngnix configuration file
+Set the maximum body size for uploads by clients in the ngnix configuration file:
 ```
 sudo nano /etc/nginx/nginx.conf
 ```
 
-add the following text in the http configuration block
+Add the following text in the http configuration block:
 ```
 # set client body size to 10M #
 client_max_body_size 10M;
 ```
 
-test for syntax errors:
+Test for syntax errors:
 ```
 sudo nginx -t
 ```
 
-when there are no errors restart ngnix
+When there are no errors restart ngnix:
 ```
 sudo systemctl restart nginx
 ```

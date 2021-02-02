@@ -1,19 +1,25 @@
 
-import os
+from os.path import join
+
+import environ
+
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['a15.astro.physik.uni-potsdam.de', '141.89.178.17', 'localhost']
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'aotsdb',
-        'USER': 'aotsuser',
-        'PASSWORD': 'pgrts2018',
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': env("DATABASE_NAME"),
+        'USER': env("DATABASE_USER"),
+        'PASSWORD': env("DATABASE_PASSWORD"),
+        'HOST': env("DATABASE_HOST"),
+        'PORT': env("DATABASE_PORT"),
     }
 }
 
@@ -31,28 +37,34 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
+        'default': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/home/aots/www/aots/AOTS/debug.log',
-            'maxBytes': 1024 * 1024 * 100,  # 100 mb
+            'class': 'logging.handlers.WatchedFileHandler',
+            #'class': 'logging.handlers.RotatingFileHandler',
+            #'maxBytes': 1024 * 1024 * 100,  # 100 mb
+            'filename': join(env("LOG_DIR", default='/tmp/'),'not_django.log'),
+            'formatter': 'standard'
+        },
+        'django': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.WatchedFileHandler',
+            #'class': 'logging.handlers.RotatingFileHandler',
+            #'maxBytes': 1024 * 1024 * 100,  # 100 mb
+            'filename': join(env("LOG_DIR", default='/tmp/'),'django.log'),
             'formatter': 'standard'
         },
     },
     'loggers': {
-       'gunicorn.errors': {
+        '': {
+            'handlers': ['default'],
             'level': 'DEBUG',
-            'handlers': ['file'],
-            'propagate': True,
+            'propagate': True
         },
         'django': {
-            'handlers': ['file'],
+            'handlers': ['django'],
             'level': 'INFO',
-            'propagate': True,
+            #'level': 'DEBUG',
+            'propagate': False,
         },
-        'stars': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-        }
     },
 }

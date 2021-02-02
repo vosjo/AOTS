@@ -29,3 +29,7 @@ populate*
 observed_systems*
 RGB_*
 sd_catalog*
+AOTS/.env
+*.log
+*.csv
+

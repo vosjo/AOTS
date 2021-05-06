@@ -141,7 +141,7 @@ def plot_spectrum(spectrum_id, rebin=1):
          wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
       else:
          wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
-      
+
       #-- set the maximum and minimum so that weird peaks are cut off automatically. 
       fsort = np.sort(flux)[::-1]
       maxf = fsort[int(np.floor(len(flux)/100.))] * 1.10

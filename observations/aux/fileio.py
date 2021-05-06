@@ -121,21 +121,25 @@ def read_spectrum(filename, return_header=False):
          wave, flux = 10**data['loglam'], data['flux']
       
       elif not "CRVAL1" in header:
-         """
-         spectrum likely included as table data
-         """
-         
-         data = fits.getdata(filename, 1)
-         
-         if 'WAVE' in data.dtype.names or 'wave' in data.dtype.names:
-            wave = data['WAVE'] # eso DR3
-         else:
-            wave = data['wavelength']
-         
-         if 'FLUX' in data.dtype.names or 'flux' in data.dtype.names:
-            flux = data['flux']
-         else:
-            flux = data['FLUX_REDUCED']
+        """
+        spectrum likely included as table data
+        """
+        
+        data = fits.getdata(filename, 1)
+        
+        if header.get('instrume', '') == 'XSHOOTER':
+            wave = data['WAVE'][0]*10.
+            flux = data['FLUX'][0]
+        else:
+            if 'WAVE' in data.dtype.names or 'wave' in data.dtype.names:
+                wave = data['WAVE'] # eso DR3
+            else:
+                wave = data['wavelength']
+            
+            if 'FLUX' in data.dtype.names or 'flux' in data.dtype.names:
+                flux = data['flux']
+            else:
+                flux = data['FLUX_REDUCED']
       
       else:
          flux = fits.getdata(filename)

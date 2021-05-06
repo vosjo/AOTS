@@ -24,6 +24,12 @@ zeropoints = {
             'GAIA2.G':    2.46973e-09,
             'GAIA2.BP':   4.0145e-09,
             'GAIA2.RP':   1.28701e-09,
+            'SKYMAP.U':   8.93655e-09,
+            'SKYMAP.V':   7.38173e-09,
+            'SKYMAP.G':   4.18485e-09,
+            'SKYMAP.R':   2.85924e-09,
+            'SKYMAP.I':   1.79368e-09,
+            'SKYMAP.Z':   1.29727e-09,
             'APASS.B':    6.40615e-09,
             'APASS.V':    3.66992e-09,
             'APASS.G':    4.92257e-09,
@@ -34,6 +40,11 @@ zeropoints = {
             'SDSS.R':     2.541e-9,
             'SDSS.I':     1.323e-9,
             'SDSS.Z':     7.097e-10,
+            'PANSTAR.G':  4.704969e-09,
+            'PANSTAR.R':  2.859411e-09,
+            'PANSTAR.I':  1.924913e-09,
+            'PANSTAR.Z':  1.451480e-09,
+            'PANSTAR.Y':  1.176242e-09,
             '2MASS.J':    3.11048e-10,
             '2MASS.H':    1.13535e-10,
             '2MASS.K':    4.27871e-11,
@@ -266,6 +277,8 @@ def plot_sed(star_id):
              'GAIA2': 'maroon',
              'APASS': 'gold',
              'GALEX': 'powderblue',
+             'PANSTAR': 'green',
+             'SKYMAP': 'red',
               } 
    
    for band in set(system):

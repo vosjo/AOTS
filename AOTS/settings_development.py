@@ -1,5 +1,5 @@
 
-from os.path import join
+import os
 
 import environ
 
@@ -41,7 +41,10 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': join(env("LOG_DIR", default='/tmp/'),'debug.log'),
+            'filename': os.path.join(
+                env("LOG_DIR", default='/tmp/'),
+                'debug.log'
+                ),
             'formatter': 'standard'
         },
     },
@@ -53,7 +56,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['file'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': True,
         },
     },

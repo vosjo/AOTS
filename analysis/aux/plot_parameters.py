@@ -86,7 +86,6 @@ def plot_parameters(parameters, **kwargs):
    xpar = parameters.get('xaxis', 'p')
    ypar = parameters.get('yaxis', 'e')
    
-   print( xpar, ypar )
    
    data, parameters = get_data(parameters)
    statistics = get_parameter_statistics(data, parameters)
@@ -106,8 +105,9 @@ def plot_parameters(parameters, **kwargs):
                     tools=TOOLS)
    
    fig.circle(xpar, ypar, source=datasource, size=5)
-   plot_errorbars(fig, data[xpar], data[ypar], xerr = data['e_'+xpar], yerr = data['e_'+ypar])
-   #fig.circle((1,1), (2,2))
+   #    Make sure xpar is filled otherwise avoid plotting
+   if xpar != '':
+      plot_errorbars(fig, data[xpar], data[ypar], xerr = data['e_'+xpar], yerr = data['e_'+ypar])
    
    fig.toolbar.logo=None
    fig.yaxis.axis_label = ypar

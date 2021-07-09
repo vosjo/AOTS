@@ -26,7 +26,7 @@ class ParameterPlotterForm(forms.Form):
       super().__init__(*args, **kwargs)
 
       parameterNames = sorted(Parameter.objects.values_list('cname', 'cname').distinct())
-      
+     
       self.fields['xaxis'].choices = parameterNames
       self.fields['yaxis'].choices = parameterNames
       parameterNames.append(('', ''))
@@ -34,7 +34,10 @@ class ParameterPlotterForm(forms.Form):
       self.fields['color'].choices = parameterNames
       
       inix = 'p' if ('p', 'p') in parameterNames else parameterNames[0][0]
-      iniy = 'q' if ('q', 'q') in parameterNames else parameterNames[1][0]
+      if len(parameterNames) > 1:
+         iniy = 'q' if ('q', 'q') in parameterNames else parameterNames[1][0]
+      else:
+         iniy = parameterNames[0][1]
       self.initial['xaxis'] = inix
       self.initial['yaxis'] = iniy
       self.initial['size'] = ''

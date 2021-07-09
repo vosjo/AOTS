@@ -13,7 +13,10 @@ db_reset
 populate_db.py
 __pycache__
 MANIFEST
-media/
+media/spectra
+media/lightcurves
+media/datasets
+media/projects
 TestData/
 dist/
 docs/_build/
@@ -22,6 +25,7 @@ node_modules/
 tests/coverage_html/
 tests/.coverage
 build/
+logs/
 tests/report/
 */migrations
 static/

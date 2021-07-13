@@ -37,6 +37,7 @@ $(document).ready(function () {
          defaultContent: '<i class="material-icons button show" title="Expand/hide">visibility</i>',
          width:          '10',
          orderable:      false,
+         visible:        user_authenticated,
       },
       { data: 'hjd', render : hjd_render },
       { data: 'star', render : star_render },

@@ -19,7 +19,9 @@ import datetime
 try: import ephem
 except ImportError: print("Unable to load pyephem, stellar coordinate transformations unavailable")
 
-#-- from IVS repository
+#-- from IVS repository -> not part of this package anymore, because of
+#                          inconsistencies with python3
+#                       -> install lib version to readable this routine
 from analysis.aux.units import constants
 from analysis.aux.units.uncertainties import unumpy,AffineScalarFunc,ufloat
 from analysis.aux.units.uncertainties.unumpy import log10,log,exp,sqrt

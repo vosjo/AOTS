@@ -1,14 +1,22 @@
 from django.test import TestCase
 
-from stars.models import Star, Identifier
+from stars.models import Star, Identifier, Project
 
 class IdentifierBookkeeping(TestCase):
    
    def setUp(self):
+       
+      p = Project.objects.create(
+          name='TestCase', 
+          description='TestCase_description',
+          )
+      s = Star.objects.create(
+          name='Vega', 
+          project=p, 
+          ra=279.23473479, 
+          dec=38.78368896,
+          )
       
-      s = Star.objects.create(name='Vega', ra=279.23473479, dec=38.78368896)
-      
-   
    
    def test_create_identifier_on_create_star(self):
       

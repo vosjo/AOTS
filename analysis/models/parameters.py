@@ -272,7 +272,7 @@ def average_parameter_bookkeeping(sender, **kwargs):
             try:
                ds = AverageDataSource.objects.get(project__exact=param.star.project)
             except AverageDataSource.DoesNotExist:
-               print( 'project: ', param.star.project)
+               #print( 'project: ', param.star.project)
                ds = AverageDataSource.objects.create(name='AVG', project=param.star.project)
             
             ap = Parameter.objects.create(star        = param.star, 

@@ -10,7 +10,7 @@ from observations.plotting import plot_sed
 
 from .forms import StarForm
 
-from .plotting import plot_photometry
+#from .plotting import plot_photometry
 
 from bokeh.resources import CDN
 from bokeh.embed import components

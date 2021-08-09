@@ -1,4 +1,4 @@
-""" 
+"""
 Functions to derive essential information from the header in instrument specific cases.
 """
 
@@ -15,7 +15,7 @@ def extract_header_info(header, user_info={}):
    """
    Reads the important header information and returns it as a dictionary
    """
-   
+
    if 'ESO TEL ALT' in header:
       data = derive_eso_info(header)
    elif header.get('INSTRUME', '') == 'FEROS':
@@ -24,30 +24,32 @@ def extract_header_info(header, user_info={}):
       data = derive_hermes_info(header)
    elif header.get('INSTRUME', '') == 'SP_1.3m_MUSI':
        data = derive_MUSICOS_info(header)
+   elif header.get('INSTRUME', '') == 'MODS2B':
+       data = derive_MODS2B_info(header)
    elif 'SDSS' in header.get('TELESCOP', ''):
       data = derive_SDSS_info(header)
    elif 'LAMOST' in header.get('TELESCOP', ''):
       data = derive_LAMOST_info(header)
    elif 'TESS' in header.get('TELESCOP', ''):
       data = derive_TESS_info(header)
-   
+
    else:
       data = derive_generic_info(header)
-   
+
    #-- update the data extracted from the header with data provided by the user
    if user_info is None:
       user_info = {}
    data.update(user_info)
-   
+
    return data
-   
+
 def get_observatory(header, project):
    """
    Finds a suitable observatory or if not possible, create a new one.
    """
-   
+
    d = 0.1  # a difference of 0.1 degree in latitude and longitude is roughly 10 km
-   
+
    #-- try to find the observatory on name match
    if 'TELESCOP' in header:
       try:
@@ -55,7 +57,7 @@ def get_observatory(header, project):
          return obs
       except Exception as e:
          telescope = header.get('TELESCOP', 'UK')
-   
+
    #-- try to find observatory on location match
    if 'OBSGEO-X' in header:
       x, y, z = header.get('OBSGEO-X', 0), header.get('OBSGEO-Y', 0), header.get('OBSGEO-Z', 0)
@@ -68,33 +70,33 @@ def get_observatory(header, project):
       loc = EarthLocation.from_geodetic(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m,)
    else:
       loc = EarthLocation.from_geodetic(lat=0*u.deg, lon=0*u.deg, height=0*u.m,)
-   
+
    #-- we look for an observatory that is within 1 degree from location stored in the header, altitude is not checked.
-   obs = Observatory.objects.filter(latitude__range = (loc.lat.degree-d, loc.lat.degree+d), 
+   obs = Observatory.objects.filter(latitude__range = (loc.lat.degree-d, loc.lat.degree+d),
                                     longitude__range = (loc.lon.degree-d, loc.lon.degree+d),
                                     project__exact = project)
-   
+
    if len(obs) > 0:
       return obs[0]
-      
+
 
    #-- if still no observatory exists, create a new one.
    obs = Observatory(name=telescope, latitude=loc.lat.degree, longitude=loc.lon.degree,
                      altitude=loc.height.value, project=project)
    obs.save()
-      
+
    return obs
-   
+
 
 def derive_generic_info(header):
    """
    Tries to read some basic information from a unknown spectrum
-   
+
    This information is stored in the spectrum database entry
    """
-   
+
    data = {}
-   
+
    # HJD
    if 'HJD' in header:
       data['hjd'] = header['HJD']
@@ -104,44 +106,44 @@ def derive_generic_info(header):
       data['hjd'] = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
    else:
       data['hjd'] = 2400000
-   
+
    # pointing info
    data['objectname'] = header.get('OBJECT', '')
-   
+
    try:
       data['ra'] = float(header.get('RA', None))
    except Exception:
       data['ra'] = Angle(header.get('RA', None), unit='hour').degree
-   
+
    try:
       data['dec'] = float(header.get('DEC', None))
    except Exception:
       data['dec'] = Angle(header.get('DEC', None), unit='degree').degree
-   
+
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
    data['observer'] = header.get('OBSERVER', 'UK')
-   
+
    data['resolution'] = header.get('SPEC_RES', -1)
    data['snr'] = header.get('SNR', -1)
    data['seeing'] = header.get('SEEING', -1)
-   
+
    data['filetype'] = 'UK'
-   
+
    return data
 
 def derive_eso_info(header):
    """
    Reads header information from a standard ESO fits file
    """
-   
+
    data = {}
-   
+
    # HJD
    data['hjd'] = Time(header.get('MJD-OBS', 0.0), format='mjd', scale='utc').jd
-   
+
    # pointing info
    data['objectname'] = header.get('OBJECT', '')
    data['ra'] = header.get('RA', -1)
@@ -149,7 +151,7 @@ def derive_eso_info(header):
    data['alt'] = header.get('ESO TEL ALT', -1)
    data['az'] = header.get('ESO TEL AZ', -1)
    data['airmass'] = header.get('ESO TEL AIRM END', -1)
-   
+
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
@@ -157,15 +159,15 @@ def derive_eso_info(header):
    data['barycor'] = header.get('ESO QC VRAD BARYCOR', -1)
    data['observer'] = header.get('OBSERVER', 'UK')
    data['filetype'] = header['PIPEFILE']
-   
+
    if 'SPEC_RES' in header:
       data['resolution'] = header['SPEC_RES']
    elif 'UVES' in header.get('INSTRUME', 'UK'):
       data['resolution'] = 40000
-      
+
    data['snr'] = header.get('SNR', -1)
-   
-   
+
+
    # observing conditions
    data['wind_speed'] = np.round(header.get('ESO TEL AMBI WINDSP', -1), 1)
    data['wind_direction'] = np.round(header.get('ESO TEL AMBI WINDDIR', -1), 0)
@@ -175,21 +177,21 @@ def derive_eso_info(header):
       data['seeing'] = header.get('ESO TEL AMBI FWHM START', -1)
    elif 'ESO TEL AMBI FWHM END' in header:
       data['seeing'] = header.get('ESO TEL AMBI FWHM END', -1)
-   
+
    return data
 
 def derive_feros_info(header):
    """
    Read header information from a FEROS spectrum
-   
+
    This information is stored in the spectrum database entry
    """
-   
+
    data = {}
-   
+
    # HJD
    data['hjd'] = Time(header.get('MJD-OBS', 0.0), format='mjd', scale='utc').jd
-   
+
    # pointing info
    data['objectname'] = header.get('OBJECT', '')
    data['ra'] = header.get('RA', -1)
@@ -197,7 +199,7 @@ def derive_feros_info(header):
    data['alt'] = header.get('ESO TEL ALT', -1)
    data['az'] = header.get('ESO TEL AZ', -1)
    data['airmass'] = header.get('ESO TEL AIRM END', -1)
-   
+
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
@@ -206,27 +208,62 @@ def derive_feros_info(header):
    data['barycor'] = -1
    data['observer'] = header.get('OBSERVER', 'UK')
    data['filetype'] = header['PIPEFILE']
-   
+
    # observing conditions
    data['wind_speed'] = np.round(header.get('ESO TEL AMBI WINDSP', -1), 1)
    data['wind_direction'] = np.round(header.get('ESO TEL AMBI WINDDIR', -1), 0)
-   
+
    return data
-   
-   
+
+
+def derive_MODS2B_info(header):
+    """
+    Read header information from a FEROS spectrum
+
+    This information is stored in the spectrum database entry
+    """
+
+    data = {}
+
+    #   HJD
+    data['hjd'] = Time(header.get('MJD-OBS', 0.0), format='mjd', scale='utc').jd
+
+    #   Pointing info
+    data['objectname'] = header.get('OBJECT', '')
+    data['ra'] = Angle(header.get('OBJRA', None), unit='hour').degree
+    data['dec'] = Angle(header.get('OBJDEC', None), unit='degree').degree
+    data['alt'] = header.get('TELALT', -1)
+    data['az'] = header.get('TELAZ', -1)
+    data['airmass'] = header.get('AIRMASS', -1)
+
+    #   Telescope and instrument info
+    data['instrument'] = header.get('INSTRUME', 'UK')
+    data['telescope'] = header.get('TELESCOP', 'UK')
+    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+    if header.get('MASKNAME', '') == 'LS5x60x0.6':
+        if header.get('GRATNAME', '').strip() == 'G400L':
+            data['resolution'] = 1850
+        elif header.get('GRATNAME', '').strip() == 'G670L':
+            data['resolution'] = 2300
+    data['barycor'] = -1
+    data['observer'] = header.get('OBSERVER', 'UK')
+    data['filetype'] = 'MODS_final_' + header.get('GRATNAME', '').strip()
+
+    return data
+
 
 def derive_hermes_info(header):
    """
    Read header information from a HERMES spectrum
-   
+
    This information is stored in the spectrum database entry
    """
-   
+
    data = {}
-   
+
    # HJD
    data['hjd'] = header.get('BJD', 2400000)
-   
+
    # pointing info
    data['objectname'] = header.get('OBJECT', '')
    data['ra'] = float(header.get('RA', -1))
@@ -234,7 +271,7 @@ def derive_hermes_info(header):
    data['alt'] = float(header.get('TELALT', -1))
    data['az'] = float(header.get('TELAZI', -1))
    data['airmass'] = -1
-   
+
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
@@ -243,19 +280,19 @@ def derive_hermes_info(header):
    data['barycor'] = header.get('BVCOR', -1)
    data['observer'] = header.get('OBSERVER', 'UK')
    data['filetype'] = 'MERGE_REBIN'
-   
+
    return data
 
 
 def derive_SDSS_info(header):
    """
    Read header information from an SDSS spectrum
-   
+
    This information is stored in the spectrum database entry
    """
-   
+
    data = {}
-   
+
    # HJD
    if 'TAI' in header:
       t = Time('1858-11-17', format='iso') + header.get('TAI', 0.0) * u.second
@@ -264,7 +301,7 @@ def derive_SDSS_info(header):
       data['hjd'] = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
    else:
       data['hjd'] = 2400000
-   
+
    # pointing info
    if 'SPEC_ID' in header:
       data['objectname'] = header.get('SPEC_ID', '')
@@ -272,10 +309,10 @@ def derive_SDSS_info(header):
       ra_ = "J{:02.0f}{:02.0f}{:05.2f}".format(*Angle(header.get('PLUG_RA', -1), unit='degree').hms)
       dec_ = Angle(header.get('PLUG_DEC', -1), unit='degree').dms
       data['objectname'] = ra_ + "{:+03.0f}{:02.0f}{:05.2f}".format(dec_[0], abs(dec_[1]), abs(dec_[2]))
-      
+
    data['ra'] = header.get('PLUG_RA', -1)
    data['dec'] = header.get('PLUG_DEC', -1)
-   
+
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'SDSS')
    data['telescope'] = header.get('TELESCOP', 'SDSS 2.5-M')
@@ -284,14 +321,14 @@ def derive_SDSS_info(header):
    data['barycor'] = header.get('HELIO_RV', -1)
    data['observer'] = header.get('OBSERVER', 'UK')
    data['filetype'] = 'SDSS_final'
-   
+
    # observing conditions
    data['wind_speed'] = header.get('WINDS', -1)
    data['wind_direction'] = header.get('WINDD', -1)
-   
+
    if 'SPEC_ID' in header:
       data['url'] = "http://skyserver.sdss.org/dr15/en/tools/quicklook/summary.aspx?sid="+header['SPEC_ID']
-   
+
    return data
 
 
@@ -300,18 +337,18 @@ def derive_LAMOST_info(header):
    """
    Read header information from a LAMOST spectrum
    """
-   
+
    data = {}
-   
+
    # HJD
    data['hjd'] = Time(header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'), format='fits').jd
-   
+
    # pointing info
    data['objectname'] = header.get('DESIG', 'UK')
-      
+
    data['ra'] = header.get('RA_OBS', -1)
    data['dec'] = header.get('DEC_OBS', -1)
-   
+
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'LRS')
    data['telescope'] = header.get('TELESCOP', 'LAMOST')
@@ -320,13 +357,13 @@ def derive_LAMOST_info(header):
    data['barycor'] = header.get('HELIO_RV', -1)
    data['observer'] = 'UK'
    data['filetype'] = str(header.get('DATA_V', '').replace(' ', '_')) + '_' + str(header.get('ORIGIN', '')) + '_' + str(header.get('OBSID', ''))
-   
+
    # observing conditions
    data['wind_speed'] = header.get('WINDS', -1)
    data['wind_direction'] = header.get('WINDD', -1)
    data['seeing'] = header.get('SEEING', -1)
-   
-   
+
+
    return data
 
 
@@ -335,29 +372,29 @@ def derive_MUSICOS_info(header):
    Read header infromation from a MUSICOS spectrum
    (Skalnate pleso observatory of Astronomical Institute of Slovak Academy of Sciences)
    """
-   
+
    data = {}
-   
+
    # HJD
    data['hjd'] = header['HJD']
-   
+
    # pointing info
    data['objectname'] = header.get('OBJECT', '')
    data['ra'] = Angle(header.get('RA', None), unit='hour').degree
    data['dec'] = Angle(header.get('DEC', None), unit='degree').degree
-   
+
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'UK')
    data['telescope'] = header.get('TELESCOP', 'UK')
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
    data['observer'] = header.get('OBSERVER', 'UK')
-   
+
    data['resolution'] = header.get('SPEC_RES', -1)
    data['snr'] = header.get('SNR5500A', -1)
    data['seeing'] = header.get('SEEING', -1)
-   
+
    data['filetype'] = 'MUSICOS_final'
-   
+
    return data
 
 
@@ -365,24 +402,24 @@ def derive_TESS_info(header):
    """
    Read header information from a TESS lightcurve
    """
-   
+
    data = {}
-   
+
    # HJD
    # TESS uses truncated julian date with zero at JD=2457000
    data['hjd_start'] = 2457000 + header.get('TSTART', 0)
    data['hjd_end'] = 2457000 + header.get('TSTOP', 0)
-   
+
    data['hjd'] = np.average([data['hjd_start'], data['hjd_end']])
-   
+
    data['duration'] = Time(data['hjd_end']-data['hjd_start'], format='jd').jd * 24 # duration in hours
-   
+
    # pointing info
    data['objectname'] = header.get('OBJECT', 'UK')
-      
+
    data['ra'] = header.get('RA_OBJ', -1)
    data['dec'] = header.get('DEC_OBJ', -1)
-   
+
    # telescope and instrument info
    data['instrument'] = header.get('INSTRUME', 'TESS Photometer')
    data['telescope'] = header.get('TELESCOP', 'TESS')
@@ -392,5 +429,5 @@ def derive_TESS_info(header):
    data['observer'] = 'SPACE CRAFT'
    data['filetype'] = header.get('CREATOR', '').replace(' ', '_') + '_v_' + str(header.get('FILEVER', '')).strip() \
                       + '_rel_' + str(header.get('DATA_REL', '')).strip()
-   
+
    return data

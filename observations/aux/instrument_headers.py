@@ -24,8 +24,8 @@ def extract_header_info(header, user_info={}):
       data = derive_hermes_info(header)
    elif header.get('INSTRUME', '') == 'SP_1.3m_MUSI':
        data = derive_MUSICOS_info(header)
-   elif header.get('INSTRUME', '') == 'MODS2B':
-       data = derive_MODS2B_info(header)
+   elif header.get('INSTRUME', '') in ['MODS1B', 'MODS1R', 'MODS2B', 'MODS2R']:
+       data = derive_MODS_info(header)
    elif 'SDSS' in header.get('TELESCOP', ''):
       data = derive_SDSS_info(header)
    elif 'LAMOST' in header.get('TELESCOP', ''):
@@ -216,7 +216,7 @@ def derive_feros_info(header):
    return data
 
 
-def derive_MODS2B_info(header):
+def derive_MODS_info(header):
     """
     Read header information from a FEROS spectrum
 

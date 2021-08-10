@@ -90,13 +90,13 @@ def read_spectrum(filename, return_header=False):
 
    header = fits.getheader(filename)
 
-   if header.get('INSTRUME', '') == 'MODS2B':
+   if header.get('INSTRUME', '') in ['MODS1B', 'MODS1R', 'MODS2B', 'MODS2R']:
        row=1
    else:
        row=0
 
    try:
-      wave, flux = read_1D_spectrum(filename, row=rom)
+      wave, flux = read_1D_spectrum(filename, row=row)
    except Exception as e:
       print (e)
 

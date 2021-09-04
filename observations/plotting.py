@@ -16,7 +16,7 @@ from bokeh import plotting as bpl
 from bokeh import models as mpl
 from bokeh.models import widgets, FuncTickFormatter
 
-from observations.aux import tools as spectools
+from observations.auxil import tools as spectools
 
 zeropoints = {
             'GALEX.FUV':  4.72496e-08, 

@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render, reverse
 from django.http import HttpResponseRedirect
 from django.contrib import messages
 
-from .aux import process_datasets, plot_parameters
+from .auxil import process_datasets, plot_parameters
 
 from stars.models import Project
 

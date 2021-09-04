@@ -19,7 +19,7 @@ from .serializers import SpectrumSerializer, SpectrumListSerializer, SpecFileSer
 
 from observations.models import Spectrum, SpecFile, LightCurve, Observatory
 
-from observations.aux import read_spectrum, read_lightcurve
+from observations.auxil import read_spectrum, read_lightcurve
 
 from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 

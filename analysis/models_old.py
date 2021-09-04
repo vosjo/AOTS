@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 from stars.models import Star
 
-from .aux import plot_datasets
+from .auxil import plot_datasets
 
 import numpy as np
 from ivs.io import hdf5

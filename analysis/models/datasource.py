@@ -9,10 +9,10 @@ from django.conf import settings
 from stars.models import Star, Project
 from users.models import get_sentinel_user
 
-from analysis.aux import plot_datasets
+from analysis.auxil import plot_datasets
 
 import numpy as np
-from analysis.aux import fileio
+from analysis.auxil import fileio
 
 #-- all constants are the roud_value function are imported from default values
 from .default_values import *

@@ -36,4 +36,5 @@ sd_catalog*
 AOTS/.env
 *.log
 *.csv
-
+venv/
+.idea/

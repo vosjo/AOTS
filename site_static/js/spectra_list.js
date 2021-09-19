@@ -17,9 +17,9 @@ function format ( data ) {
 }
 
 $(document).ready(function () {
-
    // Table functionality
    spectra_table = $('#spectratable').DataTable({
+   dom: 'l<"toolbar">frtip',
    autoWidth: false,
    serverSide: true,
    ajax: {
@@ -30,14 +30,20 @@ $(document).ready(function () {
    orderMulti: false, //Can only order on one column at a time
    order: [1],
    columns: [
-      {
-         className:      'details-control',
+       {
          orderable:      false,
+         className:      'select-control',
          data:           null,
-         defaultContent: '<i class="material-icons button show" title="Expand/hide">visibility</i>',
+         render: selection_render,
          width:          '10',
-         orderable:      false,
       },
+      // {
+      //    className:      'details-control',
+      //    orderable:      false,
+      //    data:           null,
+      //    defaultContent: '<i class="material-icons button show" title="Expand/hide">visibility</i>',
+      //    width:          '10',
+      // },
       { data: 'hjd', render : hjd_render },
       { data: 'star', render : star_render },
       { data: 'instrument', render : instrument_render },
@@ -57,6 +63,35 @@ $(document).ready(function () {
       event.preventDefault();
       spectra_table.draw();
    } );
+
+      // check and uncheck tables rows
+   $('#spectratable tbody').on( 'click', 'td.select-control', function () {
+      var tr = $(this).closest('tr');
+      var row = spectra_table.row( tr );
+      if ( $(row.node()).hasClass('selected') ) {
+         deselect_row(row);
+      } else {
+         select_row(row);
+      }
+   } );
+
+   $('#select-all').on('click', function () {
+      if ( $(this).text() === 'check_box' || $(this).text() === 'indeterminate_check_box') {
+         // deselect all
+         $(this).text('check_box_outline_blank');
+
+         spectra_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+            deselect_row(this); // Open this row
+         });
+      } else {
+         // close all rows
+         $(this).text('check_box');
+
+         spectra_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+            select_row(this); // close the row
+         });
+      }
+   });
 
    // Make the filter button open the filter menu
    $('#filter-dashboard-button').on('click', openNav);
@@ -112,7 +147,15 @@ $(document).ready(function () {
       delete_spectrum(thisrow, data);
    });
 
+  //Add toolbar to table
+   $("div.toolbar").html("<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>");
+
+   $("#dl-button").click( DlSpectra );
+
+
 });
+
+
 
 // Table filter functionality
 
@@ -154,6 +197,15 @@ function get_filter_keywords( d ) {
 }
 
 // Table renderers
+function selection_render( data, type, full, meta ) {
+   if ( $(spectra_table.row(meta['row']).node()).hasClass('selected') ){
+      return '<i class="material-icons button select" title="Select">check_box</i>';
+   } else {
+      return '<i class="material-icons button select" title="Select">check_box_outline_blank</i>';
+   }
+}
+
+
 function hjd_render( data, type, full, meta ) {
    return "<a href='" + full['href'] + "' >" + data + "</a>"
 }
@@ -290,4 +342,63 @@ function delete_spectrum(row, data) {
          }
       });
    }
+}
+
+// Selection and Deselection of rows
+
+function select_row(row) {
+   $(row.node()).find("i[class*=select]").text('check_box');
+   $(row.node()).addClass('selected');
+   if ( spectra_table.rows('.selected').data().length < spectra_table.rows().data().length ) {
+      $('#select-all').text('indeterminate_check_box');
+   } else {
+      $('#select-all').text('check_box');
+   }
+    $('#dl-button').prop('disabled', false)
+}
+
+function deselect_row(row) {
+   $(row.node()).find("i[class*=select]").text('check_box_outline_blank');
+   $(row.node()).removeClass('selected');
+   if ( spectra_table.rows('.selected').data().length === 0 ) {
+      $('#select-all').text('check_box_outline_blank');
+      $('#dl-button').prop('disabled', true)
+   } else {
+      $('#select-all').text('indeterminate_check_box');
+   }
+}
+
+
+function DlSpectra() {
+   var spfilelist = [];
+   // get list of files
+   spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+      var specid = this.data()['pk'];
+      $.getJSON("/api/observations/spectra/" + specid + "/", function (spectrum) {
+         var sfilepk = spectrum.specfiles[0].pk;
+         $.getJSON("/api/observations/specfiles/" + sfilepk + "/", function (sfile) {
+            spfilelist.push(sfile.filename);
+         })
+      });
+   });
+
+   $.getScript("/static/js/JsZip/FileSaver.js").done( function () {
+      $.getScript("/static/js/JsZip/jszip.js").done( function () {
+         let zip = new JSZip();
+         window.setTimeout(function () {
+            $.each(spfilelist, function (inx, filepath) {
+               $.get("/media/spectra/" + filepath, function (content) {
+                  zip.file(filepath, content);
+               });
+            });
+            window.setTimeout(function () {
+               let dt = new Date();
+               let timecode = dt.getHours()+""+dt.getMinutes()+dt.getSeconds();
+               zip.generateAsync({type: "blob"}).then(function (content) {
+                              saveAs(content, "Spectra"+timecode+".zip");
+                           });
+            }, 500);
+         },100);
+      })
+   });
 }

@@ -12,36 +12,35 @@ from astropy.coordinates.angles import Angle
 
 
 def extract_header_info(header, user_info={}):
-   """
-   Reads the important header information and returns it as a dictionary
-   """
+    """
+    Reads the important header information and returns it as a dictionary
+    """
 
-   if 'ESO TEL ALT' in header:
-      data = derive_eso_info(header)
-   elif header.get('INSTRUME', '') == 'FEROS':
-      data = derive_feros_info(header)
-   elif header.get('INSTRUME', '') == 'HERMES':
-      data = derive_hermes_info(header)
-   elif header.get('INSTRUME', '') == 'SP_1.3m_MUSI':
-       data = derive_MUSICOS_info(header)
-   elif header.get('INSTRUME', '') in ['MODS1B', 'MODS1R', 'MODS2B', 'MODS2R']:
-       data = derive_MODS_info(header)
-   elif 'SDSS' in header.get('TELESCOP', ''):
-      data = derive_SDSS_info(header)
-   elif 'LAMOST' in header.get('TELESCOP', ''):
-      data = derive_LAMOST_info(header)
-   elif 'TESS' in header.get('TELESCOP', ''):
-      data = derive_TESS_info(header)
+    if 'ESO TEL ALT' in header:
+        data = derive_eso_info(header)
+    elif header.get('INSTRUME', '') == 'FEROS':
+        data = derive_feros_info(header)
+    elif header.get('INSTRUME', '') == 'HERMES':
+        data = derive_hermes_info(header)
+    elif header.get('INSTRUME', '') == 'SP_1.3m_MUSI':
+        data = derive_MUSICOS_info(header)
+    elif header.get('INSTRUME', '') in ['MODS1B', 'MODS1R', 'MODS2B', 'MODS2R']:
+        data = derive_MODS_info(header)
+    elif 'SDSS' in header.get('TELESCOP', ''):
+        data = derive_SDSS_info(header)
+    elif 'LAMOST' in header.get('TELESCOP', ''):
+        data = derive_LAMOST_info(header)
+    elif 'TESS' in header.get('TELESCOP', ''):
+        data = derive_TESS_info(header)
+    else:
+        data = derive_generic_info(header)
 
-   else:
-      data = derive_generic_info(header)
+    #-- update the data extracted from the header with data provided by the user
+    if user_info is None:
+        user_info = {}
+    data.update(user_info)
 
-   #-- update the data extracted from the header with data provided by the user
-   if user_info is None:
-      user_info = {}
-   data.update(user_info)
-
-   return data
+    return data
 
 def get_observatory(header, project):
    """
@@ -104,6 +103,11 @@ def derive_generic_info(header):
       data['hjd'] = header['BJD']
    elif 'MJD' in header:
       data['hjd'] = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
+   elif 'DATE-OBS' in header:
+      data['hjd'] = Time(
+          header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'),
+          format='fits'
+          ).jd
    else:
       data['hjd'] = 2400000
 

@@ -52,7 +52,7 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
    """
    Function to derive extra information about the observations from the
    fits files, calculate several parameters, and derive weather information
-   from external sources is possible.
+   from external sources if possible.
 
    This information is stored in the spectrum database entry
    """

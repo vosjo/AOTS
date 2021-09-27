@@ -57,8 +57,6 @@ def read_1D_spectrum(filename, row=0):
     """
     hdu = fits.open(filename, mode='readonly')
 
-    print(row)
-
     header = hdu[0].header
     data = hdu[0].data
 

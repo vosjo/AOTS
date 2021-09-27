@@ -66,6 +66,85 @@ def errfunc(p, a1, a2):
     return diff
 
 
+def norm_two_spectra(flux_1, flux_2):
+    '''
+    Normalize flux of two spectra
+
+    Idea: https://stackoverflow.com/questions/13846213/create-composite-spectrum-from-two-unnormalized-spectra
+    '''
+    #   Calculate normalization factor
+    p0 = 1.  #  Initial guess
+    norm_factor = optimize.fsolve(
+        errfunc,
+        p0,
+        args=(flux_1, flux_2),
+        )
+
+    #   Normalize new spectrum
+    return flux_2*norm_factor
+
+
+def merge_spectra_intersec(flux_1, flux_2):
+    '''
+    Combines two spectra whose flux intersects
+    -> tries to avoid jumps
+    '''
+
+    #   Calculate flux difference
+    f_diff = flux_1 - flux_2
+
+    #   Check if overlap exists?
+    if ~np.all(np.isnan(f_diff)):
+        #   Cut flux range to the overlap range
+        flux_new_cut = flux_2[~np.isnan(flux_2)]
+
+        #   Calculate first 5% of the flux range
+        first_flux   = int(len(flux_new_cut)*0.05)+1
+
+        #   Calculate median of the first 5%
+        med_flux_new = np.median(flux_new_cut[0:first_flux])
+
+        #   Calculate range where range flux < 0.8 * med_flux_new
+        #   -> to find range where flux intersect
+        id_f_x = np.argwhere(np.absolute(f_diff)/med_flux_new < 0.8)
+
+        #   Find center of id_f_x
+        len_f_x = len(id_f_x)
+        id_f_x = id_f_x[int(len_f_x/2)][0]
+
+        #   Median flux around 10% of id_f_x
+        #   (plus 1 to ensure that range is not 0)
+        x_len = int(len_f_x*0.05)+1
+        flux_x = np.median(flux_1[id_f_x-x_len:id_f_x+x_len])
+
+        #   Cut flux range to the overlap range
+        f_diff_cut = f_diff[~np.isnan(f_diff)]
+        #   First and last flux point
+        f_diff_s   = f_diff_cut[0]
+        f_diff_e   = f_diff_cut[-1]
+        #   Find index of the above
+        id_f_s     = np.nanargmin(np.absolute(f_diff-f_diff_s))
+        id_f_e     = np.nanargmin(np.absolute(f_diff-f_diff_e))
+
+        #   Calculate 3% of the length of the overlap range
+        three_diff = int(len(f_diff_cut)*0.03)
+        #   Ensure that it is at least 1
+        if three_diff == 0:
+            three_diff = 1
+        #   Median flux of the first and last 3% in terms of bins
+        f_diff_s_med = np.median(f_diff_cut[0:three_diff])
+        f_diff_e_med = np.median(f_diff_cut[three_diff*-1:])
+
+        #   Check if flux difference stars negative and ends positive
+        #   and is grater than 3% of the median flux
+        #   -> if yes, use flux of the other in the respective area
+        if f_diff_s_med/flux_x < -0.03 and f_diff_e_med/flux_x > 0.03:
+            flux_2[id_f_s:id_f_x] = flux_1[id_f_s:id_f_x]
+            flux_1[id_f_x:id_f_e] = flux_2[id_f_x:id_f_e]
+
+    return flux_1, flux_2
+
+
 def merge_spectra(wave, flux):
     """
     Merge spectra
@@ -77,7 +156,7 @@ def merge_spectra(wave, flux):
     new_wave = np.sort(np.concatenate(wave))
 
     #   Prepare list for flux
-    new_flux = []
+    flux_new = []
 
     #   Loop over all spectra
     for i, w in enumerate(wave):
@@ -87,27 +166,18 @@ def merge_spectra(wave, flux):
             kind='cubic',
             bounds_error=False
             )
-        new_flux.append(f(new_wave))
+        flux_new.append(f(new_wave))
 
-        #   Normalize flux of the individual spectra
-        #   Idea: https://stackoverflow.com/questions/13846213/create-composite-spectrum-from-two-unnormalized-spectra
         if i>0:
-            #   Calculate normalization factor
-            p0 = 1.  #  Initial guess
-            norm_factor = optimize.fsolve(
-                errfunc,
-                p0,
-                args=(flux_old, new_flux[i]),
-                )
+            #   Do spectra "intersect"?
+            #   -> merge if yes
+            flux_1, flux_2 = merge_spectra_intersec(flux_new[i-1], flux_new[i])
 
-            #   Normalize new spectrum
-            new_flux[i] = new_flux[i]*norm_factor
-
-        #   Set old flux for next iteration
-        flux_old = new_flux[i]
+            # Normalize flux of the individual spectra
+            flux_new[i] = norm_two_spectra(flux_new[i-1], flux_new[i])
 
     #   Merge flux
-    mflux  = np.nanmedian(new_flux, axis=0)
+    mflux  = np.nanmedian(flux_new, axis=0)
 
     return new_wave, mflux
 

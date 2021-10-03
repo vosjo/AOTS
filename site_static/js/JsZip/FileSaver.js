@@ -1,3 +1,9 @@
+/*
+  * The following functions come from JsZip, from 'https://stuk.github.io/jszip/'
+  * released under the MIT license, see
+ 'https://github.com/Stuk/jszip/blob/master/LICENSE.markdown'
+  */
+
 /*! FileSaver.js
  *  A saveAs() FileSaver implementation.
  *  2014-01-24

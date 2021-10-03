@@ -16,7 +16,44 @@ function format ( data ) {
    return res;
 }
 
+
+
 $(document).ready(function () {
+   let columns;
+   if (user_authenticated) {
+   columns = [
+          {
+            orderable:      false,
+            className:      'select-control',
+            data:           null,
+            render: selection_render,
+            width:          '10',
+         },
+         { data: 'hjd', render : hjd_render },
+         { data: 'star', render : star_render },
+         { data: 'instrument', render : instrument_render },
+         { data: 'exptime' },
+         { data: 'pk', render: action_render, width: '100',
+           className: 'dt-center', visible: user_authenticated, orderable: false},
+      ];
+   }
+   else {
+   columns = [
+        {
+             className:      'details-control',
+             orderable:      false,
+             data:           null,
+             defaultContent: '<i class="material-icons button show" title="Expand/hide">visibility</i>',
+             width:          '10',
+          },
+         { data: 'hjd', render : hjd_render },
+         { data: 'star', render : star_render },
+         { data: 'instrument', render : instrument_render },
+         { data: 'exptime' },
+         { data: 'pk', render: action_render, width: '100',
+           className: 'dt-center', visible: user_authenticated, orderable: false}
+      ];
+   }
    // Table functionality
    spectra_table = $('#spectratable').DataTable({
    dom: 'l<"toolbar">frtip',
@@ -29,28 +66,7 @@ $(document).ready(function () {
    searching: false,
    orderMulti: false, //Can only order on one column at a time
    order: [1],
-   columns: [
-       {
-         orderable:      false,
-         className:      'select-control',
-         data:           null,
-         render: selection_render,
-         width:          '10',
-      },
-      // {
-      //    className:      'details-control',
-      //    orderable:      false,
-      //    data:           null,
-      //    defaultContent: '<i class="material-icons button show" title="Expand/hide">visibility</i>',
-      //    width:          '10',
-      // },
-      { data: 'hjd', render : hjd_render },
-      { data: 'star', render : star_render },
-      { data: 'instrument', render : instrument_render },
-      { data: 'exptime' },
-      { data: 'pk', render: action_render, width: '100',
-        className: 'dt-center', visible: user_authenticated, orderable: false},
-   ],
+   columns: columns,
    paging: true,
    pageLength: 20,
    lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all.
@@ -148,9 +164,11 @@ $(document).ready(function () {
    });
 
   //Add toolbar to table
-   $("div.toolbar").html("<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>");
+   if (user_authenticated){
+      $("div.toolbar").html("<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>");
+      $("#dl-button").click( DlSpectra );
+   }
 
-   $("#dl-button").click( DlSpectra );
 
 
 });
@@ -397,7 +415,7 @@ function DlSpectra() {
                zip.generateAsync({type: "blob"}).then(function (content) {
                               saveAs(content, "Spectra"+timecode+".zip");
                            });
-            }, 500);
+            }, 250);
          },100);
       })
    });

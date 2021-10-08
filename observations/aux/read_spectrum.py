@@ -62,8 +62,8 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
    wave, flux, header = spectrum.get_spectrum()
 
    #-- get min and max wavelength
-   spectrum.minwave = np.min(wave)
-   spectrum.maxwave = np.max(wave)
+   spectrum.minwave = np.min(np.array(wave).flatten())
+   spectrum.maxwave = np.max(np.array(wave).flatten())
 
    #-- load info from spectrum header
    data = instrument_headers.extract_header_info(header, user_info=user_info)

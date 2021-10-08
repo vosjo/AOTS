@@ -6,10 +6,10 @@ var all_tags = null;
 
 
 $(document).ready(function () {
-   
+
    star_table = $('#datatable').DataTable({
    dom: 'l<"toolbar">frtip',
-   serverSide: true, 
+   serverSide: true,
    ajax: {
       url: '/api/systems/stars/?format=datatables&keep=nphot,nspec,nlc,ra_hms,dec_dms',  //adding "&keep=id,rank" will force return of id and rank fields
       data: get_filter_keywords,
@@ -36,36 +36,36 @@ $(document).ready(function () {
       { data: 'nphot' , render: nobs_render, searchable: false, orderable: false },
       { data: 'datasets', render: dataset_render , searchable: false, orderable: false },
       { data: 'tags', render: tag_render , searchable: false, orderable: false },
-      { data: 'observing_status', render: status_render, 
-         width: '70', 
+      { data: 'observing_status', render: status_render,
+         width: '70',
          className: "dt-center",
          searchable: false
       },
    ],
    paging: true,
    pageLength: 50,
-   lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all. 
+   lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all.
    scrollY: $(window).height() - $('header').outerHeight(true) - 196,
    scrollCollapse: true,
    autoWidth: true,
    });
-   
+
    //Add toolbar to table
    $("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
                            "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>");
-   
+
    // Event listener to the two range filtering inputs to redraw on input
    $('#filter-form').submit( function(event) {
       event.preventDefault();
       star_table.draw();
    } );
-   
+
    // make the filter button open the filter menu
    $('#filter-dashboard-button').on('click', openNav);
    function openNav() {
       $("#filter-dashboard").toggleClass('visible');
       $("#filter-dashboard-button").toggleClass('open');
-      
+
       var text = $('#filter-dashboard-button').text();
       if (text == "filter_list"){
             $('#filter-dashboard-button').text("close");
@@ -73,7 +73,7 @@ $(document).ready(function () {
             $('#filter-dashboard-button').text("filter_list");
       }
    };
-   
+
    // check and uncheck tables rows
    $('#datatable tbody').on( 'click', 'td.select-control', function () {
       var tr = $(this).closest('tr');
@@ -84,52 +84,52 @@ $(document).ready(function () {
          select_row(row);
       }
    } );
-   
+
    $('#select-all').on('click', function () {
       if ( $(this).text() == 'check_box' | $(this).text() == 'indeterminate_check_box') {
          // deselect all
          $(this).text('check_box_outline_blank')
-         
+
          star_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
             deselect_row(this); // Open this row
          });
       } else {
          // close all rows
          $(this).text('check_box')
-         
+
          star_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
             select_row(this); // close the row
          });
       };
    });
-   
+
    // Load the tags and add them to the tag selection list, and the tag edit window
    load_tags ();
-   
+
    // initialize edit windows
-   edit_status_window = $("#editStatus").dialog({autoOpen: false, 
+   edit_status_window = $("#editStatus").dialog({autoOpen: false,
          width: '150',
          modal: true});
-   
-   edit_tags_window = $("#editTags").dialog({autoOpen: false, 
+
+   edit_tags_window = $("#editTags").dialog({autoOpen: false,
          width: '250',
          modal: true});
-   
+
    // event listeners for edit buttons
    $( "#status-button").click( openStatusEditWindow );
    $( "#tag-button").click( openTagEditWindow );
-   
+
 });
 
 
 // Table filter functionality
 
 function get_filter_keywords( d ) {
-   
+
       var selected_class = $("#classification_options input:checked").map( function () { return this.value; }).get();
       var selected_status = $("#status_options input:checked").map( function () { return this.value; }).get();
       var selected_tags = $("#tag_filter_options input:checked").map( function () { return parseInt(this.value); }).get();
-   
+
       d = $.extend( {}, d, {
         "project": $('#project-pk').attr('project'),
         "name": $('#filter_name').val(),
@@ -137,56 +137,56 @@ function get_filter_keywords( d ) {
         "classification": $('#filter_class').val(),
         "status": selected_status[0],
         "tags": selected_tags[0],
-        
+
       } );
-      
+
       if ($('#filter_ra').val() != '') {
          d = $.extend( {}, d, {
             "ra_min": parseFloat( $('#filter_ra').val().split(':')[0] ) / 24 * 360 || 0,
             "ra_max": parseFloat( $('#filter_ra').val().split(':')[1] ) / 24 * 360 || 360,
          } );
       }
-      
+
       if ($('#filter_dec').val() != '') {
          var min = parseFloat( $('#filter_dec').val().split(':')[0] );
          var max = parseFloat( $('#filter_dec').val().split(':')[1] );
          if ( min == NaN ){min = -90};
          if ( max == NaN ){max = 90};
-         
+
          d = $.extend( {}, d, {
             "dec_min": min,
             "dec_max": max,
          } );
       }
-      
+
       if ($('#filter_mag').val() != '') {
          d = $.extend( {}, d, {
             "mag_min": parseFloat( $('#filter_mag').val().split(':')[0] ) || '',
             "mag_max": parseFloat( $('#filter_mag').val().split(':')[1] ) || '',
          } );
       }
-      
+
       if ($('#filter_nspec').val() != '') {
          d = $.extend( {}, d, {
             "nspec_min": parseFloat( $('#filter_nspec').val().split(':')[0] ) || '',
             "nspec_max": parseFloat( $('#filter_nspec').val().split(':')[1] ) || '',
          } );
       }
-      
+
       if ($('#filter_nphot').val() != '') {
          d = $.extend( {}, d, {
             "nphot_min": parseFloat( $('#filter_nphot').val().split(':')[0] ) || '',
             "nphot_max": parseFloat( $('#filter_nphot').val().split(':')[1] ) || '',
          } );
       }
-      
+
       if ($('#filter_nlc').val() != '') {
          d = $.extend( {}, d, {
             "nlc_min": parseFloat( $('#filter_nlc').val().split(':')[0] ) || '',
             "nlc_max": parseFloat( $('#filter_nlc').val().split(':')[1] ) || '',
          } );
       }
-      
+
       return d
 }
 
@@ -242,10 +242,10 @@ function nobs_render( data, type, full, meta ) {
 
 function classification_render( data, type, full, meta ) {
    // add the classification type to the table
-   return "<span class='classification-" + full['classification_type'] + 
-          "' title='"+full['classification_type_display']+"'>" + 
+   return "<span class='classification-" + full['classification_type'] +
+          "' title='"+full['classification_type_display']+"'>" +
           data + " </span>"
-   
+
 //    return "<span title='"+full['classification_type_display']+"'>"+data+"</span>";
 }
 
@@ -286,33 +286,33 @@ function deselect_row(row) {
 function load_tags () {
    // load all tags and add them to the window
    $.ajax({
-      url : "/api/systems/tags/?project="+$('#project-pk').attr('project'), 
+      url : "/api/systems/tags/?project="+$('#project-pk').attr('project'),
       type : "GET",
       success : function(json) {
          all_tags = json.results;
-         
+
          for (var i=0; i<all_tags.length; i++) {
             tag = all_tags[i];
-            
-            $('#tagOptions').append("<li title='" + tag['description'] + 
-            "'><input class='tristate' name='tags' type='checkbox' value='" 
+
+            $('#tagOptions').append("<li title='" + tag['description'] +
+            "'><input class='tristate' name='tags' type='checkbox' value='"
             + tag['pk'] + "' />" + tag['name'] + "</li>" );
-            
+
             $('#tag_filter_options').append(
-            "<li><label><input id='id_status_" + i + "' name='tags' type='radio' value='" + 
+            "<li><label><input id='id_status_" + i + "' name='tags' type='radio' value='" +
             tag['pk'] + "' />" + tag['name'] + "</label></li>");
-            
+
          }
-         
+
          $('#tagOptions').on('change', ':checkbox', function(event){ cylceTristate(event, this); });
-         
+
          $('input[type=radio]').click(allow_unselect);
       },
       error : function(xhr,errmsg,err) {
          console.log(xhr.status + ": " + xhr.responseText);
          all_tags = [];
       }
-   }); 
+   });
 };
 
 // ------------
@@ -323,7 +323,7 @@ function openStatusEditWindow() {
       buttons: { "Update": updateStatus },
       close: function() { edit_status_window.dialog( "close" ); }
    });
-   
+
    $("input[name='new-status']").prop('checked', false);
    edit_status_window.dialog( "open" );
 }
@@ -334,20 +334,20 @@ function updateStatus() {
       $('#status-error').text('You need to select a status option!');
    } else {
       $('#status-error').text('');
-      
+
       star_table.rows('.selected').every( function ( rowIdx, tableLoop, rowLoop ) {
          updateStarStatus(this, new_status.filter(':checked').val());
       });
-      
+
    }
 }
 
 function updateStarStatus(row, status) {
    $.ajax({
-      url : "/api/systems/stars/"+row.data()['pk']+'/', 
+      url : "/api/systems/stars/"+row.data()['pk']+'/',
       type : "PATCH",
       data : { observing_status: status },
-      
+
       success : function(json) {
          edit_status_window.dialog( "close" );
          row.data(json).draw('page');
@@ -372,13 +372,13 @@ function openTagEditWindow() {
       buttons: { "Update": updateTags},
       close: function() { edit_tags_window.dialog( "close" ); }
    });
-   
+
    // Reset the counts per tag
-   var all_tag_counts = {} 
+   var all_tag_counts = {}
    for ( tag in all_tags ) {
       all_tag_counts[all_tags[tag]['pk']] = 0
    };
-   
+
    // count how many objects each tag has
    star_table.rows('.selected').every( function ( rowIdx, tableLoop, rowLoop ) {
       var tags = this.data()['tags'];
@@ -386,16 +386,16 @@ function openTagEditWindow() {
          all_tag_counts[tags[tag]['pk']] ++;
       }
    });
-   
+
    // Set the checkbox states depending on the number of objects
    var selected_stars = star_table.rows('.selected').data().length
    for (tag in all_tag_counts) {
       // Standard unchecked state, no object has this tag
-      $(".tristate[value='"+tag+"']").prop("checked", false); 
+      $(".tristate[value='"+tag+"']").prop("checked", false);
       $(".tristate[value='"+tag+"']").prop("indeterminate",false);
       $(".tristate[value='"+tag+"']").removeClass("indeterminate");
-      
-      if ( all_tag_counts[tag] == selected_stars ){ 
+
+      if ( all_tag_counts[tag] == selected_stars ){
          // checked state, all objects have this tag
          $(".tristate[value='"+tag+"']").prop("checked", true);
       } else if ( all_tag_counts[tag] > 0 ) {
@@ -409,16 +409,16 @@ function openTagEditWindow() {
 
 function updateTags() {
    // Get the checked and indeterminate tags
-   var checked_tags = $(".tristate:checked:not(.indeterminate)").map( 
+   var checked_tags = $(".tristate:checked:not(.indeterminate)").map(
       function () { return parseInt(this.value); } ).get();
-   var indeterminate_tags = $(".tristate.indeterminate").map( 
+   var indeterminate_tags = $(".tristate.indeterminate").map(
       function () { return parseInt(this.value); } ).get();
-   
+
    // Update the tags for each selected star
    star_table.rows('.selected').every( function ( rowIdx, tableLoop, rowLoop ) {
       var new_tags = checked_tags;
       var current_tags = this.data()['tags'].map( function (x) { return x.pk; } );
-      
+
       for ( tag in indeterminate_tags ) {
          if ( current_tags.indexOf(indeterminate_tags[tag]) > -1 ) {
             new_tags.push(indeterminate_tags[tag])
@@ -426,19 +426,19 @@ function updateTags() {
       }
       update_star_tags(this, new_tags);
    });
-   
+
 }
 
 function update_star_tags(row, new_tags){
    var star_pk = row.data()['pk']
    console.log(row.data());
    $.ajax({
-      url : "/api/systems/stars/"+star_pk+'/', 
+      url : "/api/systems/stars/"+star_pk+'/',
       type : "PATCH",
       contentType: "application/json; charset=utf-8",
-      
+
       data : JSON.stringify({ "tag_ids": new_tags }),
-      
+
       success : function(json) {
          // update the table and close the edit window
          row.data( json ).draw('page');

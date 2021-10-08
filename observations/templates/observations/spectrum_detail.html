@@ -1,4 +1,4 @@
- 
+
 {% extends "base.html" %}
 {% load static %}
 {% load conversion_tags %}
@@ -8,7 +8,7 @@
    {% include "bokeh.html" %}
    {% include "bokeh_widgets.html" %}
    <script type="text/javascript" src="{% static 'js/spectrum_detail.js' %}"></script>
-   
+
 {% endblock %}
 
 
@@ -16,7 +16,7 @@
 
 
 {% block content %}
-   
+
    <div id="sidenav">
    <h2> All Spectra for <span class="nobreak">{{spectrum.star.name}}</span> </h2>
    {% for inst, spectra in all_spectra.items %}
@@ -34,51 +34,51 @@
    </div>
 
    <section class='data-section'>
-   
+
    <div class="main-container-h border">
-      
+
       {% if user.is_authenticated %}
       <i id="spectrumEditButton" class="material-icons button edit" title="edit" spectrum_id={{spectrum.pk}}>edit</i>
       {% endif %}
-      
+
       <div class='header-item'>
-      <h3 id="nameField"> {{ spectrum }}</h3> 
+      <h3 id="nameField"> {{ spectrum }}</h3>
       </div>
-      
+
       <div class='header-item'>
-      <p class="material-icons">star</p> 
-      <h3><a href={% url 'systems:star_detail' project.slug spectrum.star.pk %}>{{ spectrum.star.name }}</a></h3>  
+      <p class="material-icons">star</p>
+      <h3><a href={% url 'systems:star_detail' project.slug spectrum.star.pk %}>{{ spectrum.star.name }}</a></h3>
       </div>
-      
-      
+
+
       <div class='header-item'>
       {% if spectrum.valid %}
       <i id="spectrum-valid-icon" class="material-icons status-icon valid bold" title='Good quality'></i>
       {% else %}
       <i id="spectrum-valid-icon" class="material-icons status-icon invalid bold" title='Bad quality'></i>
       {% endif %}
-      <h3> Valid</h3> 
+      <h3> Valid</h3>
       </div>
-      
+
       <div class='header-item'>
       {% if spectrum.fluxcal %}
       <i id="spectrum-fluxcal-icon" class="material-icons status-icon valid bold" title='Flux calibrated'></i>
       {% else %}
       <i id="spectrum-fluxcal-icon" class="material-icons status-icon invalid bold" title='Not flux calibrated'></i>
       {% endif %}
-      <h3> Flux calibrated </h3> 
+      <h3> Flux calibrated </h3>
       </div>
-      
-      
+
+
    </div>
 
 <!--    <h3>Observing Information</h3> -->
-   
+
    <div class="flex-data-container j-center">
-   
+
    <div class="tag-container">
    <h3>Basic Data </h3>
-   
+
    <div class="block">
    <div class="block">
    <table class='datatable'>
@@ -94,7 +94,7 @@
    </tbody>
    </table>
    </div>
-   
+
    <div class="block">
    <table class='datatable'>
    <tbody>
@@ -114,22 +114,22 @@
    </table>
    </div>
    </div>
-   
-   
+
+
    </div>
-   
+
    <div class="tag-container">
       <h3>Visibility</h3>
       <div class='block'>
       {{ figures.visibility|safe }}
       </div>
    </div>
-   
+
    <div class="tag-container">
       <h3>Files belonging to this spectrum</h3>
       <ul>
       {% for sfile in spectrum.specfile_set.all %}
-         <li>{{ sfile.filetype }} 
+         <li>{{ sfile.filetype }}
              <a href={% url 'observations-api:specfile_header' sfile.id %} class='showheader' name='{{sfile.filetype}}'>(header)</a>
              {% if user.is_authenticated %}
              <a href="{{ sfile.specfile.url }}"><p class="material-icons inline-icon" title="Download">cloud_download</p></a>
@@ -137,76 +137,82 @@
          </li>
       {% endfor %}
       </ul>
-      
+
       <hr class='box'>
-      
+
       <h3>
-      Note  
+      Note
       {% if user.is_authenticated %}
          (<i id="noteEditButton" class="material-icons button inline-icon" title="edit" spectrum_id={{spectrum.pk}}>edit</i>)
       {% endif %}
       </h3>
-      
+
       <div id="noteField">{{spectrum.note|linebreaks}}</div>
-      
+
    </div>
-   
+
    </div>
-   
+
    <hr>
-   
+
    </section>
-   
+
    <section class='data-section'>
 
    <!--<h3>The Spectrum</h3>
-   
+
    <p>The spectrum is shifted with a barycentric correction of {{spectrum.barycor}} km/s.</p>-->
-   
+
    <div class="flex-data-container">
-   
+
    {% if figures.spec %}
 <!--    <div class="block w1100"> -->
       {{ figures.spec|safe }}
 <!--    </div> -->
-   {% endif %} 
-   
+   {% endif %}
+
    </div>
-   
+
    <hr>
-   
+
    </section>
-   
+
    <div id="headerWindow">
       <ul id="headerList">
       </ul>
    </div>
-   
+
    {{ script|safe }}
-   
-   
+
+
    <!-- Div ect necessary for editing on page stuff with ajax -->
    <div id="noteEdit" title="Edit spectrum Note">
       <textarea name="edit-message" id="edit-message" cols="80" rows="5"></textarea>
    </div>
-   
+
    <div id="spectrumEdit" title="Edit spectrum">
-   
+
       <ul>
          <li>
-         <label for="spectrum-valid">
+         {% if spectrum.valid %}
+         <input type="checkbox" id="spectrum-valid" spectrum_id="{{spectrum.pk}}"  checked>
+         {% else %}
          <input type="checkbox" id="spectrum-valid" spectrum_id="{{spectrum.pk}}">
-         Valid </label>
+         {% endif %}
+         <label for="spectrum-valid"> Valid </label>
          </li>
-         
+
          <li>
-         <label for="spectrum-fluxcal">
+         {% if spectrum.fluxcal %}
+         <input type="checkbox" id="spectrum-fluxcal" spectrum_id="{{spectrum.pk}}" checked>
+         {% else %}
          <input type="checkbox" id="spectrum-fluxcal" spectrum_id="{{spectrum.pk}}">
-         Flux calibrated </label> 
+         {% endif %}
+         <label for="spectrum-fluxcal">Flux calibrated </label>
          </li>
-         
+
          <li>
-         <label for="spectrum-fluxunits"> Flux units: 
+         <label for="spectrum-fluxunits"> Flux units:
          <input id="spectrum-fluxunits" type='text' size="100">
          </label>
          </li>

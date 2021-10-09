@@ -29,3 +29,4 @@ pandas>=0.23.4
 gunicorn>=19.9
 psycopg2-binary>=2.7
 django-environ
+specutils>=1.1.1

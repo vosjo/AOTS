@@ -10,7 +10,7 @@ from .serializers import MethodSerializer, DataSetListSerializer, ParameterListS
 
 from stars.models import Project
 from analysis.models import Method, DataSet, Parameter
-from analysis.aux import process_datasets
+from analysis.auxil import process_datasets
 
 from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 

@@ -10,7 +10,7 @@ from six import python_2_unicode_compatible
 from stars.models import Star
 from .datasource import  DataSource, AverageDataSource
 
-from analysis.aux import parameter_derivation
+from analysis.auxil import parameter_derivation
 
 import numpy as np
 

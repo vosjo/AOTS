@@ -22,15 +22,15 @@ except ImportError: print("Unable to load pyephem, stellar coordinate transforma
 #-- from IVS repository -> not part of this package anymore, because of
 #                          inconsistencies with python3
 #                       -> install lib version to readable this routine
-from analysis.aux.units import constants
-from analysis.aux.units.uncertainties import unumpy,AffineScalarFunc,ufloat
-from analysis.aux.units.uncertainties.unumpy import log10,log,exp,sqrt
-from analysis.aux.units.uncertainties.unumpy import sin,cos,tan
-from analysis.aux.units.uncertainties.unumpy import arcsin,arccos,arctan
+from analysis.auxil.units import constants
+from analysis.auxil.units.uncertainties import unumpy,AffineScalarFunc,ufloat
+from analysis.auxil.units.uncertainties.unumpy import log10,log,exp,sqrt
+from analysis.auxil.units.uncertainties.unumpy import sin,cos,tan
+from analysis.auxil.units.uncertainties.unumpy import arcsin,arccos,arctan
 #from ivs.sed import filters
 #from ivs.io import ascii
-#from ivs.aux import loggers
-#from ivs.aux.decorators import memoized
+#from ivs.auxil import loggers
+#from ivs.auxil.decorators import memoized
 
 #logger = logging.getLogger("UNITS.CONV")
 #logger.addHandler(loggers.NullHandler())

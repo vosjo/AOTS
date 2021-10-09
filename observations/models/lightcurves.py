@@ -14,7 +14,7 @@ from stars.models import Star, Project
 from users.models import get_sentinel_user
 from .observatory import Observatory
 
-from observations.aux import fileio 
+from observations.auxil import fileio 
 from astropy.io import fits
 
 

@@ -5,7 +5,7 @@ import numpy as np
 
 from .models import Spectrum, SpecFile
 from stars.models import Star
-from stars.aux import add_star_from_spectrum
+from stars.auxil import add_star_from_spectrum
 
 from django.contrib import messages
 

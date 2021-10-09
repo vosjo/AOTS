@@ -10,7 +10,7 @@ from .models import Star
 from bokeh import plotting as bpl
 from bokeh import models as mpl
 
-#from analysis.aux.units import conversions as cv
+#from analysis.auxil.units import conversions as cv
 
 wavelengths = {'GALEX.FUV': 1529 ,
                'GALEX.NUV': 2312 ,

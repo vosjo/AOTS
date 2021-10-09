@@ -10,7 +10,7 @@ from stars.models import Star, Project
 from .forms import UploadSpecFileForm, UploadLightCurveForm, UploadSpectraDetailForm
 
 
-from .aux import read_spectrum, read_lightcurve
+from .auxil import read_spectrum, read_lightcurve
 
 from .plotting import plot_visibility, plot_spectrum, plot_lightcurve
 

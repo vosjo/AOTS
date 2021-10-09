@@ -143,10 +143,10 @@ def read_spectrum(filename, return_header=False):
     #    Check if primary Header contains information on the
     #    telescope and instrument
     #    => ignore primary Header if that is not the case
+    hdu = 0
     try:
         telescope  = fits.getval(filename, 'TELESCOP')
         instrument = fits.getval(filename, 'INSTRUME')
-        hdu = 0
     except:
         try:
             telescope  = fits.getval(filename, 'TELESCOP', ext=1)
@@ -154,6 +154,9 @@ def read_spectrum(filename, return_header=False):
             hdu = 1
         except Exception as e:
             print(e)
+
+            telescope  = 'UK'
+            instrument = 'UK'
 
     #    Read Header
     header = fits.getheader(filename, hdu)

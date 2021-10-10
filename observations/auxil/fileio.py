@@ -87,9 +87,9 @@ def read_echelle(filename, starthdu=0):
     #   Determine number of extensions
     nHDUs = len(hduLIST)
 
-    #   Prepare list for flux and wave length data
-    flux = []
-    wave = []
+    #   Prepare list for flux and wavelength data
+    flux_list = []
+    wave_list = []
 
     #   Read data from all extensions/orders
     for i in range(starthdu,nHDUs):
@@ -100,15 +100,12 @@ def read_echelle(filename, starthdu=0):
 
         #   Collapsed into one dimension
         _fl = data.flatten()
-        flux.append(_fl)
+        flux_list.append(_fl)
 
         #   Calculate wave length range
-        wave.append(cal_wave(header, len(_fl)))
+        wave_list.append(cal_wave(header, len(_fl)))
 
-    #   Merge spectra
-    mwave, mflux = tools.merge_spectra(wave, flux)
-
-    return mwave, mflux
+    return wave_list, flux_list
 
 
 def read_spectrum(filename, return_header=False):
@@ -153,7 +150,10 @@ def read_spectrum(filename, return_header=False):
             instrument = fits.getval(filename, 'INSTRUME', ext=1)
             hdu = 1
         except Exception as e:
-            print(e)
+            print('Exception occurred in read_spectrum().')
+            print('Context: Reading telescope or instrument info from Header.')
+            print('Problem: ', e)
+            print('Solution: Add TELESCOP and/or INSTRUME Header keyword')
 
             telescope  = 'UK'
             instrument = 'UK'
@@ -175,7 +175,14 @@ def read_spectrum(filename, return_header=False):
         try:
             wave, flux = read_1D_spectrum(filename, row=row)
         except Exception as e:
-            print (e)
+            print('Exception occurred in read_spectrum().')
+            print('   Context: Reading spectra from FITS file,')
+            print('            assuming a typical 1D spectrum layout')
+            print('   Problem:', e)
+            print('   Solution:')
+            print('       -> tying instrument specific extractions... ')
+            print('       -> usually no action is required... ')
+            print()
 
             #     Switch to instrument specific extractions
             if instrument in ['FEROS', 'UVES'] and not "CRVAL1" in header:

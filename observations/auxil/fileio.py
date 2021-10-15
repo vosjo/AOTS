@@ -163,6 +163,11 @@ def read_spectrum(filename, return_header=False):
 
     #   Assume that files with more than 10 extensions are echelle files
     if nHDUs > 10:
+        #   Check if primary HDU contains data
+        #    => ignore if primary HDU is empty
+        if hduLIST[0].data == None:
+            hdu = 1
+
         wave, flux = read_echelle(filename, starthdu=hdu)
     else:
         #    MODS spectrograph

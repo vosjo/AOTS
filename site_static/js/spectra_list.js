@@ -33,8 +33,8 @@ $(document).ready(function () {
          { data: 'star', render : star_render },
          { data: 'instrument', render : instrument_render },
          { data: 'exptime' },
-         { data: 'pk', render: action_render, width: '100',
-           className: 'dt-center', visible: user_authenticated, orderable: false},
+         /*{ data: 'pk', render: action_render, width: '100',
+           className: 'dt-center', visible: user_authenticated, orderable: false},*/
       ];
    }
    else {
@@ -50,8 +50,8 @@ $(document).ready(function () {
          { data: 'star', render : star_render },
          { data: 'instrument', render : instrument_render },
          { data: 'exptime' },
-         { data: 'pk', render: action_render, width: '100',
-           className: 'dt-center', visible: user_authenticated, orderable: false}
+         /*{ data: 'pk', render: action_render, width: '100',
+           className: 'dt-center', visible: user_authenticated, orderable: false}*/
       ];
    }
    // Table functionality
@@ -139,21 +139,21 @@ $(document).ready(function () {
 
    // Add event listener for opening and closing all details
    $('#expand-all').on('click', function () {
-      if ( $(this).text() == 'visibility' ) {
+      if ( $(this).text() === 'visibility' ) {
          // Open all rows
-         $(this).text('visibility_off')
+         $(this).text('visibility_off');
 
          spectra_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
             open_details(this); // Open this row
          });
       } else {
          // Close all rows
-         $(this).text('visibility')
+         $(this).text('visibility');
 
          spectra_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
             close_details(this); // close the row
          });
-      };
+      }
    });
 
    // Delete spectrum completely event listener
@@ -165,8 +165,12 @@ $(document).ready(function () {
 
   //Add toolbar to table
    if (user_authenticated){
-      $("div.toolbar").html("<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>");
+      $("div.toolbar").html("<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>" +
+          "<input id='rm-button'  class='tb-button' value='Remove Spectrum from Star' type='button' disabled>" +
+          "<input id='delete-button'  class='tb-button' value='Delete Spectrum' type='button' disabled>");
       $("#dl-button").click( DlSpectra );
+      $("#rm-button").click( remove_selected_specfiles );
+      $("#delete-button").click( delete_selected_specfiles );
    }
 
 
@@ -247,7 +251,7 @@ function action_render( data, type, full, meta ) {
 
 function open_details(row) {
    row.child( format(row.data()) ).show();
-   $(row.node()).find("i[class*=show]").text('visibility_off')
+   $(row.node()).find("i[class*=show]").text('visibility_off');
    row.child().addClass('expansion');
    // Add event listeners
    row.child().on('click', 'i[id^=remove-specfile-]', function (event) {
@@ -265,19 +269,61 @@ function close_details(row) {
    $(row.node()).find("i[class*=show]").text('visibility');
 }
 
+function remove_selected_specfiles(){
+   if (confirm('Are you sure you want to remove this File from the spectrum?')===true){
+   var rows = [];
+   // get list of files
+   spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+      var row = this;
+      rows.push(row);
+   });
+   $.each(rows, function (index, row) {
+      var pk = row.data()["specfiles"][0]["pk"];
+         $.ajax({
+               url : "/api/observations/specfiles/"+pk+'/',
+               type : "PATCH",
+               data : { spectrum : null},
+               success : function(json) {
+                  // Not necessary anymore?
+                  /*!// Remove the specfile from DOM
+                  spec_elem.closest('li')[0].remove();*/
+
+                  // Remove the whole spectrum, if all specfiles are gone
+                  if (row.data()["specfiles"]["length"]-1 === 0) {
+                     spectra_table.row(row).remove().draw('full-hold');
+                  }
+
+                  // Remove item from the dataset
+                  var data = remove_specfile_from_data(row.data(), pk);
+                  spectra_table.row(row).data( data );
+               },
+
+               error : function(xhr,errmsg,err) {
+                   if (xhr.status === 403){
+                       alert('You have to be logged in to remove this spectrum.');
+                   }else{
+                       alert(xhr.status + ": " + xhr.responseText);
+                   }
+                   console.log(xhr.status + ": " + xhr.responseText);
+               }
+         });
+      })
+   }
+}
+
 function remove_specfile(spec_elem, row) {
-   var pk = spec_elem.attr('id').split('-')[2]
-   if (confirm('Are you sure you want to remove this File from the spectrum?')==true){
+   var pk = spec_elem.attr('id').split('-')[2];
+   if (confirm('Are you sure you want to remove this File from the spectrum?')===true){
       $.ajax({
             url : "/api/observations/specfiles/"+pk+'/',
             type : "PATCH",
             data : { spectrum : null},
             success : function(json) {
                // Remove the specfile from DOM
-               spec_elem.closest('li')[0].remove()
+               spec_elem.closest('li')[0].remove();
 
-               // Remove the whole spectrum, is all specfiles are gone
-               if (row.child().find('li').length == 0) {
+               // Remove the whole spectrum, if all specfiles are gone
+               if (row.child().find('li').length === 0) {
                   spectra_table.row(row).remove().draw('full-hold');
                }
 
@@ -287,7 +333,7 @@ function remove_specfile(spec_elem, row) {
             },
 
             error : function(xhr,errmsg,err) {
-                if (xhr.status == 403){
+                if (xhr.status === 403){
                     alert('You have to be logged in to remove this spectrum.');
                 }else{
                     alert(xhr.status + ": " + xhr.responseText);
@@ -297,6 +343,46 @@ function remove_specfile(spec_elem, row) {
       });
    }
 
+}
+
+function delete_selected_specfiles(){
+   if (confirm('Are you sure you want to delete these Files from these spectra? This can NOT be undone! If you want to remove them from these spectra, but keep them in the database, use the remove button.')===true){
+   var rows = [];
+   // get list of files
+   spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+      var row = this;
+      rows.push(row);
+   });
+   $.each(rows, function (index, row) {
+      var pk = row.data()["specfiles"][0]["pk"];
+               $.ajax({
+               url : "/api/observations/specfiles/"+pk+'/',
+               type : "DELETE",
+               success : function(json) {
+                  /*// Remove the specfile from DOM
+                  spec_elem.closest('li')[0].remove()*/
+
+                  // Remove the whole spectrum, if all specfiles are gone
+                  if (row.data()["specfiles"]["length"]-1 === 0) {
+                     spectra_table.row(row).remove().draw('full-hold');
+                  }
+
+                  // Remove item from the dataset
+                  var data = remove_specfile_from_data(row.data(), pk);
+                  spectra_table.row(row).data( data );
+               },
+
+               error : function(xhr,errmsg,err) {
+                   if (xhr.status === 403){
+                       alert('You have to be logged in to delete this spectrum.');
+                   }else{
+                       alert(xhr.status + ": " + xhr.responseText);
+                   }
+                   console.log(xhr.status + ": " + xhr.responseText);
+               }
+         });
+      })
+   }
 }
 
 function delete_specfile(spec_elem, row) {
@@ -372,7 +458,9 @@ function select_row(row) {
    } else {
       $('#select-all').text('check_box');
    }
-    $('#dl-button').prop('disabled', false)
+    $('#dl-button').prop('disabled', false);
+    $('#rm-button').prop('disabled', false);
+    $('#delete-button').prop('disabled', false);
 }
 
 function deselect_row(row) {
@@ -380,7 +468,9 @@ function deselect_row(row) {
    $(row.node()).removeClass('selected');
    if ( spectra_table.rows('.selected').data().length === 0 ) {
       $('#select-all').text('check_box_outline_blank');
-      $('#dl-button').prop('disabled', true)
+      $('#dl-button').prop('disabled', true);
+      $('#rm-button').prop('disabled', true);
+      $('#delete-button').prop('disabled', true);
    } else {
       $('#select-all').text('indeterminate_check_box');
    }

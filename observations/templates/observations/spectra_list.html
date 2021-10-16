@@ -80,20 +80,20 @@
       <th>System</th>
       <th>Instrument</th>
       <th>Exposure time</th>
-      <th>Action</th>
+      {% comment %}<th>Action</th>{% endcomment %}
       </tr>
    </thead>
    <tfoot>
       <tr>
-      {% if user.is_authenticated %}
+      {% comment %}{% if user.is_authenticated %}
       <th></th>
-      {% endif %}
-{#      <th></th>#}
+      {% endif %}{% endcomment %}
+      <th></th>
       <th>HJD</th>
       <th>System</th>
       <th>Instrument</th>
       <th>Exposure time</th>
-      <th>Action</th>
+      {% comment %}<th>Action</th>{% endcomment %}
       </tr>
    </tfoot>
    </table>

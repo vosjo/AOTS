@@ -21,6 +21,7 @@ function format ( data ) {
 $(document).ready(function () {
    let columns;
    if (user_authenticated) {
+   console.log()
    columns = [
           {
             orderable:      false,
@@ -32,6 +33,8 @@ $(document).ready(function () {
          { data: 'hjd', render : hjd_render },
          { data: 'star', render : star_render },
          { data: 'instrument', render : instrument_render },
+         { data: 'resolution', render : resolution_render },
+         { data: 'airmass', render : airmass_render },
          { data: 'exptime' },
       ];
    }
@@ -40,6 +43,8 @@ $(document).ready(function () {
          { data: 'hjd', render : hjd_render },
          { data: 'star', render : star_render },
          { data: 'instrument', render : instrument_render },
+         { data: 'resolution', render : resolution_render },
+         { data: 'airmass', render : airmass_render },
          { data: 'exptime' },
       ];
    }
@@ -191,6 +196,23 @@ function instrument_render( data, type, full, meta ) {
    return data + " @ " + full['telescope']
 }
 
+function airmass_render( data, type, full, meta ){
+   if (data === -1){
+      return "-"
+   }
+   else {
+      return data
+   }
+}
+
+function resolution_render( data, type, full, meta ) {
+   if (data === -1){
+      return "-"
+   }
+   else {
+      return data
+   }
+}
 
 function delete_selected_specfiles(){
    if (confirm('Are you sure you want to delete these Files from these spectra? This can NOT be undone! If you want to remove them from these spectra, but keep them in the database, use the remove button.')===true){

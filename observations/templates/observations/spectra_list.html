@@ -73,27 +73,22 @@
       <tr>
       {% if user.is_authenticated %}
       <th><i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i></th>
-      {% else %}
-      <th><i id="expand-all" class="material-icons button show" title="Expand/hide">visibility</i></th>
       {% endif %}
       <th>HJD</th>
       <th>System</th>
       <th>Instrument</th>
       <th>Exposure time</th>
-      {% comment %}<th>Action</th>{% endcomment %}
       </tr>
    </thead>
    <tfoot>
       <tr>
-      {% comment %}{% if user.is_authenticated %}
+      {% if user.is_authenticated %}
       <th></th>
-      {% endif %}{% endcomment %}
-      <th></th>
+      {% endif %}
       <th>HJD</th>
       <th>System</th>
       <th>Instrument</th>
       <th>Exposure time</th>
-      {% comment %}<th>Action</th>{% endcomment %}
       </tr>
    </tfoot>
    </table>

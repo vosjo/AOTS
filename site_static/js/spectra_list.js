@@ -33,25 +33,14 @@ $(document).ready(function () {
          { data: 'star', render : star_render },
          { data: 'instrument', render : instrument_render },
          { data: 'exptime' },
-         /*{ data: 'pk', render: action_render, width: '100',
-           className: 'dt-center', visible: user_authenticated, orderable: false},*/
       ];
    }
    else {
    columns = [
-        {
-             className:      'details-control',
-             orderable:      false,
-             data:           null,
-             defaultContent: '<i class="material-icons button show" title="Expand/hide">visibility</i>',
-             width:          '10',
-          },
          { data: 'hjd', render : hjd_render },
          { data: 'star', render : star_render },
          { data: 'instrument', render : instrument_render },
          { data: 'exptime' },
-         /*{ data: 'pk', render: action_render, width: '100',
-           className: 'dt-center', visible: user_authenticated, orderable: false}*/
       ];
    }
    // Table functionality
@@ -116,60 +105,18 @@ $(document).ready(function () {
       $("#filter-dashboard-button").toggleClass('open');
 
       var text = $('#filter-dashboard-button').text();
-      if (text == "filter_list"){
+      if (text === "filter_list"){
             $('#filter-dashboard-button').text("close");
       } else {
             $('#filter-dashboard-button').text("filter_list");
       }
-   };
-
-
-   // Add event listener for opening and closing details
-   $('#spectratable tbody').on('click', 'td.details-control', function () {
-      var tr = $(this).closest('tr');
-      var row = spectra_table.row( tr );
-
-      if ( row.child.isShown() ) {
-         close_details(row); // This row is already open - close it
-      }
-      else {
-         open_details(row); // Open this row
-      }
-   } );
-
-   // Add event listener for opening and closing all details
-   $('#expand-all').on('click', function () {
-      if ( $(this).text() === 'visibility' ) {
-         // Open all rows
-         $(this).text('visibility_off');
-
-         spectra_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
-            open_details(this); // Open this row
-         });
-      } else {
-         // Close all rows
-         $(this).text('visibility');
-
-         spectra_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
-            close_details(this); // close the row
-         });
-      }
-   });
-
-   // Delete spectrum completely event listener
-   $("#spectratable").on('click', 'i[id^=delete-spectrum-]', function(){
-      var thisrow = $(this).closest('tr');
-      var data = spectra_table.row(thisrow).data();
-      delete_spectrum(thisrow, data);
-   });
+   }
 
   //Add toolbar to table
    if (user_authenticated){
       $("div.toolbar").html("<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>" +
-          "<input id='rm-button'  class='tb-button' value='Remove Spectrum from Star' type='button' disabled>" +
           "<input id='delete-button'  class='tb-button' value='Delete Spectrum' type='button' disabled>");
       $("#dl-button").click( DlSpectra );
-      $("#rm-button").click( remove_selected_specfiles );
       $("#delete-button").click( delete_selected_specfiles );
    }
 
@@ -190,14 +137,14 @@ function get_filter_keywords( d ) {
       "instrument": $('#filter_instrument').val(),
    } );
 
-   if ($('#filter_hjd').val() != '') {
+   if ($('#filter_hjd').val() !== '') {
       d = $.extend( {}, d, {
          "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
          "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
       } );
    }
 
-   if ($('#filter_exptime').val() != '') {
+   if ($('#filter_exptime').val() !== '') {
       d = $.extend( {}, d, {
          "exptime_min": parseFloat( $('#filter_exptime').val().split(':')[0] | 0 ),
          "exptime_max": parseFloat( $('#filter_exptime').val().split(':')[1] | 1000000000),
@@ -244,106 +191,6 @@ function instrument_render( data, type, full, meta ) {
    return data + " @ " + full['telescope']
 }
 
-function action_render( data, type, full, meta ) {
-   return "<i class='material-icons button delete' id='delete-spectrum-"+data+"'>delete</i>"
-}
-
-
-function open_details(row) {
-   row.child( format(row.data()) ).show();
-   $(row.node()).find("i[class*=show]").text('visibility_off');
-   row.child().addClass('expansion');
-   // Add event listeners
-   row.child().on('click', 'i[id^=remove-specfile-]', function (event) {
-         remove_specfile($(this), row);
-      }
-   );
-   row.child().on('click', 'i[id^=delete-specfile-]', function (event) {
-         delete_specfile($(this), row);
-      }
-   );
-}
-
-function close_details(row) {
-   row.child.hide();
-   $(row.node()).find("i[class*=show]").text('visibility');
-}
-
-function remove_selected_specfiles(){
-   if (confirm('Are you sure you want to remove this File from the spectrum?')===true){
-   var rows = [];
-   // get list of files
-   spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-      var row = this;
-      rows.push(row);
-   });
-   $.each(rows, function (index, row) {
-      var pk = row.data()["specfiles"][0]["pk"];
-         $.ajax({
-               url : "/api/observations/specfiles/"+pk+'/',
-               type : "PATCH",
-               data : { spectrum : null},
-               success : function(json) {
-                  // Not necessary anymore?
-                  /*!// Remove the specfile from DOM
-                  spec_elem.closest('li')[0].remove();*/
-
-                  // Remove the whole spectrum, if all specfiles are gone
-                  if (row.data()["specfiles"]["length"]-1 === 0) {
-                     spectra_table.row(row).remove().draw('full-hold');
-                  }
-
-                  // Remove item from the dataset
-                  var data = remove_specfile_from_data(row.data(), pk);
-                  spectra_table.row(row).data( data );
-               },
-
-               error : function(xhr,errmsg,err) {
-                   if (xhr.status === 403){
-                       alert('You have to be logged in to remove this spectrum.');
-                   }else{
-                       alert(xhr.status + ": " + xhr.responseText);
-                   }
-                   console.log(xhr.status + ": " + xhr.responseText);
-               }
-         });
-      })
-   }
-}
-
-function remove_specfile(spec_elem, row) {
-   var pk = spec_elem.attr('id').split('-')[2];
-   if (confirm('Are you sure you want to remove this File from the spectrum?')===true){
-      $.ajax({
-            url : "/api/observations/specfiles/"+pk+'/',
-            type : "PATCH",
-            data : { spectrum : null},
-            success : function(json) {
-               // Remove the specfile from DOM
-               spec_elem.closest('li')[0].remove();
-
-               // Remove the whole spectrum, if all specfiles are gone
-               if (row.child().find('li').length === 0) {
-                  spectra_table.row(row).remove().draw('full-hold');
-               }
-
-               // Remove item from the dataset
-               var data = remove_specfile_from_data(spectra_table.row(row).data(), pk);
-               spectra_table.row(row).data( data );
-            },
-
-            error : function(xhr,errmsg,err) {
-                if (xhr.status === 403){
-                    alert('You have to be logged in to remove this spectrum.');
-                }else{
-                    alert(xhr.status + ": " + xhr.responseText);
-                }
-                console.log(xhr.status + ": " + xhr.responseText);
-            }
-      });
-   }
-
-}
 
 function delete_selected_specfiles(){
    if (confirm('Are you sure you want to delete these Files from these spectra? This can NOT be undone! If you want to remove them from these spectra, but keep them in the database, use the remove button.')===true){
@@ -359,8 +206,6 @@ function delete_selected_specfiles(){
                url : "/api/observations/specfiles/"+pk+'/',
                type : "DELETE",
                success : function(json) {
-                  /*// Remove the specfile from DOM
-                  spec_elem.closest('li')[0].remove()*/
 
                   // Remove the whole spectrum, if all specfiles are gone
                   if (row.data()["specfiles"]["length"]-1 === 0) {
@@ -385,37 +230,6 @@ function delete_selected_specfiles(){
    }
 }
 
-function delete_specfile(spec_elem, row) {
-   var pk = spec_elem.attr('id').split('-')[2]
-   if (confirm('Are you sure you want to delete this File from the spectrum? This can NOT be undone! If you want to remove it from this spectrum, but keep it in the database, use the remove button.')==true){
-      $.ajax({
-            url : "/api/observations/specfiles/"+pk+'/',
-            type : "DELETE",
-            success : function(json) {
-               // Remove the specfile from DOM
-               spec_elem.closest('li')[0].remove()
-
-               // Remove the whole spectrum, if all specfiles are gone
-               if (row.child().find('li').length == 0) {
-                  spectra_table.row(row).remove().draw('full-hold');
-               }
-
-               // Remove item from the dataset
-               var data = remove_specfile_from_data(spectra_table.row(row).data(), pk);
-               spectra_table.row(row).data( data );
-            },
-
-            error : function(xhr,errmsg,err) {
-                if (xhr.status == 403){
-                    alert('You have to be logged in to delete this spectrum.');
-                }else{
-                    alert(xhr.status + ": " + xhr.responseText);
-                }
-                console.log(xhr.status + ": " + xhr.responseText);
-            }
-      });
-   }
-}
 
 function remove_specfile_from_data(data, pk) {
    for (var i=0; i < data['specfiles'].length; i++) {
@@ -426,27 +240,6 @@ function remove_specfile_from_data(data, pk) {
    }
 }
 
-function delete_spectrum(row, data) {
-   if (confirm('Are you sure you want to delete this Spectrum? The individual files will be kept.')==true){
-      $.ajax({
-         url : "/api/observations/spectra/"+data['pk']+"/",
-         type : "DELETE", // http method
-         success : function(json) {
-            // Delete the spectrum from the table
-            spectra_table.row(row).remove().draw('full-hold');
-         },
-
-         error : function(xhr,errmsg,err) {
-                if (xhr.status == 403){
-                    alert('You have to be logged in to delete this spectrum.');
-                }else{
-                    alert(xhr.status + ": " + xhr.responseText);
-                }
-               console.log(xhr.status + ": " + xhr.responseText);
-         }
-      });
-   }
-}
 
 // Selection and Deselection of rows
 

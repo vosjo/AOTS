@@ -51,7 +51,8 @@ $(document).ready(function () {
    
    //Add toolbar to table
    $("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
-                           "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>");
+                           "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>" +
+                           "<input id='delete-button' class='tb-button' value='Delete System' type='button' disabled>");
    
    // Event listener to the two range filtering inputs to redraw on input
    $('#filter-form').submit( function(event) {
@@ -117,6 +118,7 @@ $(document).ready(function () {
    // event listeners for edit buttons
    $( "#status-button").click( openStatusEditWindow );
    $( "#tag-button").click( openTagEditWindow );
+   $( "#delete-button").click( deleteSystems );
    
 });
 
@@ -266,19 +268,21 @@ function select_row(row) {
    }
    $('#tag-button').prop('disabled', false)
    $('#status-button').prop('disabled', false)
-};
+   $('#delete-button').prop('disabled', false)
+}
 
 function deselect_row(row) {
    $(row.node()).find("i[class*=select]").text('check_box_outline_blank')
    $(row.node()).removeClass('selected');
-   if ( star_table.rows('.selected').data().length == 0 ) {
+   if ( star_table.rows('.selected').data().length === 0 ) {
       $('#select-all').text('check_box_outline_blank');
       $('#tag-button').prop('disabled', true)
       $('#status-button').prop('disabled', true)
+      $('#delete-button').prop('disabled', true)
    } else {
       $('#select-all').text('indeterminate_check_box');
    }
-};
+}
 
 // Edit status and tags functionality
 
@@ -453,8 +457,41 @@ function update_star_tags(row, new_tags){
          console.log(xhr.status + ": " + xhr.responseText);
       }
    });
-};
+}
 
+// -----
+
+function deleteSystems(){
+   if (confirm('Are you sure you want to delete these Files from these spectra? This can NOT be undone! If you want to remove them from these spectra, but keep them in the database, use the remove button.')===true){
+   var rows = [];
+   // get list of files
+   star_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+      var row = this;
+      rows.push(row);
+   });
+
+   $.each(rows, function (index, row) {
+      var pk = row.data()["pk"];
+         $.ajax({
+         url : "/api/systems/stars/"+pk+'/',
+         type : "DELETE",
+         success : function(json) {
+
+            star_table.row(row).remove().draw('full-hold');
+
+         },
+         error : function(xhr,errmsg,err) {
+             if (xhr.status === 403){
+                 alert('You have to be logged in to delete this system.');
+             }else{
+                 alert(xhr.status + ": " + xhr.responseText);
+             }
+             console.log(xhr.status + ": " + xhr.responseText);
+            }
+         });
+      })
+   }
+}
 
 // Tristate checkbox functionality
 function cylceTristate(event, checkbox) {

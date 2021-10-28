@@ -15,7 +15,6 @@ $(document).ready(function () {
       data: get_filter_keywords,
       contentType: "application/json; charset=utf-8",
       dataType: "json",
-
    },
    searching: false,
    orderMulti: false, //Can only order on one column at a time

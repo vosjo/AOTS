@@ -22,6 +22,13 @@ virtualenv aotsenv
 source aotsenv/bin/activate
 ```
 
+On Windows Computers do
+
+```
+virtualenv aotsenv
+aotsenv\Scripts\Activate
+```
+
 If this fails with an error similar to: Error: unsupported locale setting
 do:
 ```

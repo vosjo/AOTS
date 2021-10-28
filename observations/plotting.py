@@ -20,7 +20,6 @@ from bokeh.models import widgets, FuncTickFormatter
 
 from observations.auxil import tools as spectools
 
-
 zeropoints = {
             'GALEX.FUV':  4.72496e-08,
             'GALEX.NUV':  2.21466e-08,

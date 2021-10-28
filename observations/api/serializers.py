@@ -31,6 +31,8 @@ class SpectrumListSerializer(ModelSerializer):
             'fluxcal',
             'specfiles',
             'href',
+            'airmass',
+            'resolution',
             ]
       read_only_fields = ('pk',)
       
@@ -73,6 +75,8 @@ class SpectrumSerializer(ModelSerializer):
             'note',
             'specfiles',
             'href',
+            'airmass',
+            'resolution',
             ]
       read_only_fields = ('pk',)
       

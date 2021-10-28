@@ -71,22 +71,28 @@
    <table id="spectratable" class="fullwidth">
    <thead>
       <tr>
-      <th><i id="expand-all" class="material-icons button show" title="Expand/hide">visibility</i></th>
+      {% if user.is_authenticated %}
+      <th><i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i></th>
+      {% endif %}
       <th>HJD</th>
       <th>System</th>
       <th>Instrument</th>
+      <th>Resolution</th>
+      <th>Airmass</th>
       <th>Exposure time</th>
-      <th>Action</th>
       </tr>
    </thead>
    <tfoot>
       <tr>
+      {% if user.is_authenticated %}
       <th></th>
+      {% endif %}
       <th>HJD</th>
       <th>System</th>
       <th>Instrument</th>
+      <th>Resolution</th>
+      <th>Airmass</th>
       <th>Exposure time</th>
-      <th>Action</th>
       </tr>
    </tfoot>
    </table>

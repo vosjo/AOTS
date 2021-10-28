@@ -297,18 +297,23 @@ function DlSpectra() {
    // get list of files
    spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
       var sfilepk = this.data()["specfiles"][0]['pk'];
-      console.log(this.data())
-      $.getJSON("/api/observations/specfiles/" + sfilepk + "/", function (sfile) {
-         spfilelist.push(sfile.filename);
-      })
+//       $.getJSON("/api/observations/specfiles/" + sfilepk + "/", function (sfile) {
+//          spfilelist.push(sfile.filename);
+//       });
+      $.getJSON("/api/observations/specfiles/" + sfilepk + "/path/", function(path) {
+          spfilelist.push(path);
+      });
    });
    $.getScript("/static/js/JsZip/FileSaver.js").done( function () {
       $.getScript("/static/js/JsZip/jszip.js").done( function () {
          let zip = new JSZip();
          window.setTimeout(function () {
             $.each(spfilelist, function (inx, filepath) {
-               $.get("/media/spectra/" + filepath, function (content) {
-                  zip.file(filepath, content);
+//                $.get("/media/spectra/" + filepath, function (content) {
+//                   zip.file(filepath, content);
+//                });
+               $.get(filepath, function (content) {
+                  zip.file(filepath.split('/')[3], content);
                });
             });
             window.setTimeout(function () {

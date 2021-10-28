@@ -1,4 +1,4 @@
- 
+
 #from django.conf.urls import include, url
 
 from django.urls import include, path
@@ -15,6 +15,7 @@ from .views import (
    processLightCurve,
    getLightCurveHeader,
    ObservatoryViewSet,
+   getSpecfilePath,
    )
 
 app_name = 'observations-api'
@@ -33,4 +34,5 @@ urlpatterns = [
    path('specfiles/<int:specfile_pk>/header/', getSpecfileHeader, name='specfile_header'),
    path('lightcurves/<int:lightcurve_pk>/process/', processLightCurve, name='process_lightcurve'),
    path('lightcurves/<int:lightcurve_pk>/header/', getLightCurveHeader, name='lightcurve_header'),
+   path('specfiles/<int:specfile_pk>/path/', getSpecfilePath, name='specfile_path'),
 ]

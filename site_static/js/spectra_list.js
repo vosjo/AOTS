@@ -322,7 +322,8 @@ function DlSpectra() {
                zip.generateAsync({type: "blob"}).then(function (content) {
                               saveAs(content, "Spectra"+timecode+".zip");
                            });
-            }, 500);
+//            }, 500);
+            }, 1500);
          },250);
       })
    });

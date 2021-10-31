@@ -216,7 +216,7 @@ function resolution_render( data, type, full, meta ) {
 }
 
 function delete_selected_specfiles(){
-   if (confirm('Are you sure you want to delete these Files from these spectra? This can NOT be undone! If you want to remove them from these spectra, but keep them in the database, use the remove button.')===true){
+   if (confirm('Are you sure you want to delete these files from these spectra? This can NOT be undone!')===true){
    var rows = [];
    // get list of files
    spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {

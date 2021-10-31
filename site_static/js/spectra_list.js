@@ -21,7 +21,7 @@ function format ( data ) {
 $(document).ready(function () {
    let columns;
    if (user_authenticated) {
-   console.log()
+//    console.log()
    columns = [
           {
             orderable:      false,
@@ -74,7 +74,7 @@ $(document).ready(function () {
       spectra_table.draw();
    } );
 
-      // check and uncheck tables rows
+   // check and uncheck tables rows
    $('#spectratable tbody').on( 'click', 'td.select-control', function () {
       var tr = $(this).closest('tr');
       var row = spectra_table.row( tr );
@@ -354,7 +354,6 @@ function DlSpectra() {
 
             //  Fill zip file
             for (const getPromise of getPromises) {
-                console.log(getPromise);
                 try {
                     const content = await getPromise;
                     zip.file(content[0], content[1]);

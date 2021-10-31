@@ -119,14 +119,15 @@ $(document).ready(function () {
 
   //Add toolbar to table
    if (user_authenticated){
-      $("div.toolbar").html("<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>" +
-          "<input id='delete-button'  class='tb-button' value='Delete Spectrum' type='button' disabled>");
+      $("div.toolbar").html(
+          "<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>" +
+          '<progress id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
+          "<input id='delete-button'  class='tb-button' value='Delete Spectrum' type='button' disabled>" +
+          "<p class='hide' id='result'></p>"
+      );
       $("#dl-button").click( DlSpectra );
       $("#delete-button").click( delete_selected_specfiles );
    }
-
-
-
 });
 
 
@@ -291,40 +292,96 @@ function deselect_row(row) {
    }
 }
 
+//  Update progress bar
+function updatePercent(percent) {
+    $("#progress-bar")
+    .val(percent);
+}
+
+//  Change download button text
+function showProgress(text) {
+    $("#dl-button")
+    .val(text);
+}
+
+//  Show Error message
+function showError(text) {
+    $("#dl-button")
+    .removeClass()
+    .addClass("alert")
+    .val(text);
+}
 
 function DlSpectra() {
-   var spfilelist = [];
-   // get list of files
+   //   Prepare file list
+   let spfilelist = [];
+   //   Get list of selected files
    spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-      var sfilepk = this.data()["specfiles"][0]['pk'];
-//       $.getJSON("/api/observations/specfiles/" + sfilepk + "/", function (sfile) {
-//          spfilelist.push(sfile.filename);
-//       });
+      //    Extract spectrum ID
+      let sfilepk = this.data()["specfiles"][0]['pk'];
+      //    Get file path
       $.getJSON("/api/observations/specfiles/" + sfilepk + "/path/", function(path) {
+          //    Add to file list
           spfilelist.push(path);
       });
    });
+
+   //   Load Filesaver and jszip libs to facilitate download
    $.getScript("/static/js/JsZip/FileSaver.js").done( function () {
-      $.getScript("/static/js/JsZip/jszip.js").done( function () {
-         let zip = new JSZip();
-         window.setTimeout(function () {
-            $.each(spfilelist, function (inx, filepath) {
-//                $.get("/media/spectra/" + filepath, function (content) {
-//                   zip.file(filepath, content);
-//                });
-               $.get(filepath, function (content) {
-                  zip.file(filepath.split('/')[3], content);
-               });
+        $.getScript("/static/js/JsZip/jszip.js").done( async function () {
+
+            //  Create zip file
+            let zip = new JSZip();
+
+            //  Set time string for zip file name
+            let dt  = new Date();
+            let timecode = dt.getHours()+""+dt.getMinutes()+dt.getSeconds();
+
+            //  Get file using promises so that file creation can wait until
+            //  download has finished
+            const getPromises = spfilelist.map (async path => {
+                let file = path.split('/')[3];
+                return new Promise(function(resolve, reject) {
+                    $.get(path)
+                    .done(function(data) {
+                        resolve([file, data]);
+                    })
+                    .fail(function() {
+                        reject("ERROR: File not found");
+                    })
+                });
             });
-            window.setTimeout(function () {
-               let dt = new Date();
-               let timecode = dt.getHours()+""+dt.getMinutes()+dt.getSeconds();
-               zip.generateAsync({type: "blob"}).then(function (content) {
-                              saveAs(content, "Spectra"+timecode+".zip");
-                           });
-//            }, 500);
-            }, 1500);
-         },250);
-      })
+
+            //  Fill zip file
+            for (const getPromise of getPromises) {
+                console.log(getPromise);
+                try {
+                    const content = await getPromise;
+                    zip.file(content[0], content[1]);
+                }
+                catch (err) {
+                    showError(err);
+                    return
+                }
+            }
+
+            //  Generate zip file
+            zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
+                //  Update download progress
+                let msg = "            " + metadata.percent.toFixed(2) + " %           ";
+                showProgress(msg);
+                updatePercent(metadata.percent|0);
+            })
+            .then(function callback(blob) {
+                //  Save zip file
+                saveAs(blob, "Spectra"+timecode+".zip");
+                //  Reset download button
+                showProgress("Download Spectra");
+            }, function (e) {
+                showError(e);
+            });
+
+
+      });
    });
 }

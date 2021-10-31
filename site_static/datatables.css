@@ -1,4 +1,4 @@
- 
+
 table.dataTable {
     margin: 0 auto;
     clear: both;
@@ -393,8 +393,8 @@ table.dataTable td {
     zoom: 1;
     padding-top: 5px;
     padding-bottom: 5px;
-     width: 95%; 
-     margin: auto; 
+     width: 95%;
+     margin: auto;
 }
 
 .dataTables_wrapper .dataTables_length {
@@ -614,4 +614,17 @@ div.toolbar {
 
 div.toolbar .tb-button {
    margin-left: 5px;
+}
+
+div.toolbar .alert {
+   margin-left: 5px;
+   color: #990000;
+}
+
+progress.progress-bar {
+   margin-left: 5px;
+   background-color: #f3f3f3;
+   border: 0;
+   height: 18px;
+   border-radius: 9px;
 }

@@ -448,11 +448,17 @@ def merge_norm(spec_list):
 
     #   Loop over all spectra
     for i, w in enumerate(wave):
+        #   Remove wavelength duplicates from the input arrays
+        _u, indices = np.unique(w, return_index=True)
+        w       = w[indices]
+        flux[i] = flux[i][indices]
+
+        #   Interpolate flux on new wavelength grid
         f = interpolate.interp1d(
             w,
             flux[i],
             kind='cubic',
-            bounds_error=False
+            bounds_error=False,
             )
         flux_new.append(f(mwave))
 

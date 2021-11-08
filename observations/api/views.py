@@ -21,7 +21,8 @@ from observations.models import Spectrum, SpecFile, LightCurve, Observatory
 
 from observations.auxil import read_spectrum, read_lightcurve
 
-from AOTS.custom_permissions import get_allowed_objects_to_view_for_user, check_user_can_view_project
+from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
+
 
 # ===============================================================
 # Spectrum
@@ -82,54 +83,6 @@ def processSpectrum(request, spectrum_pk):
    spectrum = Spectrum.objects.get(pk=spectrum_pk)
 
    return Response(SpectrumSerializer(spectrum).data)
-
-
-@check_user_can_view_project
-def spectrum_plot(request, spectrum_id, project=None,  **kwargs):
-    '''
-    View to plot only the spectrum to allow asynchronous loading
-    '''
-
-    #   Load project and spectrum
-    project = get_object_or_404(Project, slug=project)
-    spectrum = get_object_or_404(Spectrum, pk=spectrum_id)
-
-    #   Check if spectrum should be rebinned
-    #   -> those larger than 1 Mb get rebinned
-    total_size = sum([s.specfile.size for s in spectrum.specfile_set.all()])
-    if total_size > 500000:
-        rebin = 10
-        #request.GET._mutable = True
-        #request.GET['rebin'] = 10
-    else:
-        rebin = 1
-
-    #   Specify normalisation
-    normalize = True
-
-    #   Check if user specified binning factor and normalization
-    if request.method == 'GET':
-        rebin     = int(request.GET.get('rebin', rebin))
-        normalize = bool(int(request.GET.get('normalize', normalize)))
-
-    #   Make plots
-    #vis  = plot_visibility(spectrum)
-    spec = plot_spectrum(spectrum_id, rebin=rebin, normalize=normalize)
-
-    #   Create HTML content
-    #script, div = components({'spec':spec, 'visibility':vis}, CDN)
-    script, div = components({'spec':spec}, CDN)
-
-    #   Make dict with the content
-    context = {
-        #'project': project,
-        #'spectrum': spectrum,
-        'figures': div,
-        'script': script,
-    }
-
-    return render_to_response('spectrum_plot.html', context)
-
 
 # ===============================================================
 # SpecFile

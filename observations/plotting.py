@@ -238,7 +238,9 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
                 #   Split spectrum in 10 segments,
                 #   if standard deviation is too high
                 #   (might neglect some points at the red end)
+                print('std', std)
                 if std > 0.05:
+                    nsegment = 5
                     nsegment = 10
                     nwave    = len(wave)
                     step     = int(nwave/nsegment)
@@ -247,9 +249,21 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
                     #   Loop over segments
                     i_old = 0
                     for i in range(step,step*nsegment,step):
-                        flux_seg = flux[i_old:i]
-                        wave_seg = wave[i_old:i]
+                        #   Cut segments and add overlay range to the
+                        #   segments, so that the normalization afterburner
+                        #   can take effect
+                        overlap = int(step*0.15)
+                        if i == step:
+                            flux_seg = flux[i_old:i+overlap]
+                            wave_seg = wave[i_old:i+overlap]
+                        elif i == nsegment-1:
+                            flux_seg = flux[i_old-overlap:i]
+                            wave_seg = wave[i_old-overlap:i]
+                        else:
+                            flux_seg = flux[i_old-overlap:i+overlap]
+                            wave_seg = wave[i_old-overlap:i+overlap]
                         i_old = i
+
 
                         #   Create Spectrum1D objects for the segments
                         segments.append(
@@ -289,6 +303,8 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
         #   Define lines:
         Lines = [
             (3204.11, 'darkblue', 'HeII'),
+            (3835.39, 'red', 'Hη'),
+            (3888.05, 'red', 'Hζ'),
             (3970.07, 'red', 'Hε'),
             (4103., 'red', 'Hδ'),
             (4201., 'darkblue', 'HeII'),

@@ -237,10 +237,7 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
 
                 #   Split spectrum in 10 segments,
                 #   if standard deviation is too high
-                #   (might neglect some points at the red end)
-                print('std', std)
                 if std > 0.05:
-                    nsegment = 5
                     nsegment = 10
                     nwave    = len(wave)
                     step     = int(nwave/nsegment)
@@ -257,8 +254,8 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
                             flux_seg = flux[i_old:i+overlap]
                             wave_seg = wave[i_old:i+overlap]
                         elif i == nsegment-1:
-                            flux_seg = flux[i_old-overlap:i]
-                            wave_seg = wave[i_old-overlap:i]
+                            flux_seg = flux[i_old-overlap:]
+                            wave_seg = wave[i_old-overlap:]
                         else:
                             flux_seg = flux[i_old-overlap:i+overlap]
                             wave_seg = wave[i_old-overlap:i+overlap]

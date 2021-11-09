@@ -19,9 +19,13 @@ $(document).ready(function() {
             modal: true});
 
 
-   // add event listeners
+   //   Add event listeners
    $( "#noteEditButton").click( openNoteUpdateBox );
    $( "#spectrumEditButton").click( openSpectrumEditBox );
+   $( "#id_normalize").click( statusNorm );
+
+   //   Set initial status of the spectrum plot form
+   statusNorm();
 
    $(".showheader").click(function( event ){
       event.preventDefault();
@@ -34,7 +38,6 @@ $(document).ready(function() {
                for (var key in json) {  //add new header items
                   $('#headerList').append("<li> <span class='header-key'>"+key+"</span> : <span class='header-value'>"+json[key]+"</span></li>")
                }
-//                console.log(json);
             },
 
             error : function(xhr,errmsg,err) {
@@ -90,6 +93,28 @@ function openSpectrumEditBox() {
 };
 
 
+function statusNorm() {
+    //  Check if plot is already normalized (dirty hack)
+    let checkNorm = $( "script" )[7].text.search('normalized');
+    //  Set normalization option to True accordingly
+    if (checkNorm != -1) {
+        $("#id_normalize").attr('checked', true);
+    }
+
+    //  Activate/deactivate polynomial order field
+    let checked = $("#id_normalize").prop('checked');
+    if (!checked) {
+        $('#id_order').attr('disabled', true);
+        $('#id_order').attr('value', 3);
+        $('#div-order').attr('class', 'Wrapper_gray');
+    }
+    else {
+        $('#id_order').attr('disabled', false);
+        $('#div-order').attr('class', 'Wrapper');
+    }
+};
+
+
 // Update the note of the spectrum
 function updateNote() {
    var spectrum_id = $('#noteEditButton').attr('spectrum_id')
@@ -101,7 +126,6 @@ function updateNote() {
       success : function(json) {
             update_note_window.dialog( "close" );
             $("#noteField").text(json.note);
-//             star.note = json.note;
       },
 
       error : function(xhr,errmsg,err) {

@@ -7,7 +7,7 @@ from django.db.models import Sum
 from .models import Spectrum, SpecFile, LightCurve, Observatory
 from stars.models import Star, Project
 
-from .forms import UploadSpecFileForm, UploadLightCurveForm, UploadSpectraDetailForm
+from .forms import UploadSpecFileForm, UploadLightCurveForm, UploadSpectraDetailForm, SpectrumModForm
 
 
 from .auxil import read_spectrum, read_lightcurve
@@ -51,13 +51,22 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
     else:
         rebin = 1
 
-    #   Specify normalisation
-    normalize = True
+    #   Normalisation?
+    normalize = None
 
-    #   Check if user specified binning factor and normalization
+    #   Specify default polynomial order for normalisation
+    order = 3
+
+    #   Check if user specified binning factor and normalization in the url
     if request.method == 'GET':
-        rebin     = int(request.GET.get('rebin', rebin))
-        normalize = bool(int(request.GET.get('normalize', normalize)))
+        rebin = int(request.GET.get('rebin', rebin))
+        norm  = request.GET.get('normalize')
+        if norm == 0:
+            normalize = False
+        elif norm == 1:
+            normalize = True
+        else:
+            normalize = None
 
     #   Order all spectra
     all_instruments = spectrum.star.spectrum_set.values_list(
@@ -68,9 +77,24 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
     for inst in set(all_instruments):
         all_spectra[inst] = spectrum.star.spectrum_set.filter(instrument__exact=inst).order_by('hjd')
 
+    #   Form to allow modification of the spectrum plot
+    if request.method == 'POST':
+        form = SpectrumModForm(request.POST)
+        if form.is_valid():
+            normalize = form.cleaned_data['normalize']
+            order     = form.cleaned_data['order']
+            rebin     = form.cleaned_data['binning']
+    else:
+        form = SpectrumModForm()
+
     #   Make plots
     vis  = plot_visibility(spectrum)
-    spec = plot_spectrum(spectrum_id, rebin=rebin, normalize=normalize)
+    spec = plot_spectrum(
+        spectrum_id,
+        rebin=rebin,
+        normalize=normalize,
+        porder=order,
+        )
 
     #   Create HTML content
     script, div = components({'spec':spec, 'visibility':vis}, CDN)
@@ -82,6 +106,7 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
         'all_spectra': all_spectra,
         'figures': div,
         'script': script,
+        'form': form,
     }
 
     return render(request, 'observations/spectrum_detail.html', context)

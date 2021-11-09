@@ -14,7 +14,7 @@ header h1 {
    color: black;
    margin: 0.1em 0.1em 0.1em 0.1em;
    clear: both;
-   
+
    letter-spacing: 1px;/*
    text-decoration: none;
    text-transform: uppercase;*/
@@ -71,9 +71,9 @@ div#toolbar ul li:hover{background: rgba(0,0,0,.15);}
 div#toolbar ul li:hover > ul{display: flex;}
 
 div#toolbar ul li a{
-   display: block; 
+   display: block;
    padding: 5px;
-   color: #222; 
+   color: #222;
    font-size: 1.2em;
    letter-spacing: 1px;
    text-decoration: none;
@@ -114,9 +114,9 @@ div#subtoolbar ul li.active > a{border-bottom: 2px solid rgba(64, 117, 144, 0.3)
 div#subtoolbar ul li:hover{background: rgba(0,0,0,.15);}
 
 div#subtoolbar ul li a{
-   display: block; 
+   display: block;
    margin: 10px 20px;
-   color: #222; 
+   color: #222;
    font-size: 1.2em;
    letter-spacing: 1px;
    text-decoration: none;
@@ -320,7 +320,7 @@ div.project-container {
 }
 
 div.project-container div {
-  min-width: 400px; 
+  min-width: 400px;
   max-height: 400px;
   margin-top: auto;
   margin-bottom: auto;
@@ -353,7 +353,7 @@ div.docs-container {
 }
 
 div.docs-container div {
-  min-width: 250px; 
+  min-width: 250px;
   max-height: 300px;
   margin-top: auto;
   margin-bottom: auto;
@@ -390,7 +390,7 @@ img.project-logo {
 
 .status-icon.FI:after {
    color: #007e00;
-   content:'done'; 
+   content:'done';
 }
 
 .status-icon.ON:after {
@@ -410,7 +410,7 @@ img.project-logo {
 
 .status-icon.valid:after {
    color: #007e00;
-   content:'done'; 
+   content:'done';
 }
 
 .status-icon.invalid:after {
@@ -533,17 +533,17 @@ div#sidenav {
    bottom: 10%;
    right: -300px;
    width: 295px;
-   
+
    overflow: scroll;
-   
+
    -webkit-transition-duration: 0.3s;
    -moz-transition-duration: 0.3s;
    -o-transition-duration: 0.3s;
    transition-duration: 0.3s;
-   
+
    display: flex;
    flex-direction: column;
-   
+
    padding: 10px;
    padding-left: 20px;
    padding-right: 15px;
@@ -554,7 +554,7 @@ div#sidenav:hover {
 }
 
 
-div#sidenav h2, 
+div#sidenav h2,
 div#sidenav h3 {
    text-align:center;
    font-weight: bold;
@@ -664,6 +664,54 @@ div.tag-container {
    border: solid 1px rgba(64, 117, 144, 0.3);
    max-width: 98%;
    align-items: center;
+}
+
+div.buttons-container {
+   position: relative;
+   display: flex;
+   flex-flow: column wrap;
+   flex-grow: 1;
+   margin: 5px;
+   margin-left: 20px;
+   margin-top: 30px;
+   margin-bottom: 40px;
+   padding: 5px;
+   border: solid 1px rgba(64, 117, 144, 0.3);
+   max-width: 9%;
+   align-items: stretch;
+}
+
+div.Wrapper {
+   margin: 5px;
+}
+
+div.Wrapper_gray {
+   margin: 5px;
+   color: #c7c7ce;
+}
+
+span.error {
+/*    max-width: 80%; */
+   color: #8B0000;
+}
+
+#id_order {
+   width: 95px;
+   margin-top: 5px;
+   margin-bottom: 5px;
+}
+
+#id_binning {
+   width: 95px;
+   margin-top: 5px;
+}
+
+input.plot-button {
+   display: block;
+   width: 100%;
+   height: 30px;
+   margin-top: 20px;
+   color: #036;
 }
 
 div.tag-container a.edit,
@@ -931,7 +979,7 @@ table.obs-table td {
    justify-content: space-around;
 }
 
-form.upload, 
+form.upload,
 p.upload {
    display: flex;
    flex-direction: column;
@@ -982,12 +1030,12 @@ p.upload {
   right: -310px;
   width: 295px;
   overflow: scroll;
-  
+
   -webkit-transition-duration: 0.3s;
   -moz-transition-duration: 0.3s;
   -o-transition-duration: 0.3s;
   transition-duration: 0.3s;
-  
+
   padding: 10px;
   padding-right: 15px;
   z-index: 1000;
@@ -1002,13 +1050,13 @@ p.upload {
 }
 
 #filter-dashboard hr {
-   height: 1px; 
+   height: 1px;
    width: 200px;
    margin-top: 10px;
    margin-bottom: 10px;
    margin-left: auto;
    margin-right: auto;
-   background: #333; 
+   background: #333;
    background-image: linear-gradient(to right, #ccc, #333, #ccc);
 }
 
@@ -1087,7 +1135,7 @@ html, body {
 .page-wrap {
   min-height: 100%;
   /* equal to footer height */
-  margin-bottom: -40px; 
+  margin-bottom: -40px;
 }
 .page-wrap-base {
   min-height: 100%;
@@ -1097,7 +1145,7 @@ html, body {
   display: block;
 }
 .site-footer, .page-wrap:after {
-  height: 40px; 
+  height: 40px;
 }
 .site-footer {
   background-image: linear-gradient(rgba(64, 117, 144, 0.1), rgba(64, 117, 144, 0.4));

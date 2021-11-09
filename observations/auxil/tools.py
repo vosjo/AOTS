@@ -4,8 +4,8 @@ import numpy as np
 from scipy import interpolate, optimize
 
 from astropy import units as u
-from astropy.stats import sigma_clip
-from astropy.modeling import fitting
+from astropy.stats import sigma_clip, mad_std
+from astropy.modeling import models, fitting
 
 from specutils import Spectrum1D
 from specutils.fitting import fit_generic_continuum
@@ -34,7 +34,7 @@ def doppler_shift(wave,vrad,flux=None):
         return wave_out
 
 
-def rebin_core(wave, flux, binsize=2):
+def rebin_core(wave, flux, binsize=2, mean=False):
     """
     Core rebinning routine: Rebins the spectrum by the given binsize.
     -> If there are remaining pixels, they are dropped
@@ -66,15 +66,19 @@ def rebin_core(wave, flux, binsize=2):
     fluxes = [flux[i::binsize] for i in range(0,binsize)]
 
     #   Sum the flux
-    flux = np.sum(fluxes, axis=0)
+    if mean:
+        flux = np.mean(fluxes, axis=0)
+    else:
+        flux = np.sum(fluxes, axis=0)
 
     #   Average the wavelength
-    wave = np.sum(waves, axis=0) / binsize
+    wave = np.mean(waves, axis=0)
+    #wave = np.sum(waves, axis=0) / binsize
 
     return wave, flux
 
 
-def rebin_spectrum(wave, flux, binsize=2):
+def rebin_spectrum(wave, flux, binsize=2, mean=False):
     """
     Rebinning wrapper: Distinguishes between echelle and simple slit spectra
         Special treatment of echelle spectra
@@ -97,6 +101,10 @@ def rebin_spectrum(wave, flux, binsize=2):
         Rebinned flux
     """
 
+    #   Sanitize binsize I
+    if binsize == 0 or binsize == None:
+        binsize = 1
+
     #   Identify echelle spectra (np.ndarray of np.ndarrays)
     if isinstance(wave[0], np.ndarray):
         #   Prepare lists
@@ -104,15 +112,22 @@ def rebin_spectrum(wave, flux, binsize=2):
         flux_list = []
 
         #   Loop over orders
-        #for w, f in zip(wave,flux):
         for i, w in enumerate(wave):
+            #   Sanitize binsize II
+            if len(w)/binsize < 4:
+                binsize = int(len(w)/4)
+
             #   Rebin
-            _w, _f = rebin_core(w, flux[i], binsize=binsize)
+            _w, _f = rebin_core(w, flux[i], binsize=binsize, mean=mean)
             wave_list.append(_w)
             flux_list.append(_f)
         return np.array(wave_list), np.array(flux_list)
     else:
-        return rebin_core(wave, flux, binsize=binsize)
+        #   Sanitize binsize III
+        if len(wave)/binsize < 4:
+            binsize = int(len(wave)/4)
+
+        return rebin_core(wave, flux, binsize=binsize, mean=mean)
 
 
 def consecutive(data, stepsize=1):
@@ -156,7 +171,7 @@ def norm_two_spectra(flux_1, flux_2):
     return flux_2*norm_factor
 
 
-def norm_spectrum(spec, median_window=3):
+def norm_spectrum(spec, median_window=3, order=3):
     '''
     Normalize a spectrum
 
@@ -166,6 +181,8 @@ def norm_spectrum(spec, median_window=3):
         Spectrum to normalize
     median_window:  int()
         Window in Pixel used in median smoothing
+    order:          int()
+        Order of the polynomial used to find the continuum
 
     Returns:
     --------
@@ -177,8 +194,13 @@ def norm_spectrum(spec, median_window=3):
     #   such as broad atmospheric absorption bands
     exclude_regions=[
         SpectralRegion(4295.* u.AA, 4315.* u.AA),
-        SpectralRegion(6860.* u.AA, 6880.* u.AA),
-        SpectralRegion(7590.* u.AA, 7650.* u.AA),
+        #SpectralRegion(6860.* u.AA, 6880.* u.AA),
+        SpectralRegion(6860.* u.AA, 6910.* u.AA),
+        #SpectralRegion(7590.* u.AA, 7650.* u.AA),
+        SpectralRegion(7590.* u.AA, 7680.* u.AA),
+        SpectralRegion(9260.* u.AA, 9420.* u.AA),
+        #SpectralRegion(11100.* u.AA, 11450.* u.AA),
+        #SpectralRegion(13300.* u.AA, 14500.* u.AA),
         ]
 
     #   First estimate of the continuum
@@ -187,7 +209,7 @@ def norm_spectrum(spec, median_window=3):
     #       -> reduces normalization accuracy
     _cont = fit_generic_continuum(
         spec,
-        #model=models.Chebyshev1D(order),
+        model=models.Chebyshev1D(order),
         fitter=fitting.LinearLSQFitter(),
         median_window=median_window,
         exclude_regions=exclude_regions,
@@ -217,7 +239,7 @@ def norm_spectrum(spec, median_window=3):
     # Determine new continuum
     _cont = fit_generic_continuum(
         spec_mask,
-        #model=models.Chebyshev1D(order),
+        model=models.Chebyshev1D(order),
         fitter=fitting.LinearLSQFitter(),
         median_window=median_window,
         exclude_regions=exclude_regions,
@@ -226,10 +248,7 @@ def norm_spectrum(spec, median_window=3):
     #   Normalize spectrum again
     norm_spec = spec / _cont
 
-
-    #print(norm_spec.flux)
-
-    return norm_spec
+    return norm_spec, mad_std(norm_spec.flux)
 
 
 def after_norm(flux_list):
@@ -429,11 +448,17 @@ def merge_norm(spec_list):
 
     #   Loop over all spectra
     for i, w in enumerate(wave):
+        #   Remove wavelength duplicates from the input arrays
+        _u, indices = np.unique(w, return_index=True)
+        w       = w[indices]
+        flux[i] = flux[i][indices]
+
+        #   Interpolate flux on new wavelength grid
         f = interpolate.interp1d(
             w,
             flux[i],
             kind='cubic',
-            bounds_error=False
+            bounds_error=False,
             )
         flux_new.append(f(mwave))
 
@@ -447,7 +472,7 @@ def merge_norm(spec_list):
     return mwave, mflux
 
 
-def norm_merge_spectra(spectra, median_window=3):
+def norm_merge_spectra(spectra, median_window=3, order=3):
     '''
     Normalize spectra and merge them afterwards
 
@@ -467,7 +492,13 @@ def norm_merge_spectra(spectra, median_window=3):
     #   Normalize spectra
     norm_spec = []
     for spec in spectra:
-        norm_spec.append(norm_spectrum(spec, median_window=median_window))
+        norm_spec.append(
+            norm_spectrum(
+                spec,
+                median_window=median_window,
+                order=order
+                )[0]
+            )
 
     #   Merge spectra
     return merge_norm(norm_spec)

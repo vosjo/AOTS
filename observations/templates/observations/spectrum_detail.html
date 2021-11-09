@@ -164,13 +164,39 @@
    <p>The spectrum is shifted with a barycentric correction of {{spectrum.barycor}} km/s.</p>-->
 
    <div class="flex-data-container">
+        <div id="spectrum">
+            {% if figures.spec %}
+            <!--    <div class="block w1100"> -->
+                {{ figures.spec|safe }}
+            <!--    </div> -->
+            {% endif %}
+        </div>
 
-   {% if figures.spec %}
-<!--    <div class="block w1100"> -->
-      {{ figures.spec|safe }}
-<!--    </div> -->
-   {% endif %}
-
+        <div class="buttons-container">
+            <h3>Modify data</h3>
+            <form action="{% url "observations:spectrum_detail" project.slug spectrum.pk %}" method="post">
+                {% csrf_token %}
+                <div class="Wrapper">
+                    <label for="{{ form.normalize.id_for_label }}">Normalize:</label>
+                    {{ form.normalize }}
+                    <span class="error"> {{ form.normalize.errors.as_text }} </span>
+                </div>
+                <div id="div-order" class="Wrapper">
+                    <label for="{{ form.order.id_for_label }}">Polynomial order:</label>
+                    <br>
+                    {{ form.order }}
+<!--                     <span class="error"> {{ form.order.errors|striptags }} </span> -->
+                    <span class="error"> {{ form.order.errors.as_text }} </span>
+                </div>
+                <div class="Wrapper">
+                    <label for="{{ form.binning.id_for_label }}">Binning:</label>
+                    <br>
+                    {{ form.binning }}
+                    <span class="error"> {{ form.binning.errors.as_text }} </span>
+                </div>
+                <input id="updateFigure" type="submit" value="Update Figure" class='plot-button'/>
+            </form>
+        </div>
    </div>
 
    <hr>

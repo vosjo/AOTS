@@ -133,7 +133,7 @@ def plot_visibility(observation):
    return fig
 
 
-def plot_spectrum(spectrum_id, rebin=1, normalize=True):
+def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
     '''
     Plot spectrum
 
@@ -157,6 +157,17 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True):
     specfiles  = spectrum.specfile_set.order_by('filetype')
     instrument = spectrum.instrument
 
+    #   Determine flux unit
+    funit_str = spectrum.flux_units
+
+    #   Set flux unit
+    if funit_str == 'ADU':
+        funit = u.adu
+    elif funit_str == 'ergs/cm/cm/s/A':
+        funit = u.erg/u.cm/u.cm/u.s/u.AA
+    else:
+        funit = u.ct
+
     #   Prepare list for tabs in the figure
     tabs = []
 
@@ -179,26 +190,24 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True):
         #   Rebin spectrum
         wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
 
-        #   Identify echelle spectra -> wave is a np.ndarray of np.ndarrays
+
+        ###
+        #   Normalize & merge spectra
+
+        #   Identify echelle spectra
+        #   -> wave is a np.ndarray of np.ndarrays
         if isinstance(wave[0], np.ndarray):
+            #   Set normalize to true if current value is 'None'
+            if normalize == None:
+                normalize = True
+
             #   Normalize & merge spectra
             if normalize:
-                #   Determine flux unit
-                funit = spectrum.flux_units
-
                 #   Prepare list for echelle orders
                 orders = []
 
                 #   Loop over each order
                 for i,w in enumerate(wave):
-                    #   Set flux unit
-                    if funit == 'ADU':
-                        funit = u.adu
-                    elif funit == 'ergs/cm/cm/s/A':
-                        funit = u.erg/u.cm/u.cm/u.s/u.AA
-                    else:
-                        funit = u.ct
-
                     #   Create Spectrum1D objects
                     orders.append(
                         Spectrum1D(
@@ -208,12 +217,70 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True):
                         )
 
                 #   Normalize & merge spectra
-                wave, flux = spectools.norm_merge_spectra(orders)
-                wave = wave.value
-                #flux = flux.value
+                wave, flux = spectools.norm_merge_spectra(orders, order=porder)
+                wave       = wave.value
+
+                #   Set flux unit to 'normalized'
+                funit_str = 'normalized'
             else:
                 #   Merge spectra
                 wave, flux = spectools.merge_spectra(wave, flux)
+        else:
+            #   Normalize & merge spectra
+            if normalize:
+                #   Create Spectrum1D objects
+                spec = Spectrum1D(spectral_axis=wave*u.AA, flux=flux*funit)
+
+                #   Normalize spectrum
+                spec, std = spectools.norm_spectrum(spec, order=porder)
+
+                #   Split spectrum in 10 segments,
+                #   if standard deviation is too high
+                if std > 0.05:
+                    nsegment = 10
+                    nwave    = len(wave)
+                    step     = int(nwave/nsegment)
+                    segments = []
+
+                    #   Loop over segments
+                    i_old = 0
+                    for i in range(step,step*nsegment,step):
+                        #   Cut segments and add overlay range to the
+                        #   segments, so that the normalization afterburner
+                        #   can take effect
+                        overlap = int(step*0.15)
+                        if i == step:
+                            flux_seg = flux[i_old:i+overlap]
+                            wave_seg = wave[i_old:i+overlap]
+                        elif i == nsegment-1:
+                            flux_seg = flux[i_old-overlap:]
+                            wave_seg = wave[i_old-overlap:]
+                        else:
+                            flux_seg = flux[i_old-overlap:i+overlap]
+                            wave_seg = wave[i_old-overlap:i+overlap]
+                        i_old = i
+
+
+                        #   Create Spectrum1D objects for the segments
+                        segments.append(
+                            Spectrum1D(
+                                spectral_axis=wave_seg*u.AA,
+                                flux=flux_seg*funit,
+                                )
+                            )
+                    #   Normalize & merge spectra
+                    wave, flux = spectools.norm_merge_spectra(
+                        segments,
+                        order=porder,
+                        )
+                    wave       = wave.value
+
+                else:
+                    wave = np.asarray(spec.spectral_axis)
+                    flux = np.asarray(spec.flux)
+
+                #   Set flux unit to 'normalized'
+                funit_str = 'normalized'
 
         #   Set the maximum and minimum so that weird peaks
         #   are cut off automatically.
@@ -222,7 +289,8 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True):
         minf  = np.max([np.min(flux)*0.95, 0])
 
         #   Initialize figure
-        fig = bpl.figure(plot_width=1600, plot_height=400, y_range=[minf, maxf]) #, sizing_mode='scale_width'
+        #, sizing_mode='scale_width'
+        fig = bpl.figure(plot_width=1550, plot_height=400, y_range=[minf, maxf])
 
         #   Plot spectrum
         fig.line(wave, flux, line_width=1, color="blue")
@@ -230,9 +298,12 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True):
         #   Annotate He and H lines
         #   Define lines:
         Lines = [
+            (3204.11, 'darkblue', 'HeII'),
+            (3835.39, 'red', 'Hη'),
+            (3888.05, 'red', 'Hζ'),
             (3970.07, 'red', 'Hε'),
             (4103., 'red', 'Hδ'),
-            #(4388, 'red'),
+            (4201., 'darkblue', 'HeII'),
             (4340.49, 'red', 'Hγ'),
             #(4339, 'darkblue', 'HeII'),
             (4471, 'blue', 'HeI'),
@@ -240,12 +311,13 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True):
             (4687, 'darkblue', 'HeII'),
             (4861.36, 'red', 'Hβ'),
             (4922, 'blue', 'HeI'),
+            (5412., 'darkblue', 'HeII'),
             (5877, 'blue', 'HeI'),
-            #(6678, 'red'),
             (6562.1, 'red', 'Hα'),
             (6685, 'darkblue', 'HeII'),
             ]
         Annot = []
+
         #   For each line make an annotation box and and a label
         for h in Lines:
             #   Restrict to lines in plot range
@@ -282,8 +354,7 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True):
 
         #   Set figure labels
         fig.toolbar.logo=None
-        #fig.yaxis.axis_label = 'Flux'
-        fig.yaxis.axis_label = 'Flux ('+spectrum.flux_units+')'
+        fig.yaxis.axis_label = 'Flux ('+funit_str+')'
         fig.xaxis.axis_label = 'Wavelength (AA)'
         fig.yaxis.axis_label_text_font_size = '10pt'
         fig.xaxis.axis_label_text_font_size = '10pt'

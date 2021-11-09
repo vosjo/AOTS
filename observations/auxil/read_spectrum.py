@@ -179,10 +179,15 @@ def process_specfile(specfile_id, create_new_star=True, add_to_existing_spectrum
    duplicates = SpecFile.objects.exclude(id__exact = specfile_id) \
                    .filter(ra__range = [specfile.ra-1/3600., specfile.ra+1/3600.]) \
                    .filter(dec__range = [specfile.dec-1/3600., specfile.dec+1/3600.]) \
-                   .filter(hjd__exact = specfile.hjd) \
+                   .filter(hjd__range = [specfile.hjd-0.00000001, specfile.hjd+0.00000001]) \
                    .filter(instrument__iexact = specfile.instrument) \
                    .filter(filetype__iexact = specfile.filetype) \
                    .filter(project__exact = specfile.project.pk)
+
+   #print('duplicates', duplicates)
+   #specfile.specfile.delete()
+   #specfile.delete()
+   #return False, "This specfile is a duplicate and was not added!"
 
    if len(duplicates) > 0:
       # this specfile already exists, so remove it

@@ -184,11 +184,6 @@ def process_specfile(specfile_id, create_new_star=True, add_to_existing_spectrum
                    .filter(filetype__iexact = specfile.filetype) \
                    .filter(project__exact = specfile.project.pk)
 
-   #print('duplicates', duplicates)
-   #specfile.specfile.delete()
-   #specfile.delete()
-   #return False, "This specfile is a duplicate and was not added!"
-
    if len(duplicates) > 0:
       # this specfile already exists, so remove it
       specfile.specfile.delete()

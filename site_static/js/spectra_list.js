@@ -1,23 +1,6 @@
 
 var spectra_table = null;
 
-function format ( data ) {
-   var res = "<ul>";
-   for (var i=0; i < data['specfiles'].length; i++ ) {
-      var sp = data['specfiles'][i];
-      res = res + "<li>"
-      res = res + sp['hjd'] + " - " + sp['instrument'] + " - " + sp['filetype'];
-      res = res + "<i class='material-icons button delete' id='remove-specfile-" + sp['pk'] + "' title='Remove from spectrum'>close</i>";
-      res = res + "<i class='material-icons button delete' id='delete-specfile-" + sp['pk'] + "' title='Remove from spectrum'>delete</i>";
-      res = res + "</li>"
-
-   }
-   res = res + "</ul>";
-   return res;
-}
-
-
-
 $(document).ready(function () {
    let columns;
    if (user_authenticated) {
@@ -126,7 +109,7 @@ $(document).ready(function () {
           "<p class='hide' id='result'></p>"
       );
       $("#dl-button").click( DlSpectra );
-      $("#delete-button").click( delete_selected_specfiles );
+      $("#delete-button").click( delete_all_selected_specfiles );
    }
 });
 
@@ -215,52 +198,38 @@ function resolution_render( data, type, full, meta ) {
    }
 }
 
-function delete_selected_specfiles(){
-   if (confirm('Are you sure you want to delete these files from these spectra? This can NOT be undone!')===true){
-   var rows = [];
-   // get list of files
-   spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-      var row = this;
-      rows.push(row);
-   });
-   $.each(rows, function (index, row) {
-      var pk = row.data()["specfiles"][0]["pk"];
-               $.ajax({
-               url : "/api/observations/specfiles/"+pk+'/',
-               type : "DELETE",
-               success : function(json) {
-
-                  // Remove the whole spectrum, if all specfiles are gone
-                  if (row.data()["specfiles"]["length"]-1 === 0) {
-                     spectra_table.row(row).remove().draw('full-hold');
-                  }
-
-                  // Remove item from the dataset
-                  var data = remove_specfile_from_data(row.data(), pk);
-                  spectra_table.row(row).data( data );
-               },
-
-               error : function(xhr,errmsg,err) {
-                   if (xhr.status === 403){
-                       alert('You have to be logged in to delete this spectrum.');
-                   }else{
-                       alert(xhr.status + ": " + xhr.responseText);
-                   }
-                   console.log(xhr.status + ": " + xhr.responseText);
-               }
-         });
-      })
-   }
-}
-
-
-function remove_specfile_from_data(data, pk) {
-   for (var i=0; i < data['specfiles'].length; i++) {
-      if (data['specfiles'][i]['pk'] == pk) {
-         data['specfiles'].splice(i,1)
-         break;
-      }
-   }
+function delete_all_selected_specfiles(){
+    if (confirm('Are you sure you want to delete this spectrum? This can NOT be undone!')===true){
+        let rows = [];
+        //   Get list of selected spectra
+        spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+            rows.push(this);
+        });
+        // Loop over selected spectra
+        $.each(rows, function (index, row) {
+            //  Loop over all spec files
+            $.each(row.data()["specfiles"], function(ind) {
+                let pk = row.data()["specfiles"][ind]['pk'];
+                //  Ajax call to remove spec files
+                $.ajax({
+                    url : "/api/observations/specfiles/"+pk+'/',
+                    type : "DELETE",
+                    success : function(json) {
+                        //  Remove the whole spectrum from table
+                        spectra_table.row(row).remove().draw('full-hold');
+                    },
+                    error : function(xhr,errmsg,err) {
+                        if (xhr.status === 403){
+                            alert('You have to be logged in to delete this spectrum.');
+                        }else{
+                            alert(xhr.status + ": " + xhr.responseText);
+                        }
+                        console.log(xhr.status + ": " + xhr.responseText);
+                    }
+                });
+            })
+        })
+    }
 }
 
 
@@ -315,15 +284,20 @@ function showError(text) {
 function DlSpectra() {
    //   Prepare file list
    let spfilelist = [];
-   //   Get list of selected files
+   //   Get list of selected spectra
    spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-      //    Extract spectrum ID
-      let sfilepk = this.data()["specfiles"][0]['pk'];
-      //    Get file path
-      $.getJSON("/api/observations/specfiles/" + sfilepk + "/path/", function(path) {
-          //    Add to file list
-          spfilelist.push(path);
-      });
+        let specfiles = this.data()["specfiles"]
+        //  Loop over all associated files
+        $.each(specfiles, function(ind) {
+            //  Identify files
+            let sfilepk = specfiles[ind]['pk'];
+
+            //    Get file path
+            $.getJSON("/api/observations/specfiles/"+sfilepk+"/path/", function(path) {
+                //    Add to file list
+                spfilelist.push(path);
+            });
+        });
    });
 
    //   Load Filesaver and jszip libs to facilitate download
@@ -337,7 +311,7 @@ function DlSpectra() {
             let dt  = new Date();
             let timecode = dt.getHours()+""+dt.getMinutes()+dt.getSeconds();
 
-            //  Get file using promises so that file creation can wait until
+            //  Get file using promises so that file assembly can wait until
             //  download has finished
             const getPromises = spfilelist.map (async path => {
                 let file = path.split('/')[3];

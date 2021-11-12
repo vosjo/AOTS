@@ -393,7 +393,7 @@ def derive_MUSICOS_info(header):
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
    data['observer'] = header.get('OBSERVER', 'UK')
 
-   data['resolution'] = header.get('SPEC_RES', -1)
+   data['resolution'] = header.get('SPEC_RES', 35000.)
    data['snr'] = header.get('SNR5500A', -1)
    data['seeing'] = header.get('SEEING', -1)
 

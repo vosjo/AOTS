@@ -38,11 +38,40 @@ def cal_wave(header, npoints):
     """
     Calculates wave length range from Header information
     """
-    dnu = float(header["CDELT1"]) if 'CDELT1' in header else header['CD1_1']
-    nu_0 = float(header["CRVAL1"]) # the first wavelength value
-    nu_n = nu_0 + (npoints-1)*dnu
-    wave = np.linspace(nu_0,nu_n,npoints)
+    #dnu = float(header["CDELT1"]) if 'CDELT1' in header else header['CD1_1']
+    #nu_0 = float(header["CRVAL1"]) # the first wavelength value
+    #nu_n = nu_0 + (npoints-1)*dnu
+    #wave = np.linspace(nu_0,nu_n,npoints)
 
+    #if ('CTYP1' in header and 'log' in header['CTYP1']) or \
+        #('CTYPE1' in header and 'log' in header['CTYPE1']):
+        #wave = np.exp(wave)
+
+    if 'CRPIX1' in header:
+        ref_pix = int(header["CRPIX1"])-1
+    else:
+        ref_pix = 0
+
+    if "CDELT1" in header:
+        dnu = float(header["CDELT1"])
+    elif "CD1_1" in header:
+        dnu = float(header["CD1_1"])
+    else:
+        raise Exception(
+            'Can not find wavelength dispersion in header.'
+            +' Looked for CDELT1 and CD1_1'
+            )
+
+    nu0 = float(header["CRVAL1"]) - ref_pix*dnu
+    nun = nu0 + (npoints-1)*dnu
+    wave = np.linspace(nu0,nun,npoints)
+
+    #   Fix wavelengths for logarithmic sampling
+    #if 'ctype1' in header and header['CTYPE1']=='log(wavelength)':
+        #wave = np.exp(wave)
+    #elif 'ctype1' in header and header['CTYPE1']=='AWAV-LOG':
+        ##   PHOENIX spectra
+        #wave = np.exp(wave)
     if ('CTYP1' in header and 'log' in header['CTYP1']) or \
         ('CTYPE1' in header and 'log' in header['CTYPE1']):
         wave = np.exp(wave)
@@ -137,135 +166,124 @@ def read_spectrum(filename, return_header=False):
     #   Determine number of FITS extensions
     nHDUs = len(hduLIST)
 
-    #    Check if primary Header contains information on the
-    #    telescope and instrument
-    #    => ignore primary Header if that is not the case
-    hdu = 0
-    try:
-        telescope  = fits.getval(filename, 'TELESCOP')
-        instrument = fits.getval(filename, 'INSTRUME')
-    except:
-        try:
-            telescope  = fits.getval(filename, 'TELESCOP', ext=1)
-            instrument = fits.getval(filename, 'INSTRUME', ext=1)
-            hdu = 1
-        except Exception as e:
-            print('Exception occurred in read_spectrum().')
-            print('Context: Reading telescope or instrument info from Header.')
-            print('Problem: ', e)
-            print('Solution: Add TELESCOP and/or INSTRUME Header keyword')
-
-            telescope  = 'UK'
-            instrument = 'UK'
-
-    #    Read Header
-    header = fits.getheader(filename, hdu)
-
-    #   Assume that files with more than 10 extensions are echelle files
+    #   Distinguish between files containing individual Echelle orders
+    #   and normal slit spectra -> assume that files with more than
+    #   10 extensions are echelle files
     if nHDUs > 10:
         #   Check if primary HDU contains data
         #    => ignore if primary HDU is empty
         if hduLIST[0].data == None:
             hdu = 1
-
-        wave, flux = read_echelle(filename, starthdu=hdu)
-    else:
-        #    MODS spectrograph
-        if instrument in ['MODS1B', 'MODS1R', 'MODS2B', 'MODS2R']:
-            row=1
         else:
-            row=0
+            hdu = 0
 
-        #    Try general 1D spectrum extraction
+        #   Extract data
+        wave, flux = read_echelle(filename, starthdu=hdu)
+
+        #   Read header
+        if return_header:
+            header = fits.getheader(filename, hdu)
+    else:
+        hdu = 0
         try:
-            wave, flux = read_1D_spectrum(filename, row=row)
-        except Exception as e:
-            print('Exception occurred in read_spectrum().')
-            print('   Context: Reading spectra from FITS file,')
-            print('            assuming a typical 1D spectrum layout')
-            print('   Problem:', e)
-            print('   Solution:')
-            print('       -> tying instrument specific extractions... ')
-            print('       -> usually no action is required... ')
-            print()
+            telescope  = fits.getval(filename, 'TELESCOP')
+        except:
+            try:
+                telescope  = fits.getval(filename, 'TELESCOP', ext=1)
+                hdu = 1
+            except Exception as e:
+                print('Exception occurred in read_spectrum().')
+                print('Context: Reading telescope info from Header.')
+                print('Problem: ', e)
 
-            #     Switch to instrument specific extractions
-            if instrument in ['FEROS', 'UVES'] and not "CRVAL1" in header:
-                """
-                FEROS or UVES (phase 3 data product)
-                """
-                data = fits.getdata(filename, 1)
+                telescope  = 'UK'
 
-                if 'FLUX' in data.dtype.names:
-                    flux = data['FLUX'][0]
-                elif 'FLUX_REDUCED' in data.dtype.names:
-                    flux = data['FLUX_REDUCED'][0]
-                else:
-                    flux = data['BGFLUX_REDUCED'][0]
+        #    Read Header
+        header = fits.getheader(filename, hdu)
 
-                wave = data['wave'][0]
+        #   Read instrument
+        instrument = header.get('INSTRUME', 'UK')
 
-            elif 'SDSS' in header.get('telescop', ''):
-                """
-                SDSS spectrum
-                """
-                data       = fits.getdata(filename, 1)
-                wave, flux = 10**data['loglam'], data['flux']
+        ###
+        #   Try instrument specific extractions
+        #
+        if instrument in ['FEROS', 'UVES'] and not "CRVAL1" in header:
+            """
+            FEROS or UVES (phase 3 data product)
+            """
+            data = fits.getdata(filename, 1)
 
-            elif not "CRVAL1" in header:
-                """
-                Spectrum likely included as table data
-                """
-                data = fits.getdata(filename, 1)
-
-                if instrument == 'XSHOOTER':
-                    wave = data['WAVE'][0]*10.
-                    flux = data['FLUX'][0]
-                else:
-                    if 'WAVE' in data.dtype.names or 'wave' in data.dtype.names:
-                        wave = data['WAVE'] # eso DR3
-                    else:
-                        wave = data['wavelength']
-
-                    if 'FLUX' in data.dtype.names or 'flux' in data.dtype.names:
-                        flux = data['flux']
-                    else:
-                        flux = data['FLUX_REDUCED']
-
+            if 'FLUX' in data.dtype.names:
+                flux = data['FLUX'][0]
+            elif 'FLUX_REDUCED' in data.dtype.names:
+                flux = data['FLUX_REDUCED'][0]
             else:
-                flux = fits.getdata(filename)
-                if 'LAMOST' in header.get('TELESCOP', ''):
-                    flux = flux[0]
+                flux = data['BGFLUX_REDUCED'][0]
 
-                #   Make the equidistant wavelength grid using the Fits standard
-                #   info in the header
-                if 'CRPIX1' in header:
-                    ref_pix = int(header["CRPIX1"])-1
+            wave = data['wave'][0]
+
+        elif 'SDSS' in header.get('telescop', ''):
+            """
+            SDSS spectrum
+            """
+            data       = fits.getdata(filename, 1)
+            wave, flux = 10**data['loglam'], data['flux']
+
+        elif 'LAMOST' in header.get('TELESCOP', ''):
+            '''
+            LAMOST spectra
+            '''
+            data = fits.getdata(filename)
+            flux = data[0]
+            wave = data[2]
+
+        elif not "CRVAL1" in header:
+            """
+            Spectrum likely included as table data
+            """
+            data = fits.getdata(filename, 1)
+
+            if instrument == 'XSHOOTER':
+                wave = data['WAVE'][0]*10.
+                flux = data['FLUX'][0]
+            else:
+                if 'WAVE' in data.dtype.names or 'wave' in data.dtype.names:
+                    wave = data['WAVE'] # eso DR3
                 else:
-                    ref_pix = 0
+                    wave = data['wavelength']
 
-                if "CDELT1" in header:
-                    dnu = float(header["CDELT1"])
-                elif "CD1_1" in header:
-                    dnu = float(header["CD1_1"])
+                if 'FLUX' in data.dtype.names or 'flux' in data.dtype.names:
+                    flux = data['flux']
                 else:
-                    raise Exception(
-                        'Can not find wavelength dispersion in header.'
-                        +' Looked for CDELT1 and CD1_1'
-                        )
+                    flux = data['FLUX_REDUCED']
+        else:
+            '''
+            Try general 1D spectrum extraction
+            '''
+            try:
+                #    MODS spectrograph
+                if instrument in ['MODS1B', 'MODS1R', 'MODS2B', 'MODS2R']:
+                    row=1
+                else:
+                    row=0
 
-                nu0 = float(header["CRVAL1"]) - ref_pix*dnu
-                nun = nu0 + (len(flux)-1)*dnu
-                wave = np.linspace(nu0,nun,len(flux))
-                #   Fix wavelengths for logarithmic sampling
-                if 'ctype1' in header and header['CTYPE1']=='log(wavelength)':
-                    wave = np.exp(wave)
-                elif 'ctype1' in header and header['CTYPE1']=='AWAV-LOG':
-                    #   PHOENIX spectra
-                    wave = np.exp(wave)
-                elif 'LAMOST' in header.get('TELESCOP', ''):
-                    #   Lamost uses log10 dispersion
-                    wave = 10**wave
+                wave, flux = read_1D_spectrum(filename, row=row)
+
+            except Exception as e:
+                print('Exception occurred in read_spectrum().')
+                print('   Context: Reading spectra from FITS file,')
+                print('            assuming a typical 1D spectrum layout')
+                print('   Problem:', e)
+
+                try:
+                    flux = fits.getdata(filename)
+                    wave = cal_wave(header, len(flux))
+
+                except Exception as e:
+                    print('Exception occurred in read_spectrum().')
+                    print('   Context: Reading spectra from FITS file')
+                    print('            No extraction method was successful')
+                    print('   Problem:', e)
 
     if return_header:
         return wave,flux,header

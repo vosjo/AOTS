@@ -59,6 +59,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
 class StarFilter(filters.FilterSet):
     '''
     Filter definitions for table with stars
+        - the filter order matters -> Gmag filter needs to come last,
+          because it breaks other filter for some reason
     '''
     #   Name filter
     name = filters.CharFilter(
@@ -82,18 +84,6 @@ class StarFilter(filters.FilterSet):
     #   RA & DEC filter
     ra = filters.RangeFilter(field_name="ra",)
     dec = filters.RangeFilter(field_name="dec",)
-
-    #   Filter for G magnitudes
-    mag_min = filters.NumberFilter(
-        field_name="Gmag",
-        method='filter_magnitude_gt',
-        lookup_expr='gte',
-        )
-    mag_max = filters.NumberFilter(
-        field_name="Gmag",
-        method='filter_magnitude_lt',
-        lookup_expr='lte',
-        )
 
     #   Classification filters
     classification = filters.CharFilter(
@@ -148,6 +138,17 @@ class StarFilter(filters.FilterSet):
         lookup_expr='lte',
         )
 
+    #   Filter for G magnitudes
+    mag_min = filters.NumberFilter(
+        field_name="Gmag",
+        method='filter_magnitude_gt',
+        lookup_expr='gte',
+        )
+    mag_max = filters.NumberFilter(
+        field_name="Gmag",
+        method='filter_magnitude_lt',
+        lookup_expr='lte',
+        )
 
     #   Method definitions for the filter definitions above
     def filter_name(self, queryset, name, value):
@@ -185,8 +186,8 @@ class StarFilter(filters.FilterSet):
             photometry__measurement__lte=value,
             )
 
-    def filter_identifier(self, queryset, name, value):
-        return queryset.filter(identifier__name__icontains=value)
+    #def filter_identifier(self, queryset, name, value):
+        #return queryset.filter(identifier__name__icontains=value)
 
     #   General method for the observations filter
     #   - distinct=True is required to allow filter chains,

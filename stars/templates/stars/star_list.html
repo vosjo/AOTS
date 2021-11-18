@@ -156,6 +156,60 @@
    </ul>
 </div>
 
+<div id="addSystems">
+   <div id='single-add' class='single-system-form'>
+   <fieldset>
+    <legend>Add Single System by Form</legend>
+    <div class="ui-controlgroup-horizontal">
+    <fieldset>
+      <legend>Tags</legend>
+      <ul id="add-option-tags">
+      </ul>
+    </fieldset>
+    <fieldset>
+    <legend>Name and values*</legend>
+          <label for="add-system-main-id">Name (main id)</label>
+          <input id="add-system-main-id" class="ui-spinner-input">
+          <label for="add-system-source-id">Source ID</label>
+          <input id="add-system-source-id" class="ui-spinner-input">
+          <label for="add-system-re-id">Right ascension</label>
+          <input id="add-system-re-id" class="ui-spinner-input">
+          <label for="add-system-dec-id">Declination</label>
+          <input id="add-system-dec-id" class="ui-spinner-input">
+          <label for="add-system-type-id">Type</label>
+          <select id="add-system-type-id">
+              <option value="Star">Star</option>
+              <option value="PM*">PM*</option>
+              <option value="V*">V*</option>
+              <option value="RGB*">RGB*</option>
+          </select>
+    </fieldset>
+        <fieldset>
+    <legend>Further Values</legend>
+          <label for="add-system-jname-id">J-Name</label>
+          <input id="add-system-main-id" class="ui-spinner-input">
+          <label for="add-system-sptype-id">Spectral Type</label>
+          <input id="add-system-sptype-id" class="ui-spinner-input">
+          <label for="add-system-plx-id">Parallax</label>
+          <input id="add-system-plx-id" class="ui-spinner-input">
+          <label for="add-system-plx_err-id">Parallax Error</label>
+          <input id="add-system-plx_err-id" class="ui-spinner-input">
+          <label for="add-system-pmre-id">Proper Motion Right ascension</label>
+          <input id="add-system-pmre-id" class="ui-spinner-input">
+            <label for="add-system-pmre_err-id">Proper Motion Right ascension Error</label>
+          <input id="add-system-pmre_err-id" class="ui-spinner-input">
+          <label for="add-system-pmdec-id">Proper Motion Declination</label>
+          <input id="add-system-pmdec-id" class="ui-spinner-input">
+            <label for="add-system-pmdec_err-id">Proper Motion Declination Error</label>
+          <input id="add-system-pmdec_err-id" class="ui-spinner-input">
+    </fieldset>
+    <p class="add-systtem-footnote">Blocks marked with a '*' are required</p>
+    </div>
+  </fieldset>
+   </div>
+   <div id='bulk-add' class='bulk-system-form'></div>
+</div>
+
 <script type="text/javascript" src="{% static 'js/stars_list.js' %}"></script>
 
 {% endblock %}

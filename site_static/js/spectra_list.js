@@ -127,6 +127,8 @@ $(document).ready(function () {
 
 
 
+
+
 });
 
 
@@ -215,7 +217,7 @@ function resolution_render( data, type, full, meta ) {
 }
 
 function delete_selected_specfiles(){
-   if (confirm('Are you sure you want to delete these Files from these spectra? This can NOT be undone! If you want to remove them from these spectra, but keep them in the database, use the remove button.')===true){
+   if (confirm('Are you sure you want to delete these Files? This can NOT be undone!')===true){
    var rows = [];
    // get list of files
    spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
@@ -237,6 +239,10 @@ function delete_selected_specfiles(){
                   // Remove item from the dataset
                   var data = remove_specfile_from_data(row.data(), pk);
                   spectra_table.row(row).data( data );
+
+                  $('#select-all').text('check_box_outline_blank');
+                  $('#dl-button').prop('disabled', true);
+                  $('#delete-button').prop('disabled', true);
                },
 
                error : function(xhr,errmsg,err) {
@@ -274,7 +280,6 @@ function select_row(row) {
       $('#select-all').text('check_box');
    }
     $('#dl-button').prop('disabled', false);
-    $('#rm-button').prop('disabled', false);
     $('#delete-button').prop('disabled', false);
 }
 
@@ -284,7 +289,7 @@ function deselect_row(row) {
    if ( spectra_table.rows('.selected').data().length === 0 ) {
       $('#select-all').text('check_box_outline_blank');
       $('#dl-button').prop('disabled', true);
-      $('#rm-button').prop('disabled', true);
+
       $('#delete-button').prop('disabled', true);
    } else {
       $('#select-all').text('indeterminate_check_box');

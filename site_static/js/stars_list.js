@@ -110,7 +110,7 @@ $(document).ready(function () {
          star_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
             select_row(this); // close the row
          });
-      };
+      }
    });
    
    // Load the tags and add them to the tag selection list, and the tag edit window
@@ -126,7 +126,7 @@ $(document).ready(function () {
          modal: true});
 
    add_systems_window = $("#addSystems").dialog({autoOpen: false,
-         width: '650',
+         width: '775',
          modal: true});
    
    // event listeners for edit buttons
@@ -530,8 +530,43 @@ function openAddSystemsWindow() {
    add_systems_window.dialog( "open" );
 }
 
-function addSystem(){
+function addSystem() {
+   //Check if Inputs are done correctly
+   let readytoadd = true;
+   $("input").each(function () {
+      if (this.className === "ui-spinner-input") {
+         if (this.parentElement.parentElement.innerHTML.indexOf("*") >= 0) {
+            let inputname;
+            inputname = this.id.replace("add-system-", "").replace("-id", "");
+            if ($.inArray(inputname, ["main", "jname", "sptype"])!== -1) {
+               console.log(inputname, $(this).val());
+               if ($(this).val() === "") {
+                  readytoadd = false;
+                  $(this).css("border-color", "red");
+               }
+            }
+            if ($.inArray(inputname, ["re", "dec", "plx", "source", "plx_err"])!== -1) {
+               if ($(this).val() === "" || isNaN(parseFloat($(this).val()))) {
+                  readytoadd = false;
+                  $(this).css("border-color", "red");
+                  $(this).css("color", "red");
+               }
+            }
+         }
+      }
+   });
 
+   //Add new System
+   if (readytoadd) {
+      console.log("Ready to add");
+   }
+
+   //Dont add new System
+   else {
+      console.log("Not ready to add");
+      $(".add-system-footnote").text("Blocks marked with a '*' are required, check Inputs!");
+      $(".add-system-footnote").css("color", "red");
+   }
 }
 
 

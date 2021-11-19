@@ -1123,7 +1123,11 @@ footer i {
    line-height: 36px;       /* the same as your div height */
 }
 
-.add-systtem-footnote {
+.add-system-footnote {
    text-align: right;
    color: lightslategray;
+}
+
+.cg-block {
+   width: 700px;
 }

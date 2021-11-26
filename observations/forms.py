@@ -65,6 +65,5 @@ class UploadLightCurveForm(forms.Form):
     lcfile = forms.FileField(label='Select a light curve',
                                widget=forms.ClearableFileInput(attrs={'multiple': True})) 
 
-
       
       

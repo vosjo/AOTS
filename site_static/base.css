@@ -1131,3 +1131,8 @@ footer i {
 .cg-block {
    width: 700px;
 }
+
+[id=system-add-upload-button] {
+   font-family: 'Material Icons' !important;
+    font-size: 24px !important;
+}

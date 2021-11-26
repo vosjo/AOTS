@@ -183,5 +183,11 @@ class StarForm(forms.ModelForm):
         self.fields['classification'].required = False
         self.fields['classification_type'].required = False
 
+#===========================================================================================
+#  SYSTEMS
+#===========================================================================================
 
+
+class UploadSystemForm(forms.Form):
+    system = forms.FileField(label='Select a System')
 

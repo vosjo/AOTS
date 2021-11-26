@@ -157,10 +157,36 @@
 </div>
 
 <div id="addSystems">
+    <div id='bulk-add' class='bulk-system-upload'>
+    <fieldset>
+    <legend>Add Multiple Systems via .csv File</legend>
+    <div class="ui-controlgroup-horizontal">
+    <form action="{% url "systems:star_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload" id="system-upload-form">
+      <h3> Add new Systems </h3>
+      {% if user.is_authenticated %}
+      {% csrf_token %}
+      {% if upload_form.non_field_errors %}
+      <p>{{ upload_form.non_field_errors }}</p>
+      {% endif %}
+
+      <p>
+      {{ upload_form.system.errors }}
+      {{ upload_form.system }}
+      </p>
+
+      <input id="system-add-upload-button" type="submit" class="material-icons button" value="file_upload"/>
+      {% else %}
+      <p> Log in to upload files! </p>
+      {% endif %}
+    </form>
+    </div>
+    </fieldset>
+    </div>
    <div id='single-add' class='single-system-form'>
    <fieldset>
     <legend>Add Single System by Form</legend>
     <div class="ui-controlgroup-horizontal">
+
     <fieldset>
       <legend>Tags</legend>
       <ul id="add-option-tags">
@@ -178,14 +204,6 @@
           <input id="add-system-re-id" class="ui-spinner-input">
           <label for="add-system-dec-id">Declination</label>
           <input id="add-system-dec-id" class="ui-spinner-input">
-          <br>
-          <label for="add-system-type-id">Type</label>
-          <select id="add-system-type-id">
-              <option value="Star">Star</option>
-              <option value="PM*">PM*</option>
-              <option value="V*">V*</option>
-              <option value="RGB*">RGB*</option>
-          </select>
               <br>
           <label for="add-system-jname-id">J-Name</label>
           <input id="add-system-jname-id" class="ui-spinner-input">
@@ -196,6 +214,14 @@
           <input id="add-system-plx-id" class="ui-spinner-input">
           <label for="add-system-plx_err-id">Parallax Error</label>
           <input id="add-system-plx_err-id" class="ui-spinner-input">
+              <br>
+          <label for="add-system-type-id">Type</label>
+          <select id="add-system-type-id">
+              <option value="Star">Star</option>
+              <option value="PM*">PM*</option>
+              <option value="V*">V*</option>
+              <option value="RGB*">RGB*</option>
+          </select>
           </div>
     </fieldset>
           <fieldset><legend>Proper Motion</legend>

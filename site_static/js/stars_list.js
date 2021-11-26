@@ -533,25 +533,33 @@ function openAddSystemsWindow() {
 function addSystem() {
    //Check if Inputs are done correctly
    let readytoadd = true;
-   $("input").each(function () {
+   $('[id^="add-system-"]').each(function () {
       if (this.className === "ui-spinner-input") {
-         if (this.parentElement.parentElement.innerHTML.indexOf("*") >= 0) {
-            let inputname;
-            inputname = this.id.replace("add-system-", "").replace("-id", "");
-            if ($.inArray(inputname, ["main", "jname", "sptype"])!== -1) {
-               console.log(inputname, $(this).val());
-               if ($(this).val() === "") {
-                  readytoadd = false;
-                  $(this).css("border-color", "red");
-               }
+         let label = $("label[for='" + $(this).attr('id') + "']");
+         let inputname;
+         inputname = this.id.replace("add-system-", "").replace("-id", "");
+         // Check if required Fields are filled.
+         if ($.inArray(inputname, ["main", "jname", "sptype"])!== -1) {
+            if ($(this).val() === "") {
+               readytoadd = false;
+               $(this).css("border-color", "red");
+               label.css("color", "red");
             }
-            if ($.inArray(inputname, ["re", "dec", "plx", "source", "plx_err"])!== -1) {
-               if ($(this).val() === "" || isNaN(parseFloat($(this).val()))) {
-                  readytoadd = false;
-                  $(this).css("border-color", "red");
-                  $(this).css("color", "red");
-               }
+         }
+         // Check if Number field is filled with a number
+         else if ($.inArray(inputname, ["re", "dec", "plx", "source", "plx_err"])!== -1) {
+            if ($(this).val() === "" || isNaN(parseFloat($(this).val()))) {
+               readytoadd = false;
+               $(this).css("border-color", "red");
+               $(this).css("color", "red");
+               label.css("color", "red");
             }
+         }
+         else if ($(this).val() === isNaN(parseFloat($(this).val()))) {
+               readytoadd = false;
+               $(this).css("border-color", "red");
+               $(this).css("color", "red");
+               label.css("color", "red");
          }
       }
    });
@@ -559,13 +567,15 @@ function addSystem() {
    //Add new System
    if (readytoadd) {
       console.log("Ready to add");
+
    }
 
    //Dont add new System
    else {
       console.log("Not ready to add");
-      $(".add-system-footnote").text("Blocks marked with a '*' are required, check Inputs!");
-      $(".add-system-footnote").css("color", "red");
+      let footnote = $(".add-system-footnote")
+      footnote.text("Blocks marked with a '*' are required, check Inputs!");
+      footnote.text(".add-system-footnote").css("color", "red");
    }
 }
 

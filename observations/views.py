@@ -9,7 +9,6 @@ from stars.models import Star, Project
 
 from .forms import UploadSpecFileForm, UploadLightCurveForm, UploadSpectraDetailForm
 
-
 from .auxil import read_spectrum, read_lightcurve
 
 from .plotting import plot_visibility, plot_spectrum, plot_lightcurve
@@ -138,7 +137,6 @@ def specfile_list(request, project=None,  **kwargs):
       if 'specfile' in request.FILES:
          upload_form = UploadSpecFileForm(request.POST, request.FILES)
          if upload_form.is_valid():
-            
             files = request.FILES.getlist('specfile')
             for f in files:
                filename = f.name 

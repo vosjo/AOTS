@@ -1,22 +1,31 @@
- 
+
 from django.urls import reverse
- 
+
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from observations.models import Spectrum, SpecFile, LightCurve, Observatory
+from observations.models import (
+    Spectrum,
+    SpecFile,
+    RawSpecFile,
+    LightCurve,
+    Observatory,
+    )
+
 from stars.models import Star
 from stars.api.serializers import SimpleStarSerializer
+
+from astropy.time import Time
 
 # ===============================================================
 # SPECTRA
 # ===============================================================
 
 class SpectrumListSerializer(ModelSerializer):
-   
+
    star = SerializerMethodField()
    specfiles = SerializerMethodField()
    href = SerializerMethodField()
-   
+
    class Meta:
       model = Spectrum
       fields = [
@@ -35,27 +44,27 @@ class SpectrumListSerializer(ModelSerializer):
             'resolution',
             ]
       read_only_fields = ('pk',)
-      
+
    def get_star(self, obj):
       if obj.star is None:
          return ''
       else:
          return SimpleStarSerializer(obj.star).data
-      
+
    def get_specfiles(self, obj):
       specfiles = SimpleSpecFileSerializer(obj.specfile_set, many=True).data
       return specfiles
-   
+
    def get_href(self, obj):
       return reverse('observations:spectrum_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.pk})
 
 class SpectrumSerializer(ModelSerializer):
-   
+
    star = SerializerMethodField()
    observatory = SerializerMethodField()
    specfiles = SerializerMethodField()
    href = SerializerMethodField()
-   
+
    class Meta:
       model = Spectrum
       fields = [
@@ -79,65 +88,69 @@ class SpectrumSerializer(ModelSerializer):
             'resolution',
             ]
       read_only_fields = ('pk',)
-      
+
    def get_star(self, obj):
       if obj.star is None:
          return ''
       else:
          return SimpleStarSerializer(obj.star).data
       #return Star.objects.get(pk=obj.star).name
-      
+
    def get_observatory(self, obj):
       try:
          return obj.observatory.name
       except:
          return ''
-      
+
    def get_specfiles(self, obj):
       specfiles = SimpleSpecFileSerializer(obj.specfile_set, many=True).data
       return specfiles
-   
+
    def get_href(self, obj):
       return reverse('observations:spectrum_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.pk})
-   
+
 
 # ===============================================================
 # SPECFILE
 # ===============================================================
 
 class SpecFileSerializer(ModelSerializer):
-   
-   star = SerializerMethodField()
-   spectrum = SerializerMethodField()
-   
-   class Meta:
-      model = SpecFile
-      fields = [
-            'pk',
-            'star',
-            'spectrum',
-            'hjd',
-            'instrument',
-            'filetype',
-            'added_on',
-            'filename',
-            ]
-      read_only_fields = ('pk', 'star')
-      
-   def get_star(self, obj):
-      if obj.spectrum is None or obj.spectrum.star is None:
-         return ''
-      return obj.spectrum.star.name
-   
-   def get_spectrum(self, obj):
-      if obj.spectrum is None:
-         return ''
-      else:
-         return reverse('observations:spectrum_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.spectrum.pk})
-   
+
+    star = SerializerMethodField()
+    spectrum = SerializerMethodField()
+    added_on = SerializerMethodField()
+
+    class Meta:
+        model = SpecFile
+        fields = [
+                'pk',
+                'star',
+                'spectrum',
+                'hjd',
+                'instrument',
+                'filetype',
+                'added_on',
+                'filename',
+                ]
+        read_only_fields = ('pk', 'star')
+
+    def get_star(self, obj):
+        if obj.spectrum is None or obj.spectrum.star is None:
+            return ''
+        return obj.spectrum.star.name
+
+    def get_spectrum(self, obj):
+        if obj.spectrum is None:
+            return ''
+        else:
+            return reverse('observations:spectrum_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.spectrum.pk})
+
+    def get_added_on(self, obj):
+        return Time(obj.added_on, precision=0).iso
+
 
 class SimpleSpecFileSerializer(ModelSerializer):
-   
+
    class Meta:
       model = SpecFile
       fields = [
@@ -148,15 +161,56 @@ class SimpleSpecFileSerializer(ModelSerializer):
             ]
       read_only_fields = ('pk',)
 
+
+# ===============================================================
+# RAWSPECFILE
+# ===============================================================
+
+class RawSpecFileSerializer(ModelSerializer):
+
+    stars    = SerializerMethodField()
+    added_on = SerializerMethodField()
+
+    class Meta:
+        model = RawSpecFile
+        fields = [
+                'pk',
+                'stars',
+                'hjd',
+                'instrument',
+                'filetype',
+                'added_on',
+                'filename',
+                'exptime',
+                ]
+        read_only_fields = ('pk', 'star')
+
+    def get_added_on(self, obj):
+        return Time(obj.added_on, precision=0).iso
+
+    def get_stars(self, obj):
+        SpecFileDict = {}
+        for sfile in obj.specfile.all():
+            SpecFileDict[sfile.spectrum.star.name] = reverse(
+                'systems:star_detail',
+                kwargs={
+                    'project':sfile.project.slug,
+                    'star_id':sfile.spectrum.star.pk,
+                    },
+                )
+
+        return SpecFileDict
+
+
 # ===============================================================
 # Licht Curves
 # ===============================================================
 
 class LightCurveSerializer(ModelSerializer):
-   
+
    star = SerializerMethodField()
    href = SerializerMethodField()
-   
+
    class Meta:
       model = LightCurve
       fields = [
@@ -172,13 +226,13 @@ class LightCurveSerializer(ModelSerializer):
             'href',
             ]
       read_only_fields = ('pk',)
-      
+
    def get_star(self, obj):
       if obj.star is None:
          return ''
       else:
          return SimpleStarSerializer(obj.star).data
-   
+
    def get_href(self, obj):
       return reverse('observations:lightcurve_detail', kwargs={'project':obj.project.slug, 'lightcurve_id':obj.pk})
 
@@ -187,7 +241,7 @@ class LightCurveSerializer(ModelSerializer):
 # ===============================================================
 
 class ObservatorySerializer(ModelSerializer):
-   
+
    class Meta:
       model = Observatory
       fields = [
@@ -195,7 +249,7 @@ class ObservatorySerializer(ModelSerializer):
             'project',
             'name',
             'short_name',
-            'telescopes', 
+            'telescopes',
             'latitude',
             'longitude',
             'altitude',

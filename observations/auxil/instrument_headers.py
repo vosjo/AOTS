@@ -42,6 +42,28 @@ def extract_header_info(header, user_info={}):
 
     return data
 
+def extract_header_raw(header, user_info={}):
+
+    data = derive_generic_raw(header)
+
+    #   Set file type for OES/Ondrejov
+    if data['instrument'] == 'OES':
+        if data['filetype'] == 'object':
+            data['filetype'] = 'Science'
+        elif data['filetype'] == 'zero':
+            data['filetype'] = 'Dark'
+        elif data['filetype'] == 'flat':
+            data['filetype'] = 'Flat'
+        elif data['filetype'] == 'comp':
+            data['filetype'] = 'Wavelength'
+
+    #   Update the data extracted from the header with data provided by the user
+    if user_info is None:
+        user_info = {}
+    data.update(user_info)
+
+    return data
+
 def get_observatory(header, project):
    """
    Finds a suitable observatory or if not possible, create a new one.
@@ -137,6 +159,47 @@ def derive_generic_info(header):
    data['filetype'] = 'UK'
 
    return data
+
+def derive_generic_raw(header):
+    """
+    Tries to read some basic information from a unknown raw data files
+    """
+
+    data = {}
+
+    #   HJD
+    if 'HJD' in header:
+        data['hjd'] = header['HJD']
+    elif 'BJD' in header:
+        data['hjd'] = header['BJD']
+    elif 'MJD' in header:
+        data['hjd'] = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
+    elif 'DATE-OBS' in header and 'UT' in header:
+        date        = header.get('DATE-OBS', '2000-00-00')
+        ut          = header.get('UT', '00:00:00.0')
+        data['hjd'] = Time(date+'T'+ut, format='fits').jd
+    elif 'DATE-OBS' in header:
+        data['hjd'] = Time(
+            header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'),
+            format='fits'
+            ).jd
+    else:
+        data['hjd'] = 2400000
+
+    #   Pointing info
+    data['objectname'] = header.get('OBJECT', '')
+
+    #   Telescope and instrument info
+    data['instrument'] = header.get('INSTRUME', 'UK')
+    data['telescope']  = header.get('TELESCOP', 'UK')
+    data['exptime']    = np.round(header.get('EXPTIME', -1), 0)
+    data['observer']   = header.get('OBSERVER', 'UK')
+
+    #   Tyr to find information on flat/bias/darks here
+    data['filetype'] = header.get('IMAGETYP', 'UK')
+
+    return data
+
 
 def derive_eso_info(header):
    """

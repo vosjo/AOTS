@@ -402,7 +402,7 @@ table.dataTable td {
     margin-left: 2.5%;
 }
 
-.dat/*aTables_wrapper .dataTables_length select {
+/*.dataTables_wrapper .dataTables_length select {
   border: 1px solid #aaa;
   border-radius: 3px;
   padding: 5px;
@@ -420,7 +420,7 @@ table.dataTable td {
     margin-left: 0.5em
 }
 
-.da/*taTables_wrapper .dataTables_filter input {
+/*.dataTables_wrapper .dataTables_filter input {
   border: 1px solid #aaa;
   border-radius: 3px;
   padding: 5px;

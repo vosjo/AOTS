@@ -15,9 +15,22 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .serializers import SpectrumSerializer, SpectrumListSerializer, SpecFileSerializer,LightCurveSerializer, ObservatorySerializer
+from .serializers import (
+    SpectrumSerializer,
+    RawSpecFileSerializer,
+    SpectrumListSerializer,
+    SpecFileSerializer,
+    LightCurveSerializer,
+    ObservatorySerializer,
+    )
 
-from observations.models import Spectrum, SpecFile, LightCurve, Observatory
+from observations.models import (
+    Spectrum,
+    SpecFile,
+    RawSpecFile,
+    LightCurve,
+    Observatory,
+    )
 
 from observations.auxil import read_spectrum, read_lightcurve
 
@@ -83,6 +96,7 @@ def processSpectrum(request, spectrum_pk):
    spectrum = Spectrum.objects.get(pk=spectrum_pk)
 
    return Response(SpectrumSerializer(spectrum).data)
+
 
 # ===============================================================
 # SpecFile
@@ -155,6 +169,71 @@ def getSpecfilePath(request, specfile_pk):
    path     = specfile.specfile.url
 
    return Response(path)
+
+
+# ===============================================================
+# RawSpecFile
+# ===============================================================
+
+class RawSpecFileFilter(filters.FilterSet):
+
+    #target = filters.CharFilter(
+        #field_name="target",
+        #method="star_name_icontains",
+        #lookup_expr='icontains',
+        #)
+
+    hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
+    hjd_max = filters.NumberFilter(field_name="hjd", lookup_expr='lte')
+
+    instrument = filters.CharFilter(
+        field_name="instrument",
+        lookup_expr='icontains',
+        )
+
+    #processed = filters.BooleanFilter(field_name="Processed", method="is_processed")
+
+    #def star_name_icontains(self, queryset, name, value):
+        #return queryset.filter(specfile_spectrum__star__name__icontains=value)
+
+    #def is_processed(self, queryset, name, value):
+        #return False
+
+    class Meta:
+        model = RawSpecFile
+        fields = ['project',]
+
+    @property
+    def qs(self):
+        parent = super(RawSpecFileFilter, self).qs
+
+        parent = get_allowed_objects_to_view_for_user(parent, self.request.user)
+
+        # get the column order from the GET dictionary
+        getter = self.request.query_params.get
+        if not getter('order[0][column]') is None:
+            order_column = int(getter('order[0][column]'))
+            order_name = getter('columns[%i][data]' % order_column)
+            if getter('order[0][dir]') == 'desc': order_name = '-'+order_name
+
+            return parent.order_by(order_name)
+        else:
+            return parent
+
+class RawSpecFileViewSet(viewsets.ModelViewSet):
+    queryset = RawSpecFile.objects.all()
+    serializer_class = RawSpecFileSerializer
+
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RawSpecFileFilter
+
+@api_view(['POST'])
+def processRawSpecfile(request, rawspecfile_pk):
+    success, message = read_spectrum.process_raw_spec(rawspecfile_pk)
+    specfile = RawSpecFile.objects.get(pk=rawspecfile_pk)
+
+    return Response(RawSpecFileSerializer(rawspecfile).data)
+
 
 # ===============================================================
 # LightCurve

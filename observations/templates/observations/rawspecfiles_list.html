@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}  <!--Add necessary javascript and css files for this page-->
+
+   {% include "datatables.html" %}
+   <script type="text/javascript" src="{% static 'js/rawspecfiles_list.js' %}"></script>
+
+{% endblock %}
+
+{% block headertitle %} Spectrum Raw Files {% endblock %}
+
+{% block content %}
+
+<i display="none" id="project-pk" project={{project.pk}}></i>
+
+<div class='upload'>
+   <form action="{% url "observations:rawspecfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload" id="raw-upload-form">
+      <h3> Add raw data </h3>
+
+      {% if user.is_authenticated %}
+        {% csrf_token %}
+        {% if raw_upload_form.non_field_errors %}
+            <p>{{ raw_upload_form.non_field_errors }}</p>
+        {% endif %}
+
+        <p>
+
+        <table>
+        <tbody>
+        {{ raw_upload_form.as_table }}
+        </tbody>
+        </table>
+        </p>
+
+        <input type="submit" class="material-icons button" value="file_upload"/>
+      {% else %}
+        <p> Log in to upload files! </p>
+      {% endif %}
+   </form>
+</div>
+
+<i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
+
+<div id="filter-dashboard">
+
+   <form method="get" action="/observations/" class="table-filter" id="filter-form">
+   <h3 class="center"> Filter Raw Specfiles </h3>
+
+<!--   <div class="table-filter-item">
+      <p class="filter-label">Target:</p>
+      <input class="filter-input" id="filter_target" type="text" placeholder="identifier">
+   </div>-->
+
+<!--    <hr> -->
+
+   <div class="table-filter-item">
+      <p class="filter-label">HJD:</p>
+      <input class="filter-input" id="filter_hjd" type="text" placeholder="min:max">
+   </div>
+
+   <div class="table-filter-item">
+      <p class="filter-label">Instrument:</p>
+      <input class="filter-input" id="filter_instrument" type="text" placeholder="instrument">
+   </div>
+
+   <input type="submit" class="button filter" id="submit-search" value="Apply">
+   </form>
+
+</div>
+
+<section>
+
+   <table id="specfiletable" class="fullwidth">
+   <thead>
+      <tr>
+      <th>HJD</th>
+      <th>Instrument</th>
+      <th>Filetype</th>
+      <th>Exposure time</th>
+      <th>Filename</th>
+      <th>Added on</th>
+      <th>Systems</th>
+      <th>Action</th>
+      </tr>
+   </thead>
+   <tfoot>
+      <tr>
+      <th>HJD</th>
+      <th>Instrument</th>
+      <th>Filetype</th>
+      <th>Exposure time</th>
+      <th>Filename</th>
+      <th>Added on</th>
+      <th>Systems</th>
+      <th>Action</th>
+      </tr>
+   </tfoot>
+   </table>
+
+{% endblock %}

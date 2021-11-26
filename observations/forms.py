@@ -56,6 +56,21 @@ class UploadSpecFileForm(forms.Form):
         )
 
 
+class UploadRawSpecFileForm(forms.Form):
+    #   Raw file upload field
+    rawfile = forms.FileField(
+        label='Select the files',
+        widget=forms.ClearableFileInput(attrs={'multiple': True})
+        )
+    #   Name of the reduced file
+    specfile_name = forms.CharField(
+        label='Name of the reduced file',
+        max_length=200,
+        required=True,
+        #help_text='The reduced file needs to be specified ',
+        )
+
+
 class OrderField(forms.IntegerField):
     '''
         Specific form field for the polynomial order

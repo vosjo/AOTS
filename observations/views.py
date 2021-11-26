@@ -4,11 +4,16 @@ from django.contrib import messages
 
 from django.db.models import Sum
 
-from .models import Spectrum, SpecFile, LightCurve, Observatory
+from .models import Spectrum, SpecFile, LightCurve, Observatory, RawSpecFile
 from stars.models import Star, Project
 
-from .forms import UploadSpecFileForm, UploadLightCurveForm, UploadSpectraDetailForm, SpectrumModForm
-
+from .forms import (
+    UploadSpecFileForm,
+    UploadRawSpecFileForm,
+    UploadLightCurveForm,
+    UploadSpectraDetailForm,
+    SpectrumModForm,
+    )
 
 from .auxil import read_spectrum, read_lightcurve
 
@@ -169,43 +174,207 @@ def add_spectra(request, project=None, **kwargs):
 @check_user_can_view_project
 def specfile_list(request, project=None,  **kwargs):
 
-   project = get_object_or_404(Project, slug=project)
+    #   Set project
+    project = get_object_or_404(Project, slug=project)
 
-   upload_form = UploadSpecFileForm()
+    #   Initialize upload forms
+    upload_form = UploadSpecFileForm()
+    raw_upload_form = UploadRawSpecFileForm()
 
-   # Handle file upload
-   if request.method == 'POST' and request.user.is_authenticated:
-      if 'specfile' in request.FILES:
-         upload_form = UploadSpecFileForm(request.POST, request.FILES)
-         if upload_form.is_valid():
+    # Handle file upload
+    if request.method == 'POST' and request.user.is_authenticated:
+        #   Specfiles:
+        if 'specfile' in request.FILES:
+            #   Get form
+            upload_form = UploadSpecFileForm(request.POST, request.FILES)
+            if upload_form.is_valid():
+                #   Get files
+                files = request.FILES.getlist('specfile')
+                for f in files:
+                    #   Save the new specfile
+                    newspec = SpecFile(
+                        specfile=f,
+                        project=project,
+                        added_by=request.user,
+                        #filename=f.name,
+                        )
+                    newspec.save()
 
-            files = request.FILES.getlist('specfile')
-            for f in files:
-               filename = f.name
-               #-- save the new specfile
-               newspec = SpecFile(specfile=f, project=project, added_by=request.user,
-                                  filename=filename)
-               newspec.save()
+                    #   Now process it and add it to a Spectrum and Object
+                    try:
+                        #   Process specfile
+                        success, message = read_spectrum.process_specfile(
+                            newspec.pk,
+                            create_new_star=True,
+                            )
+                        #   Set success/error message
+                        if success:
+                            level = messages.SUCCESS
+                        else:
+                            level = messages.ERROR
+                        messages.add_message(request, level, message)
+                    except Exception as e:
+                        #   Handel error
+                        print(e)
+                        newspec.delete()
+                        messages.add_message(
+                            request,
+                            messages.ERROR,
+                            "Exception occurred when adding: " + str(f),
+                            )
 
-               #-- now process it and add it to a Spectrum and Object
-               try:
-                  success, message = read_spectrum.process_specfile(newspec.pk, create_new_star=True)
-                  level = messages.SUCCESS if success else messages.ERROR
-                  messages.add_message(request, level, message)
-               except Exception as e:
-                  print(e)
-                  newspec.delete()
-                  messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f))
+                #   Return and redirect
+                return HttpResponseRedirect(reverse(
+                    'observations:specfile_list',
+                    kwargs={'project':project.slug}
+                    ))
+
+        #   Raw files
+        if 'rawfile' in request.FILES:
+            #   Get form
+            raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
+            if raw_upload_form.is_valid():
+                #   Name of the Specfile
+                specfile_name = raw_upload_form.cleaned_data['specfile_name']
+
+                #   Get files
+                files = request.FILES.getlist('rawfile')
+                for f in files:
+                    #    Save the new raw file
+                    newrawspec = RawSpecFile(
+                        rawfile=f,
+                        project=project,
+                        added_by=request.user,
+                        #filename=f.name,
+                        #specfile=,
+                        )
+                    newrawspec.save()
+
+                    #    Now process it and add it to a Specfile
+                    try:
+                        #   Process raw file
+                        success, message = read_spectrum.process_raw_spec(
+                            newrawspec.pk,
+                            specfile_name,
+                            )
+                        #   Set success/error message
+                        if success:
+                            level = messages.SUCCESS
+                        else:
+                            level = messages.ERROR
+                        messages.add_message(request, level, message)
+                    except Exception as e:
+                        #   Handel error
+                        print(e)
+                        #newrawspec.rawfile.delete()
+                        newrawspec.delete()
+                        messages.add_message(
+                            request,
+                            messages.ERROR,
+                            "Exception occurred when adding: " + str(f),
+                            )
+
+                #   Return and redirect
+                return HttpResponseRedirect(reverse(
+                    'observations:specfile_list',
+                    kwargs={'project':project.slug}
+                    ))
+
+    #   Block uploads by anonymous
+    elif request.method != 'GET' and not request.user.is_authenticated:
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "You need to login for that action!",
+            )
+
+    #   Set dict for the render
+    context = {
+        'project': project,
+        'upload_form': upload_form,
+        'raw_upload_form': raw_upload_form,
+        }
+
+    return render(request, 'observations/specfiles_list.html', context)
 
 
-            return HttpResponseRedirect(reverse('observations:specfile_list', kwargs={'project':project.slug}))
+@check_user_can_view_project
+def rawspecfile_list(request, project=None,  **kwargs):
 
-   elif request.method != 'GET' and not request.user.is_authenticated:
-      messages.add_message(request, messages.ERROR, "You need to login for that action!")
+    #   Set project
+    project = get_object_or_404(Project, slug=project)
 
-   context = {'project': project, 'upload_form': upload_form}
+    #   Initialize upload forms
+    raw_upload_form = UploadRawSpecFileForm()
 
-   return render(request, 'observations/specfiles_list.html', context)
+    # Handle file upload
+    if request.method == 'POST' and request.user.is_authenticated:
+        #   Raw files
+        if 'rawfile' in request.FILES:
+            #   Get form
+            raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
+            if raw_upload_form.is_valid():
+                #   Name of the Specfile
+                specfile_name = raw_upload_form.cleaned_data['specfile_name']
+
+                #   Get files
+                files = request.FILES.getlist('rawfile')
+                for f in files:
+                    #    Save the new raw file
+                    newrawspec = RawSpecFile(
+                        rawfile=f,
+                        project=project,
+                        added_by=request.user,
+                        #filename=f.name,
+                        #specfile=,
+                        )
+                    newrawspec.save()
+
+                    #    Now process it and add it to a raw file
+                    try:
+                        #   Process raw file
+                        success, message = read_spectrum.process_raw_spec(
+                            newrawspec.pk,
+                            specfile_name,
+                            )
+                        #   Set success/error message
+                        if success:
+                            level = messages.SUCCESS
+                        else:
+                            level = messages.ERROR
+                        messages.add_message(request, level, message)
+                    except Exception as e:
+                        #   Handel error
+                        print(e)
+                        #newrawspec.rawfile.delete()
+                        newrawspec.delete()
+                        messages.add_message(
+                            request,
+                            messages.ERROR,
+                            "Exception occurred when adding: " + str(f),
+                            )
+
+                #   Return and redirect
+                return HttpResponseRedirect(reverse(
+                    'observations:specfile_list',
+                    kwargs={'project':project.slug}
+                    ))
+
+    #   Block uploads by anonymous
+    elif request.method != 'GET' and not request.user.is_authenticated:
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "You need to login for that action!",
+            )
+
+    #   Set dict for the render
+    context = {
+        'project': project,
+        'raw_upload_form': raw_upload_form,
+        }
+
+    return render(request, 'observations/rawspecfiles_list.html', context)
 
 
 @check_user_can_view_project

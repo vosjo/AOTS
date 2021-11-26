@@ -241,11 +241,25 @@ h3.center {
    text-align:center;
 }
 
+h4 {
+   font-weight: bold;
+   font-size: 16px;
+   color: #666;
+   margin: 5px 0px 5px 0px;
+}
+
 div.block {
    display: inline-block;
    float: left;
    margin-left: 10px;
    margin-right: 10px;
+}
+
+div.upload {
+   padding: 10px;
+   margin: 5px;
+   border: solid 2px rgba(64, 117, 144, 0.3);
+   font-weight: bold;
 }
 
 div.center {
@@ -989,6 +1003,16 @@ p.upload {
    margin: 3px;
    border-style: solid;
    border-color: rgba(64, 117, 144, 0.4);
+}
+
+form.upload_2 {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   padding: 10px;
+   margin: 5px;
+   border: solid 2px rgba(64, 117, 144, 0.3);
 }
 
 #identifier-form {

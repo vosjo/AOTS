@@ -110,55 +110,61 @@ def get_observatory(header, project):
 
 
 def derive_generic_info(header):
-   """
-   Tries to read some basic information from a unknown spectrum
+    """
+    Tries to read some basic information from a unknown spectrum
 
-   This information is stored in the spectrum database entry
-   """
+    This information is stored in the spectrum database entry
+    """
 
-   data = {}
+    data = {}
 
-   # HJD
-   if 'HJD' in header:
-      data['hjd'] = header['HJD']
-   elif 'BJD' in header:
-      data['hjd'] = header['BJD']
-   elif 'MJD' in header:
-      data['hjd'] = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
-   elif 'DATE-OBS' in header:
-      data['hjd'] = Time(
-          header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'),
-          format='fits'
-          ).jd
-   else:
-      data['hjd'] = 2400000
+    #   HJD
+    if 'HJD' in header:
+        data['hjd'] = header['HJD']
+    elif 'BJD' in header:
+        data['hjd'] = header['BJD']
+    elif 'MJD' in header:
+        data['hjd'] = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
+    elif 'DATE-OBS' in header:
+        date        = header.get('DATE-OBS', '2000-00-00')
+        if 'T' not in date:
+            if 'UT' in header:
+                ut          = header.get('UT', '00:00:00.0')
+                data['hjd'] = Time(date+'T'+ut, format='fits').jd
+        else:
+            data['hjd'] = Time(
+                header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'),
+                format='fits'
+                ).jd
+    else:
+        data['hjd'] = 2400000
 
-   # pointing info
-   data['objectname'] = header.get('OBJECT', '')
+    #   Pointing info
+    data['objectname'] = header.get('OBJECT', '')
 
-   try:
-      data['ra'] = float(header.get('RA', None))
-   except Exception:
-      data['ra'] = Angle(header.get('RA', None), unit='hour').degree
+    try:
+        data['ra'] = float(header.get('RA', None))
+    except Exception:
+        data['ra'] = Angle(header.get('RA', None), unit='hour').degree
 
-   try:
-      data['dec'] = float(header.get('DEC', None))
-   except Exception:
-      data['dec'] = Angle(header.get('DEC', None), unit='degree').degree
+    try:
+        data['dec'] = float(header.get('DEC', None))
+    except Exception:
+        data['dec'] = Angle(header.get('DEC', None), unit='degree').degree
 
-   # telescope and instrument info
-   data['instrument'] = header.get('INSTRUME', 'UK')
-   data['telescope'] = header.get('TELESCOP', 'UK')
-   data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
-   data['observer'] = header.get('OBSERVER', 'UK')
+    #   Telescope and instrument info
+    data['instrument'] = header.get('INSTRUME', 'UK')
+    data['telescope'] = header.get('TELESCOP', 'UK')
+    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+    data['observer'] = header.get('OBSERVER', 'UK')
 
-   data['resolution'] = header.get('SPEC_RES', -1)
-   data['snr'] = header.get('SNR', -1)
-   data['seeing'] = header.get('SEEING', -1)
+    data['resolution'] = header.get('SPEC_RES', -1)
+    data['snr'] = header.get('SNR', -1)
+    data['seeing'] = header.get('SEEING', -1)
 
-   data['filetype'] = 'UK'
+    data['filetype'] = 'UK'
 
-   return data
+    return data
 
 def derive_generic_raw(header):
     """
@@ -174,15 +180,17 @@ def derive_generic_raw(header):
         data['hjd'] = header['BJD']
     elif 'MJD' in header:
         data['hjd'] = Time(header.get('MJD', 0.0), format='mjd', scale='utc').jd
-    elif 'DATE-OBS' in header and 'UT' in header:
-        date        = header.get('DATE-OBS', '2000-00-00')
-        ut          = header.get('UT', '00:00:00.0')
-        data['hjd'] = Time(date+'T'+ut, format='fits').jd
     elif 'DATE-OBS' in header:
-        data['hjd'] = Time(
-            header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'),
-            format='fits'
-            ).jd
+        date        = header.get('DATE-OBS', '2000-00-00')
+        if 'T' not in date:
+            if 'UT' in header:
+                ut          = header.get('UT', '00:00:00.0')
+                data['hjd'] = Time(date+'T'+ut, format='fits').jd
+        else:
+            data['hjd'] = Time(
+                header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'),
+                format='fits'
+                ).jd
     else:
         data['hjd'] = 2400000
 

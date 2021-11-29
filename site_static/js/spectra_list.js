@@ -4,7 +4,6 @@ var spectra_table = null;
 $(document).ready(function () {
    let columns;
    if (user_authenticated) {
-//    console.log()
    columns = [
           {
             orderable:      false,
@@ -347,7 +346,7 @@ function DlSpectra() {
             })
             .then(function callback(blob) {
                 //  Save zip file
-                saveAs(blob, "Spectra"+timecode+".zip");
+                saveAs(blob, "Spectra_"+timecode+".zip");
                 //  Reset download button
                 showProgress("Download Spectra");
             }, function (e) {

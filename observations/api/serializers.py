@@ -183,7 +183,7 @@ class RawSpecFileSerializer(ModelSerializer):
                 'filename',
                 'exptime',
                 ]
-        read_only_fields = ('pk', 'star')
+        read_only_fields = ('pk', 'stars',)
 
     def get_added_on(self, obj):
         return Time(obj.added_on, precision=0).iso

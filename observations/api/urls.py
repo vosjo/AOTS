@@ -18,6 +18,7 @@ from .views import (
    getLightCurveHeader,
    ObservatoryViewSet,
    getSpecfilePath,
+   getRawSpecfilePath
    )
 
 app_name = 'observations-api'
@@ -56,9 +57,14 @@ urlpatterns = [
        ),
    #    RawSpecFiles
    path(
-       'rawspecfiles/<int:specfile_pk>/process/',
+       'rawspecfiles/<int:rawspecfile_pk>/process/',
        processRawSpecfile,
        name='process_rawspecfile',
+       ),
+   path(
+       'rawspecfiles/<int:rawspecfile_pk>/path/',
+       getRawSpecfilePath,
+       name='rawspecfile_path',
        ),
    #    Lightcurves
    path(

@@ -234,6 +234,12 @@ def processRawSpecfile(request, rawspecfile_pk):
 
     return Response(RawSpecFileSerializer(rawspecfile).data)
 
+@api_view(['GET'])
+def getRawSpecfilePath(request, rawspecfile_pk):
+   rawfile = SpecRawFile.objects.get(pk=rawspecfile_pk)
+   path    = rawfile.rawfile.url
+
+   return Response(path)
 
 # ===============================================================
 # LightCurve

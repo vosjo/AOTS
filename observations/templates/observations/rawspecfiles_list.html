@@ -71,9 +71,12 @@
 
 <section>
 
-   <table id="specfiletable" class="fullwidth">
+   <table id="rawspecfiletable" class="fullwidth">
    <thead>
       <tr>
+      {% if user.is_authenticated %}
+      <th><i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i></th>
+      {% endif %}
       <th>HJD</th>
       <th>Instrument</th>
       <th>Filetype</th>
@@ -81,11 +84,14 @@
       <th>Filename</th>
       <th>Added on</th>
       <th>Systems</th>
-      <th>Action</th>
+<!--       <th>Action</th> -->
       </tr>
    </thead>
    <tfoot>
       <tr>
+      {% if user.is_authenticated %}
+      <th></th>
+      {% endif %}
       <th>HJD</th>
       <th>Instrument</th>
       <th>Filetype</th>
@@ -93,9 +99,11 @@
       <th>Filename</th>
       <th>Added on</th>
       <th>Systems</th>
-      <th>Action</th>
+<!--       <th>Action</th> -->
       </tr>
    </tfoot>
    </table>
+
+</section>
 
 {% endblock %}

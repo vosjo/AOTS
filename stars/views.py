@@ -50,6 +50,7 @@ def project_list(request):
 
 @check_user_can_view_project
 def star_list(request, project=None, **kwargs):
+
     project = get_object_or_404(Project, slug=project)
 
     upload_form = UploadSystemForm()
@@ -74,7 +75,7 @@ def star_list(request, project=None, **kwargs):
                 for star in systems:
                     try:
                         if len(Star.objects.filter(name=star["main_id"])) != 0:
-                            raise Exception("System does exist already.")
+                            raise Exception("System exists already:"+star["main_id"])
                         sobj = Star(name=star["main_id"], project=project, ra=star['ra'], dec=star['dec'],
                                     classification=star['sp_type'], classification_type='PH', observing_status='ON')
                         sobj.save()
@@ -124,13 +125,9 @@ def star_list(request, project=None, **kwargs):
                                                   error=star['pmdec_error'], unit='mas')
                         sobj.save()
                     except Exception as e:
-                        #print(e)
-                        try:
-                           sobj.delete()
-                        except NameError:
-                           messages.add_message(request, messages.ERROR, "Object already exists:" + str(star["main_id"]))
-                        else:
-                           messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f.name))
+                        messages.add_message(request, messages.ERROR, "Object already exists:" + str(star["main_id"]))
+                    except:
+                        messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(star["main_id"]))
 
             return HttpResponseRedirect(reverse('systems:star_list', kwargs={'project': project.slug}))
 

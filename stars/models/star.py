@@ -42,7 +42,7 @@ class Tag(models.Model):
       return "{}:{}".format(self.name, self.description)
 
 @python_2_unicode_compatible  # to support Python 2
-class Star(models.Model):
+class  Star(models.Model):
    name = models.CharField(max_length=200)
    
    #-- a star belongs to a specific project

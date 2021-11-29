@@ -489,27 +489,53 @@ function deleteSystems(){
       var row = this;
       rows.push(row);
    });
-
+   if ($('#progress-bar').length === 0) {
+      $(".toolbar").append('<progress id="progress-bar" value="0" max="' + rows.length + '" class="progress-bar"></progress>')
+   }
+   else{
+      $("#progress-bar").prop("max", rows.length)
+      $("#progress-bar").val(0)
+   }
+   let n = 0;
    $.each(rows, function (index, row) {
       var pk = row.data()["pk"];
-         $.ajax({
+      $.ajax({
          url : "/api/systems/stars/"+pk+'/',
          type : "DELETE",
+         tryCount: 0,
+         retryLimit: 5,
          success : function(json) {
-
+            n += 1;
             star_table.row(row).remove().draw('full-hold');
             $('#select-all').text('check_box_outline_blank');
             $('#tag-button').prop('disabled', true);
             $('#status-button').prop('disabled', true);
             $('#delete-button').prop('disabled', true);
-
+            $('#progress-bar').val(n)
          },
          error : function(xhr,errmsg,err) {
+            n += 1;
+            $('#progress-bar').val(n)
              if (xhr.status === 403){
                  alert('You have to be logged in to delete this system.');
-             }else{
-                 alert(xhr.status + ": " + xhr.responseText);
              }
+             // Bad! This should probably be handled asyncrously....
+             else if (xhr.status === 500 && xhr.responseText.indexOf("OperationalError") >= 0) {
+               this.tryCount++;
+               if (this.tryCount <= this.retryLimit) {
+               //try again on Database lock
+               $.ajax(this);
+               return;
+               }
+               else{
+                  if ($('.error').length === 0) {
+                  $('#messages').append('<li class="error">Could not Delete all Systems</li>')
+               }
+               }
+             return;
+            } else{
+                alert(xhr.status + ": " + xhr.responseText);
+            }
              console.log(xhr.status + ": " + xhr.responseText);
             }
          });
@@ -518,6 +544,44 @@ function deleteSystems(){
 }
 
 // -------------
+
+function create_identifier(pk, name, href){
+    $.ajax({
+      url : "/api/systems/identifiers/",
+      type : "POST",
+      async : false,
+      data : { star : pk,
+               name : name ,
+               href : href,
+      },
+
+      success : function(json) {
+         console.log(json);
+         return json["pk"];
+      },
+      error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText);
+            return 0;
+      }
+   });
+
+}
+
+function delete_identifier(identifier_pk){
+     $.ajax({
+         url : "/api/systems/identifiers/"+identifier_pk+'/',
+         type : "DELETE",
+
+         success : function(json) {
+
+         },
+
+         error : function(xhr,errmsg,err) {
+             console.log(xhr.status + ": " + xhr.responseText);
+         }
+     });
+}
+
 
 function openAddSystemsWindow() {
    add_systems_window = $("#addSystems").dialog({
@@ -555,7 +619,7 @@ function addSystem() {
                label.css("color", "red");
             }
          }
-         else if ($(this).val() === isNaN(parseFloat($(this).val()))) {
+         else if (isNaN(parseFloat($(this).val())) && $(this).val()) {
                readytoadd = false;
                $(this).css("border-color", "red");
                $(this).css("color", "red");
@@ -567,7 +631,54 @@ function addSystem() {
    //Add new System
    if (readytoadd) {
       console.log("Ready to add");
+      let system = {"project": $('#project-pk').attr('project'), "name": $("#add-system-main-id").val(), "source_id": $("#add-system-source-id").val(),
+         "ra": $("#add-system-re-id").val(),"dec": $("#add-system-dec-id").val(),
+         "main_type": $("#add-system-type-id").val(),"classification": $("#add-system-sptype-id").val(),
+         "JNAME": $("#add-system-jname-id").val(),"plx_id": $("#add-system-plx-id").val(),
+         "parallax_error": $("#add-system-plx_err-id").val(),"pmra_x": $("#add-system-pmre-id").val(),
+         "pmra_error": $("#add-system-pmre_err-id").val(),"pmdec_x": $("#add-system-pmdec-id").val(),
+         "pmdec_error": $("#add-system-pmdec_err-id").val(),"phot_g_mean_mag": $("#add-system-gmean-id").val(),
+         "phot_bp_mean_mag": $("#add-system-bpmag-id").val(),"phot_rp_mean_mag": $("#add-system-rpmag-id").val(),
+         "Jmag": $("#add-system-jmag-id").val(),"Hmag": $("#add-system-hmag-id").val(),
+         "Kmag": $("#add-system-kmag-id").val(),"W1mag": $("#add-system-w1-id").val(),
+         "W2mag": $("#add-system-w2-id").val(),"W3mag": $("#add-system-w3-id").val(),
+         "W4mag": $("#add-system-w4-id").val()}
+      $.each(system, function (key, value){
+         if(!isNaN(parseFloat(value))){
+            system[key] = parseFloat(value);
+         }
+      });
+      $.ajax({
+         url: "/api/systems/stars/",
+         type: "POST",
+         csv: false,
+         data: system,
+         success: function (json) {
+            console.log(json);
 
+            //create_identifier ist asynchron
+            let oldident_pk = create_identifier(json["pk"], system["name"], "http://simbad.u-strasbg.fr/simbad/sim-id?Ident=" + system['name'].replace(" ", "").replace('+', "%2B"));
+            console.log(oldident_pk);
+            oldident_pk = parseFloat(oldident_pk)-1
+            if (oldident_pk !== -1) {
+               delete_identifier(oldident_pk)
+            }
+            if (system["JNAME"]) {
+               create_identifier(json["pk"], system["JNAME"], "");
+            }
+
+            $(window).trigger('resize');
+            add_systems_window.dialog("close");
+         },
+         error: function (xhr, errmsg, err) {
+            if (xhr.status == 403){
+            $('#tag-error').text('You have to be logged in to edit');
+            }else{
+            $('#tag-error').text(xhr.status + ": " + xhr.responseText);
+            }
+            console.log(xhr.status + ": " + xhr.responseText)
+         }
+      })
    }
 
    //Dont add new System
@@ -575,10 +686,11 @@ function addSystem() {
       console.log("Not ready to add");
       let footnote = $(".add-system-footnote")
       footnote.text("Blocks marked with a '*' are required, check Inputs!");
-      footnote.text(".add-system-footnote").css("color", "red");
+      footnote.css("color", "red");
    }
 }
 
+// ----------------------------------------------------------------------
 
 // Tristate checkbox functionality
 function cylceTristate(event, checkbox) {

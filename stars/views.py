@@ -13,7 +13,7 @@ from analysis import models as analModels
 from observations.plotting import plot_sed
 
 import io
-from .forms import StarForm, UploadSystemForm
+from .forms import StarForm, UploadSystemForm, UploadSystemDetailForm
 
 # from .plotting import plot_photometry
 
@@ -53,91 +53,231 @@ def star_list(request, project=None, **kwargs):
 
     project = get_object_or_404(Project, slug=project)
 
-    upload_form = UploadSystemForm()
+    upload_form        = UploadSystemForm()
+    upload_form_detail = UploadSystemDetailForm()
 
-    # Handle file upload
+    #   Handle uploads
     if request.method == 'POST' and request.user.is_authenticated:
-        upload_form = UploadSystemForm(request.POST, request.FILES)
-        if upload_form.is_valid():
-            try:
-                dsgaia = DataSource.objects.get(name__exact='Gaia DR2', project=project)
-            except DataSource.DoesNotExist:
-                dsgaia = DataSource.objects.create(name='Gaia DR2', note='2nd Gaia data release',
-                                                   reference='https://doi.org/10.1051/0004-6361/201833051',
-                                                   project=project)
-            files = request.FILES.getlist('system')
-            for f in files:
-                filename = f.name
-                if ".csv" not in filename:
-                    messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f.name))
-                    continue
-                systems = csv.DictReader(io.TextIOWrapper(f.file))
-                for star in systems:
-                    try:
-                        if len(Star.objects.filter(name=star["main_id"])) != 0:
-                            raise Exception("System exists already:"+star["main_id"])
-                        sobj = Star(name=star["main_id"], project=project, ra=star['ra'], dec=star['dec'],
-                                    classification=star['sp_type'], classification_type='PH', observing_status='ON')
-                        sobj.save()
+        #   Handle file upload
+        #   File upload, if 'system' in request
+        if 'system' in request.FILES:
 
-                        ident = sobj.identifier_set.all()[0]
-                        ident.href = "http://simbad.u-strasbg.fr/simbad/sim-id?Ident=" + star['main_id'].replace(" ",
-                                                                                                                 "").replace(
-                            '+', "%2B")
-                        ident.save()
+            upload_form = UploadSystemForm(request.POST, request.FILES)
+            if upload_form.is_valid():
+                files = request.FILES.getlist('system')
+                for f in files:
+                    filename = f.name
+                    if ".csv" not in filename:
+                        messages.add_message(
+                            request,
+                            messages.ERROR,
+                            "Exception occurred when adding: " + str(f.name),
+                            )
+                        continue
+                    systems = csv.DictReader(io.TextIOWrapper(f.file))
+                    for star in systems:
+                        try:
+                            success, message = mk_new_system(star, project)
+                            l = messages.SUCCESS if success else messages.ERROR
+                            messages.add_message(request, l, message)
+                        except Exception as e:
+                            print(e)
+                            messages.add_message(
+                                request,
+                                messages.ERROR,
+                                "Exception occurred when adding: "+str(f.name),
+                                #"Object already exists:" + str(star["main_id"]),
+                                )
+                        #except:
+                            #messages.add_message(
+                                #request,
+                                #messages.ERROR,
+                                #"Exception occured when adding: "\
+                                    #+str(star["main_id"]),
+                                #)
 
-                        sobj.identifier_set.create(name=star['JNAME'])
 
-                        # -- Add photometry
-                        # Gaia
-                        passbands = ['GAIA2.G', 'GAIA2.BP', 'GAIA2.RP']
-                        photnames = ['phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag']
-                        units = ['mag', 'mag', 'mag']
+                return HttpResponseRedirect(reverse(
+                    'systems:star_list',
+                    kwargs={'project': project.slug},
+                    ))
+        else:
+            upload_form_detail = UploadSystemDetailForm(
+                request.POST,
+                request.FILES,
+                )
+            if upload_form_detail.is_valid():
 
-                        for b, pb, u in zip(photnames, passbands, units):
-                            sobj.photometry_set.create(band=pb, measurement=star[b], error=0.01, unit=u)
+                #print( "valid")
+                #print (upload_form_detail.cleaned_data)
+                try:
+                    success, message =  mk_new_system(
+                        upload_form_detail.cleaned_data,
+                        project,
+                        )
+                    level = messages.SUCCESS if success else messages.ERROR
+                    messages.add_message(request, level, message)
+                except Exception as e:
+                    print(e)
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        "Exception occurred when adding a system",
+                        )
 
-                        # JHK
-                        passbands = ['2MASS.J', '2MASS.H', '2MASS.K']
-                        photnames = ['Jmag', 'Hmag', 'Kmag']
-                        units = ['mag', 'mag', 'mag']
+                return HttpResponseRedirect(reverse(
+                    'systems:star_list',
+                    kwargs={'project': project.slug},
+                    ))
+            else:
 
-                        for b, pb, u in zip(photnames, passbands, units):
-                            sobj.photometry_set.create(band=pb, measurement=star[b], error=0.01, unit=u)
-
-                        # WISE
-                        passbands = ['WISE.W1', 'WISE.W2', 'WISE.W3', 'WISE.W4']
-                        photnames = ['W1mag', 'W2mag', 'W3mag', 'W4mag']
-                        units = ['mag', 'mag', 'mag', 'mag']
-
-                        for b, pb, u in zip(photnames, passbands, units):
-                            sobj.photometry_set.create(band=pb, measurement=star[b], error=0.01, unit=u)
-
-                        # -- Add parameters from gaia DR2
-                        sobj.parameter_set.create(data_source=dsgaia, name='parallax', component=0,
-                                                  value=star['parallax'],
-                                                  error=star['parallax_error'], unit='')
-
-                        sobj.parameter_set.create(data_source=dsgaia, name='pmra', component=0, value=star['pmra_x'],
-                                                  error=star['pmra_error'], unit='mas')
-
-                        sobj.parameter_set.create(data_source=dsgaia, name='pmdec', component=0, value=star['pmdec_x'],
-                                                  error=star['pmdec_error'], unit='mas')
-                        sobj.save()
-                    except Exception as e:
-                        messages.add_message(request, messages.ERROR, "Object already exists:" + str(star["main_id"]))
-                    except:
-                        messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(star["main_id"]))
-
-            return HttpResponseRedirect(reverse('systems:star_list', kwargs={'project': project.slug}))
+                print("invalid")
+                print(upload_form_detail.cleaned_data)
 
     elif request.method != 'GET' and not request.user.is_authenticated:
-        messages.add_message(request, messages.ERROR, "You need to login for that action!")
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "You need to login for that action!",
+            )
 
-    context = {'project': project, 'upload_form': upload_form}
+    context = {
+        'project': project,
+        'upload_form': upload_form,
+        'form_detail': upload_form_detail,
+        }
 
     return render(request, 'stars/star_list.html', context)
 
+
+def mk_new_system(star, project):
+    ##### TODO: ADD HERE A REAL FUNCTION: #####
+    #   Function to identify RA AND DEC input and convert it to deg
+    ra  = float(star['ra'])
+    dec = float(star['dec'])
+    ###########################################
+
+    #   Check for duplicates
+    duplicates = Star.objects.filter(name=star["main_id"]) \
+            .filter(ra__range = [ra-1/3600., ra+1/3600.]) \
+            .filter(dec__range = [dec-1/3600., dec+1/3600.]) \
+            .filter(project__exact = project.pk)
+
+    #print("duplicates", duplicates)
+
+    if len(duplicates) != 0:
+        return False, "System exists already:"+star["main_id"]
+        #raise Exception(
+            #"System exists already:"+star["main_id"]
+            #)
+
+    #   Initialize star model
+    sobj = Star(
+        name=star["main_id"],
+        project=project,
+        ra=ra,
+        dec=dec,
+        classification=star['sp_type'],
+        classification_type='PH',
+        observing_status='ON',
+        )
+    sobj.save()
+
+    ident = sobj.identifier_set.all()[0]
+    ident.href = "http://simbad.u-strasbg.fr/simbad/"\
+        +"sim-id?Ident="+star['main_id']\
+        .replace(" ","").replace('+', "%2B")
+    ident.save()
+
+    if 'JNAME' in star:
+        sobj.identifier_set.create(name=star['JNAME'])
+
+    # -- Add photometry
+    passbands = [
+        'GAIA2.G',
+        'GAIA2.BP',
+        'GAIA2.RP',
+        '2MASS.J',
+        '2MASS.H',
+        '2MASS.K',
+        'WISE.W1',
+        'WISE.W2',
+        'WISE.W3',
+        'WISE.W4',
+        ]
+    photnames = [
+        'phot_g_mean_mag',
+        'phot_bp_mean_mag',
+        'phot_rp_mean_mag',
+        'Jmag',
+        'Hmag',
+        'Kmag',
+        'W1mag',
+        'W2mag',
+        'W3mag',
+        'W4mag',
+        ]
+
+    for i,phot in enumerate(photnames):
+        if star[phot] != None and star[phot] != "":
+            sobj.photometry_set.create(
+                band=passbands[i],
+                measurement=star[phot],
+                error=0.01,
+                unit='mag',
+                )
+
+    # -- Add parameters from gaia DR2
+    if (star['parallax'] != None or
+        star['pmra_x'] != None or
+        star['pmdec_x'] != None):
+
+            try:
+                dsgaia = DataSource.objects.get(
+                    name__exact='Gaia DR2',
+                    project=project,
+                    )
+            except DataSource.DoesNotExist:
+                dsgaia = DataSource.objects.create(
+                    name='Gaia DR2',
+                    note='2nd Gaia data release',
+                    reference='https://doi.org/10.1051/0004-6361/201833051',
+                    project=project,
+                    )
+
+            if star['parallax'] != None:
+                sobj.parameter_set.create(
+                    data_source=dsgaia,
+                    name='parallax',
+                    component=0,
+                    value=star['parallax'],
+                    error=star['parallax_error'],
+                    unit='',
+                    )
+
+            if star['pmra_x'] != None:
+                sobj.parameter_set.create(
+                    data_source=dsgaia,
+                    name='pmra',
+                    component=0,
+                    value=star['pmra_x'],
+                    error=star['pmra_error'],
+                    unit='mas',
+                    )
+
+            if star['pmdec_x'] != None:
+                sobj.parameter_set.create(
+                    data_source=dsgaia,
+                    name='pmdec',
+                    component=0,
+                    value=star['pmdec_x'],
+                    error=star['pmdec_error'],
+                    unit='mas',
+                    )
+
+    sobj.save()
+
+    return True, ""
 
 @check_user_can_view_project
 def tag_list(request, project=None, **kwargs):

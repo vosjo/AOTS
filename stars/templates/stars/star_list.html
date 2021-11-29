@@ -20,58 +20,58 @@
 
    <form method="get" action="/stars/" class="table-filter" id="filter-form">
    <h3 class="center"> Filter Systems </h3>
-   
+
    <div class="table-filter-item">
       <p class="filter-label" title="Uses simbad name solver">Name:</p>
       <input class="filter-input" id="filter_name" type="text" placeholder="identifier">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label" title="00:00:00 +00:00:00 or 000.000 +00.000">Co:</p>
       <input class="filter-input" id="filter_co" type="text" placeholder="coodinate search">
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">RA:</p>
       <input class="filter-input" id="filter_ra" type="text" placeholder="min:max">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Dec:</p>
       <input class="filter-input" id="filter_dec" type="text" placeholder="min:max">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">G-mag:</p>
       <input class="filter-input" id="filter_mag" type="text" placeholder="min:max">
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">#phot:</p>
       <input class="filter-input" id="filter_nphot" type="text" placeholder="min:max">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">#spec:</p>
       <input class="filter-input" id="filter_nspec" type="text" placeholder="min:max">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">#lc:</p>
       <input class="filter-input" id="filter_nlc" type="text" placeholder="min:max">
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Class:</p>
       <input class="filter-input" id="filter_class" type="text" placeholder="class">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Type: </p>
       <ul id="classification_options">
@@ -79,9 +79,9 @@
          <li><label for="id_classtype_1"><input id="id_classtype_1" name="status" type="checkbox" value="SP" /> Spectroscopic</label></li>
       </ul>
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Status: </p>
       <ul id="status_options">
@@ -91,18 +91,18 @@
          <li><label for="id_status_3"><input id="id_status_3" name="status" type="radio" value="NE" /> New</label></li>
       </ul>
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Tags:</p>
       <ul id="tag_filter_options">
       </ul>
    </div>
-   
+
    <input type="submit" class="button filter" id="submit-search" value="Apply">
    </form>
-   
+
 </div>
 
 <section>
@@ -182,7 +182,8 @@
     </div>
     </fieldset>
     </div>
-   <div id='single-add' class='single-system-form'>
+
+<!--   <div id='single-add' class='single-system-form'>
    <fieldset>
     <legend>Add Single System by Form</legend>
     <div class="ui-controlgroup-horizontal">
@@ -191,9 +192,9 @@
       <legend>Tags</legend>
       <ul id="add-option-tags">
       </ul>
-    </fieldset>
-    <fieldset>
-    <legend>Name and values*</legend>
+    </fieldset>-->
+<!--    <fieldset>-->
+<!--    <legend>Name and values*</legend>
           <div class="cg-block">
           <label for="add-system-main-id">Name (main id)</label>
           <input id="add-system-main-id" class="ui-spinner-input">
@@ -271,11 +272,133 @@
               <input id="add-system-w4-id" class="ui-spinner-input">
           </div>
           </fieldset>
-      </div>
-    <p class="add-system-footnote">Blocks marked with a '*' are required</p>
+          <fieldset>-->
+
+   <div id='single-add' class='single-system-form'>
+
+   <fieldset>
+   <legend>Add Single System by Form</legend>
+        <div class="ui-controlgroup-horizontal">
+
+        <form action="{% url "systems:star_list" project.slug %}" method="post" enctype="multipart/form-data" class="" id="system-detail-upload-form">
+
+        {% if user.is_authenticated %}
+            {% csrf_token %}
+
+        <fieldset>
+        <legend>Tags</legend>
+            <ul id="add-option-tags">
+            </ul>
+        </fieldset>
+
+        <fieldset>
+        <legend>Name and values*</legend>
+        <div class="cg-block">
+            <label for="{{ form_detail.main_id.id_for_label }}">Name (main id):</label>
+            {{ form_detail.main_id }}
+            <span class="error"> {{ form_detail.main_id.errors.as_text }} </span>
+                <br>
+            <label for="{{ form_detail.ra.id_for_label }}">Right ascension:</label>
+            {{ form_detail.ra }}
+            <span class="error"> {{ form_detail.ra.errors.as_text }} </span>
+            <label for="{{ form_detail.dec.id_for_label }}">Declination:</label>
+            {{ form_detail.dec }}
+            <span class="error"> {{ form_detail.dec.errors.as_text }} </span>
+                <br>
+            <label for="{{ form_detail.sp_type.id_for_label }}">Spectral Type:</label>
+            {{ form_detail.sp_type }}
+            <span class="error"> {{ form_detail.sp_type.errors.as_text }} </span>
+                <br>
+            <label for="{{ form_detail.parallax.id_for_label }}">Parallax:</label>
+            {{ form_detail.parallax }}
+            <span class="error"> {{ form_detail.parallax.errors.as_text }} </span>
+            <label for="{{ form_detail.parallax_error.id_for_label }}">Parallax Error:</label>
+            {{ form_detail.parallax_error }}
+            <span class="error"> {{ form_detail.parallax_error.errors.as_text }} </span>
+        </div>
+        </fieldset>
+
+        <fieldset>
+        <legend>Proper Motion</legend>
+        <div class="cg-block">
+            <label for="{{ form_detail.pmra_x.id_for_label }}">Right ascension:</label>
+            {{ form_detail.pmra_x }}
+            <span class="error"> {{ form_detail.pmra_x.errors.as_text }} </span>
+            <label for="{{ form_detail.pmra_error.id_for_label }}">Error:</label>
+            {{ form_detail.pmra_error }}
+            <span class="error"> {{ form_detail.pmra_error.errors.as_text }} </span>
+                <br>
+            <label for="{{ form_detail.pmdec_x.id_for_label }}">Declination:</label>
+            {{ form_detail.pmdec_x }}
+            <span class="error"> {{ form_detail.pmdec_x.errors.as_text }} </span>
+            <label for="{{ form_detail.pmdec_error.id_for_label }}">Error:</label>
+            {{ form_detail.pmdec_error }}
+            <span class="error"> {{ form_detail.pmdec_error.errors.as_text }} </span>
+        </div>
+        </fieldset>
+
+        <fieldset><legend>Gaia DR2 photometry</legend>
+        <div class="cg-block">
+            <label for="{{ form_detail.phot_g_mean_mag.id_for_label }}">G:  </label>
+            {{ form_detail.phot_g_mean_mag }}
+            <span class="error"> {{ form_detail.phot_g_mean_mag.errors.as_text }} </span>
+                <br>
+            <label for="{{ form_detail.phot_bp_mean_mag.id_for_label }}">Gbp:</label>
+            {{ form_detail.phot_bp_mean_mag }}
+            <span class="error"> {{ form_detail.phot_bp_mean_mag.errors.as_text }} </span>
+            <label for="{{ form_detail.phot_rp_mean_mag.id_for_label }}">Grp:</label>
+            {{ form_detail.phot_rp_mean_mag }}
+            <span class="error"> {{ form_detail.phot_rp_mean_mag.errors.as_text }} </span>
+        </div>
+        </fieldset>
+
+        <fieldset>
+        <legend>JHK and WISE photometry</legend>
+        <div class="cg-block">
+            <label for="{{ form_detail.Jmag.id_for_label }}">J: </label>
+            {{ form_detail.Jmag }}
+            <span class="error"> {{ form_detail.Jmag.errors.as_text }} </span>
+            <label for="{{ form_detail.Hmag.id_for_label }}">H:</label>
+            {{ form_detail.Hmag }}
+            <span class="error"> {{ form_detail.Hmag.errors.as_text }} </span>
+                <br>
+            <label for="{{ form_detail.Kmag.id_for_label }}">K:</label>
+            {{ form_detail.Kmag }}
+            <span class="error"> {{ form_detail.Kmag.errors.as_text }} </span>
+                <br>
+            <label for="{{ form_detail.W1mag.id_for_label }}">W1:</label>
+            {{ form_detail.W1mag }}
+            <span class="error"> {{ form_detail.W1mag.errors.as_text }} </span>
+            <label for="{{ form_detail.W2mag.id_for_label }}">W2:</label>
+            {{ form_detail.W2mag }}
+            <span class="error"> {{ form_detail.W2mag.errors.as_text }} </span>
+                <br>
+            <label for="{{ form_detail.W3mag.id_for_label }}">W3:</label>
+            {{ form_detail.W3mag }}
+            <span class="error"> {{ form_detail.W3mag.errors.as_text }} </span>
+            <label for="{{ form_detail.W4mag.id_for_label }}">W4:</label>
+            {{ form_detail.W4mag }}
+            <span class="error"> {{ form_detail.W4mag.errors.as_text }} </span>
+        </div>
+        </fieldset>
+
+        </div>
+
+        <p class="add-system-footnote">Blocks marked with a '*' are required</p>
+
+        <div class="main-container-h border j-center">
+            <input type="submit" class="button" value="Add System"/>
+        </div>
+
+        {% else %}
+            <p> Log in to upload files! </p>
+        {% endif %}
+
+        </form>
+
     </fieldset>
    </div>
-   <div id='bulk-add' class='bulk-system-form'></div>
+   ·<div id='bulk-add' class='bulk-system-form'></div>
 </div>
 
 <script type="text/javascript" src="{% static 'js/stars_list.js' %}"></script>

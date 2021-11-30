@@ -497,13 +497,16 @@ function deleteSystems(){
       $("#progress-bar").val(0)
    }
    let n = 0;
+   //   Set Promise -> evaluates to a resolved Promise
+   let p = $.when()
    $.each(rows, function (index, row) {
-      var pk = row.data()["pk"];
-      $.ajax({
+      let pk = row.data()["pk"];
+      //    Promise chaining using .then() + async function definition to allow
+      //                                  the use of await
+      p = p.then( async function () {
+      await $.ajax({
          url : "/api/systems/stars/"+pk+'/',
          type : "DELETE",
-         tryCount: 0,
-         retryLimit: 5,
          success : function(json) {
             n += 1;
             star_table.row(row).remove().draw('full-hold');
@@ -526,8 +529,7 @@ function deleteSystems(){
                //try again on Database lock
                $.ajax(this);
                return;
-               }
-               else{
+               } else{
                   if ($('.error').length === 0) {
                   $('#messages').append('<li class="error">Could not Delete all Systems</li>')
                }
@@ -537,8 +539,9 @@ function deleteSystems(){
                 alert(xhr.status + ": " + xhr.responseText);
             }
              console.log(xhr.status + ": " + xhr.responseText);
-            }
+            },
          });
+      });
       })
    }
 }

@@ -1,7 +1,9 @@
 #import re
 #import datetime
 
-from .models import Observatory
+from .models import Observatory, SpecFile
+
+from stars.models import Star
 
 from django import forms
 
@@ -50,26 +52,37 @@ class UploadSpectraDetailForm(forms.Form):
 
 
 class UploadSpecFileForm(forms.Form):
-    specfile = forms.FileField(
+    specfile_field = forms.FileField(
         label='Select a spectrum',
         widget=forms.ClearableFileInput(attrs={'multiple': True})
         )
 
 
 class UploadRawSpecFileForm(forms.Form):
-    #   Raw file upload field
-    rawfile = forms.FileField(
-        label='Select the files',
-        widget=forms.ClearableFileInput(attrs={'multiple': True})
-        )
-    #   Name of the reduced file
-    specfile_name = forms.CharField(
-        label='Name of the reduced file',
-        max_length=200,
-        required=True,
-        #help_text='The reduced file needs to be specified ',
+    '''
+        Upload form for spectroscopic raw data
+    '''
+    #   System selection field
+    system = forms.ModelChoiceField(
+        label='Target',
+        empty_label='Target name: ra[deg] dec[deg]',
+        queryset=Star.objects.all(),
+        required=False,
         )
 
+    #   SpecFile selection field
+    specfile = forms.ModelChoiceField(
+        label='Reduced file',
+        empty_label='JD@Instrument - Filetype',
+        queryset=SpecFile.objects.all(),
+        required=True,
+        )
+
+    #   Raw file upload field
+    rawfile = forms.FileField(
+        label='Raw files',
+        widget=forms.ClearableFileInput(attrs={'multiple': True})
+        )
 
 class OrderField(forms.IntegerField):
     '''
@@ -102,14 +115,11 @@ class SpectrumModForm(forms.Form):
         Form to customize spectral plots (on the detail page)
     '''
     normalize = forms.BooleanField(label="Normalize", required=False)
-    #order     = forms.IntegerField(label="Polynomial order", required=False)
     order     = OrderField(label="Polynomial order", required=False)
-    #binning   = forms.IntegerField(label="Select a binning", required=False)
     binning   = BinningField(label="Select a binning", required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        #self.initial['normalize']   = True
         self.initial['order']   = 3
         self.initial['binning'] = 10
 

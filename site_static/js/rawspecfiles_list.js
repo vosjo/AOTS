@@ -19,6 +19,7 @@ $(document).ready(function () {
          { data: 'filename' },
          { data: 'added_on' },
          { data: 'stars', orderable: false, render: stars_render },
+//          { data: 'specfiles', orderable: false, render: processed_render },
       ];
    }
    else {
@@ -30,6 +31,7 @@ $(document).ready(function () {
          { data: 'filename' },
          { data: 'added_on' },
          { data: 'stars', orderable: false, render: stars_render },
+//          { data: 'specfiles', orderable: false, render: processed_render },
       ];
    };
 
@@ -39,24 +41,13 @@ $(document).ready(function () {
    autoWidth: false,
    serverSide: true,
    ajax: {
-      url: '/api/observations/rawspecfiles/?format=datatables',
+      url: '/api/observations/rawspecfiles/?format=datatables&keep=pk',
       data: get_filter_keywords,
    },
    searching: false,
    orderMulti: false, //Can only order on one column at a time
    order: [1],
    columns: columns,
-//    columns: [
-//       { data: 'hjd' },
-//       { data: 'instrument' },
-//       { data: 'filetype' },
-//       { data: 'exptime' },
-//       { data: 'filename' },
-//       { data: 'added_on' },
-//       { data: 'stars', orderable: false, render: stars_render },
-//       { data: 'pk', render: action_render, width: '100',
-//         className: 'dt-center', visible: user_authenticated, orderable: false},
-//    ],
    paging: true,
    pageLength: 20,
    lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all.
@@ -122,23 +113,57 @@ $(document).ready(function () {
           "<input id='delete-button'  class='tb-button' value='Delete raw data' type='button' disabled>" +
           "<p class='hide' id='result'></p>"
       );
-      $("#dl-button").click( DlSpectra );
+      $("#dl-button").click( download_rawfiles );
       $("#delete-button").click( delete_all_selected_rawspecfiles );
    }
 
-//    // Event listeners
-//    $("#rawspecfiletable").on('click', 'i[id^=process-specfile-]', function() {
-//       var thisrow = $(this).closest('tr');
-//       var data = rawspecfile_table.row(thisrow).data();
-//       processRawSpecfile(thisrow, data);
-//    });
-//    $("#rawspecfiletable").on('click', 'i[id^=delete-specfile-]', function() {
-//       var thisrow = $(this).closest('tr');
-//       var data = rawspecfile_table.row(thisrow).data();
-//       deleteRawSpecfile(thisrow, data);
-//    });
+    //  Adjust form drop dropdown content - First read System drop down
+    $("#id_system").change(function() {
+        //  Find system pk/ID
+        let pk = $(this).val();
+        if (pk != '') {
+            //  Clear Specfile drop down
+            clear_drop_down();
 
+            //  Get Specfile info as JASON
+            $.getJSON("/api/systems/stars/"+pk+'/specfiles/', function(data){
+                //  Refilling Specfile drop down
+                for (let key in data){
+                    if (data.hasOwnProperty(key)){
+                        let value=data[key];
+                        $("#id_specfile").append("<option value = \"" + key + "\">" + value + "</option>");
+                    }
+                };
+            });
+        } else {
+            //  Clear Specfile drop down
+            clear_drop_down();
+        }
+    });
+
+    //   Reset check boxes when changing number of displayed objects in table
+    $('#rawspecfiletable_length').change(function() {
+        rawspecfile_table.rows().every( function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+         });
+    });
+
+    //   Reset check boxes when switching to the next table page
+    $('#rawspecfiletable_paginate').click(function() {
+        rawspecfile_table.rows().every( function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+         });
+    });
 });
+
+//  Clear Specfile drop down
+function clear_drop_down(){
+    document.getElementById("id_specfile").length = 0;
+    $("#id_specfile").val([]);
+//     $("#id_specfile").append("<option value=\"\" selected=\"selected\">---------</option>");
+    $("#id_specfile").append("<option value=\"\" selected=\"selected\">JD@Instrument - Filetype</option>");
+}
+
 
 // Table filter functionality
 
@@ -146,16 +171,27 @@ function get_filter_keywords( d ) {
 
    d = $.extend( {}, d, {
       "project": $('#project-pk').attr('project'),
-//       "target": $('#filter_target').val(),
       "instrument": $('#filter_instrument').val(),
+      "filename": $('#filter_filename').val(),
+      "filetype": $('#filter_filetype').val(),
+      "systems": $('#filter_systems').val(),
    } );
 
    if ($('#filter_hjd').val() != '') {
       d = $.extend( {}, d, {
-         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
-         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
+//          "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
+//          "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
+         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] ),
+         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] ),
       } );
-   }
+   };
+
+   if ($('#filter_expo_time').val() != '') {
+      d = $.extend( {}, d, {
+         "expo_min": parseFloat( $('#filter_expo_time').val().split(':')[0] ),
+         "expo_max": parseFloat( $('#filter_expo_time').val().split(':')[1] ),
+      } );
+   };
 
    return d
 }
@@ -172,71 +208,14 @@ function selection_render( data, type, full, meta ) {
 }
 
 function stars_render( data, type, full, meta ) {
-//     console.log(data);
-//     let obj = JSON.parse(data);
-//     let obj = data;
     let systems = [];
     for(let key in data){
         if (data.hasOwnProperty(key)){
             let value=data[key];
             systems.push("<a href='" + value + "' > " + key + "</a>");
         }
-//         else {
-//             return '';
-//         }
     }
     return systems
-
-//    return 'Test';
-//    if ( data ){
-//       console.log(data);
-//       return "<a href='" + data + "' >" + 'Yes' + "</a>";
-//    } else {
-//       return 'No';
-//    }
-//       if ( data ){ return 'Yes'; } else { return 'No'; }
-}
-
-// function action_render( data, type, full, meta ) {
-//    var res = "<i class='material-icons button delete' id='delete-specfile-"+data+"'>delete</i>"
-//    if ( !full['stars'] ) {
-//       res = res + "<i class='material-icons button process' id='process-specfile-"+data+"' title='Process'>build</i>"
-//    }
-//    return res
-// }
-
-function delete_all_selected_rawspecfiles(){
-    if (confirm('Are you sure you want to delete this spectrum? This can NOT be undone!')===true){
-        let rows = [];
-        //   Get list of selected spectra
-        rawspecfile_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-            rows.push(this);
-        });
-        // Loop over selected spectra
-        $.each(rows, function (index, row) {
-            //  Loop over all spec files
-            $.each(row.data()["specfiles"], function(ind) {
-                let pk = row.data()["specfiles"][ind]['pk'];
-                //  Ajax call to remove spec files
-                $.ajax({
-                    url : "/api/observations/rawspecfiles/"+pk+'/',
-                    type : "DELETE",
-                    success : function(json) {
-                        //  Remove the whole spectrum from table
-                        rawspecfile_table.row(row).remove().draw('full-hold');
-                    },
-                    error : function(xhr,errmsg,err) {
-                        if (xhr.status === 403){
-                            alert('You have to be logged in to delete this spectrum.');
-                        }else{
-                            alert(xhr.status + ": " + xhr.responseText);
-                        }
-                        console.log(xhr.status + ": " + xhr.responseText);
-                    }
-                });
-            })
-        })
-    }
 }
 
 
@@ -268,6 +247,43 @@ function deselect_row(row) {
    }
 }
 
+//  Delete raw data
+function delete_all_selected_rawspecfiles(){
+    if (confirm('Are you sure you want to delete this spectrum? This can NOT be undone!')===true){
+        let rows = [];
+        //   Get list of selected files
+        rawspecfile_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+            //  Determine ID/PK
+            let pk = this.data()['pk'];
+            //  Ajax call to remove spec files
+            $.ajax({
+                url : "/api/observations/rawspecfiles/"+pk+'/',
+                type : "DELETE",
+                success : function(json) {
+                    //  Remove the whole spectrum from table
+                    rawspecfile_table.row(this).remove().draw('full-hold');
+                },
+                error : function(xhr,errmsg,err) {
+                    if (xhr.status === 403){
+                        alert('You have to be logged in to delete this spectrum.');
+                    }else{
+                        alert(xhr.status + ": " + xhr.responseText);
+                    }
+                    console.log(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        })
+
+    //   Reset check boxes
+    rawspecfile_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+            deselect_row(this);
+         });
+    }
+}
+
+
+//  Download options:
+
 //  Update progress bar
 function updatePercent(percent) {
     $("#progress-bar")
@@ -288,16 +304,26 @@ function showError(text) {
     .val(text);
 }
 
-function DlSpectra() {
-   //   Prepare file list
-   let spfilelist = [];
-   //   Get list of selected spectra
-   rawspecfile_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-       spfilelist.push('/media/raw_spectra/'.concat(this.data()['filename']));
-   });
+//  Download Raw Data
+function download_rawfiles() {
+    //   Prepare file list
+    let rawlist = [];
+    //   Get list of selected spectra
+    rawspecfile_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+        //  Determine ID/PK
+        let pk = this.data()['pk'];
 
-   //   Load Filesaver and jszip libs to facilitate download
-   $.getScript("/static/js/JsZip/FileSaver.js").done( function () {
+        //    Get file path
+        $.getJSON(
+            "/api/observations/rawspecfiles/"+pk+"/path/",
+            function(path) {
+                //    Add to file list
+                rawlist.push(path);
+            });
+    });
+
+    //   Load Filesaver and jszip libs to facilitate download
+    $.getScript("/static/js/JsZip/FileSaver.js").done( function () {
         $.getScript("/static/js/JsZip/jszip.js").done( async function () {
 
             //  Create zip file
@@ -309,8 +335,8 @@ function DlSpectra() {
 
             //  Get file using promises so that file assembly can wait until
             //  download has finished
-            const getPromises = spfilelist.map (async path => {
-                let file = path.split('/')[3];
+            const getPromises = rawlist.map (async path => {
+                let file = path.split('/').slice(-1);
                 return new Promise(function(resolve, reject) {
                     $.get(path)
                     .done(function(data) {
@@ -351,38 +377,6 @@ function DlSpectra() {
             });
 
 
-      });
-   });
+        });
+    });
 }
-
-// function processRawSpecfile(row, data) {
-//    $.ajax({
-//       url : "/api/observations/rawspecfiles/"+data['pk']+'/process/',
-//       type : "POST",
-//       success : function(json) {
-//          // remove the row from the table
-//          rawspecfile_table.row(row).data(json).draw('full-hold');
-//       },
-//
-//       error : function(xhr,errmsg,err) {
-//          console.log(xhr.status + ": " + xhr.responseText);
-//       }
-//    });
-// };
-
-// function deleteRawSpecfile(row, data) {
-//    if (confirm('Are you sure you want to remove this raw spectrum file?')==true){
-//       $.ajax({
-//          url : "/api/observations/rawspecfiles/"+data['pk']+'/',
-//          type : "DELETE",
-//          success : function(json) {
-//             // remove the row from the table
-//             rawspecfile_table.row(row).remove().draw('full-hold');
-//          },
-//
-//          error : function(xhr,errmsg,err) {
-//             console.log(xhr.status + ": " + xhr.responseText);
-//          }
-//       });
-//    };
-// };

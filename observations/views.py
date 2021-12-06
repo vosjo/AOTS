@@ -180,23 +180,27 @@ def specfile_list(request, project=None,  **kwargs):
     #   Initialize upload forms
     upload_form = UploadSpecFileForm()
     raw_upload_form = UploadRawSpecFileForm()
+    raw_upload_form.fields['system'].queryset = Star.objects\
+        .filter(project__exact=project.pk)\
+        .exclude(spectrum__isnull=True)
+    raw_upload_form.fields['specfile'].queryset = SpecFile.objects\
+        .filter(project__exact=project.pk)
 
     # Handle file upload
     if request.method == 'POST' and request.user.is_authenticated:
         #   Specfiles:
-        if 'specfile' in request.FILES:
+        if 'specfile_field' in request.FILES:
             #   Get form
             upload_form = UploadSpecFileForm(request.POST, request.FILES)
             if upload_form.is_valid():
                 #   Get files
-                files = request.FILES.getlist('specfile')
+                files = request.FILES.getlist('specfile_field')
                 for f in files:
                     #   Save the new specfile
                     newspec = SpecFile(
                         specfile=f,
                         project=project,
                         added_by=request.user,
-                        #filename=f.name,
                         )
                     newspec.save()
 
@@ -231,54 +235,8 @@ def specfile_list(request, project=None,  **kwargs):
 
         #   Raw files
         if 'rawfile' in request.FILES:
-            #   Get form
-            raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
-            if raw_upload_form.is_valid():
-                #   Name of the Specfile
-                specfile_name = raw_upload_form.cleaned_data['specfile_name']
-
-                #   Get files
-                files = request.FILES.getlist('rawfile')
-                for f in files:
-                    #    Save the new raw file
-                    newrawspec = RawSpecFile(
-                        rawfile=f,
-                        project=project,
-                        added_by=request.user,
-                        #filename=f.name,
-                        #specfile=,
-                        )
-                    newrawspec.save()
-
-                    #    Now process it and add it to a Specfile
-                    try:
-                        #   Process raw file
-                        success, message = read_spectrum.process_raw_spec(
-                            newrawspec.pk,
-                            specfile_name,
-                            )
-                        #   Set success/error message
-                        if success:
-                            level = messages.SUCCESS
-                        else:
-                            level = messages.ERROR
-                        messages.add_message(request, level, message)
-                    except Exception as e:
-                        #   Handel error
-                        print(e)
-                        #newrawspec.rawfile.delete()
-                        newrawspec.delete()
-                        messages.add_message(
-                            request,
-                            messages.ERROR,
-                            "Exception occurred when adding: " + str(f),
-                            )
-
-                #   Return and redirect
-                return HttpResponseRedirect(reverse(
-                    'observations:specfile_list',
-                    kwargs={'project':project.slug}
-                    ))
+            #   Handel raw files
+            handel_raw_files(request, project.slug)
 
     #   Block uploads by anonymous
     elif request.method != 'GET' and not request.user.is_authenticated:
@@ -306,59 +264,18 @@ def rawspecfile_list(request, project=None,  **kwargs):
 
     #   Initialize upload forms
     raw_upload_form = UploadRawSpecFileForm()
+    raw_upload_form.fields['system'].queryset = Star.objects\
+        .filter(project__exact=project.pk)\
+        .exclude(spectrum__isnull=True)
+    raw_upload_form.fields['specfile'].queryset = SpecFile.objects\
+        .filter(project__exact=project.pk)
 
     # Handle file upload
     if request.method == 'POST' and request.user.is_authenticated:
         #   Raw files
         if 'rawfile' in request.FILES:
-            #   Get form
-            raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
-            if raw_upload_form.is_valid():
-                #   Name of the Specfile
-                specfile_name = raw_upload_form.cleaned_data['specfile_name']
-
-                #   Get files
-                files = request.FILES.getlist('rawfile')
-                for f in files:
-                    #    Save the new raw file
-                    newrawspec = RawSpecFile(
-                        rawfile=f,
-                        project=project,
-                        added_by=request.user,
-                        #filename=f.name,
-                        #specfile=,
-                        )
-                    newrawspec.save()
-
-                    #    Now process it and add it to a raw file
-                    try:
-                        #   Process raw file
-                        success, message = read_spectrum.process_raw_spec(
-                            newrawspec.pk,
-                            specfile_name,
-                            )
-                        #   Set success/error message
-                        if success:
-                            level = messages.SUCCESS
-                        else:
-                            level = messages.ERROR
-                        messages.add_message(request, level, message)
-                    except Exception as e:
-                        #   Handel error
-                        print(e)
-                        #newrawspec.rawfile.delete()
-                        newrawspec.delete()
-                        messages.add_message(
-                            request,
-                            messages.ERROR,
-                            "Exception occurred when adding: " + str(f),
-                            )
-
-                #   Return and redirect
-                return HttpResponseRedirect(reverse(
-                    'observations:specfile_list',
-                    kwargs={'project':project.slug}
-                    ))
+            #   Handel raw files
+            handel_raw_files(request, project.slug)
 
     #   Block uploads by anonymous
     elif request.method != 'GET' and not request.user.is_authenticated:
@@ -376,6 +293,63 @@ def rawspecfile_list(request, project=None,  **kwargs):
 
     return render(request, 'observations/rawspecfiles_list.html', context)
 
+
+def handel_raw_files(request, project):
+    '''
+        Handel raw files
+    '''
+    #   Set project
+    project = get_object_or_404(Project, slug=project)
+
+    #   Get form
+    raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
+    if raw_upload_form.is_valid():
+        #   Read selected Specfile
+        specfile = raw_upload_form.cleaned_data['specfile']
+
+        #   Get files
+        files = request.FILES.getlist('rawfile')
+        for f in files:
+            #    Save the new raw file
+            newrawspec = RawSpecFile(
+                project=project,
+                added_by=request.user,
+                )
+            newrawspec.save()
+            newrawspec.rawfile.save(f.name, f)
+
+            #   Assignment of the SpecFile
+            specfile.rawspecfile_set.add(newrawspec)
+
+            #    Now process it and check for duplicates
+            try:
+                #   Process raw file
+                success, message = read_spectrum.process_raw_spec(
+                    newrawspec.pk,
+                    specfile.pk,
+                    )
+
+                #   Set success/error message
+                if success:
+                    level = messages.SUCCESS
+                else:
+                    level = messages.ERROR
+                messages.add_message(request, level, message)
+            except Exception as e:
+                #   Handel error
+                print(e)
+                newrawspec.delete()
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Exception occurred when adding: " + str(f),
+                    )
+
+        #   Return and redirect
+        return HttpResponseRedirect(reverse(
+            'observations:rawspecfile_list',
+            kwargs={'project':project.slug}
+            ))
 
 @check_user_can_view_project
 def lightcurve_list(request, project=None,  **kwargs):

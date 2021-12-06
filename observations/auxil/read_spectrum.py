@@ -10,13 +10,11 @@ from astropy.coordinates import SkyCoord, AltAz, get_moon
 from astroplan.moon import moon_illumination
 
 from observations.models import Spectrum, SpecFile, RawSpecFile
-from stars.models import Star
+from stars.models import Star, Project
 
 from . import instrument_headers
 
-
-
-
+###############################################################################
 
 def get_wind_direction(degrees):
    """
@@ -47,6 +45,9 @@ def isfloat(value):
     return True
   except ValueError:
     return False
+
+
+###    Spectrum    ###
 
 def derive_spectrum_info(spectrum_pk, user_info={}):
    """
@@ -137,6 +138,9 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
 
    return "Spectrum details added/updated", True
 
+
+###     Specfile    ###
+
 def derive_specfile_info(specfile_id, user_info={}):
     """
     Read some basic info from the spectrum and store it in the database
@@ -158,7 +162,7 @@ def derive_specfile_info(specfile_id, user_info={}):
     specfile.dec = data['dec']
 
     #   Set file name
-    specfile.filename = specfile.specfile.name.split('/')[-1]
+    #specfile.filename = specfile.specfile.name.split('/')[-1]
 
     #   Save file
     specfile.save()
@@ -262,6 +266,8 @@ def process_specfile(specfile_id, create_new_star=True, add_to_existing_spectrum
       return True, message
 
 
+###     RawSpecFile     ###
+
 def derive_rawfile_info(rawfile_id, user_info={}):
     """
     Read some basic info from the raw file and store it in the database
@@ -281,24 +287,23 @@ def derive_rawfile_info(rawfile_id, user_info={}):
     rawfile.exptime    = data['exptime']
 
     #   Set file name
-    rawfile.filename = rawfile.rawfile.name.split('/')[-1]
+    #rawfile.filename = rawfile.rawfile.name.split('/')[-1]
 
     #   Save file
     rawfile.save()
 
     return "Raw file details added/updated", True
 
-def process_raw_spec(rawfile_id, specfile_name):
+def process_raw_spec(rawfile_id, specfile_id):
     """
-    Check if the file is a duplicate, and if not, add it to a specfile, spectrum
-    and target star.
+    Check if the file is a duplicate, and if not, add it to a specfile
 
     Parameters:
     -----------
     rawfile_id
         ID of the raw file
-    specfile_name
-        name of the specfile
+    specfile_id
+        ID of the spec file
 
     Returns:
     --------
@@ -307,68 +312,64 @@ def process_raw_spec(rawfile_id, specfile_name):
     message         string()
         Contains info on what went wrong, or just a success message.
     """
+
     #   Initialize return message
     message = ""
 
     #   Fill rawfile model with infos
     derive_rawfile_info(rawfile_id)
 
-    #   Initialize raw file instance
-    rawfile = RawSpecFile.objects.get(pk=rawfile_id)
-
-    #   Find specfile
-    specfile = SpecFile.objects\
-        .filter(filename__iexact = specfile_name)\
-        .filter(project__exact = rawfile.project.pk)
-
-    if len(specfile) != 1:
-        #   Delete raw file if no associated specfile could be identified
-        rawfile.delete()
-
-        return False, "The associated specfile could not be uniquely "\
-                      "identified. "+str(len(specfile))+" specfiles found. "\
-                      "Raw file was not added!"
-
-    specfile = specfile[0]
+    #   Initialize raw file instance and extract file name
+    rawfile     = RawSpecFile.objects.get(pk=rawfile_id)
+    rawfilename = rawfile.rawfile.name.split('/')[-1]
 
     #   Check for duplicates
     duplicates = RawSpecFile.objects.exclude(id__exact = rawfile_id) \
         .filter(hjd__range = [rawfile.hjd-0.00000001, rawfile.hjd+0.00000001]) \
         .filter(instrument__iexact = rawfile.instrument) \
         .filter(filetype__iexact = rawfile.filetype) \
-        .filter(specfile__exact = specfile.pk)\
+        .filter(specfile__exact = specfile_id)\
         .filter(project__exact = rawfile.project.pk)
 
     if len(duplicates) > 0:
         #   This rawfile already exists, so remove it
         rawfile.delete()
 
-        return False, "This rawfile is a duplicate and was not added!"
+        message = rawfilename+" (raw file) is a duplicate and was not added "
 
-    #   Check if the raw file is already associated with another SpecFile
+        return False, message
+
+    #   Check if the raw file already exists and if it is associated
+    #   with another SpecFile
     otherRawSpecFiles = RawSpecFile.objects.exclude(id__exact = rawfile_id) \
         .filter(hjd__range = [rawfile.hjd-0.00000001, rawfile.hjd+0.00000001]) \
         .filter(instrument__iexact = rawfile.instrument) \
         .filter(filetype__iexact = rawfile.filetype) \
         .filter(project__exact = rawfile.project.pk)
 
+    #   If file is already in the database, use this one
     if len(otherRawSpecFiles) > 0:
-
+        #   Use the first entry
         otherRawSpecFile     = otherRawSpecFiles[0]
         otherRawSpecFileName = otherRawSpecFile.specfile.all()[0]\
                                     .specfile.name.split('/')[1]
 
-        #   This rawfile already exists, so remove it
-        rawfile.delete()
-
-        #   Add raw file to SpecFile
+        #   Add raw file from the database to SpecFile
+        specfile = SpecFile.objects.get(pk=specfile_id)
         specfile.rawspecfile_set.add(otherRawSpecFile)
 
-        message += "Raw file is a duplicate and already associated with the "\
-            +"reduced file "+otherRawSpecFileName+". Used this raw file instead."
+        #   Remove the uploaded raw file
+        rawfile.delete()
+
+        message += rawfilename+" (raw file) is a duplicate and already "\
+                +  "associated with the reduced file "+otherRawSpecFileName\
+                +  ". Used the already uploaded file."
         return True, message
 
     #   Add raw file to existing specfile
-    specfile.rawspecfile_set.add(rawfile)
-    message += "Raw file added to existing Specfile {}".format(specfile)
+    message += "{} (raw file) added to {} ({})".format(
+        rawfilename,
+        SpecFile.objects.get(pk=specfile_id),
+        SpecFile.objects.get(pk=specfile_id).spectrum.star.name,
+        )
     return True, message

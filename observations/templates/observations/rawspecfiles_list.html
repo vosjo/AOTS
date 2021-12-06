@@ -14,7 +14,8 @@
 
 <i display="none" id="project-pk" project={{project.pk}}></i>
 
-<div class='upload'>
+<div class='upload_old'>
+<!-- <div class='block'> -->
    <form action="{% url "observations:rawspecfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload" id="raw-upload-form">
       <h3> Add raw data </h3>
 
@@ -45,14 +46,14 @@
 <div id="filter-dashboard">
 
    <form method="get" action="/observations/" class="table-filter" id="filter-form">
-   <h3 class="center"> Filter Raw Specfiles </h3>
+   <h3 class="center"> Filter Raw files </h3>
 
-<!--   <div class="table-filter-item">
+   <div class="table-filter-item">
       <p class="filter-label">Target:</p>
-      <input class="filter-input" id="filter_target" type="text" placeholder="identifier">
-   </div>-->
+      <input class="filter-input" id="filter_systems" type="text" placeholder="name">
+   </div>
 
-<!--    <hr> -->
+   <hr>
 
    <div class="table-filter-item">
       <p class="filter-label">HJD:</p>
@@ -62,6 +63,25 @@
    <div class="table-filter-item">
       <p class="filter-label">Instrument:</p>
       <input class="filter-input" id="filter_instrument" type="text" placeholder="instrument">
+   </div>
+
+   <hr>
+
+   <div class="table-filter-item">
+      <p class="filter-label">Exposure time:</p>
+      <input class="filter-input" id="filter_expo_time" type="text" placeholder="min:max">
+   </div>
+
+   <hr>
+
+   <div class="table-filter-item">
+      <p class="filter-label">Filetype:</p>
+      <input class="filter-input" id="filter_filetype" type="text" placeholder="file type">
+   </div>
+
+   <div class="table-filter-item">
+      <p class="filter-label">Filename:</p>
+      <input class="filter-input" id="filter_filename" type="text" placeholder="file name">
    </div>
 
    <input type="submit" class="button filter" id="submit-search" value="Apply">
@@ -79,12 +99,11 @@
       {% endif %}
       <th>HJD</th>
       <th>Instrument</th>
-      <th>Filetype</th>
+      <th>File type</th>
       <th>Exposure time</th>
-      <th>Filename</th>
+      <th>File name</th>
       <th>Added on</th>
       <th>Systems</th>
-<!--       <th>Action</th> -->
       </tr>
    </thead>
    <tfoot>
@@ -94,12 +113,11 @@
       {% endif %}
       <th>HJD</th>
       <th>Instrument</th>
-      <th>Filetype</th>
+      <th>File type</th>
       <th>Exposure time</th>
-      <th>Filename</th>
+      <th>File name</th>
       <th>Added on</th>
       <th>Systems</th>
-<!--       <th>Action</th> -->
       </tr>
    </tfoot>
    </table>

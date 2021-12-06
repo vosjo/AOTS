@@ -18,7 +18,8 @@ from .views import (
    getLightCurveHeader,
    ObservatoryViewSet,
    getSpecfilePath,
-   getRawSpecfilePath
+   getRawSpecfilePath,
+   getSpecfileRawPath,
    )
 
 app_name = 'observations-api'
@@ -54,6 +55,11 @@ urlpatterns = [
        'specfiles/<int:specfile_pk>/path/',
        getSpecfilePath,
        name='specfile_path',
+       ),
+   path(
+       'specfiles/<int:specfile_pk>/raw_path/',
+       getSpecfileRawPath,
+       name='specfile_rawpath',
        ),
    #    RawSpecFiles
    path(

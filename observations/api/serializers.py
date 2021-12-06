@@ -119,6 +119,7 @@ class SpecFileSerializer(ModelSerializer):
     star = SerializerMethodField()
     spectrum = SerializerMethodField()
     added_on = SerializerMethodField()
+    filename = SerializerMethodField()
 
     class Meta:
         model = SpecFile
@@ -137,16 +138,25 @@ class SpecFileSerializer(ModelSerializer):
     def get_star(self, obj):
         if obj.spectrum is None or obj.spectrum.star is None:
             return ''
-        return obj.spectrum.star.name
+        link = reverse(
+            'systems:star_detail',
+            kwargs={'project':obj.project.slug, 'star_id':obj.spectrum.star.pk},
+            )
+        return {obj.spectrum.star.name:link}
 
     def get_spectrum(self, obj):
         if obj.spectrum is None:
             return ''
-        else:
-            return reverse('observations:spectrum_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.spectrum.pk})
+        return reverse(
+            'observations:spectrum_detail',
+            kwargs={'project':obj.project.slug, 'spectrum_id':obj.spectrum.pk},
+            )
 
     def get_added_on(self, obj):
         return Time(obj.added_on, precision=0).iso
+
+    def get_filename(self, obj):
+        return obj.specfile.name.split('/')[-1]
 
 
 class SimpleSpecFileSerializer(ModelSerializer):
@@ -168,8 +178,10 @@ class SimpleSpecFileSerializer(ModelSerializer):
 
 class RawSpecFileSerializer(ModelSerializer):
 
-    stars    = SerializerMethodField()
-    added_on = SerializerMethodField()
+    stars     = SerializerMethodField()
+    added_on  = SerializerMethodField()
+    #specfiles = SerializerMethodField()
+    filename  = SerializerMethodField()
 
     class Meta:
         model = RawSpecFile
@@ -182,24 +194,35 @@ class RawSpecFileSerializer(ModelSerializer):
                 'added_on',
                 'filename',
                 'exptime',
+                #'specfiles',
                 ]
         read_only_fields = ('pk', 'stars',)
 
-    def get_added_on(self, obj):
-        return Time(obj.added_on, precision=0).iso
-
     def get_stars(self, obj):
-        SpecFileDict = {}
+        SystemDict = {}
         for sfile in obj.specfile.all():
-            SpecFileDict[sfile.spectrum.star.name] = reverse(
+            SystemDict[sfile.spectrum.star.name] = reverse(
                 'systems:star_detail',
                 kwargs={
                     'project':sfile.project.slug,
                     'star_id':sfile.spectrum.star.pk,
                     },
                 )
+        return SystemDict
 
-        return SpecFileDict
+    def get_added_on(self, obj):
+        return Time(obj.added_on, precision=0).iso
+
+    def get_filename(self, obj):
+        return obj.rawfile.name.split('/')[-1]
+
+
+    #def get_specfiles(self, obj):
+        #SpecFileList = []
+        #for sfile in obj.specfile.all():
+            #SpecFileList.append(sfile.hjd)
+        #return SpecFileList
+
 
 
 # ===============================================================

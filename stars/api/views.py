@@ -20,6 +20,7 @@ from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -241,6 +242,26 @@ class StarViewSet(viewsets.ModelViewSet):
          return StarSerializer
       return StarSerializer
 
+@api_view(['GET'])
+def getStarSpecfiles(request, star_pk):
+    '''
+        Get all SpecFiles associated with a system
+    '''
+
+    #   Get system and spectra
+    star      = Star.objects.get(pk=star_pk)
+    spectra   = star.spectrum_set.all()
+
+    #   Arrange SpecFile infos
+    return_dict = {}
+    for spectrum in spectra:
+        for spec in spectrum.specfile_set.all():
+            return_dict[spec.pk] = "{}@{} - {}".format(
+                spec.hjd,
+                spec.instrument,
+                spec.filetype,
+                )
+    return Response(return_dict)
 
 #class StarViewSet(viewsets.ModelViewSet):
    #queryset = Star.objects.all()

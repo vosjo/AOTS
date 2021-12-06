@@ -104,12 +104,29 @@ $(document).ready(function () {
       $("div.toolbar").html(
           "<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>" +
           '<progress id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
-          "<input id='delete-button'  class='tb-button' value='Delete Spectrum' type='button' disabled>" +
+          "<input id='dl-raw-button'  class='tb-button' value='Download Raw Data' type='button' disabled>" +
+          '<progress id="progress-bar-raw" value="0" max="100" class="progress-bar"></progress>' +
+          "<input id='delete-button'  class='tb-button' value='Delete Spectra' type='button' disabled>" +
           "<p class='hide' id='result'></p>"
       );
-      $("#dl-button").click( DlSpectra );
+      $("#dl-button").click( download_specfiles );
       $("#delete-button").click( delete_all_selected_specfiles );
+      $("#dl-raw-button").click( download_rawfiles );
    }
+
+    //   Reset check boxes when changing number of displayed objects in table
+    $('#spectratable_length').change(function() {
+        spectra_table.rows().every( function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+         });
+    });
+
+    //   Reset check boxes when switching to the next table page
+    $('#spectratable_paginate').click(function() {
+        spectra_table.rows().every( function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+         });
+    });
 });
 
 
@@ -197,40 +214,6 @@ function resolution_render( data, type, full, meta ) {
    }
 }
 
-function delete_all_selected_specfiles(){
-    if (confirm('Are you sure you want to delete this spectrum? This can NOT be undone!')===true){
-        let rows = [];
-        //   Get list of selected spectra
-        spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-            rows.push(this);
-        });
-        // Loop over selected spectra
-        $.each(rows, function (index, row) {
-            //  Loop over all spec files
-            $.each(row.data()["specfiles"], function(ind) {
-                let pk = row.data()["specfiles"][ind]['pk'];
-                //  Ajax call to remove spec files
-                $.ajax({
-                    url : "/api/observations/specfiles/"+pk+'/',
-                    type : "DELETE",
-                    success : function(json) {
-                        //  Remove the whole spectrum from table
-                        spectra_table.row(row).remove().draw('full-hold');
-                    },
-                    error : function(xhr,errmsg,err) {
-                        if (xhr.status === 403){
-                            alert('You have to be logged in to delete this spectrum.');
-                        }else{
-                            alert(xhr.status + ": " + xhr.responseText);
-                        }
-                        console.log(xhr.status + ": " + xhr.responseText);
-                    }
-                });
-            })
-        })
-    }
-}
-
 
 // Selection and Deselection of rows
 
@@ -243,6 +226,7 @@ function select_row(row) {
       $('#select-all').text('check_box');
    }
     $('#dl-button').prop('disabled', false);
+    $('#dl-raw-button').prop('disabled', false);
     $('#rm-button').prop('disabled', false);
     $('#delete-button').prop('disabled', false);
 }
@@ -253,6 +237,7 @@ function deselect_row(row) {
    if ( spectra_table.rows('.selected').data().length === 0 ) {
       $('#select-all').text('check_box_outline_blank');
       $('#dl-button').prop('disabled', true);
+      $('#dl-raw-button').prop('disabled', true);
       $('#rm-button').prop('disabled', true);
       $('#delete-button').prop('disabled', true);
    } else {
@@ -260,15 +245,77 @@ function deselect_row(row) {
    }
 }
 
+
+//  Delete spectra
+function delete_all_selected_specfiles(){
+    if (confirm('Are you sure you want to delete this spectrum? This can NOT be undone!')===true){
+        let rows = [];
+        //   Get list of selected spectra
+        spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+            rows.push(this);
+        });
+
+        //   Set Promise -> evaluates to a resolved Promise
+        let p = $.when()
+
+        // Loop over selected spectra
+        $.each(rows, function (index, row) {
+            //  Loop over all spec files
+            $.each(row.data()["specfiles"], function(ind) {
+                let pk = row.data()["specfiles"][ind]['pk'];
+
+                //    Promise chaining using .then() + async function definition
+                //    to allow the use of await
+                p = p.then( async function () {
+
+                    //  Ajax call to remove spec files
+                    await $.ajax({
+                        url : "/api/observations/specfiles/"+pk+'/',
+                        type : "DELETE",
+                        success : function(json) {
+                            //  Remove the whole spectrum from table
+                            spectra_table.row(row).remove().draw('full-hold');
+                        },
+                        error : function(xhr,errmsg,err) {
+                            if (xhr.status === 403){
+                                alert('You have to be logged in to delete this spectrum.');
+                            }else{
+                                alert(xhr.status + ": " + xhr.responseText);
+                            }
+                            console.log(xhr.status + ": " + xhr.responseText);
+                        }
+                    });
+                });
+            })
+        })
+
+    //   Reset check boxes
+    spectra_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+            deselect_row(this);
+         });
+    }
+}
+
+
+//  Download options:
+
 //  Update progress bar
 function updatePercent(percent) {
     $("#progress-bar")
+    .val(percent);
+}
+function updatePercent_raw(percent) {
+    $("#progress-bar-raw")
     .val(percent);
 }
 
 //  Change download button text
 function showProgress(text) {
     $("#dl-button")
+    .val(text);
+}
+function showProgress_raw(text) {
+    $("#dl-raw-button")
     .val(text);
 }
 
@@ -279,22 +326,31 @@ function showError(text) {
     .addClass("alert")
     .val(text);
 }
+function showError_raw(text) {
+    $("#dl-raw-button")
+    .removeClass()
+    .addClass("alert")
+    .val(text);
+}
 
-function DlSpectra() {
+//  Download Spectra
+function download_specfiles() {
    //   Prepare file list
    let spfilelist = [];
    //   Get list of selected spectra
    spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-        let specfiles = this.data()["specfiles"]
+        let specfiles = this.data()["specfiles"];
         //  Loop over all associated files
         $.each(specfiles, function(ind) {
             //  Identify files
             let sfilepk = specfiles[ind]['pk'];
 
             //    Get file path
-            $.getJSON("/api/observations/specfiles/"+sfilepk+"/path/", function(path) {
-                //    Add to file list
-                spfilelist.push(path);
+            $.getJSON(
+                "/api/observations/specfiles/"+sfilepk+"/path/",
+                function(path) {
+                    //    Add to file list
+                    spfilelist.push(path);
             });
         });
    });
@@ -313,7 +369,7 @@ function DlSpectra() {
             //  Get file using promises so that file assembly can wait until
             //  download has finished
             const getPromises = spfilelist.map (async path => {
-                let file = path.split('/')[3];
+                let file = path.split('/').slice(-1);
                 return new Promise(function(resolve, reject) {
                     $.get(path)
                     .done(function(data) {
@@ -352,7 +408,102 @@ function DlSpectra() {
             }, function (e) {
                 showError(e);
             });
+      });
+   });
+}
 
+
+//  Download Raw Data
+function download_rawfiles() {
+
+    //   Prepare file list
+    let rawfileList = [];
+
+    //   Get list of selected spectra
+    spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+        //  System name
+        let name = this.data()["star"]["name"].trim().replace(" ","_");
+
+        //  Specfile infos
+        let specfiles = this.data()["specfiles"];
+
+        //  Loop over all associated files
+        $.each(specfiles, function(ind) {
+            //  Identify files
+            let sfilepk = specfiles[ind]['pk'];
+            let sfilejd = specfiles[ind]['hjd'];
+            let dir = sfilejd;
+
+            //  Get file path
+            $.getJSON(
+                "/api/observations/specfiles/"+sfilepk+"/raw_path/",
+                function(path_list) {
+                    //  Add to file list
+                    for (let path of path_list) {
+                        rawfileList.push([name, dir, path]);
+                    }
+            });
+        });
+    });
+
+   //   Load Filesaver and jszip libs to facilitate download
+   $.getScript("/static/js/JsZip/FileSaver.js").done( function () {
+        $.getScript("/static/js/JsZip/jszip.js").done( async function () {
+
+            //  Create zip file
+            let zip = new JSZip();
+
+            //  Set time string for zip file name
+            let dt  = new Date();
+            let timecode = dt.getHours()+""+dt.getMinutes()+dt.getSeconds();
+
+            //  Prepare promise
+            const Promises = rawfileList.map (async list_content => {
+                //  Set name, dir, path and filename
+                let name = list_content[0];
+                let dir = list_content[1];
+                let path = list_content[2];
+                let file = path.split('/').slice(-1);
+
+                //  Construct promise
+                return new Promise(function(resolve,reject){
+                    $.get(path)
+                    .done(function(data) {
+                        resolve([name, dir, file, data]);
+                    })
+                    .fail(function() {
+                        reject("ERROR: File not found");
+                    });
+                });
+            });
+
+            //  Fill zip file
+            for (const prom of Promises) {
+                try {
+                    const cont = await prom;
+                    zip.file([cont[0],cont[1],cont[2]].join('/'), cont[3]);
+                }
+                catch (err) {
+                    showError_raw(err);
+                    return
+                }
+            }
+
+            //  Generate zip file
+            zip.generateAsync({type: "blob"}, function updateCallback(metadata){
+                //  Update download progress
+                let msg = "            "+metadata.percent.toFixed(2)+" %           ";
+                showProgress_raw(msg);
+                updatePercent_raw(metadata.percent|0);
+            })
+            .then(function callback(blob) {
+                //  Save zip file
+                saveAs(blob, "Raw_Data_"+timecode+".zip");
+                //  Reset download button
+                showProgress_raw("Download Raw Data");
+            }, function (e) {
+                showError_raw(e);
+            });
 
       });
    });

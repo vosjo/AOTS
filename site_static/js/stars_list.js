@@ -118,6 +118,19 @@ $(document).ready(function () {
    $( "#status-button").click( openStatusEditWindow );
    $( "#tag-button").click( openTagEditWindow );
 
+    //   Reset check boxes when changing number of displayed objects in table
+    $('#datatable_length').change(function() {
+        star_table.rows().every( function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+         });
+    });
+
+    //   Reset check boxes when switching to the next table page
+    $('#datatable_paginate').click(function() {
+        star_table.rows().every( function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+         });
+    });
 });
 
 

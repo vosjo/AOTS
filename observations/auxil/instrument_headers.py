@@ -43,7 +43,11 @@ def extract_header_info(header, user_info={}):
     return data
 
 def extract_header_raw(header, user_info={}):
+    '''
+    Set header data for raw file
+    '''
 
+    #   Read header & extract data
     data = derive_generic_raw(header)
 
     #   Set file type for OES/Ondrejov
@@ -233,7 +237,7 @@ def derive_eso_info(header):
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
    data['barycor'] = header.get('ESO QC VRAD BARYCOR', -1)
    data['observer'] = header.get('OBSERVER', 'UK')
-   data['filetype'] = header['PIPEFILE']
+   data['filetype'] = header['PIPEFILE'].strip(".fits")
 
    if 'SPEC_RES' in header:
       data['resolution'] = header['SPEC_RES']

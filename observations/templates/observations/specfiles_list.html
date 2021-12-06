@@ -16,105 +16,92 @@
 
 <section class='data-section'>
 
-    <div class="main-container-h border">
+    <div class="main-container border">
         <div class='header-item'>
-        <h3 id="nameField"> Upload new Spectra</h3>
+            <h3 id="nameField"> Upload new Spectra</h3>
         </div>
+
+        <div class="flex-data-container j-center">
+
+            <div class="tag-container">
+                <h4>Reduced Data</h4>
+                <div class="flex-data-container">
+
+                <div class="tag-container">
+                    <h4>Simple FITS Upload </h4>
+
+                    <div class="block">
+                    <form action="{% url "observations:specfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload_2" id="specfile-upload-form">
+
+                        {% if user.is_authenticated %}
+                            {% csrf_token %}
+                            {% if upload_form.non_field_errors %}
+                                <p>{{ upload_form.non_field_errors }}</p>
+                            {% endif %}
+
+                            <p>
+                            {{ upload_form.specfile_field.errors }}
+                            {{ upload_form.specfile_field }}
+                            </p>
+
+                            <input type="submit" class="material-icons button" value="file_upload"/>
+                        {% else %}
+                            <p> Log in to upload files! </p>
+                        {% endif %}
+                    </form>
+                    </div>
+                </div>
+
+                <div class="tag-container">
+                <h4>Advanced Upload </h4>
+                    <div class='upload'>
+                    <a href="{% url "observations:spectra_new" project.slug %}">
+                        <img class="image-link" width="350px" src="{% static "images/upload_form_not.png" %}">
+                    </a>
+                    </div>
+                </div>
+
+                </div>
+            </div>
+
+            <div class="tag-container">
+                <h4>Raw Data Upload </h4>
+                <div class="block">
+                <form action="{% url "observations:specfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload_2" id="raw-upload-form">
+
+                    {% if user.is_authenticated %}
+                        {% csrf_token %}
+                        {% if raw_upload_form.non_field_errors %}
+                            <p>{{ raw_upload_form.non_field_errors }}</p>
+                        {% endif %}
+
+                        <p>
+                        <table>
+                        <tbody>
+                        {{ raw_upload_form.as_table }}
+                        </tbody>
+                        </table>
+                        </p>
+
+                        <input type="submit" class="material-icons button" value="file_upload"/>
+
+                    {% else %}
+                        <p> Log in to upload files! </p>
+                    {% endif %}
+                </form>
+                </div>
+                <div class='upload'>
+                <a href="{% url "observations:rawspecfile_list" project.slug %}">
+                    Raw File List
+                </a>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <div class="flex-data-container j-center">
-
-        <div class="tag-container">
-        <h4>Simple FITS Upload form </h4>
-
-            <div class="block">
-<!--             <div class='upload'> -->
-            <form action="{% url "observations:specfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload_2" id="specfile-upload-form">
-<!--                 <h3> Add new spectra </h3> -->
-
-                {% if user.is_authenticated %}
-                    {% csrf_token %}
-                    {% if upload_form.non_field_errors %}
-                        <p>{{ upload_form.non_field_errors }}</p>
-                    {% endif %}
-
-                    <p>
-                    {{ upload_form.specfile.errors }}
-                    {{ upload_form.specfile }}
-                    </p>
-
-            <!--        {% csrf_token %}
-                    {% if upload_form.non_field_errors %}
-                        <p>{{ upload_form.non_field_errors }}</p>
-                    {% endif %}
-
-                    <p>
-                    <table>
-                    <tbody>
-                    {{ upload_form.as_table }}
-                    </tbody>
-                    </table>
-                    </p>-->
-
-                    <input type="submit" class="material-icons button" value="file_upload"/>
-                {% else %}
-                    <p> Log in to upload files! </p>
-                {% endif %}
-            </form>
-<!--             </div> -->
-            </div>
-        </div>
-
-        <div class="tag-container">
-        <h4>Advanced Upload form </h4>
-
-<!--             <div class="block"> -->
-            <div class='upload'>
-            <a href="{% url "observations:spectra_new" project.slug %}">
-                <img class="image-link" width="350px" src="{% static "images/upload_form_not.png" %}">
-            </a>
-            </div>
-<!--             </div> -->
-        </div>
-
-        <div class="tag-container">
-        <h4>Raw data Upload form </h4>
-            <div class="block">
-<!--             <div class='upload'> -->
-            <form action="{% url "observations:specfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload_2" id="raw-upload-form">
-<!--                 <h3> Add raw data </h3> -->
-
-                {% if user.is_authenticated %}
-                    {% csrf_token %}
-                    {% if raw_upload_form.non_field_errors %}
-                        <p>{{ raw_upload_form.non_field_errors }}</p>
-                    {% endif %}
-
-                    <p>
-                    <table>
-                    <tbody>
-                    {{ raw_upload_form.as_table }}
-                    </tbody>
-                    </table>
-                    </p>
-
-                    <input type="submit" class="material-icons button" value="file_upload"/>
-
-                {% else %}
-                    <p> Log in to upload files! </p>
-                {% endif %}
-            </form>
-<!--             </div> -->
-            </div>
-            <div class='upload'>
-            <a href="{% url "observations:rawspecfile_list" project.slug %}">
-                Raw File List
-            </a>
-            </div>
-        </div>
-    </div>
-
-    <hr>
+    <br>
+    <br>
 
 </section>
 
@@ -143,23 +130,37 @@
       <input class="filter-input" id="filter_instrument" type="text" placeholder="instrument">
    </div>
 
+   <hr>
+
+   <div class="table-filter-item">
+      <p class="filter-label">Filetype:</p>
+      <input class="filter-input" id="filter_filetype" type="text" placeholder="file type">
+   </div>
+
+   <div class="table-filter-item">
+      <p class="filter-label">Filename:</p>
+      <input class="filter-input" id="filter_filename" type="text" placeholder="file name">
+   </div>
+
    <input type="submit" class="button filter" id="submit-search" value="Apply">
    </form>
 
 </div>
 
-
-<!--<section class='data-section'>
-    <div class="main-container-h border">
+<section class='data-section'>
+    <div class="main-container">
         <div class='header-item'>
-        <h3 id="nameField"> Uploaded spectra</h3>
+        <h3 id="nameField"> Uploaded files </h3>
         </div>
+        <div class='header-item'>
+        <h4> (multiple files might be combined into a single <a href="{% url "observations:spectra_list" project.slug %}">spectrum<a>) </h4>
+        </div>
+
     </div>
-</section>-->
+
+</section>
 
 <section>
-   <br>
-
    <table id="specfiletable" class="fullwidth">
    <thead>
       <tr>

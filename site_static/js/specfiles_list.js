@@ -20,7 +20,7 @@ $(document).ready(function () {
       { data: 'filetype' },
       { data: 'filename' },
       { data: 'added_on' },
-      { data: 'star' , orderable: false},
+      { data: 'star' , orderable: false, render: star_render},
       { data: 'spectrum', render : processed_render },
       { data: 'pk', render: action_render, width: '100',
         className: 'dt-center', visible: user_authenticated, orderable: false},
@@ -64,7 +64,40 @@ $(document).ready(function () {
       deleteSpecfile(thisrow, data);
    });
 
+    //  Adjust form drop dropdown content - First read System drop down
+    $("#id_system").change(function() {
+        //  Find system pk/ID
+        let pk = $(this).val();
+        if (pk != '') {
+            //  Clear Specfile drop down
+            clear_drop_down();
+
+            //  Get Specfile info as JASON
+            $.getJSON("/api/systems/stars/"+pk+'/specfiles/', function(data){
+                //  Refilling Specfile drop down
+                for (let key in data){
+                    if (data.hasOwnProperty(key)){
+                        let value=data[key];
+                        $("#id_specfile").append("<option value = \"" + key + "\">" + value + "</option>");
+                    }
+                };
+            });
+        } else {
+            //  Clear Specfile drop down
+            clear_drop_down();
+        }
+    });
+
 });
+
+//  Clear Specfile drop down
+function clear_drop_down(){
+    document.getElementById("id_specfile").length = 0;
+    $("#id_specfile").val([]);
+//     $("#id_specfile").append("<option value=\"\" selected=\"selected\">---------</option>");
+    $("#id_specfile").append("<option value=\"\" selected=\"selected\">JD@Instrument - Filetype</option>");
+}
+
 
 // Table filter functionality
 
@@ -74,12 +107,16 @@ function get_filter_keywords( d ) {
       "project": $('#project-pk').attr('project'),
       "target": $('#filter_target').val(),
       "instrument": $('#filter_instrument').val(),
+      "filename": $('#filter_filename').val(),
+      "filetype": $('#filter_filetype').val(),
    } );
 
    if ($('#filter_hjd').val() != '') {
       d = $.extend( {}, d, {
-         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
-         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
+//          "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
+//          "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
+         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] ),
+         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] ),
       } );
    }
 
@@ -87,7 +124,18 @@ function get_filter_keywords( d ) {
 }
 
 
-// Table renderers
+//  Table renderers
+
+function star_render( data, type, full, meta ) {
+    let systems = [];
+    for(let key in data){
+        if (data.hasOwnProperty(key)){
+            let value=data[key];
+            systems.push("<a href='" + value + "' > " + key + "</a>");
+        }
+    };
+    return systems
+}
 
 function processed_render( data, type, full, meta ) {
    if ( data ){
@@ -106,6 +154,7 @@ function action_render( data, type, full, meta ) {
    return res
 }
 
+//  Further function
 function processSpecfile(row, data) {
    $.ajax({
       url : "/api/observations/specfiles/"+data['pk']+'/process/',

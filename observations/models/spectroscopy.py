@@ -17,7 +17,10 @@ from .observatory import Observatory
 from observations.auxil import fileio
 from astropy.io import fits
 
-# Create your models here.
+
+###############################################################################
+
+###     Spectrum    ###
 
 @python_2_unicode_compatible  # to support Python 2
 class Spectrum(models.Model):
@@ -95,61 +98,81 @@ class Spectrum(models.Model):
       return "{}@{} - {}".format(self.instrument, self.telescope, self.hjd)
 
 
+###     SpecFile    ###
+
 @python_2_unicode_compatible  # to support Python 2
 class SpecFile(models.Model):
-   """
-   Model to represent an uploaded spectrum file. Can be fits or hdf5.
-   A spectrum can exists out of different files (fx. BLUE, REDL and REDU for uves).
+    """
+    Model to represent an uploaded spectrum file. Can be fits or hdf5.
+    A spectrum can exists out of different files (fx. BLUE, REDL and REDU
+    for uves).
 
-   This setup allows us to keep links to the uploaded files in the database even
-   when the spectra are deleted. The spectra, and even targets can be rebuild
-   from the information in the specfiles.
-   """
+    This setup allows us to keep links to the uploaded files in the database
+    even when the spectra are deleted. The spectra, and even targets can be
+    rebuild from the information in the specfiles.
+    """
 
-   #-- a specfile belongs to a spectrum but does not need to be deleted when the
-   #   spectrum is deleted, as the spectrum can be rebuild from the info in the
-   #   specfile.
-   spectrum = models.ForeignKey(Spectrum, on_delete=models.SET_NULL, blank=True, null=True,)
+    #   A specfile belongs to a spectrum but does not need to be deleted when
+    #   the spectrum is deleted, as the spectrum can be rebuild from the info
+    #   in the specfile.
+    spectrum = models.ForeignKey(
+        Spectrum,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        )
 
-   #-- a specfile belongs to a specific project
-   #   when that project is deleted, the star is also deleted.
-   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
+    #   A specfile belongs to a specific project
+    #   when that project is deleted, the star is also deleted.
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
 
-   #-- fields necessary to detect doubles. If spectra have same ra, dec, hjd, instrument and file
-   #   type, they are probably the same spectrum. ra and dec is necessary for multi object spectrographs
-   ra = models.FloatField(default=-1)
-   dec = models.FloatField(default=-1)
-   hjd = models.FloatField(default=-1)
-   instrument = models.CharField(max_length=200, default='')
-   filetype = models.CharField(max_length=200, default='')
-   filename = models.CharField(max_length=200, default='')
+    #   Fields necessary to detect doubles. If spectra have same ra, dec, hjd,
+    #   instrument and file type, they are probably the same spectrum. ra and
+    #   dec is necessary for multi object spectrographs
+    ra  = models.FloatField(default=-1)
+    dec = models.FloatField(default=-1)
+    hjd = models.FloatField(default=-1)
+    instrument = models.CharField(max_length=200, default='')
+    filetype  = models.CharField(max_length=200, default='')
 
-   specfile = models.FileField(upload_to='spectra/')
+    #specfile = models.FileField(upload_to='spectra/')
+    specfile = models.FileField(upload_to=fileio.get_specfile_path)
 
-   #-- bookkeeping
-   added_on = models.DateTimeField(auto_now_add=True)
-   last_modified = models.DateTimeField(auto_now=True)
+    #   Bookkeeping
+    added_on = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
 
-   added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        )
 
-   def get_spectrum(self):
-      return fileio.read_spectrum(self.specfile.path, return_header=True)
+    def get_spectrum(self):
+        return fileio.read_spectrum(self.specfile.path, return_header=True)
 
-   def get_header(self, hdu=0):
-      try:
-         header = fits.getheader(self.specfile.path, hdu)
-         h = OrderedDict()
-         for k, v in header.items():
-            if k != 'comment' and k != 'history' and k != '' and not type(v) is fits.card.Undefined:
-               h[k] = v
-      except Exception as e:
-         print (e)
-         h = {}
-      return h
+    def get_header(self, hdu=0):
+        try:
+            header = fits.getheader(self.specfile.path, hdu)
+            h = OrderedDict()
+            for k, v in header.items():
+                if (k != 'comment' and
+                    k != 'history' and
+                    k != '' and
+                    type(v) is not fits.card.Undefined
+                    ):
+                        h[k] = v
+        except Exception as e:
+            print (e)
+            h = {}
+        return h
 
-   #-- representation of self
-   def __str__(self):
-      return "{}@{} - {}".format(self.hjd, self.instrument, self.filetype)
+    #-- representation of self
+    def __str__(self):
+        return "{}@{} - {}".format(self.hjd, self.instrument, self.filetype)
+
+
+###     RawSpecFile     ###
 
 @python_2_unicode_compatible  # to support Python 2
 class RawSpecFile(models.Model):
@@ -157,25 +180,16 @@ class RawSpecFile(models.Model):
     Model to represent an uploaded raw spectrum or file containing
     calibration data. Can be fits or hdf5.
 
-    This setup allows us to keep links to the uploaded files in the
-    database even when the spectrum are deleted. However if the
-    associated specfile if deleted also the raw data gets deleted.
+    If the associated specfile is deleted also the raw data gets deleted.
     """
 
-    #   The raw data belongs to a specfile
-    #   when the specfile is deleted the raw data is also deleted.
-    #specfile = models.ForeignKey(
-        #SpecFile,
-        #on_delete=models.CASCADE,
-        #null=False,
-        #)
+    #   The raw data can belong to multiple specfiles
     specfile = models.ManyToManyField(
         SpecFile,
         blank=True,
         )
 
-    #   A specfile belongs to a specific project
-    #   when that project is deleted, the star is also deleted.
+    #   A raw spec file belongs to a project
     project = models.ForeignKey(
         Project,
         on_delete=models.CASCADE,
@@ -185,12 +199,14 @@ class RawSpecFile(models.Model):
     #   Fields necessary to detect doubles. If spectra have same hjd,
     #   instrument and file type, they are probably the same file.
     hjd = models.FloatField(default=-1)
-    exptime = models.FloatField(default=-1) # s
     instrument = models.CharField(max_length=200, default='')
     filetype = models.CharField(max_length=200, default='')
-    filename = models.CharField(max_length=200, default='')
 
-    rawfile = models.FileField(upload_to='raw_spectra/')
+    #   Exposure time
+    exptime = models.FloatField(default=-1) # s
+
+    #   The raw file
+    rawfile = models.FileField(upload_to=fileio.get_rawfile_path)
 
     #   Bookkeeping
     added_on      = models.DateTimeField(auto_now_add=True)
@@ -227,6 +243,8 @@ class RawSpecFile(models.Model):
         return "{}@{} - {}".format(self.hjd, self.instrument, self.filetype)
 
 
+###     Deletion handlers   ###
+
 #   Handler to assure the deletion of a RawSpecFile removes the actual file
 @receiver(pre_delete, sender=RawSpecFile)
 def RawFile_pre_delete(sender, instance, **kwargs):
@@ -235,36 +253,27 @@ def RawFile_pre_delete(sender, instance, **kwargs):
             instance.rawfile.delete()
         except Exception as e:
             print (e)
-        #try:
-            #storage, path = instance.rawfile.storage, instance.rawfile.path
-            #storage.delete(path)
-        #except Exception as e:
-            #print (e)
 
-
-#   Handler to assure the deletion of a specfile removes the actual file,
-#   and if necessary the spectrum that belongs to this file
+#   Handler to assure the deletion of a specfile removes the raw files,
+#   if the raw file do not also belog to another specfile
 @receiver(pre_delete, sender=SpecFile)
 def specFile_pre_delete_handler(sender, **kwargs):
     specfile = kwargs['instance']
-    print('Pre: specfile', specfile)
 
     #   Check if raw files belong to this specfile
     rawfiles = specfile.rawspecfile_set.all()
-    print('rawfiles', rawfiles)
-    print('rawfiles.count()', rawfiles.count())
     if rawfiles.count() > 0:
         #   Check whether these raw files belong also to other specfiles...
         for raw in rawfiles:
-            print('raw.specfile.all().count()', raw.specfile.all().count())
             if raw.specfile.all().count() == 1:
                 # ... if that is not the case delete the raw file
                 raw.delete()
 
+#   Handler to assure the deletion of a specfile removes the actual file,
+#   and if necessary the spectrum that belongs to this file
 @receiver(post_delete, sender=SpecFile)
 def specFile_post_delete_handler(sender, **kwargs):
     specfile = kwargs['instance']
-    print('Post: specfile', specfile)
 
     #   Check if the spectrum has any specfiles left, otherwise delete it
     if (specfile.spectrum is not None and

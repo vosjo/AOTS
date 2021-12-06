@@ -1,3 +1,5 @@
+import os
+
 from astropy.io import fits, ascii
 
 import numpy as np
@@ -305,3 +307,17 @@ def read_lightcurve(filename, return_header=False):
       return time,flux,header
    else:
       return time,flux
+
+
+def get_rawfile_path(instance, filename):
+    '''
+    Set path to save the raw data: Add project slug as directory
+    '''
+    return os.path.join('raw_spectra', str(instance.project.slug), filename)
+
+
+def get_specfile_path(instance, filename):
+    '''
+    Set path to save the spec file: Add project slug as directory
+    '''
+    return os.path.join('spectra', str(instance.project.slug), filename)

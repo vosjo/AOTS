@@ -986,7 +986,7 @@ table.obs-table td {
    color: white;
 }
 
-.upload {
+div.upload_old {
    display: flex;
    flex-direction: row;
    align-items: center;

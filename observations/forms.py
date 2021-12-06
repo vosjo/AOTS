@@ -73,7 +73,7 @@ class UploadRawSpecFileForm(forms.Form):
     #   SpecFile selection field
     specfile = forms.ModelChoiceField(
         label='Reduced file',
-        empty_label='JD@Instrument - Filetype',
+        empty_label='HJD@Instrument - Filetype',
         queryset=SpecFile.objects.all(),
         required=True,
         )

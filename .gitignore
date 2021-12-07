@@ -18,6 +18,7 @@ media/lightcurves
 media/datasets
 media/projects
 media/raw_spectra
+ext_data/
 TestData/
 dist/
 docs/_build/
@@ -34,7 +35,6 @@ populate*
 observed_systems*
 RGB_*
 sd_catalog*
-update_*
 upload_*
 AOTS/.env
 *.log

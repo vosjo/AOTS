@@ -237,7 +237,7 @@ def derive_eso_info(header):
    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
    data['barycor'] = header.get('ESO QC VRAD BARYCOR', -1)
    data['observer'] = header.get('OBSERVER', 'UK')
-   data['filetype'] = header['PIPEFILE'].strip(".fits")
+   data['filetype'] = header['PIPEFILE'].replace(".fits", "")
 
    if 'SPEC_RES' in header:
       data['resolution'] = header['SPEC_RES']

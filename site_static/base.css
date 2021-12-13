@@ -1136,3 +1136,23 @@ footer i {
    font-family: 'Material Icons' !important;
     font-size: 24px !important;
 }
+
+.system-form-table {
+   width: 100%;
+   table-layout: fixed;
+}
+
+.system-form-table td{
+   text-align: right;
+}
+
+.system-form-submit {
+   width: 100%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+.system-form-submit-button{
+   font-size: larger !important;
+}

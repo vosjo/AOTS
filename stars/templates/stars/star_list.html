@@ -183,97 +183,6 @@
     </fieldset>
     </div>
 
-<!--   <div id='single-add' class='single-system-form'>
-   <fieldset>
-    <legend>Add Single System by Form</legend>
-    <div class="ui-controlgroup-horizontal">
-
-    <fieldset>
-      <legend>Tags</legend>
-      <ul id="add-option-tags">
-      </ul>
-    </fieldset>-->
-<!--    <fieldset>-->
-<!--    <legend>Name and values*</legend>
-          <div class="cg-block">
-          <label for="add-system-main-id">Name (main id)</label>
-          <input id="add-system-main-id" class="ui-spinner-input">
-          <label for="add-system-source-id">Source ID</label>
-          <input id="add-system-source-id" class="ui-spinner-input">
-          <br>
-          <label for="add-system-re-id">Right ascension</label>
-          <input id="add-system-re-id" class="ui-spinner-input">
-          <label for="add-system-dec-id">Declination</label>
-          <input id="add-system-dec-id" class="ui-spinner-input">
-              <br>
-          <label for="add-system-jname-id">J-Name</label>
-          <input id="add-system-jname-id" class="ui-spinner-input">
-          <label for="add-system-sptype-id">Spectral Type</label>
-          <input id="add-system-sptype-id" class="ui-spinner-input">
-              <br>
-          <label for="add-system-plx-id">Parallax</label>
-          <input id="add-system-plx-id" class="ui-spinner-input">
-          <label for="add-system-plx_err-id">Parallax Error</label>
-          <input id="add-system-plx_err-id" class="ui-spinner-input">
-              <br>
-          <label for="add-system-type-id">Type</label>
-          <select id="add-system-type-id">
-              <option value="Star">Star</option>
-              <option value="PM*">PM*</option>
-              <option value="V*">V*</option>
-              <option value="RGB*">RGB*</option>
-          </select>
-          </div>
-    </fieldset>
-          <fieldset><legend>Proper Motion</legend>
-          <div class="cg-block">
-              <label for="add-system-pmre-id">Proper Motion Right ascension</label>
-              <input id="add-system-pmre-id" class="ui-spinner-input">
-                  <br>
-              <label for="add-system-pmre_err-id">Proper Motion Right ascension Error</label>
-              <input id="add-system-pmre_err-id" class="ui-spinner-input">
-                  <br>
-              <label for="add-system-pmdec-id">Proper Motion Declination</label>
-              <input id="add-system-pmdec-id" class="ui-spinner-input">
-                  <br>
-              <label for="add-system-pmdec_err-id">Proper Motion Declination Error</label>
-              <input id="add-system-pmdec_err-id" class="ui-spinner-input">
-          </div>
-          </fieldset>
-          <fieldset><legend>Photometry</legend>
-          <div class="cg-block">
-              <label for="add-system-gmean-id">G-band mean magnitude </label>
-              <input id="add-system-gmean-id" class="ui-spinner-input">
-                  <br>
-              <label for="add-system-bpmag-id">Integrated BP mean magnitude </label>
-              <input id="add-system-bpmag-id" class="ui-spinner-input">
-                  <br>
-              <label for="add-system-rpmag-id">Integrated RP mean magnitude </label>
-              <input id="add-system-rpmag-id" class="ui-spinner-input">
-          </div>
-          </fieldset>
-          <fieldset><legend>JHK and WISE</legend>
-          <div class="cg-block">
-              <label for="add-system-jmag-id">Jmag </label>
-              <input id="add-system-jmag-id" class="ui-spinner-input">
-              <label for="add-system-hmag-id">Hmag </label>
-              <input id="add-system-hmag-id" class="ui-spinner-input">
-              <label for="add-system-kmag-id">Kmag </label>
-              <input id="add-system-kmag-id" class="ui-spinner-input">
-                  <br>
-              <label for="add-system-w1-id">W1 </label>
-              <input id="add-system-w1-id" class="ui-spinner-input">
-              <label for="add-system-w2-id">W2 </label>
-              <input id="add-system-w2-id" class="ui-spinner-input">
-                  <br>
-              <label for="add-system-w3-id">W3 </label>
-              <input id="add-system-w3-id" class="ui-spinner-input">
-              <label for="add-system-w4-id">W4 </label>
-              <input id="add-system-w4-id" class="ui-spinner-input">
-          </div>
-          </fieldset>
-          <fieldset>-->
-
    <div id='single-add' class='single-system-form'>
 
    <fieldset>
@@ -286,99 +195,223 @@
             {% csrf_token %}
 
         <fieldset>
+
+
         <legend>Tags</legend>
             <ul id="add-option-tags">
+                {{ form_detail.tags }}
             </ul>
+
         </fieldset>
 
         <fieldset>
         <legend>Name and values*</legend>
         <div class="cg-block">
-            <label for="{{ form_detail.main_id.id_for_label }}">Name (main id):</label>
-            {{ form_detail.main_id }}
-            <span class="error"> {{ form_detail.main_id.errors.as_text }} </span>
-                <br>
-            <label for="{{ form_detail.ra.id_for_label }}">Right ascension:</label>
-            {{ form_detail.ra }}
-            <span class="error"> {{ form_detail.ra.errors.as_text }} </span>
-            <label for="{{ form_detail.dec.id_for_label }}">Declination:</label>
-            {{ form_detail.dec }}
-            <span class="error"> {{ form_detail.dec.errors.as_text }} </span>
-                <br>
-            <label for="{{ form_detail.sp_type.id_for_label }}">Spectral Type:</label>
-            {{ form_detail.sp_type }}
-            <span class="error"> {{ form_detail.sp_type.errors.as_text }} </span>
-                <br>
-            <label for="{{ form_detail.parallax.id_for_label }}">Parallax:</label>
-            {{ form_detail.parallax }}
-            <span class="error"> {{ form_detail.parallax.errors.as_text }} </span>
-            <label for="{{ form_detail.parallax_error.id_for_label }}">Parallax Error:</label>
-            {{ form_detail.parallax_error }}
-            <span class="error"> {{ form_detail.parallax_error.errors.as_text }} </span>
+            <table class="system-form-table">
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.main_id.id_for_label }}">Name (main id):</label>
+                    </td>
+                    <td>
+                        {{ form_detail.main_id }}
+                        <span class="error"> {{ form_detail.main_id.errors.as_text }} </span>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.ra.id_for_label }}">Right ascension:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.ra }}
+                        <span class="error"> {{ form_detail.ra.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.dec.id_for_label }}">Declination:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.dec }}
+                        <span class="error"> {{ form_detail.dec.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.sp_type.id_for_label }}">Spectral Type:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.sp_type }}
+                        <span class="error"> {{ form_detail.sp_type.errors.as_text }} </span>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.parallax.id_for_label }}">Parallax:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.parallax }}
+                        <span class="error"> {{ form_detail.parallax.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.parallax_error.id_for_label }}">Parallax Error:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.parallax_error }}
+                        <span class="error"> {{ form_detail.parallax_error.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
         </div>
         </fieldset>
 
         <fieldset>
         <legend>Proper Motion</legend>
         <div class="cg-block">
-            <label for="{{ form_detail.pmra_x.id_for_label }}">Right ascension:</label>
-            {{ form_detail.pmra_x }}
-            <span class="error"> {{ form_detail.pmra_x.errors.as_text }} </span>
-            <label for="{{ form_detail.pmra_error.id_for_label }}">Error:</label>
-            {{ form_detail.pmra_error }}
-            <span class="error"> {{ form_detail.pmra_error.errors.as_text }} </span>
-                <br>
-            <label for="{{ form_detail.pmdec_x.id_for_label }}">Declination:</label>
-            {{ form_detail.pmdec_x }}
-            <span class="error"> {{ form_detail.pmdec_x.errors.as_text }} </span>
-            <label for="{{ form_detail.pmdec_error.id_for_label }}">Error:</label>
-            {{ form_detail.pmdec_error }}
-            <span class="error"> {{ form_detail.pmdec_error.errors.as_text }} </span>
+            <table class="system-form-table">
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.pmra_x.id_for_label }}">Right ascension:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.pmra_x }}
+                        <span class="error"> {{ form_detail.pmra_x.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.pmra_error.id_for_label }}">Error:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.pmra_error }}
+                        <span class="error"> {{ form_detail.pmra_error.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.pmdec_x.id_for_label }}">Declination:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.pmdec_x }}
+                        <span class="error"> {{ form_detail.pmdec_x.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.pmdec_error.id_for_label }}">Error:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.pmdec_error }}
+                        <span class="error"> {{ form_detail.pmdec_error.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
         </div>
         </fieldset>
 
         <fieldset><legend>Gaia DR2 photometry</legend>
         <div class="cg-block">
-            <label for="{{ form_detail.phot_g_mean_mag.id_for_label }}">G:  </label>
-            {{ form_detail.phot_g_mean_mag }}
-            <span class="error"> {{ form_detail.phot_g_mean_mag.errors.as_text }} </span>
-                <br>
-            <label for="{{ form_detail.phot_bp_mean_mag.id_for_label }}">Gbp:</label>
-            {{ form_detail.phot_bp_mean_mag }}
-            <span class="error"> {{ form_detail.phot_bp_mean_mag.errors.as_text }} </span>
-            <label for="{{ form_detail.phot_rp_mean_mag.id_for_label }}">Grp:</label>
-            {{ form_detail.phot_rp_mean_mag }}
-            <span class="error"> {{ form_detail.phot_rp_mean_mag.errors.as_text }} </span>
+            <table class="system-form-table">
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.phot_g_mean_mag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.phot_g_mean_mag }}
+                        <span class="error"> {{ form_detail.phot_g_mean_mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.phot_bp_mean_mag.id_for_label }}">Gbp:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.phot_bp_mean_mag}}
+                        <span class="error"> {{ form_detail.phot_bp_mean_mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.phot_rp_mean_mag.id_for_label }}">Grp:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.phot_rp_mean_mag }}
+                        <span class="error"> {{ form_detail.phot_rp_mean_mag.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
         </div>
         </fieldset>
 
         <fieldset>
         <legend>JHK and WISE photometry</legend>
         <div class="cg-block">
-            <label for="{{ form_detail.Jmag.id_for_label }}">J: </label>
-            {{ form_detail.Jmag }}
-            <span class="error"> {{ form_detail.Jmag.errors.as_text }} </span>
-            <label for="{{ form_detail.Hmag.id_for_label }}">H:</label>
-            {{ form_detail.Hmag }}
-            <span class="error"> {{ form_detail.Hmag.errors.as_text }} </span>
-                <br>
-            <label for="{{ form_detail.Kmag.id_for_label }}">K:</label>
-            {{ form_detail.Kmag }}
-            <span class="error"> {{ form_detail.Kmag.errors.as_text }} </span>
-                <br>
-            <label for="{{ form_detail.W1mag.id_for_label }}">W1:</label>
-            {{ form_detail.W1mag }}
-            <span class="error"> {{ form_detail.W1mag.errors.as_text }} </span>
-            <label for="{{ form_detail.W2mag.id_for_label }}">W2:</label>
-            {{ form_detail.W2mag }}
-            <span class="error"> {{ form_detail.W2mag.errors.as_text }} </span>
-                <br>
-            <label for="{{ form_detail.W3mag.id_for_label }}">W3:</label>
-            {{ form_detail.W3mag }}
-            <span class="error"> {{ form_detail.W3mag.errors.as_text }} </span>
-            <label for="{{ form_detail.W4mag.id_for_label }}">W4:</label>
-            {{ form_detail.W4mag }}
-            <span class="error"> {{ form_detail.W4mag.errors.as_text }} </span>
+            <table class="system-form-table">
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.Jmag.id_for_label }}">J: </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Jmag }}
+                        <span class="error"> {{ form_detail.Jmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Hmag.id_for_label }}">H:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.Hmag }}
+                        <span class="error"> {{ form_detail.Hmag.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.Kmag.id_for_label }}">K:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.Kmag }}
+                        <span class="error"> {{ form_detail.Kmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.W1mag.id_for_label }}">W1:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.W1mag }}
+                        <span class="error"> {{ form_detail.W1mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W2mag.id_for_label }}">W2:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.W2mag }}
+                        <span class="error"> {{ form_detail.W2mag.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.W3mag.id_for_label }}">W3:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.W3mag }}
+                        <span class="error"> {{ form_detail.W3mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W4mag.id_for_label }}">W4:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.W4mag }}
+                        <span class="error"> {{ form_detail.W4mag.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
         </div>
         </fieldset>
 
@@ -386,8 +419,8 @@
 
         <p class="add-system-footnote">Blocks marked with a '*' are required</p>
 
-        <div class="main-container-h border j-center">
-            <input type="submit" class="button" value="Add System"/>
+        <div class="system-form-submit">
+            <input type="submit" class="system-form-submit-button" value="Add System"/>
         </div>
 
         {% else %}
@@ -398,7 +431,7 @@
 
     </fieldset>
    </div>
-   ·<div id='bulk-add' class='bulk-system-form'></div>
+   <div id='bulk-add' class='bulk-system-form'></div>
 </div>
 
 <script type="text/javascript" src="{% static 'js/stars_list.js' %}"></script>

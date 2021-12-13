@@ -229,3 +229,11 @@ class UploadSystemDetailForm(forms.Form):
     W2mag = forms.FloatField(required=False)
     W3mag = forms.FloatField(required=False)
     W4mag = forms.FloatField(required=False)
+
+    taglist = []
+    ALLTAGS = Tag.objects.all()
+    for tag in ALLTAGS:
+        taglist.append((tag.pk, tag.name))
+
+    tags = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
+                                          choices=taglist)

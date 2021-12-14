@@ -294,7 +294,7 @@ def derive_rawfile_info(rawfile_id, user_info={}):
 
     return "Raw file details added/updated", True
 
-def process_raw_spec(rawfile_id, specfile_id):
+def process_raw_spec(rawfile_id, specfiles):
     """
     Check if the file is a duplicate, and if not, add it to a specfile
 
@@ -302,8 +302,8 @@ def process_raw_spec(rawfile_id, specfile_id):
     -----------
     rawfile_id
         ID of the raw file
-    specfile_id
-        ID of the spec file
+    specfiles           QuerySet
+        SpecFile instances
 
     Returns:
     --------
@@ -323,24 +323,42 @@ def process_raw_spec(rawfile_id, specfile_id):
     rawfile     = RawSpecFile.objects.get(pk=rawfile_id)
     rawfilename = rawfile.rawfile.name.split('/')[-1]
 
-    #   Check for duplicates
-    duplicates = RawSpecFile.objects.exclude(id__exact = rawfile_id) \
-        .filter(hjd__range = [rawfile.hjd-0.00000001, rawfile.hjd+0.00000001]) \
-        .filter(instrument__iexact = rawfile.instrument) \
-        .filter(filetype__iexact = rawfile.filetype) \
-        .filter(specfile__exact = specfile_id)\
-        .filter(project__exact = rawfile.project.pk)
 
-    if len(duplicates) > 0:
-        #   This rawfile already exists, so remove it
+    ###
+    #   Check for duplicates
+    #
+    #   Initialize bool to check if raw files needs to be deleted
+    rm_raw = True
+
+    #   Loop over all spec files
+    for spfile in specfiles:
+        duplicates = RawSpecFile.objects.exclude(id__exact = rawfile_id) \
+            .filter(hjd__range=[rawfile.hjd-0.00000001,rawfile.hjd+0.00000001])\
+            .filter(instrument__iexact = rawfile.instrument) \
+            .filter(filetype__iexact = rawfile.filetype) \
+            .filter(specfile__exact = spfile.pk)\
+            .filter(project__exact = rawfile.project.pk)
+
+        if len(duplicates) == 0:
+            #   If it is not a duplicate assign raw file to Specfile
+            spfile.rawspecfile_set.add(rawfile)
+
+            #   Set "delete bool" fo False
+            rm_raw *= False
+
+    #   Delete the raw file if duplicates exists for all SpecFiles
+    if rm_raw:
         rawfile.delete()
 
         message = rawfilename+" (raw file) is a duplicate and was not added "
 
         return False, message
 
+
+    ###
     #   Check if the raw file already exists and if it is associated
     #   with another SpecFile
+    #
     otherRawSpecFiles = RawSpecFile.objects.exclude(id__exact = rawfile_id) \
         .filter(hjd__range = [rawfile.hjd-0.00000001, rawfile.hjd+0.00000001]) \
         .filter(instrument__iexact = rawfile.instrument) \
@@ -352,11 +370,12 @@ def process_raw_spec(rawfile_id, specfile_id):
         #   Use the first entry
         otherRawSpecFile     = otherRawSpecFiles[0]
         otherRawSpecFileName = otherRawSpecFile.specfile.all()[0]\
-                                    .specfile.name.split('/')[1]
+                                    .specfile.name.split('/')[-1]
 
-        #   Add raw file from the database to SpecFile
-        specfile = SpecFile.objects.get(pk=specfile_id)
-        specfile.rawspecfile_set.add(otherRawSpecFile)
+        #   Loop over all spec files
+        for spfile in specfiles:
+            #   Add raw file from the database to SpecFile
+            spfile.rawspecfile_set.add(otherRawSpecFile)
 
         #   Remove the uploaded raw file
         rawfile.delete()
@@ -366,10 +385,14 @@ def process_raw_spec(rawfile_id, specfile_id):
                 +  ". Used the already uploaded file."
         return True, message
 
+
+    ###
     #   Add raw file to existing specfile
-    message += "{} (raw file) added to {} ({})".format(
-        rawfilename,
-        SpecFile.objects.get(pk=specfile_id),
-        SpecFile.objects.get(pk=specfile_id).spectrum.star.name,
-        )
+    #
+    message += "{} (raw file) added to:\n".format(rawfilename)
+    for spfile in specfiles:
+        message += "{} ({}), ".format(
+            spfile,
+            spfile.spectrum.star.name,
+            )
     return True, message

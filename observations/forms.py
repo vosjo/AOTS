@@ -62,19 +62,16 @@ class UploadRawSpecFileForm(forms.Form):
     '''
         Upload form for spectroscopic raw data
     '''
-    #   System selection field
-    system = forms.ModelChoiceField(
-        label='Target',
-        empty_label='Target name: ra[deg] dec[deg]',
+    system = forms.ModelMultipleChoiceField(
+        label='Targets',
+        #empty_label='Target name: ra[deg] dec[deg]',
         queryset=Star.objects.all(),
         required=False,
         )
 
-    #   SpecFile selection field
-    specfile = forms.ModelChoiceField(
-        #label='Reduced spectrum',
-        label='Spectrum',
-        empty_label='HJD@Instrument - Filetype',
+    specfile = forms.ModelMultipleChoiceField(
+        label='Spectra',
+        #empty_label='HJD@Instrument - Filetype',
         queryset=SpecFile.objects.all(),
         required=True,
         )

@@ -66,12 +66,15 @@ $(document).ready(function () {
 
     //  Adjust form drop dropdown content - First read System drop down
     $("#id_system").change(function() {
-        //  Find system pk/ID
-        let pk = $(this).val();
-        if (pk != '') {
-            //  Clear Specfile drop down
-            clear_drop_down();
+        //  Set pk list
+        let pk_list = $(this).val();
 
+        //  Clear Specfile drop down
+        document.getElementById("id_specfile").length = 0;
+        $("#id_specfile").val([]);
+
+        //  Loop over pks
+        $.each(pk_list, function(index, pk) {
             //  Get Specfile info as JASON
             $.getJSON("/api/systems/stars/"+pk+'/specfiles/', function(data){
                 //  Refilling Specfile drop down
@@ -82,21 +85,98 @@ $(document).ready(function () {
                     }
                 };
             });
-        } else {
-            //  Clear Specfile drop down
-            clear_drop_down();
-        }
+        });
     });
 
-});
+    //  Add progress bar for raw data file upload
+    $("#raw-upload-form").submit(function(e){
+        //  Prevent normal behaviour
+        e.preventDefault();
+        //  Get form
+        $form = $(this);
+        //  Create new form
+        let formData = new FormData(this);
+        //  Get files
+        const rawfiles = document.getElementById('id_rawfile');
+        const data     = rawfiles.files[0];
+        //  Display progress bar
+        if(data != null){
+            $("#progress-bar").removeClass("hidden");
+        };
+        //  Get project
+        let project = $('#project-pk').attr('project_slug')
+        //  Ajax call to make it happen
+        $.ajax({
+            type: 'POST',
+            url:'/w/'+project+'/observations/rawspecfiles/',
+            data: formData,
+            dataType: 'json',
+            xhr: function(){
+                //  Handel progress bar updates
+                const xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', e=>{
+                    if(e.lengthComputable){
+                        const percentProgress = (e.loaded/e.total)*100;
+                        $("#progress-bar").val(percentProgress);
+                    }
+                });
+                return xhr
+            },
+            success: function(response){
+                //  Set extract and set message
+                $.each(response.messages, function(id, message_list) {
+                    let success = message_list[0];
+                    let message = message_list[1];
 
-//  Clear Specfile drop down
-function clear_drop_down(){
-    document.getElementById("id_specfile").length = 0;
-    $("#id_specfile").val([]);
-//     $("#id_specfile").append("<option value=\"\" selected=\"selected\">---------</option>");
-    $("#id_specfile").append("<option value=\"\" selected=\"selected\">JD@Instrument - Filetype</option>");
-}
+                    if (success == true){
+                        $("#messages").append(
+                            "<li class=\"success\">"+message+"</li>"
+                        );
+                    } else if (success == false){
+                        $("#messages").append(
+                            "<li class=\"error\">"+message+"</li>"
+                        );
+                    } else {
+                        $("#messages").append(
+                            "<li class=\"error\">An undefined error has occurred.</li>"
+                        );
+                    };
+                });
+
+                //  Reset form fields
+                $("#raw-upload-form")[0].reset();
+
+                //  Reset Specfile dropdown that is not reset by the line above
+                $("#id_system>option").map( function() {
+                    //  Set pk
+                    let pk = $(this).val();
+                    //  Get Specfile info as JASON
+                    $.getJSON("/api/systems/stars/"+pk+'/specfiles/', function(data){
+                        //  Refilling Specfile drop down
+                        for (let key in data){
+                            if (data.hasOwnProperty(key)){
+                                let value=data[key];
+                                $("#id_specfile").append(
+                                    "<option value = \"" + key + "\">" + value
+                                    +"</option>");
+                            }
+                        };
+                    });
+                });
+
+                //  Remove progress bar
+//                 $("#progress-bar").addClass("not-visible");
+            },
+            error: function(err){
+                console.log('error', err);
+                alert(err.statusText);
+            },
+            cache: false,
+            contentType: false,
+            processData: false,
+        });
+    });
+});
 
 
 // Table filter functionality

@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, render, reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.contrib import messages
 
 from django.db.models import Sum
@@ -236,7 +236,7 @@ def specfile_list(request, project=None,  **kwargs):
         #   Raw files
         if 'rawfile' in request.FILES:
             #   Handel raw files
-            handel_raw_files(request, project.slug)
+            return handel_raw_files(request, project.slug)
 
     #   Block uploads by anonymous
     elif request.method != 'GET' and not request.user.is_authenticated:
@@ -275,7 +275,7 @@ def rawspecfile_list(request, project=None,  **kwargs):
         #   Raw files
         if 'rawfile' in request.FILES:
             #   Handel raw files
-            handel_raw_files(request, project.slug)
+            return handel_raw_files(request, project.slug)
 
     #   Block uploads by anonymous
     elif request.method != 'GET' and not request.user.is_authenticated:
@@ -305,7 +305,9 @@ def handel_raw_files(request, project):
     raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
     if raw_upload_form.is_valid():
         #   Read selected Specfile
-        specfile = raw_upload_form.cleaned_data['specfile']
+        specfiles = raw_upload_form.cleaned_data['specfile']
+
+        message_list = []
 
         #   Get files
         files = request.FILES.getlist('rawfile')
@@ -318,15 +320,12 @@ def handel_raw_files(request, project):
             newrawspec.save()
             newrawspec.rawfile.save(f.name, f)
 
-            #   Assignment of the SpecFile
-            specfile.rawspecfile_set.add(newrawspec)
-
             #    Now process it and check for duplicates
             try:
                 #   Process raw file
                 success, message = read_spectrum.process_raw_spec(
                     newrawspec.pk,
-                    specfile.pk,
+                    specfiles,
                     )
 
                 #   Set success/error message
@@ -334,22 +333,16 @@ def handel_raw_files(request, project):
                     level = messages.SUCCESS
                 else:
                     level = messages.ERROR
-                messages.add_message(request, level, message)
+                message_list.append([success, message])
             except Exception as e:
                 #   Handel error
                 print(e)
                 newrawspec.delete()
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "Exception occurred when adding: " + str(f),
-                    )
+                message_text = "Exception occurred when adding: " + str(f)
+                message_list.append([False, message_text])
 
-        #   Return and redirect
-        return HttpResponseRedirect(reverse(
-            'observations:rawspecfile_list',
-            kwargs={'project':project.slug}
-            ))
+        return JsonResponse({'info':'Data uploaded', 'messages':message_list})
+
 
 @check_user_can_view_project
 def lightcurve_list(request, project=None,  **kwargs):

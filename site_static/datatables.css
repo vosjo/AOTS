@@ -628,3 +628,7 @@ progress.progress-bar {
    height: 18px;
    border-radius: 9px;
 }
+
+.not-visible{
+        display: none;
+    }

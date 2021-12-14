@@ -12,10 +12,10 @@
 
 {% block content %}
 
-<i display="none" id="project-pk" project={{project.pk}}></i>
+<i display="none" id="project-pk" project={{project.pk}}
+    project_slug={{project.slug}}></i>
 
 <div class='upload_old'>
-<!-- <div class='block'> -->
    <form action="{% url "observations:rawspecfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload" id="raw-upload-form">
       <h3> Add raw data </h3>
 
@@ -34,10 +34,14 @@
         </table>
         </p>
 
-        <input type="submit" class="material-icons button" value="file_upload"/>
+        <progress id="progress-bar" value="0" max="100"
+            class="progress hidden"></progress>
+<!--         <input type="submit" class="material-icons button" value="file_upload"/> -->
+        <input type="submit" class="upload-button" value="Upload"/>
       {% else %}
         <p> Log in to upload files! </p>
       {% endif %}
+
    </form>
 </div>
 

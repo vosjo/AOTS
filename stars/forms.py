@@ -236,4 +236,4 @@ class UploadSystemDetailForm(forms.Form):
         taglist.append((tag.pk, tag.name))
 
     tags = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
-                                          choices=taglist)
+                                          choices=taglist, required=False)

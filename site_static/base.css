@@ -1156,3 +1156,9 @@ footer i {
 .system-form-submit-button{
    font-size: larger !important;
 }
+
+.add-system-csv-example {
+   text-align: right;
+   color: lightslategray;
+   text-decoration: underline;
+}

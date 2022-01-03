@@ -38,3 +38,4 @@ AOTS/.env
 *.csv
 venv/
 .idea/
+!media/docs/Bulk_system_example.csv

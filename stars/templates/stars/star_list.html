@@ -347,72 +347,118 @@
         </div>
         </fieldset>
 
-        <fieldset>
-        <legend>JHK and WISE photometry</legend>
+        <fieldset><legend>UV (Galex) photometry</legend>
         <div class="cg-block">
             <table class="system-form-table">
                 <tr>
                     <td>
-                        <label for="{{ form_detail.Jmag.id_for_label }}">J: </label>
+                        <label for="{{ form_detail.FUV.id_for_label }}">Far-UV (FUV):  </label>
                     </td>
                     <td>
-                        {{ form_detail.Jmag }}
-                        <span class="error"> {{ form_detail.Jmag.errors.as_text }} </span>
+                        {{ form_detail.FUV }}
+                        <span class="error"> {{ form_detail.FUV.errors.as_text }} </span>
                     </td>
                     <td>
-                        <label for="{{ form_detail.Hmag.id_for_label }}">H:</label>
+                        <label for="{{ form_detail.NUV.id_for_label }}">Near-UV (NUV):  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.NUV }}
+                        <span class="error"> {{ form_detail.NUV.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        </fieldset>
+
+        <fieldset>
+        <legend>
+            <span id="system-form-instrument-select">{{ form_detail.instrument }}</span> photometry</legend>
+        <div class="cg-block">
+            <table class="system-form-table" id="form-photometry">
+                {% for instrument, fieldset in form_detail.instrumentfieldsets.items %}
+                {% for field in fieldset %}
+                <tr id={{ instrument }}>
+                    <td>
+                        <label for="{{ field.0.id_for_label  }}">{{ field.1 }}: </label>
+                    </td>
+                    <td>
+                        {{ field.0 }}
+                        <span class="error"> {{ field.0.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Hmag.id_for_label }}">Error:</label>
                     </td>
                     <td>
                         {{ form_detail.Hmag }}
                         <span class="error"> {{ form_detail.Hmag.errors.as_text }} </span>
                     </td>
                 </tr>
-                <tr>
-                    <td>
-                        <label for="{{ form_detail.Kmag.id_for_label }}">K:</label>
-                    </td>
-                    <td>
-                        {{ form_detail.Kmag }}
-                        <span class="error"> {{ form_detail.Kmag.errors.as_text }} </span>
-                    </td>
-                    <td>
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="{{ form_detail.W1mag.id_for_label }}">W1:</label>
-                    </td>
-                    <td>
-                        {{ form_detail.W1mag }}
-                        <span class="error"> {{ form_detail.W1mag.errors.as_text }} </span>
-                    </td>
-                    <td>
-                        <label for="{{ form_detail.W2mag.id_for_label }}">W2:</label>
-                    </td>
-                    <td>
-                        {{ form_detail.W2mag }}
-                        <span class="error"> {{ form_detail.W2mag.errors.as_text }} </span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="{{ form_detail.W3mag.id_for_label }}">W3:</label>
-                    </td>
-                    <td>
-                        {{ form_detail.W3mag }}
-                        <span class="error"> {{ form_detail.W3mag.errors.as_text }} </span>
-                    </td>
-                    <td>
-                        <label for="{{ form_detail.W4mag.id_for_label }}">W4:</label>
-                    </td>
-                    <td>
-                        {{ form_detail.W4mag }}
-                        <span class="error"> {{ form_detail.W4mag.errors.as_text }} </span>
-                    </td>
-                </tr>
+                {% endfor %}
+                {% endfor %}
             </table>
+{#            <table class="system-form-table">#}
+{#                <tr>#}
+{#                    <td>#}
+{#                        <label for="{{ form_detail.Jmag.id_for_label }}">J: </label>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        {{ form_detail.Jmag }}#}
+{#                        <span class="error"> {{ form_detail.Jmag.errors.as_text }} </span>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        <label for="{{ form_detail.Hmag.id_for_label }}">H:</label>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        {{ form_detail.Hmag }}#}
+{#                        <span class="error"> {{ form_detail.Hmag.errors.as_text }} </span>#}
+{#                    </td>#}
+{#                </tr>#}
+{#                <tr>#}
+{#                    <td>#}
+{#                        <label for="{{ form_detail.Kmag.id_for_label }}">K:</label>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        {{ form_detail.Kmag }}#}
+{#                        <span class="error"> {{ form_detail.Kmag.errors.as_text }} </span>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                    </td>#}
+{#                </tr>#}
+{#                <tr>#}
+{#                    <td>#}
+{#                        <label for="{{ form_detail.W1mag.id_for_label }}">W1:</label>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        {{ form_detail.W1mag }}#}
+{#                        <span class="error"> {{ form_detail.W1mag.errors.as_text }} </span>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        <label for="{{ form_detail.W2mag.id_for_label }}">W2:</label>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        {{ form_detail.W2mag }}#}
+{#                        <span class="error"> {{ form_detail.W2mag.errors.as_text }} </span>#}
+{#                    </td>#}
+{#                </tr>#}
+{#                <tr>#}
+{#                    <td>#}
+{#                        <label for="{{ form_detail.W3mag.id_for_label }}">W3:</label>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        {{ form_detail.W3mag }}#}
+{#                        <span class="error"> {{ form_detail.W3mag.errors.as_text }} </span>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        <label for="{{ form_detail.W4mag.id_for_label }}">W4:</label>#}
+{#                    </td>#}
+{#                    <td>#}
+{#                        {{ form_detail.W4mag }}#}
+{#                        <span class="error"> {{ form_detail.W4mag.errors.as_text }} </span>#}
+{#                    </td>#}
+{#                </tr>#}
+{#            </table>#}
         </div>
         </fieldset>
 

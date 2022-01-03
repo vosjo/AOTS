@@ -68,6 +68,17 @@ $(document).ready(function () {
       star_table.draw();
    } );
 
+   $('#system-form-instrument-select:first-child').change(function(){
+      let selected = $(this).find(":selected").val();
+      $('#form-photometry tr').each(function () {
+         if ($(this).attr('id') === selected){
+            $(this).show()
+         }
+         else {
+            $(this).hide()
+         }
+      })
+   })
 
 
    // make the filter button open the filter menu

@@ -68,6 +68,20 @@ $(document).ready(function () {
       star_table.draw();
    } );
 
+
+   // Hide all photometry not belonging to the selected Instrument
+   let initialselected = $('#system-form-instrument-select:first-child').find(":selected").val();
+
+   $('#form-photometry tr').each(function () {
+         if ($(this).attr('id') === initialselected){
+            $(this).show()
+         }
+         else {
+            $(this).hide()
+         }
+   })
+
+   // Event listener to only show photometry Fields for the selected Instrument
    $('#system-form-instrument-select:first-child').change(function(){
       let selected = $(this).find(":selected").val();
       $('#form-photometry tr').each(function () {

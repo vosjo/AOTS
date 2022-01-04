@@ -216,54 +216,87 @@ class UploadSystemDetailForm(forms.Form):
     pmdec_x = forms.FloatField(required=False)
     pmdec_error = forms.FloatField(required=False)
 
-    #   Gaia photometry
+    #   Gaia photometry and Errors
     phot_g_mean_mag = forms.FloatField(required=False)
     phot_bp_mean_mag = forms.FloatField(required=False)
     phot_rp_mean_mag = forms.FloatField(required=False)
+    phot_g_mean_magerr = forms.FloatField(required=False)
+    phot_bp_mean_magerr = forms.FloatField(required=False)
+    phot_rp_mean_magerr = forms.FloatField(required=False)
 
-    #   JHK photometry
+    #   JHK photometry and Errors
     Jmag = forms.FloatField(required=False)
     Hmag = forms.FloatField(required=False)
     Kmag = forms.FloatField(required=False)
+    Jmagerr = forms.FloatField(required=False)
+    Hmagerr = forms.FloatField(required=False)
+    Kmagerr = forms.FloatField(required=False)
 
-    #   WISE photometry
+    #   WISE photometry and Errors
     W1mag = forms.FloatField(required=False)
     W2mag = forms.FloatField(required=False)
     W3mag = forms.FloatField(required=False)
     W4mag = forms.FloatField(required=False)
+    W1magerr = forms.FloatField(required=False)
+    W2magerr = forms.FloatField(required=False)
+    W3magerr = forms.FloatField(required=False)
+    W4magerr = forms.FloatField(required=False)
 
-    # UV(Galex) photometry
+    # UV(Galex) photometry and Errors
     FUV = forms.FloatField(required=False)
     NUV = forms.FloatField(required=False)
+    FUVerr = forms.FloatField(required=False)
+    NUVerr = forms.FloatField(required=False)
 
-    # SKYMAP photometry
+    # SKYMAP photometry and Errors
     Umag = forms.FloatField(required=False)
     Vmag = forms.FloatField(required=False)
     Gmag = forms.FloatField(required=False)
     Rmag = forms.FloatField(required=False)
     Imag = forms.FloatField(required=False)
     Zmag = forms.FloatField(required=False)
+    Umagerr = forms.FloatField(required=False)
+    Vmagerr = forms.FloatField(required=False)
+    Gmagerr = forms.FloatField(required=False)
+    Rmagerr = forms.FloatField(required=False)
+    Imagerr = forms.FloatField(required=False)
+    Zmagerr = forms.FloatField(required=False)
 
-    # APASS photometry
+    # APASS photometry and Errors
     APBmag = forms.FloatField(required=False)
     APVmag = forms.FloatField(required=False)
     APGmag = forms.FloatField(required=False)
     APRmag = forms.FloatField(required=False)
     APImag = forms.FloatField(required=False)
+    APBmagerr = forms.FloatField(required=False)
+    APVmagerr = forms.FloatField(required=False)
+    APGmagerr = forms.FloatField(required=False)
+    APRmagerr = forms.FloatField(required=False)
+    APImagerr = forms.FloatField(required=False)
 
-    # SDSS photometry
+    # SDSS photometry and Errors
     SDSSUmag = forms.FloatField(required=False)
     SDSSGmag = forms.FloatField(required=False)
     SDSSRmag = forms.FloatField(required=False)
     SDSSImag = forms.FloatField(required=False)
     SDSSZmag = forms.FloatField(required=False)
+    SDSSUmagerr = forms.FloatField(required=False)
+    SDSSGmagerr = forms.FloatField(required=False)
+    SDSSRmagerr = forms.FloatField(required=False)
+    SDSSImagerr = forms.FloatField(required=False)
+    SDSSZmagerr = forms.FloatField(required=False)
 
-    # PANSTAR photometry
+    # PANSTAR photometry and Errors
     PANGmag = forms.FloatField(required=False)
     PANRmag = forms.FloatField(required=False)
     PANImag = forms.FloatField(required=False)
     PANZmag = forms.FloatField(required=False)
     PANYmag = forms.FloatField(required=False)
+    PANGmagerr = forms.FloatField(required=False)
+    PANRmagerr = forms.FloatField(required=False)
+    PANImagerr = forms.FloatField(required=False)
+    PANZmagerr = forms.FloatField(required=False)
+    PANYmagerr = forms.FloatField(required=False)
 
     taglist = []
     ALLTAGS = Tag.objects.all()
@@ -280,13 +313,5 @@ class UploadSystemDetailForm(forms.Form):
         ('SDSS', 'SDSS'),
         ('PANSTAR', 'PANSTAR'),
     )
-
-    instrumentfieldsets = {
-        'JHKWISE': [(Jmag, "J"), (Hmag, "H"), (Kmag, "K"), (W1mag, "W1"), (W2mag, "W2"), (W3mag, "W3"), (W4mag, "W4")],
-        'SKYMAP': [(Umag, "J"), (Vmag, "V"), (Gmag, "G"), (Rmag, "R"), (Imag, "I"), (Zmag, "Z")],
-        'APASS': [(APBmag, "B"), (APVmag, "V"), (APGmag, "G"), (APRmag, "R"), (APImag, "I")],
-        'SDSS': [(SDSSUmag, "J"), (SDSSGmag, "G"), (SDSSRmag, "R"), (SDSSImag, "I"), (SDSSZmag, "Z")],
-        'PANSTAR': [(PANGmag, "G"), (PANRmag, "R"), (PANImag, "I"), (PANZmag, "Z"), (PANYmag, "Y")]
-    }
 
     instrument = forms.CharField(widget=forms.Select(choices=INSTRUMENTS))

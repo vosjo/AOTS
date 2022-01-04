@@ -375,90 +375,455 @@
             <span id="system-form-instrument-select">{{ form_detail.instrument }}</span> photometry</legend>
         <div class="cg-block">
             <table class="system-form-table" id="form-photometry">
-                {% for instrument, fieldset in form_detail.instrumentfieldsets.items %}
-                {% for field in fieldset %}
-                <tr id={{ instrument }}>
+                <tr id='JHKWISE'>
                     <td>
-                        <label for="{{ field.0.id_for_label  }}">{{ field.1 }}: </label>
+                        <label for="{{ form_detail.Jmag.id_for_label }}">J:  </label>
                     </td>
                     <td>
-                        {{ field.0 }}
-                        <span class="error"> {{ field.0.errors.as_text }} </span>
+                        {{ form_detail.Jmag }}
+                        <span class="error"> {{ form_detail.Jmag.errors.as_text }} </span>
                     </td>
                     <td>
-                        <label for="{{ form_detail.Hmag.id_for_label }}">Error:</label>
+                        <label for="{{ form_detail.Jmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Jmagerr }}
+                        <span class="error"> {{ form_detail.Jmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.Hmag.id_for_label }}">H:  </label>
                     </td>
                     <td>
                         {{ form_detail.Hmag }}
                         <span class="error"> {{ form_detail.Hmag.errors.as_text }} </span>
                     </td>
+                    <td>
+                        <label for="{{ form_detail.Hmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Hmagerr }}
+                        <span class="error"> {{ form_detail.Hmagerr.errors.as_text }} </span>
+                    </td>
                 </tr>
-                {% endfor %}
-                {% endfor %}
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.Kmag.id_for_label }}">K:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Kmag }}
+                        <span class="error"> {{ form_detail.Kmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Kmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Kmagerr }}
+                        <span class="error"> {{ form_detail.Kmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.W1mag.id_for_label }}">W1:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W1mag }}
+                        <span class="error"> {{ form_detail.W1mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W1magerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W1magerr }}
+                        <span class="error"> {{ form_detail.W1magerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.W2mag.id_for_label }}">W2:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W2mag }}
+                        <span class="error"> {{ form_detail.W2mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W2magerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W2magerr }}
+                        <span class="error"> {{ form_detail.W2magerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.W3mag.id_for_label }}">W3:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W3mag }}
+                        <span class="error"> {{ form_detail.W3mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W3magerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W3magerr }}
+                        <span class="error"> {{ form_detail.W3magerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.W4mag.id_for_label }}">W4:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W4mag }}
+                        <span class="error"> {{ form_detail.W4mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W4magerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W4magerr }}
+                        <span class="error"> {{ form_detail.W4magerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Umag.id_for_label }}">J:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Umag }}
+                        <span class="error"> {{ form_detail.Umag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Umagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Umagerr }}
+                        <span class="error"> {{ form_detail.Umagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Vmag.id_for_label }}">V:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Vmag }}
+                        <span class="error"> {{ form_detail.Vmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Vmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Vmagerr }}
+                        <span class="error"> {{ form_detail.Vmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Gmag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Gmag }}
+                        <span class="error"> {{ form_detail.Gmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Gmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Gmagerr }}
+                        <span class="error"> {{ form_detail.Gmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Rmag.id_for_label }}">R:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Rmag }}
+                        <span class="error"> {{ form_detail.Rmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Rmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Rmagerr }}
+                        <span class="error"> {{ form_detail.Rmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Imag.id_for_label }}">I:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Imag }}
+                        <span class="error"> {{ form_detail.Imag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Imagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Imagerr }}
+                        <span class="error"> {{ form_detail.Imagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Zmag.id_for_label }}">Z:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Zmag }}
+                        <span class="error"> {{ form_detail.Zmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Zmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Zmagerr }}
+                        <span class="error"> {{ form_detail.Zmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APBmag.id_for_label }}">B:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APBmag }}
+                        <span class="error"> {{ form_detail.APBmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APBmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APBmagerr }}
+                        <span class="error"> {{ form_detail.APBmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APVmag.id_for_label }}">V:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APVmag }}
+                        <span class="error"> {{ form_detail.APVmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APVmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APVmagerr }}
+                        <span class="error"> {{ form_detail.APVmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APGmag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APGmag }}
+                        <span class="error"> {{ form_detail.APGmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APGmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APGmagerr }}
+                        <span class="error"> {{ form_detail.APGmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APRmag.id_for_label }}">R:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APRmag }}
+                        <span class="error"> {{ form_detail.APRmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APRmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APRmagerr }}
+                        <span class="error"> {{ form_detail.APRmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APImag.id_for_label }}">I:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APImag }}
+                        <span class="error"> {{ form_detail.APImag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APImagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APImagerr }}
+                        <span class="error"> {{ form_detail.APImagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSUmag.id_for_label }}">J:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSUmag }}
+                        <span class="error"> {{ form_detail.SDSSUmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSUmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSUmagerr }}
+                        <span class="error"> {{ form_detail.SDSSUmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSGmag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSGmag }}
+                        <span class="error"> {{ form_detail.SDSSGmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSGmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSGmagerr }}
+                        <span class="error"> {{ form_detail.SDSSGmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSRmag.id_for_label }}">R:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSRmag }}
+                        <span class="error"> {{ form_detail.SDSSRmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSRmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSRmagerr }}
+                        <span class="error"> {{ form_detail.SDSSRmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSImag.id_for_label }}">I:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSImag }}
+                        <span class="error"> {{ form_detail.SDSSImag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSImagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSImagerr }}
+                        <span class="error"> {{ form_detail.SDSSImagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSZmag.id_for_label }}">Z:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSZmag }}
+                        <span class="error"> {{ form_detail.SDSSZmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSZmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSZmagerr }}
+                        <span class="error"> {{ form_detail.SDSSZmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANGmag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANGmag }}
+                        <span class="error"> {{ form_detail.PANGmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANGmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANGmagerr }}
+                        <span class="error"> {{ form_detail.PANGmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANRmag.id_for_label }}">R:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANRmag }}
+                        <span class="error"> {{ form_detail.PANRmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANRmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANRmagerr }}
+                        <span class="error"> {{ form_detail.PANRmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANImag.id_for_label }}">I:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANImag }}
+                        <span class="error"> {{ form_detail.PANImag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANImagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANImagerr }}
+                        <span class="error"> {{ form_detail.PANImagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANZmag.id_for_label }}">Z:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANZmag }}
+                        <span class="error"> {{ form_detail.PANZmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANZmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANZmagerr }}
+                        <span class="error"> {{ form_detail.PANZmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANYmag.id_for_label }}">Y:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANYmag }}
+                        <span class="error"> {{ form_detail.PANYmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANYmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANYmagerr }}
+                        <span class="error"> {{ form_detail.PANYmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
             </table>
-{#            <table class="system-form-table">#}
-{#                <tr>#}
-{#                    <td>#}
-{#                        <label for="{{ form_detail.Jmag.id_for_label }}">J: </label>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        {{ form_detail.Jmag }}#}
-{#                        <span class="error"> {{ form_detail.Jmag.errors.as_text }} </span>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        <label for="{{ form_detail.Hmag.id_for_label }}">H:</label>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        {{ form_detail.Hmag }}#}
-{#                        <span class="error"> {{ form_detail.Hmag.errors.as_text }} </span>#}
-{#                    </td>#}
-{#                </tr>#}
-{#                <tr>#}
-{#                    <td>#}
-{#                        <label for="{{ form_detail.Kmag.id_for_label }}">K:</label>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        {{ form_detail.Kmag }}#}
-{#                        <span class="error"> {{ form_detail.Kmag.errors.as_text }} </span>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                    </td>#}
-{#                </tr>#}
-{#                <tr>#}
-{#                    <td>#}
-{#                        <label for="{{ form_detail.W1mag.id_for_label }}">W1:</label>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        {{ form_detail.W1mag }}#}
-{#                        <span class="error"> {{ form_detail.W1mag.errors.as_text }} </span>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        <label for="{{ form_detail.W2mag.id_for_label }}">W2:</label>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        {{ form_detail.W2mag }}#}
-{#                        <span class="error"> {{ form_detail.W2mag.errors.as_text }} </span>#}
-{#                    </td>#}
-{#                </tr>#}
-{#                <tr>#}
-{#                    <td>#}
-{#                        <label for="{{ form_detail.W3mag.id_for_label }}">W3:</label>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        {{ form_detail.W3mag }}#}
-{#                        <span class="error"> {{ form_detail.W3mag.errors.as_text }} </span>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        <label for="{{ form_detail.W4mag.id_for_label }}">W4:</label>#}
-{#                    </td>#}
-{#                    <td>#}
-{#                        {{ form_detail.W4mag }}#}
-{#                        <span class="error"> {{ form_detail.W4mag.errors.as_text }} </span>#}
-{#                    </td>#}
-{#                </tr>#}
-{#            </table>#}
         </div>
         </fieldset>
 

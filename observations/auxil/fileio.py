@@ -7,38 +7,55 @@ import numpy as np
 from . import tools
 
 def istext(filename):
-   """
-   Function that tries to estimate if a file is a text file or has a binary format.
-   taken from here: https://stackoverflow.com/questions/1446549/how-to-identify-binary-and-text-files-using-python
+    """
+        Function that tries to estimate if a file is a text file or has a binary
+        format.
+        Taken from: https://stackoverflow.com/questions/1446549/how-to-identify-binary-and-text-files-using-python
 
-   13/02/2020 joris: added catch for UnicodeDecodeError
-   """
-   try:
-      s=open(filename).read(512)
-      text_characters = "".join(map(chr, range(32, 127))) + "".join( list("\n\r\t\b"))
-      #_null_trans = str.maketrans("", "")
-      if not s:
-         # Empty files are considered text
-         return True
-      if "\0" in s:
-         # Files with null bytes are likely binary
-         return False
-      # Get the non-text characters (maps a character to itself then
-      # use the 'remove' option to get rid of the text characters.)
-      t = s.translate(text_characters)
-      # If more than 30% non-text characters, then
-      # this is considered a binary file
-      if float(len(t))/float(len(s)) > 0.30:
-         return False
-      return True
-   except UnicodeDecodeError:
-      # assuming that this is not a text file if it can't be decoded
-      return False
+        13/02/2020 Joris:  added catch for UnicodeDecodeError
+        19/12/2021 Rainer: added mapping table -> restore functionality
+    """
+    try:
+        #   Open file and read first 512 bytes
+        #s=open(filename).read(512)
+        s=open(filename).read(100000)
+        #s = open(filename).read()
+
+        #   Define text/ascii characters
+        text_characters = ""\
+            .join(map(chr, range(32, 127))) + ""\
+            .join( list("\n\r\t\b"))
+
+        #    Empty files are considered text
+        if not s:
+            return True
+
+        #   Files with null bytes are likely binary
+        if "\0" in s:
+            return False
+
+        #   Create mapping table with the characters to remove
+        mtable = s.maketrans('', '', text_characters)
+
+        #   Get the non-text characters
+        t = s.translate(mtable)
+
+        #   If more than 30% non-text characters, then
+        #   this is considered a binary file
+        if float(len(t))/float(len(s)) > 0.30:
+            return False
+        return True
+    except UnicodeDecodeError as e:
+        print('         UnicodeDecodeError:')
+        print('            -> File is probably a binary (FITS) file')
+        print()
+        #   Assuming that this is not a text file if it can't be decoded
+        return False
 
 
 def cal_wave(header, npoints):
     """
-    Calculates wave length range from Header information
+        Calculates wave length range from Header information
     """
     #dnu = float(header["CDELT1"]) if 'CDELT1' in header else header['CD1_1']
     #nu_0 = float(header["CRVAL1"]) # the first wavelength value
@@ -83,8 +100,8 @@ def cal_wave(header, npoints):
 
 def read_1D_spectrum(filename, row=0):
     """
-    Function to read a 1D spectrum,
-    will return the wavelength and flux as numpy arrays.
+        Function to read a 1D spectrum,
+        will return the wavelength and flux as numpy arrays.
     """
     hdu = fits.open(filename, mode='readonly')
 
@@ -107,9 +124,9 @@ def read_1D_spectrum(filename, row=0):
 
 def read_echelle(filename, starthdu=0):
     """
-    Function to read individual orders of an echelle spectrum,
-    will return the merged wavelength scale and the merged flux
-    as numpy arrays.
+        Function to read individual orders of an echelle spectrum,
+        will return the merged wavelength scale and the merged flux
+        as numpy arrays.
     """
 
     #   Open FITS file
@@ -141,14 +158,15 @@ def read_echelle(filename, starthdu=0):
 
 def read_spectrum(filename, return_header=False):
     """
-    Read a standard 1D spectrum from the primary HDU of a FITS file.
+        Read a standard 1D spectrum from the primary HDU of a FITS file or from
+        a text file.
 
-    @param filename: FITS filename
-    @type filename: str
-    @param return_header: return header information as dictionary
-    @type return_header: bool
-    @return: wavelength, flux(, header)
-    @rtype: array, array(, dict)
+        @param filename: FITS filename
+        @type filename: str
+        @param return_header: return header information as dictionary
+        @type return_header: bool
+        @return: wavelength, flux(, header)
+        @rtype: array, array(, dict)
     """
 
     # Check if file is a text file
@@ -294,30 +312,33 @@ def read_spectrum(filename, return_header=False):
 
 
 def read_lightcurve(filename, return_header=False):
+    '''
+        Read lightcurve data
+    '''
 
-   header = fits.getheader(filename)
+    header = fits.getheader(filename)
 
-   data = fits.getdata(filename)
+    data = fits.getdata(filename)
 
-   time = data['time']
-   flux = data['PDCSAP_FLUX']
+    time = data['time']
+    flux = data['PDCSAP_FLUX']
 
 
-   if return_header:
-      return time,flux,header
-   else:
-      return time,flux
+    if return_header:
+        return time,flux,header
+    else:
+        return time,flux
 
 
 def get_rawfile_path(instance, filename):
     '''
-    Set path to save the raw data: Add project slug as directory
+        Set path to save the raw data: Add project slug as directory
     '''
     return os.path.join('raw_spectra', str(instance.project.slug), filename)
 
 
 def get_specfile_path(instance, filename):
     '''
-    Set path to save the spec file: Add project slug as directory
+        Set path to save the spec file: Add project slug as directory
     '''
     return os.path.join('spectra', str(instance.project.slug), filename)

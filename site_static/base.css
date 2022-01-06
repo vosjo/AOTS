@@ -66,7 +66,6 @@ div#toolbar ul li{
 }
 
 div#toolbar ul li.active {background: rgba(0,0,0,.05);}
-
 div#toolbar ul li:hover{background: rgba(0,0,0,.15);}
 div#toolbar ul li:hover > ul{display: flex;}
 
@@ -85,11 +84,23 @@ div#toolbar ul li ul{
    top: 100%;
    left: 0;
    flex-direction: column;
+   width: 100%;
    background: #fff;
    box-shadow: -3px 3px 10px -2px rgba(0,0,0,.1);
    border: 1px solid rgba(0,0,0,.1);
    z-index:11;
 }
+div#toolbar ul li ul li ul{
+   display: none;
+   top: 0;
+   left: 100%;
+   flex-direction: row;
+   flex-wrap: wrap;
+}
+div#toolbar ul li ul li ul li{
+   white-space: nowrap;
+}
+
 
 div#subtoolbar {
    display: block;
@@ -213,7 +224,14 @@ h2 {
    color: #ffc;
    margin: 0.1em 0.1em 0.3em 1em;
    clear: both;
-}*/
+}
+*/
+
+h2 {
+   font-size: 23px;
+   color: #666;
+   margin-top: 5px
+}
 
 h2.center {
    font-size: 22px;
@@ -248,6 +266,16 @@ h4 {
    margin: 10px 0px 5px 0px;
 }
 
+h4.no_margin {
+    font-weight: normal;
+    margin: 0px 0px 0px 0px;
+}
+
+h4.not_bold {
+    font-weight: normal;
+    margin: 0px 0px 10px 0px;
+}
+
 div.block {
    display: inline-block;
    float: left;
@@ -259,9 +287,12 @@ div.upload {
    padding: 10px;
    margin: 5px;
    margin-top: 10px;
-   border: solid 1px rgba(64, 117, 144, 0.3);
    font-weight: bold;
+/*    border: solid 1px rgba(64, 117, 144, 0.3); */
+   border-style: solid;
+   border-color: rgba(64, 117, 144, 0.4);
 }
+
 
 div.center {
    padding: auto;
@@ -502,11 +533,9 @@ div.tag {
 
 div.small-tag {
    display: inline-block;
-/*    height: 15px; */
    line-height: 12px;
    font-size: 12px;
    padding: 3px;
-/*    margin: 5px; */
    padding-left: 10px;
    padding-right: 10px;
    vertical-align: middle;
@@ -668,6 +697,11 @@ div.flex-data-container {
    justify-content: space-around;
 }
 
+.gray {
+   color: #c7c7ce;
+}
+
+
 div.tag-container {
    position: relative;
    display: flex;
@@ -679,6 +713,7 @@ div.tag-container {
    border: solid 1px rgba(64, 117, 144, 0.3);
    max-width: 98%;
    align-items: center;
+   z-index:1;
 }
 
 div.buttons-container {
@@ -741,6 +776,10 @@ div.tag-container h3 {
    align-self: flex-start;
 }
 
+.gray {
+   color: #c7c7ce;
+}
+
 
 /* Dataset detail page */
 
@@ -772,7 +811,6 @@ div.border {
    margin: 5px;
    border: solid 1px rgba(64, 117, 144, 0.3);
 }
-
 
 div.maxw50 {
    max-width: 50%;
@@ -819,6 +857,10 @@ div.main-container-h i.edit{
 
 
 /* Table settings */
+
+th.underline {
+   text-decoration: underline;
+}
 
 table.datatable {
    border-collapse: collapse;
@@ -1033,6 +1075,7 @@ progress.progress {
 
 .upload-button {
     margin-top: 5px;
+    margin-bottom: 5px;
     padding: 5px;
     padding-left: 20px;
     padding-right: 20px;
@@ -1046,6 +1089,9 @@ progress.progress {
     box-shadow: 0 6px 20px -5px rgba(0,0,0,0.4);
     position: relative;
     cursor: pointer;
+    font-weight: bold;
+    font-size: 17px;
+    color: #666;
 }
 
 .upload-button:hover {

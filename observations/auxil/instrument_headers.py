@@ -147,14 +147,14 @@ def derive_generic_info(header):
     data['objectname'] = header.get('OBJECT', '')
 
     try:
-        data['ra'] = float(header.get('RA', None))
+        data['ra'] = float(header.get('RA', 0.))
     except Exception:
-        data['ra'] = Angle(header.get('RA', None), unit='hour').degree
+        data['ra'] = Angle(header.get('RA', 0.), unit='hour').degree
 
     try:
-        data['dec'] = float(header.get('DEC', None))
+        data['dec'] = float(header.get('DEC', 0.))
     except Exception:
-        data['dec'] = Angle(header.get('DEC', None), unit='degree').degree
+        data['dec'] = Angle(header.get('DEC', 0.), unit='degree').degree
 
     #   Telescope and instrument info
     data['instrument'] = header.get('INSTRUME', 'UK')
@@ -232,12 +232,13 @@ def derive_eso_info(header):
    data['airmass'] = header.get('ESO TEL AIRM END', -1)
 
    # telescope and instrument info
-   data['instrument'] = header.get('INSTRUME', 'UK')
-   data['telescope'] = header.get('TELESCOP', 'UK')
-   data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
-   data['barycor'] = header.get('ESO QC VRAD BARYCOR', -1)
-   data['observer'] = header.get('OBSERVER', 'UK')
-   data['filetype'] = header['PIPEFILE'].replace(".fits", "")
+   data['instrument']   = header.get('INSTRUME', 'UK')
+   data['telescope']    = header.get('TELESCOP', 'UK')
+   data['exptime']      = np.round(header.get('EXPTIME', -1), 0)
+   data['barycor']      = header.get('ESO QC VRAD BARYCOR', -1)
+   data['barycor_bool'] = False
+   data['observer']     = header.get('OBSERVER', 'UK')
+   data['filetype']     = header['PIPEFILE'].replace(".fits", "")
 
    if 'SPEC_RES' in header:
       data['resolution'] = header['SPEC_RES']
@@ -280,13 +281,12 @@ def derive_feros_info(header):
    data['airmass'] = header.get('ESO TEL AIRM END', -1)
 
    # telescope and instrument info
-   data['instrument'] = header.get('INSTRUME', 'UK')
-   data['telescope'] = header.get('TELESCOP', 'UK')
-   data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
-   data['resolution'] = 48000
-   data['barycor'] = -1
-   data['observer'] = header.get('OBSERVER', 'UK')
-   data['filetype'] = header['PIPEFILE']
+   data['instrument']   = header.get('INSTRUME', 'UK')
+   data['telescope']    = header.get('TELESCOP', 'UK')
+   data['exptime']      = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution']   = 48000
+   data['observer']     = header.get('OBSERVER', 'UK')
+   data['filetype']     = header['PIPEFILE']
 
    # observing conditions
    data['wind_speed'] = np.round(header.get('ESO TEL AMBI WINDSP', -1), 1)
@@ -317,16 +317,15 @@ def derive_MODS_info(header):
 
     #   Telescope and instrument info
     data['instrument'] = header.get('INSTRUME', 'UK')
-    data['telescope'] = header.get('TELESCOP', 'UK')
-    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+    data['telescope']  = header.get('TELESCOP', 'UK')
+    data['exptime']    = np.round(header.get('EXPTIME', -1), 0)
     if header.get('MASKNAME', '') == 'LS5x60x0.6':
         if header.get('GRATNAME', '').strip() == 'G400L':
             data['resolution'] = 1850
         elif header.get('GRATNAME', '').strip() == 'G670L':
             data['resolution'] = 2300
-    data['barycor'] = -1
-    data['observer'] = header.get('OBSERVER', 'UK')
-    data['filetype'] = 'MODS_final_' + header.get('GRATNAME', '').strip()
+    data['observer']     = header.get('OBSERVER', 'UK')
+    data['filetype']     = 'MODS_final_' + header.get('GRATNAME', '').strip()
 
     return data
 
@@ -352,13 +351,14 @@ def derive_hermes_info(header):
    data['airmass'] = -1
 
    # telescope and instrument info
-   data['instrument'] = header.get('INSTRUME', 'UK')
-   data['telescope'] = header.get('TELESCOP', 'UK')
-   data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
-   data['resolution'] = 85000
-   data['barycor'] = header.get('BVCOR', -1)
-   data['observer'] = header.get('OBSERVER', 'UK')
-   data['filetype'] = 'MERGE_REBIN'
+   data['instrument']   = header.get('INSTRUME', 'UK')
+   data['telescope']    = header.get('TELESCOP', 'UK')
+   data['exptime']      = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution']   = 85000
+   data['barycor']      = header.get('BVCOR', -1)
+   data['barycor_bool'] = True
+   data['observer']     = header.get('OBSERVER', 'UK')
+   data['filetype']     = 'MERGE_REBIN'
 
    return data
 
@@ -393,13 +393,14 @@ def derive_SDSS_info(header):
    data['dec'] = header.get('PLUG_DEC', -1)
 
    # telescope and instrument info
-   data['instrument'] = header.get('INSTRUME', 'SDSS')
-   data['telescope'] = header.get('TELESCOP', 'SDSS 2.5-M')
-   data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
-   data['resolution'] = 1900
-   data['barycor'] = header.get('HELIO_RV', -1)
-   data['observer'] = header.get('OBSERVER', 'UK')
-   data['filetype'] = 'SDSS_final'
+   data['instrument']   = header.get('INSTRUME', 'SDSS')
+   data['telescope']    = header.get('TELESCOP', 'SDSS 2.5-M')
+   data['exptime']      = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution']   = 1900
+   data['barycor']      = header.get('HELIO_RV', -1)
+   data['barycor_bool'] = True
+   data['observer']     = header.get('OBSERVER', 'UK')
+   data['filetype']     = 'SDSS_final'
 
    # observing conditions
    data['wind_speed'] = header.get('WINDS', -1)
@@ -429,13 +430,14 @@ def derive_LAMOST_info(header):
    data['dec'] = header.get('DEC_OBS', -1)
 
    # telescope and instrument info
-   data['instrument'] = header.get('INSTRUME', 'LRS')
-   data['telescope'] = header.get('TELESCOP', 'LAMOST')
-   data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
-   data['resolution'] = 1500
-   data['barycor'] = header.get('HELIO_RV', -1)
-   data['observer'] = 'UK'
-   data['filetype'] = str(header.get('DATA_V', '').replace(' ', '_')) + '_' + str(header.get('ORIGIN', '')) + '_' + str(header.get('OBSID', ''))
+   data['instrument']   = header.get('INSTRUME', 'LRS')
+   data['telescope']    = header.get('TELESCOP', 'LAMOST')
+   data['exptime']      = np.round(header.get('EXPTIME', -1), 0)
+   data['resolution']   = 1500
+   data['barycor']      = header.get('HELIO_RV', -1)
+   data['barycor_bool'] = True
+   data['observer']     = 'UK'
+   data['filetype']     = str(header.get('DATA_V', '').replace(' ', '_')) + '_' + str(header.get('ORIGIN', '')) + '_' + str(header.get('OBSID', ''))
 
    # observing conditions
    data['wind_speed'] = header.get('WINDS', -1)

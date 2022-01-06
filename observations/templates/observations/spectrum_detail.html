@@ -159,9 +159,9 @@
 
    <section class='data-section'>
 
-   <!--<h3>The Spectrum</h3>
+   <h3>The Spectrum</h3>
 
-   <p>The spectrum is shifted with a barycentric correction of {{spectrum.barycor}} km/s.</p>-->
+   <p>The spectrum is shifted with a barycentric correction of {{spectrum.barycor|roundtwo}} km/s.</p>
 
    <div class="flex-data-container">
         <div id="spectrum">
@@ -173,10 +173,15 @@
         </div>
 
         <div class="buttons-container">
+
+            <!-- Dummy to get normalization status -->
+            <i display="none" id="normalized"
+                normalized={{ spectrum.normalized|yesno:"true,false" }}></i>
+
             <h3>Modify data</h3>
             <form action="{% url "observations:spectrum_detail" project.slug spectrum.pk %}" method="post">
                 {% csrf_token %}
-                <div class="Wrapper">
+                <div id="div-norm" class="Wrapper">
                     <label for="{{ form.normalize.id_for_label }}">Normalize:</label>
                     {{ form.normalize }}
                     <span class="error"> {{ form.normalize.errors.as_text }} </span>

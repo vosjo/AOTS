@@ -43,16 +43,20 @@ class Spectrum(models.Model):
    az = models.FloatField(default=-1)   # average azimut angle of observation
    airmass = models.FloatField(default=-1) # average airmass
 
+   #    Spectrum normalized
+   normalized = models.BooleanField(default=False)
+
    #-- telescope and instrument info
-   exptime = models.FloatField(default=-1) # s
-   barycor = models.FloatField(default=-1) # km/s
-   telescope = models.CharField(max_length=200, default='')
-   instrument = models.CharField(max_length=200, default='')
-   resolution = models.FloatField(default=-1) # R
-   snr = models.FloatField(default=-1)
-   minwave = models.FloatField(default=-1) # starting wavelength
-   maxwave = models.FloatField(default=-1) # ending wavelength
-   observer = models.CharField(max_length=50, default='')
+   exptime      = models.FloatField(default=-1) # s
+   barycor      = models.FloatField(default=0) # km/s
+   barycor_bool = models.BooleanField(default=True) # bary. correction applied?
+   telescope    = models.CharField(max_length=200, default='')
+   instrument   = models.CharField(max_length=200, default='')
+   resolution   = models.FloatField(default=-1) # R
+   snr          = models.FloatField(default=-1)
+   minwave      = models.FloatField(default=-1) # starting wavelength
+   maxwave      = models.FloatField(default=-1) # ending wavelength
+   observer     = models.CharField(max_length=50, default='')
 
    #-- observing conditions
    moon_illumination = models.FloatField(default=-1) # percent of illumination of the moon
@@ -63,7 +67,11 @@ class Spectrum(models.Model):
 
    #-- observatory
    #   prevent deletion of an observatory that is referenced by a spectrum
-   observatory = models.ForeignKey(Observatory, on_delete=models.PROTECT, null=True,)
+   observatory = models.ForeignKey(
+       Observatory,
+       on_delete=models.PROTECT,
+       null=True,
+       )
 
    #-- flag if the spectrum is flux calibrated, defaults to False. And the flux unit.
    fluxcal = models.BooleanField(default=False)
@@ -77,7 +85,11 @@ class Spectrum(models.Model):
    #-- bookkeeping
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)
-   added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
+   added_by = models.ForeignKey(
+       settings.AUTH_USER_MODEL,
+       on_delete=models.SET(get_sentinel_user),
+       null=True,
+       )
 
    #-- function to get the spectrum
    def get_spectrum(self):
@@ -135,7 +147,6 @@ class SpecFile(models.Model):
     instrument = models.CharField(max_length=200, default='')
     filetype  = models.CharField(max_length=200, default='')
 
-    #specfile = models.FileField(upload_to='spectra/')
     specfile = models.FileField(upload_to=fileio.get_specfile_path)
 
     #   Bookkeeping
@@ -172,15 +183,89 @@ class SpecFile(models.Model):
         return "{}@{} - {}".format(self.hjd, self.instrument, self.filetype)
 
 
+class UserInfo(models.Model):
+    '''
+        Spectrum infos provided by the user during file upload
+    '''
+    #   UserInfo belongs to a spectrum and is deleted when the spectrum
+    #   is deleted.
+    spectrum = models.ForeignKey(
+        Spectrum,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        )
+
+    #   File type
+    filetype = models.CharField(max_length=50, default='')
+
+    #   Target
+    objectname = models.CharField(max_length=50, default='')
+    ra         = models.FloatField(default=-1)
+    dec        = models.FloatField(default=-1)
+    create_new_star     = models.BooleanField(default=True)
+    classification      = models.CharField(max_length=50, default='')
+    classification_type = models.CharField(max_length=2, default='PH')
+
+    #   Observatory
+    #   prevent deletion of an observatory that is referenced by a spectrum
+    observatory = models.ForeignKey(
+        Observatory,
+        on_delete=models.PROTECT,
+        null=True,
+        )
+    observatory_name          = models.CharField(max_length=100, default='')
+    observatory_latitude      = models.FloatField(default=-1)
+    observatory_longitude     = models.FloatField(default=-1)
+    observatory_altitude      = models.FloatField(default=-1)
+    observatory_is_spacecraft = models.BooleanField(default=False)
+
+    #   Instrument and setup
+    telescope  = models.CharField(max_length=200, default='')
+    instrument = models.CharField(max_length=200, default='')
+    hjd        = models.FloatField(default=-1)
+    exptime    = models.FloatField(default=-1)
+    resolution = models.FloatField(default=-1)
+    snr        = models.FloatField(default=-1)
+    observer   = models.CharField(max_length=50, default='')
+
+    #   Observing conditions
+    wind_speed     = models.FloatField(default=-1)
+    wind_direction = models.FloatField(default=-1)
+    seeing         = models.FloatField(default=-1)
+    airmass        = models.FloatField(default=-1)
+
+    #   Normalized
+    normalized = models.BooleanField(default=False)
+
+    #   Barycentric Correction
+    barycor_bool = models.BooleanField(default=True)
+
+    #   Flux info
+    fluxcal    = models.BooleanField(default=False)
+    flux_units = models.CharField(max_length=50, default='')
+
+    #   Note
+    note = models.TextField(default='')
+
+    #   Bookkeeping
+    added_on      = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+    added_by      = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        )
+
 ###     RawSpecFile     ###
 
 @python_2_unicode_compatible  # to support Python 2
 class RawSpecFile(models.Model):
     """
-    Model to represent an uploaded raw spectrum or file containing
-    calibration data. Can be fits or hdf5.
+        Model to represent an uploaded raw spectrum or file containing
+        calibration data. Can be fits or hdf5.
 
-    If the associated specfile is deleted also the raw data gets deleted.
+        If the associated specfile is deleted also the raw data gets deleted.
     """
 
     #   The raw data can belong to multiple specfiles
@@ -217,9 +302,6 @@ class RawSpecFile(models.Model):
         null=True,
         )
 
-    #def get_spectrum(self):
-        #return fileio.read_spectrum(self.specfile.path, return_header=True)
-
     #   Get header
     def get_header(self, hdu=0):
         try:
@@ -254,8 +336,8 @@ def RawFile_pre_delete(sender, instance, **kwargs):
         except Exception as e:
             print (e)
 
-#   Handler to assure the deletion of a specfile removes the raw files,
-#   if the raw file do not also belog to another specfile
+#   Handler to assure the deletion of a specfile removes the associated raw
+#   files, if they do not also belong to another specfile.
 @receiver(pre_delete, sender=SpecFile)
 def specFile_pre_delete_handler(sender, **kwargs):
     specfile = kwargs['instance']

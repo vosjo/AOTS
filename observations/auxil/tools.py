@@ -26,7 +26,7 @@ def doppler_shift(wave,vrad,flux=None):
     @rtype: ndarray
     """
     cc = 299792.458
-    wave_out = wave * (1+vrad/cc)
+    wave_out = np.array(wave) * (1+vrad/cc)
     if flux is not None:
         flux = np.interp(wave,wave_out,flux)
         return flux
@@ -47,6 +47,8 @@ def rebin_core(wave, flux, binsize=2, mean=False):
         Flux data
     binsize         int()
         Bin size
+    mean            bool()
+        Calculate mean instead of sum of the flux
 
     Returns:
     --------
@@ -92,6 +94,8 @@ def rebin_spectrum(wave, flux, binsize=2, mean=False):
         Flux data
     binsize         int()
         Bin size
+    mean            bool()
+        Calculate mean instead of sum of the flux
 
     Returns:
     --------

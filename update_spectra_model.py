@@ -30,11 +30,31 @@ for pro in projects:
 
     #   Loop over spectra
     for spec in spectra:
+        #   Get spectrum pk
         spec_pk = spec.pk
-        #spec_hjd = spec.hjd
+
+        #   Get user provided data
+        user_info = spec.userinfo_set.all()
+
+        #   Check that only one set of user data exists
+        if len(user_info) != 1:
+            user_info = {}
+        else:
+            #   Extract data from UserInfo instance
+            user_info = user_info.values()[0]
+
+            #   Clean user data -  remove defaults
+            __dict = {}
+            for key, value in user_info.items():
+                if value != -1. and value != '':
+                    __dict[key] = value
+            user_info = __dict
+
         print()
         print('    ', spec)
-        message, success = derive_spectrum_info(spec_pk)
+
+        #   Update spectrum information
+        message, success = derive_spectrum_info(spec_pk, user_info)
         print('        ', message, success)
 
         #   Load specfiles
@@ -42,12 +62,14 @@ for pro in projects:
 
         #   Loop over specfiles
         for spf in specfiles:
+            #   Get SpecFile pk
             spf_pk = spf.pk
-            #spf_hjd = spf.hjd
+
             print('        ', spf)
-            message, success = derive_specfile_info(spf_pk)
+
+            #   Update SpecFile information
+            message, success = derive_specfile_info(spf_pk, user_info)
             print('        ', message, success)
-            #print('            Specfile updated')
 
 
 

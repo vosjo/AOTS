@@ -17,7 +17,7 @@
    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css"> <!--CSS for google Icons-->
    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
    <link href="{% static 'jquery-ui.css' %}" rel="stylesheet" type="text/css">
-   
+
    <script
 			  src="https://code.jquery.com/jquery-3.6.0.min.js"
 			  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -33,19 +33,19 @@
    <div class="page-wrap-base">
 
    <header>
-   
+
    <!--<div class="block">
    <img width="50px" height="75px"  src="{% static 'bimot_logo.svg' %}"/>
    </div>-->
-   
+
    <div id='titlebar'>
       <h1>AOTS: {{project.name}}</h1>
       <h2>{% block headertitle %}{% endblock %}</h2>
    </div>
-   
+
    <nav>
-   
-   
+
+
    <div id="toolbar" role='navigation'>
          <ul>
             <li>
@@ -56,7 +56,7 @@
                <i class="icon material-icons">assignment</i>
                <a href="/"> Projects</a>
             </li>
-         
+
             <li>
                <i class="icon material-icons">star</i>
                <a href={% url 'systems:star_list' project.slug %}>Systems</a>
@@ -69,10 +69,18 @@
                <i class="icon material-icons">visibility</i>
                <a href={% url 'observations:spectra_list' project.slug %}>Observations</a>
                <ul>
-               <li><a href={% url 'observations:spectra_list' project.slug %}>Spectra</a></li>
-               <li><a href={% url 'observations:specfile_list' project.slug %}>Upload Spectra files</a></li>
-               <li><a href={% url 'observations:lightcurve_list' project.slug %}>Light Curves</a></li>
-               <li><a href={% url 'observations:observatory_list' project.slug %}>Observatories</a></li>
+                  <li>
+                     <a href={% url 'observations:spectra_list' project.slug %}>
+                        Spectra</a>
+                     <ul>
+                        <li><a href={% url 'observations:spectra_list' project.slug %}>Overview</a></li>
+                        <li><a href={% url 'observations:spectra_upload' project.slug %}>Upload new</a></li>
+                        <li><a href={% url 'observations:specfile_list' project.slug %}>File list</a></li>
+                        <li><a href={% url 'observations:rawspecfile_list' project.slug %}>Raw files</a></li>
+                     </ul>
+                  </li>
+                  <li><a href={% url 'observations:lightcurve_list' project.slug %}>Light Curves</a></li>
+                  <li><a href={% url 'observations:observatory_list' project.slug %}>Observatories</a></li>
                </ul>
             </li>
             <li>
@@ -96,6 +104,7 @@
             {% else %}
             <li>
                <i class="icon material-icons">lock</i>
+               <a href="/accounts/login/?next={{request.path}}">Log In</a>
                <ul>
                <li><a href="/accounts/login/?next={{request.path}}">Log In</a></li>
                <li><a href="/accounts/password_reset">Reset password</a></li>
@@ -103,31 +112,31 @@
             </li>
             {% endif %}
          </ul>
-      
+
       </div>
-   
+
 <!--       <div id="subtoolbar" role='navigation'> -->
 <!--       </div> -->
-   
+
    </nav>
-   
+
    {% block header %}{% endblock %}
    </header>
-   
+
    <ul id="messages">
       {% for message in messages %}
       <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       {% endfor %}
    </ul>
-   
+
    {% block content %}{% endblock %}
-   
+
    </div>
-   
+
    <script type="text/javascript">
       // Save in this variable if there is an authenticated user
       // This variable is accessible on every other place in the code.
-      {% if user.is_authenticated %} 
+      {% if user.is_authenticated %}
       var user_authenticated = true;
       {% else %}
       var user_authenticated = false;
@@ -146,7 +155,7 @@
 
       </div>
    </footer>
-   
+
 <!--    Cookie banner to comply with EU cookie law -->
 <!--    https://github.com/dobarkod/cookie-banner/ -->
 <script type="text/javascript" id="cookiebanner"
@@ -154,6 +163,6 @@
   data-message="We use cookies to improve your browsing experience."
   moreinfo="https://en.wikipedia.org/wiki/HTTP_cookie">
 </script>
-   
+
 </body>
 </html>

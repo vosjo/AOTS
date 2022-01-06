@@ -13,7 +13,7 @@ urlpatterns = [
         views.spectrum_detail,
         name='spectrum_detail',
         ),
-    path('spectra/new', views.add_spectra, name='spectra_new'),
+    path('spectra/upload', views.add_spectra, name='spectra_upload'),
     #   SpecFiles
     path('specfiles/', views.specfile_list, name='specfile_list'),
     #   RawSpecFiles

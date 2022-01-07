@@ -111,7 +111,7 @@ class UploadRawSpecFileForm(forms.Form):
         Upload form for spectroscopic raw data
     '''
     system = forms.ModelMultipleChoiceField(
-        label='Targets',
+        label='Systems',
         #empty_label='Target name: ra[deg] dec[deg]',
         queryset=Star.objects.all(),
         required=False,

@@ -24,30 +24,33 @@
          <h2>File selection</h2>
          <h4 class='no_margin'>(required)</h4>
 
-         {% csrf_token %}
+        <div class="flex-data-container j-center">
+            {% if user.is_authenticated %}
+                {% csrf_token %}
+                <div class="tag-container">
+                    {% if upload_form.non_field_errors %}
+                        <p>{{ upload_form.non_field_errors }}</p>
+                    {% endif %}
 
-         <div class="flex-data-container j-center">
-            <div class="tag-container">
-                {% if upload_form.non_field_errors %}
-                    <p>{{ upload_form.non_field_errors }}</p>
-                {% endif %}
-
-                <table class='datatable'>
-                    <tbody>
-                    <tr> <th>File(s), .txt or .fits:</th>
-                         <td>{{ upload_form.spectrumfile }}
-                             {{ upload_form.spectrumfile.errors }}
-                         </td>
-                    </tr>
-<!--                    <tr> <th>Merge spectrum files if possible:</th>
-                         <td>{{ upload_form.merge_spectra_if_possible }}
-                             {{ upload_form.merge_spectra_if_possible.errors }}
-                        </td>
-                    </tr>-->
-                    </tbody>
-                </table>
-            </div>
-         </div>
+                    <table class='datatable'>
+                        <tbody>
+                        <tr> <th>File(s), .txt or .fits:</th>
+                            <td>{{ upload_form.spectrumfile }}
+                                {{ upload_form.spectrumfile.errors }}
+                            </td>
+                        </tr>
+    <!--                    <tr> <th>Merge spectrum files if possible:</th>
+                            <td>{{ upload_form.merge_spectra_if_possible }}
+                                {{ upload_form.merge_spectra_if_possible.errors }}
+                            </td>
+                        </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class='upload'> Log in to upload files! </p>
+            {% endif %}
+        </div>
       </div>
 
    </section>
@@ -282,7 +285,9 @@
 
    <section class='data-section'>
       <div class="main-container-h j-center">
-         <input type="submit" class="upload-button" value="Upload"/>
+         {% if user.is_authenticated %}
+            <input type="submit" class="upload-button" value="Upload"/>
+         {% endif %}
       </div>
    </section>
 

@@ -1,4 +1,4 @@
- 
+
 # AOTS
 
 ## Installing Django
@@ -135,8 +135,8 @@ Exit the psql:
 Instructions modified from: https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-18-04
 
 ### 1. Create an .env file
-To protect secrets like the postgres database password or the Django security 
-key they are embedded in AOTS via environment variables. The environment 
+To protect secrets like the postgres database password or the Django security
+key they are embedded in AOTS via environment variables. The environment
 variables are defined in the .env file in the AOTS directory. As an example we
 provide .env.example.
 
@@ -145,7 +145,7 @@ cp AOTS/.env.example  AOTS/.env
 ```
 
 ### 2. Adjust the .env file
-In .env the secret Django security key, the postgres database password, the 
+In .env the secret Django security key, the postgres database password, the
 server IP and URL, as well as the name of the computer used in production needs
 to be specified. If a special log directory is required or a different database
 user was defined during setup, this has to be specified here as well.
@@ -303,7 +303,7 @@ To enable log rotation the following file should be added to /etc/logrotate.d:
 }
 
 ```
-Change user name, group, and the log directory as needed. 
+Change user name, group, and the log directory as needed.
 
 Alternatively, 'logging.handlers.RotatingFileHandler' can be selected as class
 for the logging handlers in settings_production.py.
@@ -312,7 +312,7 @@ for the logging handlers in settings_production.py.
 ## Configure NGNIX
 
 ```
-sudo nano /etc/nginx/sites-available/aots 
+sudo nano /etc/nginx/sites-available/aots
 ```
 
 ```
@@ -320,11 +320,16 @@ server {
     listen 80;
     server_name a15.astro.physik.uni-potsdam.de;
 
-    location = /favicon.ico { access_log off; log_not_found off; }
+    location /favicon.ico {
+        alias /home/aots/www/aots/AOTS/static/favicon.ico;
+        access_log off;
+        log_not_found off;
+    }
+
     location /static/ {
         root /home/aots/www/aots/AOTS;
     }
-    
+
     location /media/ {
       root /home/aots/www/aots/AOTS;
     }

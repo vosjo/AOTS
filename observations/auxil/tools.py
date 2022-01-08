@@ -226,9 +226,9 @@ def norm_spectrum(spec, median_window=3, order=3):
     clip_flux = sigma_clip(
         norm_spec.flux,
         sigma_lower=1.25,
-        #sigma_upper=4.,
         sigma_upper=3.,
         axis=0,
+        grow=1.,
         )
 
     #   Calculate mask

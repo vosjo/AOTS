@@ -110,6 +110,85 @@ class Spectrum(models.Model):
       return "{}@{} - {}".format(self.instrument, self.telescope, self.hjd)
 
 
+class UserInfo(models.Model):
+    '''
+        Spectrum infos provided by the user during file upload
+    '''
+    #   UserInfo belongs to a spectrum and is deleted when the spectrum
+    #   is deleted.
+    spectrum = models.ForeignKey(
+        Spectrum,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        )
+
+    #   A UserInfo instance belongs to a specific project
+    #   when that project is deleted, the star is also deleted.
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False,)
+
+    #   File type
+    filetype = models.CharField(max_length=50, default='')
+
+    #   Target
+    objectname = models.CharField(max_length=50, default='')
+    ra         = models.FloatField(default=-1)
+    dec        = models.FloatField(default=-1)
+    create_new_star     = models.BooleanField(default=True)
+    classification      = models.CharField(max_length=50, default='')
+    classification_type = models.CharField(max_length=2, default='PH')
+
+    #   Observatory
+    #   prevent deletion of an observatory that is referenced by a spectrum
+    observatory = models.ForeignKey(
+        Observatory,
+        on_delete=models.PROTECT,
+        null=True,
+        )
+    observatory_name          = models.CharField(max_length=100, default='')
+    observatory_latitude      = models.FloatField(default=-1)
+    observatory_longitude     = models.FloatField(default=-1)
+    observatory_altitude      = models.FloatField(default=-1)
+    observatory_is_spacecraft = models.BooleanField(default=False)
+
+    #   Instrument and setup
+    telescope  = models.CharField(max_length=200, default='')
+    instrument = models.CharField(max_length=200, default='')
+    hjd        = models.FloatField(default=-1)
+    exptime    = models.FloatField(default=-1)
+    resolution = models.FloatField(default=-1)
+    snr        = models.FloatField(default=-1)
+    observer   = models.CharField(max_length=50, default='')
+
+    #   Observing conditions
+    wind_speed     = models.FloatField(default=-1)
+    wind_direction = models.FloatField(default=-1)
+    seeing         = models.FloatField(default=-1)
+    airmass        = models.FloatField(default=-1)
+
+    #   Normalized
+    normalized = models.BooleanField(default=False)
+
+    #   Barycentric Correction
+    barycor_bool = models.BooleanField(default=True)
+
+    #   Flux info
+    fluxcal    = models.BooleanField(default=False)
+    flux_units = models.CharField(max_length=50, default='')
+
+    #   Note
+    note = models.TextField(default='')
+
+    #   Bookkeeping
+    added_on      = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+    added_by      = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        )
+
+
 ###     SpecFile    ###
 
 @python_2_unicode_compatible  # to support Python 2
@@ -182,80 +261,6 @@ class SpecFile(models.Model):
     def __str__(self):
         return "{}@{} - {}".format(self.hjd, self.instrument, self.filetype)
 
-
-class UserInfo(models.Model):
-    '''
-        Spectrum infos provided by the user during file upload
-    '''
-    #   UserInfo belongs to a spectrum and is deleted when the spectrum
-    #   is deleted.
-    spectrum = models.ForeignKey(
-        Spectrum,
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        )
-
-    #   File type
-    filetype = models.CharField(max_length=50, default='')
-
-    #   Target
-    objectname = models.CharField(max_length=50, default='')
-    ra         = models.FloatField(default=-1)
-    dec        = models.FloatField(default=-1)
-    create_new_star     = models.BooleanField(default=True)
-    classification      = models.CharField(max_length=50, default='')
-    classification_type = models.CharField(max_length=2, default='PH')
-
-    #   Observatory
-    #   prevent deletion of an observatory that is referenced by a spectrum
-    observatory = models.ForeignKey(
-        Observatory,
-        on_delete=models.PROTECT,
-        null=True,
-        )
-    observatory_name          = models.CharField(max_length=100, default='')
-    observatory_latitude      = models.FloatField(default=-1)
-    observatory_longitude     = models.FloatField(default=-1)
-    observatory_altitude      = models.FloatField(default=-1)
-    observatory_is_spacecraft = models.BooleanField(default=False)
-
-    #   Instrument and setup
-    telescope  = models.CharField(max_length=200, default='')
-    instrument = models.CharField(max_length=200, default='')
-    hjd        = models.FloatField(default=-1)
-    exptime    = models.FloatField(default=-1)
-    resolution = models.FloatField(default=-1)
-    snr        = models.FloatField(default=-1)
-    observer   = models.CharField(max_length=50, default='')
-
-    #   Observing conditions
-    wind_speed     = models.FloatField(default=-1)
-    wind_direction = models.FloatField(default=-1)
-    seeing         = models.FloatField(default=-1)
-    airmass        = models.FloatField(default=-1)
-
-    #   Normalized
-    normalized = models.BooleanField(default=False)
-
-    #   Barycentric Correction
-    barycor_bool = models.BooleanField(default=True)
-
-    #   Flux info
-    fluxcal    = models.BooleanField(default=False)
-    flux_units = models.CharField(max_length=50, default='')
-
-    #   Note
-    note = models.TextField(default='')
-
-    #   Bookkeeping
-    added_on      = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    added_by      = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET(get_sentinel_user),
-        null=True,
-        )
 
 ###     RawSpecFile     ###
 

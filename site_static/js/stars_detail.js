@@ -136,7 +136,7 @@ function updateNote() {
             console.log(xhr.status + ": " + xhr.responseText);
       }
    });
-};
+}
 
 // Create an identifier
 function create_identifier(){
@@ -149,7 +149,7 @@ function create_identifier(){
       },
       
       success : function(json) {
-//          add identiefier to the list and close the window on success
+//          add identifier to the list and close the window on success
             add_identifier_window.dialog( "close" );
             if (json.href != ""){
                $("#identifier_list").prepend("<div class=\"identifier\" id=\"identifier-"+json.pk+"\"> <a href=\"" + 

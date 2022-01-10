@@ -1,0 +1,24 @@
+# EXAMPLE .CSV FILE
+# USE THE FOLLOWING HEADER-KEYWORDS, AS SHOWN BELOW:
+# main_id : Main ID of the system
+# source_id : GAIA DR2 ID
+# ra : right ascension
+# dec : declination
+# main_type : Type of the Object, for Example: Star, V*, PM*, ...
+# sp_type : Spectral Type of the Object
+# JNAME : JNAME
+# parallax : Parallax
+# parallax_error : Parallax error
+# pmra_x : Proper motion right ascension
+# pmra_error : Proper motion right ascension error
+# pmdec_x : Proper motion declination
+# pmdec_error : Proper motion declination error
+# phot_g_mean_mag : G-band mean magnitude
+# phot_bp_mean_mag : Integrated BP mean magnitude
+# phot_rp_mean_mag : Integrated RP mean magnitude
+# Jmag, Hmag, Kmag : JHK-Photometry
+# W1mag-W4mag : WISE-Photometry
+
+# EXAMPLE FOR THE CSV-HEADER WITH AN EXAMPLE SYSTEM:
+main_id,source_id,ra,dec,main_type,sp_type,JNAME,parallax,parallax_error,pmra_x,pmra_error,pmdec_x,pmdec_error,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,Jmag,Hmag,Kmag,W1mag,W2mag,W3mag,W4mag
+BD+05  2782,3714916986124865408,205.4131938734694,4.998644372973828,Star,K0,J134139.17+045955.1,2.4094,0.11699999999999999,0.985,0.26,3.3539999999999996,0.154,9.641225,10.182091999999999,8.984745,8.119,7.604,7.462999999999999,7.4079999999999995,7.501,7.44,7.403

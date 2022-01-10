@@ -3,6 +3,7 @@ var star_table = null;
 var edit_status_window = null;
 var edit_tags_window = null;
 var all_tags = null;
+var add_systems_window = null;
 
 
 $(document).ready(function () {
@@ -50,14 +51,46 @@ $(document).ready(function () {
    });
 
    //Add toolbar to table
-   $("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
-                           "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>");
+   if (user_authenticated) {
+      $("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
+          "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>" +
+          "<input id='addsystem-button' class='tb-button' value='Add System(s)' type='button'>" +
+          "<input id='delete-button' class='tb-button' value='Delete System' type='button' disabled>");
+   }
+   else {$("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
+          "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>");
+   };
 
    // Event listener to the two range filtering inputs to redraw on input
    $('#filter-form').submit( function(event) {
       event.preventDefault();
       star_table.draw();
-   } );
+   });
+
+   // Hide all photometry not belonging to the selected Instrument
+   let initialselected = $('#system-form-instrument-select:first-child').find(":selected").val();
+
+   $('#form-photometry tr').each(function () {
+         if ($(this).attr('id') === initialselected){
+            $(this).show()
+         }
+         else {
+            $(this).hide()
+         }
+   });
+
+   // Event listener to only show photometry Fields for the selected Instrument
+   $('#system-form-instrument-select:first-child').change(function(){
+      let selected = $(this).find(":selected").val();
+      $('#form-photometry tr').each(function () {
+         if ($(this).attr('id') === selected){
+            $(this).show()
+         }
+         else {
+            $(this).hide()
+         }
+      })
+   });
 
    // make the filter button open the filter menu
    $('#filter-dashboard-button').on('click', openNav);
@@ -66,7 +99,7 @@ $(document).ready(function () {
       $("#filter-dashboard-button").toggleClass('open');
 
       var text = $('#filter-dashboard-button').text();
-      if (text == "filter_list"){
+      if (text === "filter_list"){
             $('#filter-dashboard-button').text("close");
       } else {
             $('#filter-dashboard-button').text("filter_list");
@@ -99,7 +132,7 @@ $(document).ready(function () {
          star_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
             select_row(this); // close the row
          });
-      };
+      }
    });
 
    // Load the tags and add them to the tag selection list, and the tag edit window
@@ -114,9 +147,15 @@ $(document).ready(function () {
          width: '250',
          modal: true});
 
+   add_systems_window = $("#addSystems").dialog({autoOpen: false,
+         width: '775',
+         modal: true});
+
    // event listeners for edit buttons
    $( "#status-button").click( openStatusEditWindow );
    $( "#tag-button").click( openTagEditWindow );
+   $( "#delete-button").click( deleteSystems );
+   $( "#addsystem-button").click( openAddSystemsWindow );
 
     //   Reset check boxes when changing number of displayed objects in table
     $('#datatable_length').change(function() {
@@ -162,8 +201,9 @@ function get_filter_keywords( d ) {
       if ($('#filter_dec').val() != '') {
          var min = parseFloat( $('#filter_dec').val().split(':')[0] );
          var max = parseFloat( $('#filter_dec').val().split(':')[1] );
-         if ( min == NaN ){min = -90};
-         if ( max == NaN ){max = 90};
+
+         if ( min == NaN ){min = -90}
+         if ( max == NaN ){max = 90}
 
          d = $.extend( {}, d, {
             "dec_min": min,
@@ -279,19 +319,21 @@ function select_row(row) {
    }
    $('#tag-button').prop('disabled', false)
    $('#status-button').prop('disabled', false)
-};
+   $('#delete-button').prop('disabled', false)
+}
 
 function deselect_row(row) {
    $(row.node()).find("i[class*=select]").text('check_box_outline_blank')
    $(row.node()).removeClass('selected');
-   if ( star_table.rows('.selected').data().length == 0 ) {
+   if ( star_table.rows('.selected').data().length === 0 ) {
       $('#select-all').text('check_box_outline_blank');
       $('#tag-button').prop('disabled', true)
       $('#status-button').prop('disabled', true)
+      $('#delete-button').prop('disabled', true)
    } else {
       $('#select-all').text('indeterminate_check_box');
    }
-};
+}
 
 // Edit status and tags functionality
 
@@ -319,13 +361,19 @@ function load_tags () {
          $('#tagOptions').on('change', ':checkbox', function(event){ cylceTristate(event, this); });
 
          $('input[type=radio]').click(allow_unselect);
+
+         /*// add tag options to add-system form
+         for (let tag in all_tags ) {
+            tag = all_tags[tag]
+            $('#add-option-tags').append("<li><label><input type='checkbox' name='add-tag' value="+tag["pk"]+">"+tag['name']+"</label></option>")
+         }*/
       },
       error : function(xhr,errmsg,err) {
          console.log(xhr.status + ": " + xhr.responseText);
          all_tags = [];
       }
    });
-};
+}
 
 // ------------
 
@@ -389,7 +437,7 @@ function openTagEditWindow() {
    var all_tag_counts = {}
    for ( tag in all_tags ) {
       all_tag_counts[all_tags[tag]['pk']] = 0
-   };
+   }
 
    // count how many objects each tag has
    star_table.rows('.selected').every( function ( rowIdx, tableLoop, rowLoop ) {
@@ -466,8 +514,76 @@ function update_star_tags(row, new_tags){
          console.log(xhr.status + ": " + xhr.responseText);
       }
    });
-};
+}
 
+// -----
+
+function deleteSystems(){
+   if (confirm('Are you sure you want to delete these Systems? This can NOT be undone!')===true){
+   var rows = [];
+   // get list of files
+   star_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+      var row = this;
+      rows.push(row);
+   });
+   if ($('#progress-bar').length === 0) {
+      $(".toolbar").append('<progress id="progress-bar" value="0" max="' + rows.length + '" class="progress-bar"></progress>')
+   }
+   else{
+      $("#progress-bar").prop("max", rows.length)
+      $("#progress-bar").val(0)
+   }
+   let n = 0;
+   //   Set Promise -> evaluates to a resolved Promise
+   let p = $.when()
+   $.each(rows, function (index, row) {
+      let pk = row.data()["pk"];
+      //    Promise chaining using .then() + async function definition to allow
+      //                                  the use of await
+      p = p.then( async function () {
+      await $.ajax({
+         url : "/api/systems/stars/"+pk+'/',
+         type : "DELETE",
+         success : function(json) {
+            n += 1;
+            star_table.row(row).remove().draw('full-hold');
+            $('#select-all').text('check_box_outline_blank');
+            $('#tag-button').prop('disabled', true);
+            $('#status-button').prop('disabled', true);
+            $('#delete-button').prop('disabled', true);
+            $('#progress-bar').val(n)
+         },
+         error : function(xhr,errmsg,err) {
+            n += 1;
+            $('#progress-bar').val(n)
+             if (xhr.status === 403){
+                 alert('You have to be logged in to delete this system.');
+            } else{
+                alert(xhr.status + ": " + xhr.responseText);
+            }
+             console.log(xhr.status + ": " + xhr.responseText);
+            },
+         });
+      });
+      })
+   }
+}
+
+// -------------
+
+
+function openAddSystemsWindow() {
+   add_systems_window = $("#addSystems").dialog({
+      autoOpen: false,
+      title: "Add System(s)",
+      close: function() { add_systems_window.dialog( "close" ); },
+   });
+
+   add_systems_window.dialog( "open" );
+}
+
+
+// ----------------------------------------------------------------------
 
 // Tristate checkbox functionality
 function cylceTristate(event, checkbox) {
@@ -481,7 +597,7 @@ function cylceTristate(event, checkbox) {
       checkbox.prop("indeterminate", false);
       checkbox.removeClass("indeterminate");
    }
-};
+}
 
 
 // Allow unchecking of radio buttons in the filter window

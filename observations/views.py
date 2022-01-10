@@ -343,7 +343,6 @@ def handel_raw_files(request, project):
 
         return JsonResponse({'info':'Data uploaded', 'messages':message_list})
 
-
 @check_user_can_view_project
 def lightcurve_list(request, project=None,  **kwargs):
    """

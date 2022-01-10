@@ -214,7 +214,6 @@ function resolution_render( data, type, full, meta ) {
    }
 }
 
-
 // Selection and Deselection of rows
 
 function select_row(row) {

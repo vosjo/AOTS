@@ -324,7 +324,7 @@ div.project-container {
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  min-width: 400x;
+  min-width: 400px;
   width: 400px;
   height: 500px;
   padding-left: 5px;
@@ -1230,4 +1230,44 @@ footer i {
    text-align: center;
    vertical-align: middle;
    line-height: 36px;       /* the same as your div height */
+}
+
+.add-system-footnote {
+   text-align: right;
+   color: lightslategray;
+}
+
+.cg-block {
+   width: 700px;
+}
+
+[id=system-add-upload-button] {
+   font-family: 'Material Icons' !important;
+    font-size: 24px !important;
+}
+
+.system-form-table {
+   width: 100%;
+   table-layout: fixed;
+}
+
+.system-form-table td{
+   text-align: right;
+}
+
+.system-form-submit {
+   width: 100%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+.system-form-submit-button{
+   font-size: larger !important;
+}
+
+.add-system-csv-example {
+   text-align: right;
+   color: lightslategray;
+   text-decoration: underline;
 }

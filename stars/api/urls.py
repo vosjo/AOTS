@@ -1,6 +1,6 @@
-
 #from django.conf.urls import include, url
 from django.urls import include, path
+###from django.urls import include, re_path
 
 from rest_framework import routers
 
@@ -23,6 +23,8 @@ urlpatterns = [
    #url(r'^stars', StarListAPIView.as_view(), name='star_list'),
 
    #url(r'^', include(router.urls)),
+
+   ###re_path(r'^', include(router.urls)),
 
    #url(r'^stars/(?P<star_pk>[\w-]+)/remove_tag/(?P<tag_pk>[\w-]+)/$', star_remove_tag,
        #name='star_remove_tag'),

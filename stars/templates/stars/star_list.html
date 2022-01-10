@@ -20,58 +20,58 @@
 
    <form method="get" action="/stars/" class="table-filter" id="filter-form">
    <h3 class="center"> Filter Systems </h3>
-   
+
    <div class="table-filter-item">
       <p class="filter-label" title="Uses simbad name solver">Name:</p>
       <input class="filter-input" id="filter_name" type="text" placeholder="identifier">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label" title="00:00:00 +00:00:00 or 000.000 +00.000">Co:</p>
       <input class="filter-input" id="filter_co" type="text" placeholder="coodinate search">
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">RA:</p>
       <input class="filter-input" id="filter_ra" type="text" placeholder="min:max">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Dec:</p>
       <input class="filter-input" id="filter_dec" type="text" placeholder="min:max">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">G-mag:</p>
       <input class="filter-input" id="filter_mag" type="text" placeholder="min:max">
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">#phot:</p>
       <input class="filter-input" id="filter_nphot" type="text" placeholder="min:max">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">#spec:</p>
       <input class="filter-input" id="filter_nspec" type="text" placeholder="min:max">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">#lc:</p>
       <input class="filter-input" id="filter_nlc" type="text" placeholder="min:max">
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Class:</p>
       <input class="filter-input" id="filter_class" type="text" placeholder="class">
    </div>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Type: </p>
       <ul id="classification_options">
@@ -79,9 +79,9 @@
          <li><label for="id_classtype_1"><input id="id_classtype_1" name="status" type="checkbox" value="SP" /> Spectroscopic</label></li>
       </ul>
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Status: </p>
       <ul id="status_options">
@@ -91,18 +91,18 @@
          <li><label for="id_status_3"><input id="id_status_3" name="status" type="radio" value="NE" /> New</label></li>
       </ul>
    </div>
-   
+
    <hr>
-   
+
    <div class="table-filter-item">
       <p class="filter-label">Tags:</p>
       <ul id="tag_filter_options">
       </ul>
    </div>
-   
+
    <input type="submit" class="button filter" id="submit-search" value="Apply">
    </form>
-   
+
 </div>
 
 <section>
@@ -154,6 +154,696 @@
    <div id='tag-error' class='error-message'></div>
    <ul id="tagOptions">
    </ul>
+</div>
+
+<div id="addSystems">
+    <div id='bulk-add' class='bulk-system-upload'>
+    <fieldset>
+    <legend>Add Multiple Systems via .csv File</legend>
+    <div class="ui-controlgroup-horizontal">
+    <form action="{% url "systems:star_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload" id="system-upload-form">
+      <h3> Add new Systems </h3>
+      {% if user.is_authenticated %}
+      {% csrf_token %}
+      {% if upload_form.non_field_errors %}
+      <p>{{ upload_form.non_field_errors }}</p>
+      {% endif %}
+
+      <p>
+      {{ upload_form.system.errors }}
+      {{ upload_form.system }}
+      </p>
+
+      <input id="system-add-upload-button" type="submit" class="material-icons button" value="file_upload"/>
+      {% else %}
+      <p> Log in to upload files! </p>
+      {% endif %}
+    </form>
+    </div>
+    <a href="/media/docs/Bulk_system_example.csv"><p class="add-system-csv-example">Example .csv file</p></a>
+    </fieldset>
+    </div>
+
+   <div id='single-add' class='single-system-form'>
+
+   <fieldset>
+   <legend>Add Single System by Form</legend>
+        <div class="ui-controlgroup-horizontal">
+
+        <form action="{% url "systems:star_list" project.slug %}" method="post" enctype="multipart/form-data" class="" id="system-detail-upload-form">
+
+        {% if user.is_authenticated %}
+            {% csrf_token %}
+
+        <fieldset>
+
+
+        <legend>Tags</legend>
+            <ul id="add-option-tags">
+                {{ form_detail.tags }}
+            </ul>
+
+        </fieldset>
+
+        <fieldset>
+        <legend>Name and values*</legend>
+        <div class="cg-block">
+            <table class="system-form-table">
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.main_id.id_for_label }}">Name (main id):</label>
+                    </td>
+                    <td>
+                        {{ form_detail.main_id }}
+                        <span class="error"> {{ form_detail.main_id.errors.as_text }} </span>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.ra.id_for_label }}">Right ascension:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.ra }}
+                        <span class="error"> {{ form_detail.ra.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.dec.id_for_label }}">Declination:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.dec }}
+                        <span class="error"> {{ form_detail.dec.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.sp_type.id_for_label }}">Spectral Type:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.sp_type }}
+                        <span class="error"> {{ form_detail.sp_type.errors.as_text }} </span>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.parallax.id_for_label }}">Parallax:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.parallax }}
+                        <span class="error"> {{ form_detail.parallax.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.parallax_error.id_for_label }}">Parallax Error:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.parallax_error }}
+                        <span class="error"> {{ form_detail.parallax_error.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        </fieldset>
+
+        <fieldset>
+        <legend>Proper Motion</legend>
+        <div class="cg-block">
+            <table class="system-form-table">
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.pmra_x.id_for_label }}">Right ascension:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.pmra_x }}
+                        <span class="error"> {{ form_detail.pmra_x.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.pmra_error.id_for_label }}">Error:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.pmra_error }}
+                        <span class="error"> {{ form_detail.pmra_error.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.pmdec_x.id_for_label }}">Declination:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.pmdec_x }}
+                        <span class="error"> {{ form_detail.pmdec_x.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.pmdec_error.id_for_label }}">Error:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.pmdec_error }}
+                        <span class="error"> {{ form_detail.pmdec_error.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        </fieldset>
+
+        <fieldset><legend>Gaia DR2 photometry</legend>
+        <div class="cg-block">
+            <table class="system-form-table">
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.phot_g_mean_mag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.phot_g_mean_mag }}
+                        <span class="error"> {{ form_detail.phot_g_mean_mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.phot_bp_mean_mag.id_for_label }}">Gbp:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.phot_bp_mean_mag}}
+                        <span class="error"> {{ form_detail.phot_bp_mean_mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.phot_rp_mean_mag.id_for_label }}">Grp:</label>
+                    </td>
+                    <td>
+                        {{ form_detail.phot_rp_mean_mag }}
+                        <span class="error"> {{ form_detail.phot_rp_mean_mag.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        </fieldset>
+
+        <fieldset><legend>UV (Galex) photometry</legend>
+        <div class="cg-block">
+            <table class="system-form-table">
+                <tr>
+                    <td>
+                        <label for="{{ form_detail.FUV.id_for_label }}">Far-UV (FUV):  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.FUV }}
+                        <span class="error"> {{ form_detail.FUV.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.NUV.id_for_label }}">Near-UV (NUV):  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.NUV }}
+                        <span class="error"> {{ form_detail.NUV.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        </fieldset>
+
+        <fieldset>
+        <legend>
+            <span id="system-form-instrument-select">{{ form_detail.instrument }}</span> photometry</legend>
+        <div class="cg-block">
+            <table class="system-form-table" id="form-photometry">
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.Jmag.id_for_label }}">J:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Jmag }}
+                        <span class="error"> {{ form_detail.Jmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Jmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Jmagerr }}
+                        <span class="error"> {{ form_detail.Jmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.Hmag.id_for_label }}">H:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Hmag }}
+                        <span class="error"> {{ form_detail.Hmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Hmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Hmagerr }}
+                        <span class="error"> {{ form_detail.Hmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.Kmag.id_for_label }}">K:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Kmag }}
+                        <span class="error"> {{ form_detail.Kmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Kmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Kmagerr }}
+                        <span class="error"> {{ form_detail.Kmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.W1mag.id_for_label }}">W1:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W1mag }}
+                        <span class="error"> {{ form_detail.W1mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W1magerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W1magerr }}
+                        <span class="error"> {{ form_detail.W1magerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.W2mag.id_for_label }}">W2:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W2mag }}
+                        <span class="error"> {{ form_detail.W2mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W2magerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W2magerr }}
+                        <span class="error"> {{ form_detail.W2magerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.W3mag.id_for_label }}">W3:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W3mag }}
+                        <span class="error"> {{ form_detail.W3mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W3magerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W3magerr }}
+                        <span class="error"> {{ form_detail.W3magerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td>
+                        <label for="{{ form_detail.W4mag.id_for_label }}">W4:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W4mag }}
+                        <span class="error"> {{ form_detail.W4mag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.W4magerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.W4magerr }}
+                        <span class="error"> {{ form_detail.W4magerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Umag.id_for_label }}">J:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Umag }}
+                        <span class="error"> {{ form_detail.Umag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Umagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Umagerr }}
+                        <span class="error"> {{ form_detail.Umagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Vmag.id_for_label }}">V:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Vmag }}
+                        <span class="error"> {{ form_detail.Vmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Vmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Vmagerr }}
+                        <span class="error"> {{ form_detail.Vmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Gmag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Gmag }}
+                        <span class="error"> {{ form_detail.Gmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Gmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Gmagerr }}
+                        <span class="error"> {{ form_detail.Gmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Rmag.id_for_label }}">R:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Rmag }}
+                        <span class="error"> {{ form_detail.Rmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Rmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Rmagerr }}
+                        <span class="error"> {{ form_detail.Rmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Imag.id_for_label }}">I:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Imag }}
+                        <span class="error"> {{ form_detail.Imag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Imagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Imagerr }}
+                        <span class="error"> {{ form_detail.Imagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SKYMAP'>
+                    <td>
+                        <label for="{{ form_detail.Zmag.id_for_label }}">Z:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Zmag }}
+                        <span class="error"> {{ form_detail.Zmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.Zmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.Zmagerr }}
+                        <span class="error"> {{ form_detail.Zmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APBmag.id_for_label }}">B:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APBmag }}
+                        <span class="error"> {{ form_detail.APBmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APBmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APBmagerr }}
+                        <span class="error"> {{ form_detail.APBmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APVmag.id_for_label }}">V:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APVmag }}
+                        <span class="error"> {{ form_detail.APVmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APVmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APVmagerr }}
+                        <span class="error"> {{ form_detail.APVmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APGmag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APGmag }}
+                        <span class="error"> {{ form_detail.APGmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APGmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APGmagerr }}
+                        <span class="error"> {{ form_detail.APGmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APRmag.id_for_label }}">R:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APRmag }}
+                        <span class="error"> {{ form_detail.APRmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APRmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APRmagerr }}
+                        <span class="error"> {{ form_detail.APRmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='APASS'>
+                    <td>
+                        <label for="{{ form_detail.APImag.id_for_label }}">I:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APImag }}
+                        <span class="error"> {{ form_detail.APImag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.APImagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.APImagerr }}
+                        <span class="error"> {{ form_detail.APImagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSUmag.id_for_label }}">J:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSUmag }}
+                        <span class="error"> {{ form_detail.SDSSUmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSUmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSUmagerr }}
+                        <span class="error"> {{ form_detail.SDSSUmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSGmag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSGmag }}
+                        <span class="error"> {{ form_detail.SDSSGmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSGmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSGmagerr }}
+                        <span class="error"> {{ form_detail.SDSSGmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSRmag.id_for_label }}">R:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSRmag }}
+                        <span class="error"> {{ form_detail.SDSSRmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSRmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSRmagerr }}
+                        <span class="error"> {{ form_detail.SDSSRmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSImag.id_for_label }}">I:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSImag }}
+                        <span class="error"> {{ form_detail.SDSSImag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSImagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSImagerr }}
+                        <span class="error"> {{ form_detail.SDSSImagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='SDSS'>
+                    <td>
+                        <label for="{{ form_detail.SDSSZmag.id_for_label }}">Z:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSZmag }}
+                        <span class="error"> {{ form_detail.SDSSZmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.SDSSZmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.SDSSZmagerr }}
+                        <span class="error"> {{ form_detail.SDSSZmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANGmag.id_for_label }}">G:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANGmag }}
+                        <span class="error"> {{ form_detail.PANGmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANGmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANGmagerr }}
+                        <span class="error"> {{ form_detail.PANGmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANRmag.id_for_label }}">R:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANRmag }}
+                        <span class="error"> {{ form_detail.PANRmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANRmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANRmagerr }}
+                        <span class="error"> {{ form_detail.PANRmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANImag.id_for_label }}">I:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANImag }}
+                        <span class="error"> {{ form_detail.PANImag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANImagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANImagerr }}
+                        <span class="error"> {{ form_detail.PANImagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANZmag.id_for_label }}">Z:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANZmag }}
+                        <span class="error"> {{ form_detail.PANZmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANZmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANZmagerr }}
+                        <span class="error"> {{ form_detail.PANZmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='PANSTAR'>
+                    <td>
+                        <label for="{{ form_detail.PANYmag.id_for_label }}">Y:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANYmag }}
+                        <span class="error"> {{ form_detail.PANYmag.errors.as_text }} </span>
+                    </td>
+                    <td>
+                        <label for="{{ form_detail.PANYmagerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.PANYmagerr }}
+                        <span class="error"> {{ form_detail.PANYmagerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        </fieldset>
+
+        </div>
+
+        <p class="add-system-footnote">Blocks marked with a '*' are required</p>
+
+        <div class="system-form-submit">
+            <input type="submit" class="system-form-submit-button" value="Add System"/>
+        </div>
+
+        {% else %}
+            <p> Log in to upload files! </p>
+        {% endif %}
+
+        </form>
+
+    </fieldset>
+   </div>
+   <div id='bulk-add' class='bulk-system-form'></div>
 </div>
 
 <script type="text/javascript" src="{% static 'js/stars_list.js' %}"></script>

@@ -70,7 +70,7 @@ def star_list(request, project=None, **kwargs):
                         messages.add_message(
                             request,
                             messages.ERROR,
-                            "Exception occurred when adding: " + str(f.name),
+                            "Exception: {} is not a .csv file".format(f.name),
                         )
                         continue
                     systems = csv.DictReader(io.TextIOWrapper(f.file))
@@ -85,7 +85,6 @@ def star_list(request, project=None, **kwargs):
                                 request,
                                 messages.ERROR,
                                 "Exception occurred when adding: " + str(f.name),
-                                # "Object already exists:" + str(star["main_id"]),
                             )
                         # except:
                         # messages.add_message(
@@ -105,9 +104,6 @@ def star_list(request, project=None, **kwargs):
                 request.FILES,
             )
             if upload_form_detail.is_valid():
-
-                # print( "valid")
-                # print (upload_form_detail.cleaned_data)
                 try:
                     success, message = mk_new_system(
                         upload_form_detail.cleaned_data,
@@ -164,10 +160,7 @@ def mk_new_system(star, project):
     # print("duplicates", duplicates)
 
     if len(duplicates) != 0:
-        return False, "System exists already:" + star["main_id"]
-        # raise Exception(
-        # "System exists already:"+star["main_id"]
-        # )
+        return False, "System exists already: " + star["main_id"]
 
     #   Initialize star model
     sobj = Star(
@@ -191,11 +184,12 @@ def mk_new_system(star, project):
         sobj.identifier_set.create(name=star['JNAME'])
 
     # -- Add Tags
+    if 'tags' in star:
+        for tag in star["tags"]:
+            sobj.tags.add(tag)
 
-    for tag in star["tags"]:
-        sobj.tags.add(tag)
-
-    # -- Add photometry
+    #-- Add photometry
+    #   Internal photometry names
     passbands = [
         'GAIA2.G',
         'GAIA2.BP',
@@ -231,6 +225,7 @@ def mk_new_system(star, project):
         'PANSTAR.Z',
         'PANSTAR.Y',
     ]
+    #   CSV or form names
     photnames = [
         'phot_g_mean_mag',
         'phot_bp_mean_mag',
@@ -266,6 +261,7 @@ def mk_new_system(star, project):
         'PANZmag',
         'PANYmag'
     ]
+    #   Error names
     errs = ['phot_g_mean_magerr',
             'phot_bp_mean_magerr',
             'phot_rp_mean_magerr',
@@ -301,18 +297,39 @@ def mk_new_system(star, project):
             'PANYmagerr']
 
     for i, phot in enumerate(photnames):
-        if star[phot] != None and star[phot] != "":
-            sobj.photometry_set.create(
-                band=passbands[i],
-                measurement=star[phot],
-                error=star[errs[i]],
-                unit='mag',
-            )
+        #   Check if photometry band was provided
+        if phot in star:
+            #   Check if photometry error was provided
+            if phot in star:
+                if errs[i] in star:
+                    if (star[phot] != None and star[phot] != "" and
+                        star[errs[i]] != None and star[errs[i]] != ""):
+                        sobj.photometry_set.create(
+                            band=passbands[i],
+                            measurement=star[phot],
+                            error=star[errs[i]],
+                            unit='mag',
+                        )
+                    elif star[phot] != None and star[phot] != "":
+                        sobj.photometry_set.create(
+                            band=passbands[i],
+                            measurement=star[phot],
+                            error=0.,
+                            unit='mag',
+                        )
+                else:
+                    if star[phot] != None and star[phot] != "":
+                        sobj.photometry_set.create(
+                            band=passbands[i],
+                            measurement=star[phot],
+                            error=0.,
+                            unit='mag',
+                        )
 
     # -- Add parameters from gaia DR2
     if (star['parallax'] != None or
-            star['pmra_x'] != None or
-            star['pmdec_x'] != None):
+        star['pmra_x'] != None or
+        star['pmdec_x'] != None):
 
         try:
             dsgaia = DataSource.objects.get(

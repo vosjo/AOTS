@@ -26,6 +26,9 @@ def extract_header_info(header, user_info={}):
         data = derive_MUSICOS_info(header)
     elif header.get('INSTRUME', '') in ['MODS1B', 'MODS1R', 'MODS2B', 'MODS2R']:
         data = derive_MODS_info(header)
+    elif ('SOAR 4.1m' in header.get('TELESCOP', '') and
+          'Goodman Spectro' in header.get('INSTRUME', '')):
+        data = derive_soar_info(header)
     elif 'SDSS' in header.get('TELESCOP', ''):
         data = derive_SDSS_info(header)
     elif 'LAMOST' in header.get('TELESCOP', ''):
@@ -69,48 +72,84 @@ def extract_header_raw(header, user_info={}):
     return data
 
 def get_observatory(header, project):
-   """
-   Finds a suitable observatory or if not possible, create a new one.
-   """
+    """
+        Finds a suitable observatory or if not possible, create a new one.
+    """
 
-   d = 0.1  # a difference of 0.1 degree in latitude and longitude is roughly 10 km
+    #   Maximum tolerable deviation in the coordinates
+    #   -> a difference of 0.1 degree in latitude and longitude is roughly 10 km
+    d = 0.1
 
-   #-- try to find the observatory on name match
-   if 'TELESCOP' in header:
-      try:
-         obs = Observatory.objects.get(telescopes__icontains = header['TELESCOP'], project__exact = project)
-         return obs
-      except Exception as e:
-         telescope = header.get('TELESCOP', 'UK')
+    #    Try to find the observatory on name match
+    if 'TELESCOP' in header:
+        try:
+            obs = Observatory.objects.get(
+                telescopes__icontains = header['TELESCOP'],
+                project__exact = project,
+                )
+            return obs
+        except Exception as e:
+            telescope = header.get('TELESCOP', 'UK')
 
-   #-- try to find observatory on location match
-   if 'OBSGEO-X' in header:
-      x, y, z = header.get('OBSGEO-X', 0), header.get('OBSGEO-Y', 0), header.get('OBSGEO-Z', 0)
-      loc = EarthLocation.from_geocentric(x=x*u.m, y=y*u.m, z=z*u.m,)
-   elif 'ESO TEL GEOLAT' in header:
-      lat, lon, alt = header.get('ESO TEL GEOLAT', 0), header.get('ESO TEL GEOLON', 0), header.get('ESO TEL GEOELEV', 0)
-      loc = EarthLocation.from_geodetic(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m,)
-   elif 'GEOLAT' in header:
-      lat, lon, alt = header.get('GEOLAT', 0), header.get('GEOLON', 0), header.get('GEOALT', 0)
-      loc = EarthLocation.from_geodetic(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m,)
-   else:
-      loc = EarthLocation.from_geodetic(lat=0*u.deg, lon=0*u.deg, height=0*u.m,)
+    #   Try to find observatory on location match
+    if 'OBSGEO-X' in header:
+        x, y = header.get('OBSGEO-X', 0), header.get('OBSGEO-Y', 0)
+        z    = header.get('OBSGEO-Z', 0)
+        loc = EarthLocation.from_geocentric(x=x*u.m, y=y*u.m, z=z*u.m,)
+    elif 'ESO TEL GEOLAT' in header:
+        lat = header.get('ESO TEL GEOLAT', 0)
+        lon = header.get('ESO TEL GEOLON', 0)
+        alt = header.get('ESO TEL GEOELEV', 0)
+        loc = EarthLocation.from_geodetic(
+            lat=lat*u.deg,
+            lon=lon*u.deg,
+            height=alt*u.m,
+            )
+    elif 'GEOLAT' in header:
+        lat, lon = header.get('GEOLAT', 0), header.get('GEOLON', 0)
+        alt      = header.get('GEOALT', 0)
+        loc = EarthLocation.from_geodetic(
+            lat=lat*u.deg,
+            lon=lon*u.deg,
+            height=alt*u.m,
+            )
+    elif 'LATITUDE' in header and 'LONGITUD' in header:
+        lat, lon = header.get('LATITUDE', 0), header.get('LONGITUD', 0)
+        alt      = header.get('ELEVATIO', 0)
+        loc = EarthLocation.from_geodetic(
+            lat=lat*u.deg,
+            lon=lon*u.deg,
+            height=alt*u.m,
+            )
+    else:
+        loc = EarthLocation.from_geodetic(
+            lat=0*u.deg,
+            lon=0*u.deg,
+            height=0*u.m,
+            )
 
-   #-- we look for an observatory that is within 1 degree from location stored in the header, altitude is not checked.
-   obs = Observatory.objects.filter(latitude__range = (loc.lat.degree-d, loc.lat.degree+d),
-                                    longitude__range = (loc.lon.degree-d, loc.lon.degree+d),
-                                    project__exact = project)
+    #   We look for an observatory that is within 1 degree from location stored
+    #   in the header, altitude is not checked.
+    obs = Observatory.objects.filter(
+        latitude__range = (loc.lat.degree-d, loc.lat.degree+d),
+        longitude__range = (loc.lon.degree-d, loc.lon.degree+d),
+        project__exact = project,
+        )
 
-   if len(obs) > 0:
-      return obs[0]
+    if len(obs) > 0:
+        return obs[0]
 
+    #   If still no observatory exists, create a new one.
+    obs = Observatory(
+        name=telescope,
+        latitude=loc.lat.degree,
+        longitude=loc.lon.degree,
+        altitude=loc.height.value,
+        project=project,
+        )
+    obs.save()
 
-   #-- if still no observatory exists, create a new one.
-   obs = Observatory(name=telescope, latitude=loc.lat.degree, longitude=loc.lon.degree,
-                     altitude=loc.height.value, project=project)
-   obs.save()
-
-   return obs
+    return obs
 
 
 def derive_generic_info(header):
@@ -213,6 +252,51 @@ def derive_generic_raw(header):
     return data
 
 
+def derive_soar_info(header):
+    """
+    Tries to read some basic information from a unknown spectrum
+
+    This information is stored in the spectrum database entry
+    """
+
+    data = {}
+
+    #   HJD
+    if 'DATE-OBS' in header:
+        date        = header.get('DATE-OBS', '2000-00-00')
+        if 'T' not in date:
+            if 'UT' in header:
+                ut          = header.get('UT', '00:00:00.0')
+                data['hjd'] = Time(date+'T'+ut, format='fits').jd
+        else:
+            data['hjd'] = Time(
+                header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'),
+                format='fits'
+                ).jd
+    else:
+        data['hjd'] = 2400000
+
+    #   Pointing info
+    data['objectname'] = header.get('OBJECT', '')
+
+    data['ra'] = Angle(header.get('RA', 0.), unit='hour').degree
+    data['dec'] = Angle(header.get('DEC', 0.), unit='degree').degree
+
+    #   Telescope and instrument info
+    data['instrument'] = header.get('INSTRUME', 'UK')
+    data['telescope'] = header.get('TELESCOP', 'UK')
+    data['exptime'] = np.round(header.get('EXPTIME', -1), 0)
+    data['observer'] = header.get('OBSERVER', 'UK')
+
+    data['seeing'] = header.get('SEEING', -1)
+    data['airmass'] = header.get('AIRMASS', -1)
+
+    data['fluxcal']      = True
+    data['filetype'] = header.get('INSTCONF', 'UK')
+
+    return data
+
+
 def derive_eso_info(header):
    """
    Reads header information from a standard ESO fits file
@@ -247,6 +331,8 @@ def derive_eso_info(header):
 
    data['snr'] = header.get('SNR', -1)
 
+   if data['instrument'] == 'XSHOOTER':
+      data['fluxcal'] = True
 
    # observing conditions
    data['wind_speed'] = np.round(header.get('ESO TEL AMBI WINDSP', -1), 1)
@@ -326,6 +412,7 @@ def derive_MODS_info(header):
             data['resolution'] = 2300
     data['observer']     = header.get('OBSERVER', 'UK')
     data['filetype']     = 'MODS_final_' + header.get('GRATNAME', '').strip()
+    data['fluxcal']      = True
 
     return data
 
@@ -475,6 +562,8 @@ def derive_MUSICOS_info(header):
    data['seeing'] = header.get('SEEING', -1)
 
    data['filetype'] = 'MUSICOS_final'
+
+   data['normalized'] = True
 
    return data
 

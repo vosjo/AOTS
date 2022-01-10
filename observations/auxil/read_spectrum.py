@@ -110,12 +110,15 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
     spectrum.seeing = data.get('seeing', -1)
 
     #    Flux unit & calibrated flux?
+    spectrum.fluxcal    = data.get('fluxcal', False)
+    spectrum.flux_units = data.get('flux_units', 'arbitrary unit')
+
+    if spectrum.fluxcal:
+        spectrum.flux_units = data.get('flux_units', 'ergs/cm/cm/s/A')
+
     if spectrum.normalized:
         spectrum.flux_units = 'normalized'
         spectrum.fluxcal    = False
-    else:
-        spectrum.flux_units = data.get('flux_units', 'ergs/cm/cm/s/A')
-        spectrum.fluxcal    = data.get('fluxcal', True)
 
     #    Note
     spectrum.note = data.get('note', '')
@@ -474,8 +477,11 @@ def add_userinfo(user_info_dict, spectrum_pk, added_by=None):
     '''
         Add user infos to UserInfo model
     '''
+    #   Get Spectrum
+    spectrum = Spectrum.objects.get(pk=spectrum_pk)
+
     #   Get new UserInfo model
-    info_model = UserInfo(added_by=added_by)
+    info_model = UserInfo(added_by=added_by, project=spectrum.project)
 
     #   Fill model
     for key, value in user_info_dict.items():
@@ -483,9 +489,6 @@ def add_userinfo(user_info_dict, spectrum_pk, added_by=None):
 
     #   Save changes
     info_model.save()
-
-    #   Get Spectrum
-    spectrum = Spectrum.objects.get(pk=spectrum_pk)
 
     #   Check if Spectrum is already associated with a UserInfo instance
     user_infos = spectrum.userinfo_set.all()

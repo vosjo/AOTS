@@ -12,8 +12,7 @@ $(document).ready(function () {
 
    // Table functionality
    observatory_table = $('#observatorytable').DataTable({
-      autoWidth: false,
-      pageLength: 25,
+      serverSide: true,
       ajax: {
          url: '/api/observations/observatories/?format=datatables&keep=url&keep=short_name',
          data: function ( d ) {
@@ -23,14 +22,20 @@ $(document).ready(function () {
       columns: [
          { data: 'name', render: name_render },
          { data: 'telescopes'},
-         { data: 'latitude'},
-         { data: 'longitude'},
-         { data: 'altitude' },
+         { data: 'latitude', render: round_three },
+         { data: 'longitude', render: round_three },
+         { data: 'altitude', render: round },
          { data: 'space_craft', render: spacecraft_render },
          { data: 'note' },
          { data: 'pk', render: action_render, width: '100',
          className: 'dt-center', visible: user_authenticated},
-      ]
+      ],
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]],
+      scrollY: $(window).height() - $('header').outerHeight(true) - 196,
+      scrollCollapse: true,
+      autoWidth: true,
    });
 
    function name_render( data, type, full, meta ) {
@@ -43,6 +48,22 @@ $(document).ready(function () {
       } else {
          return "<i class='material-icons status-icon invalid'></i>"
       }
+   }
+
+   function round( data, type, full, meta ) {
+       if ( data ) {
+            return Math.round(data)
+       } else {
+            return 0
+       }
+   }
+
+   function round_three( data, type, full, meta ) {
+       if ( data ) {
+            return Math.round(data*1000) / 1000
+       } else {
+            return 0
+       }
    }
 
    function action_render( data, type, full, meta ) {

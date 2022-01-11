@@ -339,7 +339,10 @@ function deselect_row(row) {
 // Edit status and tags functionality
 
 function load_tags () {
-   // load all tags and add them to the window
+   //   Clear tag options of the add-system form
+   $("#id_tags").empty();
+
+   //   Load all tags and add them to the window
    $.ajax({
       url : "/api/systems/tags/?project="+$('#project-pk').attr('project'),
       type : "GET",
@@ -358,8 +361,7 @@ function load_tags () {
             tag['pk'] + "' />" + tag['name'] + "</label></li>");
 
             //  Add tag options to add-system form
-            $("#id_tags").empty();
-            $('#id_tags').append('<li><label for="id_tags_'+i+'"><input id="id_tags_'+i+'" type="checkbox" name="tags" value="'+tag['pk']+'"> '+tag['name']+'</label></li>')
+            $('#id_tags').append('<li><label for="id_tags_'+i+'"><input id="id_tags_'+i+'" type="checkbox" name="tags" value="'+tag['pk']+'"> '+tag['name'].replace(/\_/g, ' ')+'</label></li>')
 
          }
 

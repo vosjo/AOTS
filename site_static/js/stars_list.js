@@ -157,6 +157,7 @@ $(document).ready(function () {
    $( "#delete-button").click( deleteSystems );
    $( "#addsystem-button").click( openAddSystemsWindow );
 
+
     //   Reset check boxes when changing number of displayed objects in table
     $('#datatable_length').change(function() {
         star_table.rows().every( function (rowIdx, tableLoop, rowLoop) {
@@ -356,17 +357,16 @@ function load_tags () {
             "<li><label><input id='id_status_" + i + "' name='tags' type='radio' value='" +
             tag['pk'] + "' />" + tag['name'] + "</label></li>");
 
+            //  Add tag options to add-system form
+            $("#id_tags").empty();
+            $('#id_tags').append('<li><label for="id_tags_'+i+'"><input id="id_tags_'+i+'" type="checkbox" name="tags" value="'+tag['pk']+'"> '+tag['name']+'</label></li>')
+
          }
 
          $('#tagOptions').on('change', ':checkbox', function(event){ cylceTristate(event, this); });
 
          $('input[type=radio]').click(allow_unselect);
 
-         /*// add tag options to add-system form
-         for (let tag in all_tags ) {
-            tag = all_tags[tag]
-            $('#add-option-tags').append("<li><label><input type='checkbox' name='add-tag' value="+tag["pk"]+">"+tag['name']+"</label></option>")
-         }*/
       },
       error : function(xhr,errmsg,err) {
          console.log(xhr.status + ": " + xhr.responseText);

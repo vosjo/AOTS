@@ -33,16 +33,12 @@ class UploadSpectraDetailForm(forms.Form):
     ra                  = RAField(
         max_length=15,
         required=False,
-        widget=forms.TextInput(
-            attrs={'placeholder':'  h:m:s or d.d°'}
-            ),
+        widget=forms.TextInput(attrs={'placeholder':'  h:m:s or d.d°'}),
         )
     dec                 = DecField(
         max_length=15,
         required=False,
-        widget=forms.TextInput(
-            attrs={'placeholder':'  °:\':\'\'   or d.d°'}
-            ),
+        widget=forms.TextInput(attrs={'placeholder':'  ° : \' : \'\' or d.d°'}),
         )
     create_new_star     = forms.BooleanField(initial=True, required=False)
     classification      = forms.CharField(max_length=50, required=False)

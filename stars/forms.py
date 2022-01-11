@@ -238,10 +238,18 @@ class UploadSystemForm(forms.Form):
 class UploadSystemDetailForm(forms.Form):
     #   Target
     main_id = forms.CharField(max_length=50, required=True)
-    ra = forms.CharField(max_length=15, required=True)
-    dec = forms.CharField(max_length=15, required=True)
-    # ra      = forms.FloatField(required=True)
-    # dec     = forms.FloatField(required=True)
+    #ra = forms.CharField(max_length=15, required=True)
+    #dec = forms.CharField(max_length=15, required=True)
+    ra  = RAField(
+        max_length=20,
+        required=True,
+        widget=forms.TextInput(attrs={'placeholder':'  h:m:s or d.d°'}),
+        )
+    dec = DecField(
+        max_length=20,
+        required=True,
+        widget=forms.TextInput(attrs={'placeholder':'  ° : \' : \'\' or d.d°'}),
+        )
 
     #   Spectral type
     sp_type = forms.CharField(max_length=30, required=False)
@@ -338,13 +346,12 @@ class UploadSystemDetailForm(forms.Form):
     PANZmagerr = forms.FloatField(required=False)
     PANYmagerr = forms.FloatField(required=False)
 
-    taglist = []
-    ALLTAGS = Tag.objects.all()
-    for tag in ALLTAGS:
-        taglist.append((tag.pk, tag.name))
-
-    tags = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
-                                     choices=taglist, required=False)
+    tags = forms.ModelMultipleChoiceField(
+        label='Tags',
+        queryset=Tag.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        )
 
     INSTRUMENTS = (
         ('JHKWISE', 'JHK and WISE'),

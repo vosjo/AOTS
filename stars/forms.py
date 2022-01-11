@@ -18,12 +18,11 @@ class RAField(forms.CharField):
 
     def clean(self, value):
         if not value:
-            #return 0.0
             return None
         value = value.strip()
 
         #   Check if a decimal or hexadecimal number was given
-        if re.match('^\d+\.\d+$', value):
+        if re.match('^\d+\.\d+$', value) or re.match('^\d+\.+$', value):
             if float(value) > 360 or float(value) < 0:
                 raise ValidationError(self.errormessage, code='invalid_ra')
             else:
@@ -44,13 +43,12 @@ class DecField(forms.CharField):
 
     def clean(self, value):
         if not value:
-            #return 0.0
             return None
 
         value = value.strip()
 
         #   Check if a decimal or hexadecimal number was given
-        if re.match('^\d+\.\d+$', value):
+        if re.match('^\d+\.\d+$', value) or re.match('^\d+\.+$', value):
             if float(value) < -90 or float(value) > 90:
                 raise ValidationError(self.errormessage, code='invalid_dec')
             else:

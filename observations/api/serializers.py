@@ -115,44 +115,10 @@ class UserInfoSerializer(ModelSerializer):
 
     spectrum    = SerializerMethodField()
     observatory = SerializerMethodField()
-    #specfiles = SerializerMethodField()
-    #href = SerializerMethodField()
 
     class Meta:
         model = UserInfo
         exclude = ['added_on', 'last_modified', 'added_by']
-        #fields = [
-            #'pk',
-            #'spectrum',
-            #'filetype',
-            #'objectname',
-            #'ra',
-            #'dec',
-            #'classification',
-            #'classification_type',
-            #'observatory',
-            #'observatory_name',
-            #'observatory_latitude',
-            #'observatory_longitude',
-            #'observatory_altitude',
-            #'observatory_is_spacecraft',
-            #'telescope',
-            #'instrument',
-            #'hjd',
-            #'exptime',
-            #'resolution',
-            #'snr',
-            #'observer',
-            #'wind_speed',
-            #'wind_direction',
-            #'seeing',
-            #'airmass',
-            #'normalized',
-            #'barycor_bool',
-            #'fluxcal',
-            #'flux_units',
-            #'note',
-            #]
         read_only_fields = ('pk',)
 
     def get_spectrum(self, obj):
@@ -166,14 +132,6 @@ class UserInfoSerializer(ModelSerializer):
             return obj.observatory.name
         except:
             return ''
-
-    #def get_specfiles(self, obj):
-        #specfiles = SimpleSpecFileSerializer(obj.specfile_set, many=True).data
-        #return specfiles
-
-    #def get_href(self, obj):
-        #return reverse('observations:spectrum_detail', kwargs={'project':obj.project.slug, 'spectrum_id':obj.pk})
-
 
 # ===============================================================
 # SPECFILE

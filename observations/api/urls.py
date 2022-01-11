@@ -1,12 +1,10 @@
-
-#from django.conf.urls import include, url
-
 from django.urls import include, path
 
 from rest_framework import routers
 
 from .views import (
    SpectrumViewSet,
+   UserInfoViewSet,
    SpecFileViewSet,
    RawSpecFileViewSet,
    processSpectrum,
@@ -26,6 +24,7 @@ app_name = 'observations-api'
 
 router = routers.DefaultRouter()
 router.register(r'spectra', SpectrumViewSet)
+router.register(r'userinfo', UserInfoViewSet)
 router.register(r'specfiles', SpecFileViewSet)
 router.register(r'rawspecfiles', RawSpecFileViewSet)
 router.register(r'lightcurves', LightCurveViewSet)

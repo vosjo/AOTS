@@ -112,6 +112,18 @@ function statusNorm() {
         $('#id_order').attr('disabled', false);
         $('#div-order').attr('class', 'Wrapper');
     }
+
+    //  Check if spectrum is already normalized -> no normalization necessary
+    let normSensible = $("#normalized").attr('normalized');
+
+    //  Disable normalization if true
+    if (normSensible == 'true') {
+        $('#id_normalize').attr('disabled', true);
+        $('#div-norm').attr('class', 'Wrapper_gray');
+
+        $('#id_order').attr('disabled', true);
+        $('#div-order').attr('class', 'Wrapper_gray');
+    }
 };
 
 

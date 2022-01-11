@@ -4,7 +4,13 @@ from django.contrib import messages
 
 from django.db.models import Sum
 
-from .models import Spectrum, SpecFile, LightCurve, Observatory, RawSpecFile
+from .models import (
+    Spectrum,
+    SpecFile,
+    RawSpecFile,
+    LightCurve,
+    Observatory,
+    )
 from stars.models import Star, Project
 
 from .forms import (
@@ -27,19 +33,19 @@ from AOTS.custom_permissions import check_user_can_view_project
 
 @check_user_can_view_project
 def spectra_list(request, project=None,  **kwargs):
-   """
-   simplified version of spectra index page using datatables and restframework api
-   """
+    """
+        Spectra index page using datatables and restframework api
+    """
 
-   project = get_object_or_404(Project, slug=project)
+    project = get_object_or_404(Project, slug=project)
 
-   return render(request, 'observations/spectra_list.html', {'project': project})
+    return render(request, 'observations/spectra_list.html', {'project': project})
 
 
 @check_user_can_view_project
 def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
     '''
-    Show detailed spectrum information
+        Show detailed spectrum information
     '''
 
     #   Load project and spectrum
@@ -118,83 +124,80 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
 
 
 def add_spectra(request, project=None, **kwargs):
-
-   project = get_object_or_404(Project, slug=project)
-
-   print ("add spectrum" )
-
-
-   # Handle file upload
-   if request.method == 'POST' and request.user.is_authenticated:
-      if 'spectrumfile' in request.FILES:
-         upload_form = UploadSpectraDetailForm(request.POST, request.FILES)
-
-         if upload_form.is_valid():
-
-            print( "valid")
-            print (upload_form.cleaned_data)
-
-         else:
-
-            print( "invalid")
-            print (upload_form.cleaned_data)
-
-            #files = request.FILES.getlist('specfile')
-            #for f in files:
-               ##-- save the new specfile
-               #newspec = SpecFile(specfile=f, project=project, added_by=request.user)
-               #newspec.save()
-
-               ##-- now process it and add it to a Spectrum and Object
-               #try:
-                  #success, message = read_spectrum.process_specfile(newspec.pk, create_new_star=True)
-                  #level = messages.SUCCESS if success else messages.ERROR
-                  #messages.add_message(request, level, message)
-               #except Exception as e:
-                  #print(e)
-                  #newspec.delete()
-                  #messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f))
-
-
-            #return HttpResponseRedirect(reverse('observations:specfile_list', kwargs={'project':project.slug}))
-
-   #elif request.method != 'GET' and not request.user.is_authenticated:
-      #messages.add_message(request, messages.ERROR, "You need to login for that action!")
-
-   upload_form = UploadSpectraDetailForm()
-
-   upload_form.fields['observatory'].queryset = Observatory.objects.filter(project__exact=project)
-
-
-   context = {'project': project, 'upload_form': upload_form}
-
-   return render(request, 'observations/spectra_new.html', context)
-
-
-@check_user_can_view_project
-def specfile_list(request, project=None,  **kwargs):
+    '''
+        Spectra upload page
+    '''
 
     #   Set project
     project = get_object_or_404(Project, slug=project)
 
-    #   Initialize upload forms
-    upload_form = UploadSpecFileForm()
-    raw_upload_form = UploadRawSpecFileForm()
-    raw_upload_form.fields['system'].queryset = Star.objects\
-        .filter(project__exact=project.pk)\
-        .exclude(spectrum__isnull=True)
-    raw_upload_form.fields['specfile'].queryset = SpecFile.objects\
-        .filter(project__exact=project.pk)
-
-    # Handle file upload
+    #   Handle file upload
     if request.method == 'POST' and request.user.is_authenticated:
-        #   Specfiles:
-        if 'specfile_field' in request.FILES:
+        if 'spectrumfile' in request.FILES:
             #   Get form
-            upload_form = UploadSpecFileForm(request.POST, request.FILES)
+            upload_form = UploadSpectraDetailForm(request.POST, request.FILES)
+
+            #   Check form validity
             if upload_form.is_valid():
+
+                #   Get form data
+                data = upload_form.cleaned_data
+
+                #   Check submitted infos
+                user_info = read_spectrum.check_form(data)
+
+                #   Check if user information shall be added
+                #       Set 'user_info' to an empty dict, if not
+                if 'add_info' in user_info.keys():
+                    add_info = user_info['add_info']
+                    if not add_info:
+                        user_info = {}
+                else:
+                    user_info = {}
+
+                #   Provided parameters
+                parameters = user_info.keys()
+
+                #   Determine if a new system should be created
+                #   Default: True
+                if 'create_new_star' in parameters:
+                    new = user_info['create_new_star']
+                else:
+                    new = True
+
+                #   Check if observatory is set
+                if 'observatory' in parameters:
+                    obs    = user_info['observatory']
+                    user_info['obs_pk'] = obs.pk
+
+                #   Make new observatory?
+                elif ('observatory_name' in parameters and
+                     'observatory_latitude' in parameters and
+                     'observatory_longitude' in parameters and
+                     'observatory_altitude' in parameters):
+                        obs_name      = user_info['observatory_name']
+                        obs_latitude  = user_info['observatory_latitude']
+                        obs_longitude = user_info['observatory_longitude']
+                        obs_altitude  = user_info['observatory_altitude']
+                        if 'observatory_is_spacecraft' in parameters:
+                            obs_in_space=user_info['observatory_is_spacecraft']
+                        else:
+                            obs_in_space=True
+
+                        observatory = Observatory(
+                            project=project,
+                            name=obs_name,
+                            latitude=obs_latitude,
+                            longitude=obs_longitude,
+                            altitude=obs_altitude,
+                            space_craft=obs_in_space,
+                            )
+                        observatory.save()
+                        user_info['obs_pk'] = observatory.pk
+
                 #   Get files
-                files = request.FILES.getlist('specfile_field')
+                files = request.FILES.getlist('spectrumfile')
+
                 for f in files:
                     #   Save the new specfile
                     newspec = SpecFile(
@@ -209,7 +212,8 @@ def specfile_list(request, project=None,  **kwargs):
                         #   Process specfile
                         success, message = read_spectrum.process_specfile(
                             newspec.pk,
-                            create_new_star=True,
+                            create_new_star=new,
+                            user_info=user_info,
                             )
                         #   Set success/error message
                         if success:
@@ -217,6 +221,25 @@ def specfile_list(request, project=None,  **kwargs):
                         else:
                             level = messages.ERROR
                         messages.add_message(request, level, message)
+
+                        #   Refresh SpecFile from database
+                        newspec.refresh_from_db()
+
+                        if len(user_info) > 0:
+                            #   Save user info in extra model
+                            success, message = read_spectrum.add_userinfo(
+                                user_info,
+                                newspec.spectrum.pk,
+                                added_by=request.user,
+                                )
+
+                            #   Set success/error message
+                            if success:
+                                level = messages.INFO
+                            else:
+                                level = messages.WARNING
+                            messages.add_message(request, level, message)
+
                     except Exception as e:
                         #   Handel error
                         print(e)
@@ -227,16 +250,28 @@ def specfile_list(request, project=None,  **kwargs):
                             "Exception occurred when adding: " + str(f),
                             )
 
+
                 #   Return and redirect
                 return HttpResponseRedirect(reverse(
                     'observations:specfile_list',
                     kwargs={'project':project.slug}
                     ))
+            else:
+                #   Handel invalid forms
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Invalid form. Please try again.",
+                    )
 
-        #   Raw files
-        if 'rawfile' in request.FILES:
-            #   Handel raw files
-            return handel_raw_files(request, project.slug)
+                #   Return and redirect
+                return HttpResponseRedirect(reverse(
+                    'observations:spectra_upload',
+                    kwargs={'project':project.slug}
+                    ))
+                print( "Invalid form:")
+                print (upload_form.cleaned_data)
+
 
     #   Block uploads by anonymous
     elif request.method != 'GET' and not request.user.is_authenticated:
@@ -246,11 +281,33 @@ def specfile_list(request, project=None,  **kwargs):
             "You need to login for that action!",
             )
 
-    #   Set dict for the render
+    #   Initialize upload form
+    upload_form = UploadSpectraDetailForm()
+
+    #   Limit observatories to those of the project
+    upload_form.fields['observatory'].queryset = Observatory.objects\
+        .filter(project__exact=project)
+
+    #   Set dict for the renderer
+    context = {'project': project, 'upload_form': upload_form}
+
+    return render(request, 'observations/spectra_upload.html', context)
+
+
+@check_user_can_view_project
+def specfile_list(request, project=None,  **kwargs):
+    '''
+        SpecFile index page
+    '''
+
+    #   Set project
+    project = get_object_or_404(Project, slug=project)
+
+    #   Set dict for the renderer
     context = {
         'project': project,
-        'upload_form': upload_form,
-        'raw_upload_form': raw_upload_form,
+        #'upload_form': upload_form,
+        #'raw_upload_form': raw_upload_form,
         }
 
     return render(request, 'observations/specfiles_list.html', context)
@@ -258,6 +315,9 @@ def specfile_list(request, project=None,  **kwargs):
 
 @check_user_can_view_project
 def rawspecfile_list(request, project=None,  **kwargs):
+    '''
+        RawFile index page, including raw file upload
+    '''
 
     #   Set project
     project = get_object_or_404(Project, slug=project)
@@ -274,8 +334,50 @@ def rawspecfile_list(request, project=None,  **kwargs):
     if request.method == 'POST' and request.user.is_authenticated:
         #   Raw files
         if 'rawfile' in request.FILES:
-            #   Handel raw files
-            return handel_raw_files(request, project.slug)
+
+            #   Get form
+            raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
+            if raw_upload_form.is_valid():
+                #   Read selected Specfile
+                specfiles = raw_upload_form.cleaned_data['specfile']
+
+                message_list = []
+
+                #   Get files
+                files = request.FILES.getlist('rawfile')
+                for f in files:
+                    #    Save the new raw file
+                    newrawspec = RawSpecFile(
+                        project=project,
+                        added_by=request.user,
+                        )
+                    newrawspec.save()
+                    newrawspec.rawfile.save(f.name, f)
+
+                    #    Now process it and check for duplicates
+                    try:
+                        #   Process raw file
+                        success, message = read_spectrum.process_raw_spec(
+                            newrawspec.pk,
+                            specfiles,
+                            )
+
+                        #   Set success/error message
+                        if success:
+                            level = messages.SUCCESS
+                        else:
+                            level = messages.ERROR
+                        message_list.append([success, message])
+                    except Exception as e:
+                        #   Handel error
+                        print(e)
+                        newrawspec.delete()
+                        message_text = "Exception occurred when adding: "+str(f)
+                        message_list.append([False, message_text])
+
+                return JsonResponse(
+                    {'info':'Data uploaded', 'messages':message_list}
+                    )
 
     #   Block uploads by anonymous
     elif request.method != 'GET' and not request.user.is_authenticated:
@@ -294,59 +396,10 @@ def rawspecfile_list(request, project=None,  **kwargs):
     return render(request, 'observations/rawspecfiles_list.html', context)
 
 
-def handel_raw_files(request, project):
-    '''
-        Handel raw files
-    '''
-    #   Set project
-    project = get_object_or_404(Project, slug=project)
-
-    #   Get form
-    raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
-    if raw_upload_form.is_valid():
-        #   Read selected Specfile
-        specfiles = raw_upload_form.cleaned_data['specfile']
-
-        message_list = []
-
-        #   Get files
-        files = request.FILES.getlist('rawfile')
-        for f in files:
-            #    Save the new raw file
-            newrawspec = RawSpecFile(
-                project=project,
-                added_by=request.user,
-                )
-            newrawspec.save()
-            newrawspec.rawfile.save(f.name, f)
-
-            #    Now process it and check for duplicates
-            try:
-                #   Process raw file
-                success, message = read_spectrum.process_raw_spec(
-                    newrawspec.pk,
-                    specfiles,
-                    )
-
-                #   Set success/error message
-                if success:
-                    level = messages.SUCCESS
-                else:
-                    level = messages.ERROR
-                message_list.append([success, message])
-            except Exception as e:
-                #   Handel error
-                print(e)
-                newrawspec.delete()
-                message_text = "Exception occurred when adding: " + str(f)
-                message_list.append([False, message_text])
-
-        return JsonResponse({'info':'Data uploaded', 'messages':message_list})
-
 @check_user_can_view_project
 def lightcurve_list(request, project=None,  **kwargs):
    """
-   simplified version of spectra index page using datatables and restframework api
+       Lightcurve index page using datatables and restframework api
    """
 
    project = get_object_or_404(Project, slug=project)
@@ -390,59 +443,69 @@ def lightcurve_list(request, project=None,  **kwargs):
 
 @check_user_can_view_project
 def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
-   #-- show detailed spectrum information
+    '''
+        Show detailed information to lightcurves
+    '''
 
-   project = get_object_or_404(Project, slug=project)
+    project = get_object_or_404(Project, slug=project)
 
-   lightcurve = get_object_or_404(LightCurve, pk=lightcurve_id)
+    lightcurve = get_object_or_404(LightCurve, pk=lightcurve_id)
 
-   context = {'period' : None}
+    context = {'period' : None}
 
-   period, binsize = None, 0.001
-   if request.method == 'GET':
-      period = request.GET.get('period', None)
-      try:
-         period = float(period) / 24.
-         context['period'] = period * 24.0
-      except Exception:
-         period = None
+    period, binsize = None, 0.001
+    if request.method == 'GET':
+        period = request.GET.get('period', None)
+        try:
+            period = float(period) / 24.
+            context['period'] = period * 24.0
+        except Exception:
+            period = None
 
+        binsize = request.GET.get('binsize', 0.001)
+        try:
+            binsize = float(binsize)
+        except Exception:
+            binsize = 0.001
 
+        context['binsize'] = binsize
 
-      binsize = request.GET.get('binsize', 0.001)
-      try:
-         binsize = float(binsize)
-      except Exception:
-         binsize = 0.001
+    #-- order all lightcurves belonging to the same star
+    all_instruments = lightcurve.star.lightcurve_set.values_list(
+        'instrument',
+        flat=True,
+        )
+    all_lightcurves = {}
+    for inst in set(all_instruments):
+        all_lightcurves[inst] = lightcurve.star.lightcurve_set\
+            .filter(instrument__exact=inst).order_by('hjd')
 
-      context['binsize'] = binsize
+    vis = plot_visibility(lightcurve)
+    lc_time, lc_phase = plot_lightcurve(
+        lightcurve_id,
+        period=period,
+        binsize=binsize,
+        )
+    script, div = components(
+        {'lc_time':lc_time, 'lc_phase':lc_phase, 'visibility':vis},
+        CDN
+        )
 
-   #-- order all lightcurves belonging to the same star
-   all_instruments = lightcurve.star.lightcurve_set.values_list('instrument', flat=True)
-   all_lightcurves = {}
-   for inst in set(all_instruments):
-      all_lightcurves[inst] = lightcurve.star.lightcurve_set.filter(instrument__exact=inst).order_by('hjd')
+    context['project'] =  project
+    context['lightcurve'] = lightcurve
+    context['all_lightcurves'] = all_lightcurves
+    context['figures'] = div
+    context['script'] = script
 
-   vis = plot_visibility(lightcurve)
-   lc_time, lc_phase = plot_lightcurve(lightcurve_id, period=period, binsize=binsize)
-   script, div = components({'lc_time':lc_time, 'lc_phase':lc_phase, 'visibility':vis}, CDN)
-
-
-   context['project'] =  project
-   context['lightcurve'] = lightcurve
-   context['all_lightcurves'] = all_lightcurves
-   context['figures'] = div
-   context['script'] = script
-
-   return render(request, 'observations/lightcurve_detail.html', context)
+    return render(request, 'observations/lightcurve_detail.html', context)
 
 
 @check_user_can_view_project
 def observatory_list(request, project=None,  **kwargs):
-   """
-   simplified version of observatory index page using datatables and restframework api
-   """
+    """
+        Observatory index page using datatables and restframework api
+    """
 
-   project = get_object_or_404(Project, slug=project)
+    project = get_object_or_404(Project, slug=project)
 
-   return render(request, 'observations/observatory_list.html', {'project': project})
+    return render(request, 'observations/observatory_list.html', {'project': project})

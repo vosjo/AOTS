@@ -1,0 +1,296 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% load conversion_tags %}
+
+{% block head %}
+
+   {% include "bokeh.html" %}
+   {% include "bokeh_widgets.html" %}
+   <script type="text/javascript" src="{% static 'js/spectra_upload.js' %}"></script>
+
+{% endblock %}
+
+
+{% block headertitle %}Add a new Spectrum{% endblock %}
+
+
+{% block content %}
+
+   <form action="{% url "observations:spectra_upload" project.slug %}" method="post" enctype="multipart/form-data" id="specfile-upload-form">
+
+   <section class='data-section'>
+      <div class="main-container border j-center">
+         <h2>File selection</h2>
+         <h4 class='no_margin'>(required)</h4>
+
+        <div class="flex-data-container j-center">
+            {% if user.is_authenticated %}
+                {% csrf_token %}
+                <div class="tag-container">
+                    {% if upload_form.non_field_errors %}
+                        <p>{{ upload_form.non_field_errors }}</p>
+                    {% endif %}
+
+                    <table class='datatable'>
+                        <tbody>
+                        <tr> <th>File(s), .txt or .fits:</th>
+                            <td>{{ upload_form.spectrumfile }}
+                                {{ upload_form.spectrumfile.errors }}
+                            </td>
+                        </tr>
+    <!--                    <tr> <th>Merge spectrum files if possible:</th>
+                            <td>{{ upload_form.merge_spectra_if_possible }}
+                                {{ upload_form.merge_spectra_if_possible.errors }}
+                            </td>
+                        </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class='upload'> Log in to upload files! </p>
+            {% endif %}
+        </div>
+      </div>
+
+   </section>
+
+   <section class='data-section'>
+        <div class="main-container border j-center">
+            <h2>Header information</h2>
+
+            <h4 class='not_bold'>(the underlined quantities are required for .text files or if they are not included in the Header)</h4>
+
+            <div class="tag-container">
+                <table class='datatable'>
+                    <tbody>
+                    <tr> <th>Add to/Modify Header data:</th>
+                        <td>{{ upload_form.add_info }}
+                            {{ upload_form.add_info.errors }}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id='user_info' class="flex-data-container j-center">
+
+                <div class="tag-container">
+                    <h3>Target</h3>
+
+                    <table class='datatable'>
+                        <tbody>
+                        <tr> <th class='underline'>Target:</th>
+                             <td>{{ upload_form.objectname }}
+                                 {{ upload_form.objectname.errors }}
+                            </td>
+                        </tr>
+                        <tr> <th class='underline'>Ra:</th>
+                             <td>{{ upload_form.ra }}
+                                 {{ upload_form.ra.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th class='underline'>Dec:</th>
+                             <td>{{ upload_form.dec }}
+                                 {{ upload_form.dec.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Create new:</th>
+                             <td>{{ upload_form.create_new_star }}
+                                 {{ upload_form.create_new_star.errors }}
+                            </td>
+                        </tr>
+                        <tr> <th>Spectral type:</th>
+                             <td>{{ upload_form.classification }}
+                                 {{ upload_form.classification.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Classification type:</th>
+                             <td>{{ upload_form.classification_type }}
+                                 {{ upload_form.classification_type.errors }}
+                             </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Observer</h3>
+
+                    <table class='datatable'>
+                        <tbody>
+                        <tr> <th>Observer name:</th>
+                             <td>{{ upload_form.observer }}
+                                 {{ upload_form.observer.errors }}
+                             </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <div class="tag-container">
+                    <h3>Instrument and setup </h3>
+
+                    <table class='datatable'>
+                        <tbody>
+                        <tr> <th class='underline'>HJD-MID:</th>
+                             <td>{{ upload_form.hjd }}
+                                 {{ upload_form.hjd.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Telescope:</th>
+                             <td>{{ upload_form.telescope }}
+                                 {{ upload_form.telescope.errors }}
+                            </td>
+                        </tr>
+                        <tr> <th>Instrument:</th>
+                             <td>{{ upload_form.instrument }}
+                                 {{ upload_form.instrument.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Exptime (s):</th>
+                             <td>{{ upload_form.exptime }}
+                                 {{ upload_form.exptime.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Resolution:</th>
+                             <td>{{ upload_form.resolution }}
+                                 {{ upload_form.resolution.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>SNR:</th>
+                             <td>{{ upload_form.snr }}
+                                 {{ upload_form.snr.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Flux calibrated:</th>
+                             <td>{{ upload_form.fluxcal }}
+                                 {{ upload_form.fluxcal.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Flux units:</th>
+                             <td>{{ upload_form.flux_units }}
+                                 {{ upload_form.flux_units.errors }}
+                             </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tag-container">
+                    <h3>Weather and conditions</h3>
+
+                    <table class='datatable'>
+                        <tbody>
+                        <tr> <th>Wind direction (deg):</th>
+                             <td>{{ upload_form.wind_direction }}
+                                 {{ upload_form.wind_direction.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Wind speed (m/s):</th>
+                             <td>{{ upload_form.wind_speed }}
+                                 {{ upload_form.wind_speed.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Seeing ("):</th>
+                             <td>{{ upload_form.seeing }}
+                                 {{ upload_form.seeing.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>Airmass:</th>
+                             <td>{{ upload_form.airmass }}
+                                 {{ upload_form.airmass.errors }}
+                             </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Spectrum infos</h3>
+
+                    <table class='datatable'>
+                        <tbody>
+                        <tr> <th> Barycentric corrected:</th>
+                             <td>{{ upload_form.barycor_bool }}
+                                 {{ upload_form.barycor_bool.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th> Normalized:</th>
+                             <td>{{ upload_form.normalized }}
+                                 {{ upload_form.normalized.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th>File label:</th>
+                             <td>{{ upload_form.filetype }}
+                                 {{ upload_form.filetype.errors }}
+                             </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <div class="tag-container">
+                    <h3>Observatory</h3>
+
+                    <table class='datatable'>
+                        <tbody>
+                        <tr> <th id='th_observatory' class='underline'>Observatory:</th>
+                             <td>{{ upload_form.observatory }}
+                                 {{ upload_form.observatory.errors }}
+                             </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <table class='datatable'>
+                        <tbody>
+                        <tr> <th id='th_observatory_name' class='underline'>Name:</th>
+                             <td>{{ upload_form.observatory_name }}
+                                 {{ upload_form.observatory_name.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th id='th_observatory_is_spacecraft' class='underline'>Is spacecraft:</th>
+                             <td>{{ upload_form.observatory_is_spacecraft }}
+                                 {{ upload_form.observatory_is_spacecraft.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th id='th_observatory_latitude' class='underline'>Latitude (deg):</th>
+                             <td>{{ upload_form.observatory_latitude }}
+                                 {{ upload_form.observatory_latitude.errors }}
+                             </td>
+                        </tr>
+                        <tr> <th id='th_observatory_longitude' class='underline'>Longitude (deg):</th>
+                            <td>{{ upload_form.observatory_longitude }}
+                                {{ upload_form.observatory_longitude.errors }}
+                            </td>
+                        </tr>
+                        <tr> <th id='th_observatory_altitude' class='underline'>Altitude (m):</th>
+                             <td>{{ upload_form.observatory_altitude }}
+                                 {{ upload_form.observatory_altitude.errors }}
+                             </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <div class="tag-container">
+                    <h3>Note</h3>
+
+                    {{ upload_form.note }}{{ upload_form.note.errors }}
+
+                </div>
+            </div>
+        </div>
+   </section>
+
+   <section class='data-section'>
+      <div class="main-container-h j-center">
+         {% if user.is_authenticated %}
+            <input type="submit" class="upload-button" value="Upload"/>
+         {% endif %}
+      </div>
+   </section>
+
+   </form>
+
+{% endblock %}

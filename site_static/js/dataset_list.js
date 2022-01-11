@@ -2,8 +2,9 @@
 var dataset_table = null;
 
 $(document).ready(function () {
-   
+
    dataset_table = $('#datasettable').DataTable({
+   serverSide: true,
    ajax: {
       url: '/api/analysis/datasets/?format=datatables',
       data: function ( d ) {
@@ -20,21 +21,21 @@ $(document).ready(function () {
    ],
    scrollY: $(window).height() - $('header').outerHeight(true) - $('.upload').outerHeight(true) - $('#messages').outerHeight(true) - 186,
    });
-   
+
    // Delete a dataset
    $("#datasettable").on('click', 'i[id^=delete-dataset-]', function(){
       var thisrow = $(this).closest('tr');
       var data = dataset_table.row(thisrow).data();
       delete_dataset(thisrow, data)
    });
-   
+
    // Process a dataset
    $("#datasettable").on('click', 'i[id^=process-dataset-]', function(){
       var thisrow = $(this).closest('tr');
       var data = dataset_table.row(thisrow).data();
       process_dataset(thisrow, data);
    });
-   
+
 });
 
 function star_render( data, type, full, meta ) {
@@ -57,7 +58,7 @@ function method_render( data, type, full, meta ) {
 function action_render( data, type, full, meta ) {
    // Add deleta tag icon
    return "<i class='material-icons button delete' id='delete-dataset-"+data+
-            "' title='Delete'>delete</i>" + 
+            "' title='Delete'>delete</i>" +
             "<i class='material-icons button process' id='process-dataset-"+data+
             "' title='(Re)Process'>build</i>"
 }

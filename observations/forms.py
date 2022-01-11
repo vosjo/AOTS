@@ -7,48 +7,96 @@ from stars.models import Star
 
 from django import forms
 
+from stars.forms import RAField, DecField
+
 #===========================================================================================
 #  SPECFILE
 #===========================================================================================
 
 class UploadSpectraDetailForm(forms.Form):
 
-   spectrumfile = forms.FileField(label='Select a spectrum',
-                               widget=forms.ClearableFileInput(attrs={'multiple': True}))
+    #   File
+    spectrumfile = forms.FileField(
+        label='Select a spectrum',
+        widget=forms.ClearableFileInput(attrs={'multiple': True}),
+        )
+    #merge_spectra_if_possible = forms.BooleanField(required=False)
 
-   # target
-   objectname = forms.CharField(max_length=50, required=False)
-   ra = forms.CharField(max_length=15, required=False)
-   dec = forms.CharField(max_length=15, required=False)
+    #   Add infos provided by the user?
+    add_info = forms.BooleanField(initial=False, required=False)
 
-   # Observatory
-   observatory = forms.ModelChoiceField(queryset=Observatory.objects.all(), required=False)
-   observatory_name = forms.CharField(max_length=100, required=False)
-   observatory_latitude = forms.FloatField(required=False)
-   observatory_longitude = forms.FloatField(required=False)
-   observatory_altitude = forms.FloatField(required=False)
-   observatory_is_spacecraft = forms.BooleanField(required=False)
+    #   File type
+    filetype = forms.CharField(max_length=50, required=False)
 
-   # instrument and setup
-   telescope = forms.CharField(max_length=200, required=False)
-   instrument = forms.CharField(max_length=200, required=False)
-   hjd = forms.FloatField(required=False)
-   exptime = forms.FloatField(required=False)
-   resolution = forms.FloatField(required=False)
-   snr = forms.FloatField(required=False)
-   observer = forms.CharField(max_length=50, required=False)
+    #   Target
+    objectname          = forms.CharField(max_length=50, required=False)
+    ra                  = RAField(
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(
+            attrs={'placeholder':'  h:m:s or d.d°'}
+            ),
+        )
+    dec                 = DecField(
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(
+            attrs={'placeholder':'  °:\':\'\'   or d.d°'}
+            ),
+        )
+    create_new_star     = forms.BooleanField(initial=True, required=False)
+    classification      = forms.CharField(max_length=50, required=False)
+    classification_type = forms.ChoiceField(
+        choices = (
+            ('SP', 'Spectroscopic'),
+            ('PH',  'Photometric'),
+            ),
+        initial = 'PH',
+        required=False,
+        )
 
-   # observing conditions
-   wind_speed = forms.FloatField(required=False)
-   wind_direction = forms.FloatField(required=False)
-   seeing = forms.FloatField(required=False)
+    #   Observatory
+    observatory = forms.ModelChoiceField(
+        queryset=Observatory.objects.all(),
+        required=False,
+        )
+    observatory_name          = forms.CharField(max_length=100, required=False)
+    observatory_latitude      = forms.FloatField(required=False)
+    observatory_longitude     = forms.FloatField(required=False)
+    observatory_altitude      = forms.FloatField(required=False)
+    observatory_is_spacecraft = forms.BooleanField(required=False)
 
-   # extra
-   fluxcal = forms.BooleanField(required=False)
-   flux_units = forms.CharField(max_length=50, required=False)
-   note = forms.CharField(widget=forms.Textarea(attrs={'cols': 70, 'rows': 10}), required=False)
-   create_new_star = forms.BooleanField(required=False)
-   merge_spectra_if_possible = forms.BooleanField(required=False)
+    #   Instrument and setup
+    telescope  = forms.CharField(max_length=200, required=False)
+    instrument = forms.CharField(max_length=200, required=False)
+    hjd        = forms.FloatField(required=False)
+    exptime    = forms.FloatField(required=False)
+    resolution = forms.FloatField(required=False)
+    snr        = forms.FloatField(required=False)
+    observer   = forms.CharField(max_length=50, required=False)
+
+    #   Observing conditions
+    wind_speed     = forms.FloatField(required=False)
+    wind_direction = forms.FloatField(required=False)
+    seeing         = forms.FloatField(required=False)
+    airmass        = forms.FloatField(required=False)
+
+    #   Normalized
+    normalized = forms.BooleanField(required=False)
+
+    #   Barycentric Correction
+    #barycor      = forms.FloatField(required=False)
+    barycor_bool = forms.BooleanField(required=False, initial=True)
+
+    #   Flux info
+    fluxcal    = forms.BooleanField(required=False)
+    flux_units = forms.CharField(max_length=50, required=False)
+
+    #   Note
+    note = forms.CharField(
+        widget=forms.Textarea(attrs={'cols': 70, 'rows': 10}),
+        required=False,
+        )
 
 
 class UploadSpecFileForm(forms.Form):
@@ -63,7 +111,7 @@ class UploadRawSpecFileForm(forms.Form):
         Upload form for spectroscopic raw data
     '''
     system = forms.ModelMultipleChoiceField(
-        label='Targets',
+        label='Systems',
         #empty_label='Target name: ra[deg] dec[deg]',
         queryset=Star.objects.all(),
         required=False,

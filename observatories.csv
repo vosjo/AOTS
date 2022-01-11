@@ -10,6 +10,6 @@ Apache Point Observatory,SDSS 2.5-M,32.78019,-105.819878,2788,0,https://www.apo.
 Xinglong Station,LAMOST,40.395761,117.575861,960,0,http://www.lamost.org/public/?locale=en,,Weather info is stored in the fits files
 TESS,TESS,0,0,0,1,https://tess.mit.edu/,,
 South African Astronomical Observatory,"SALT, ACT, BISON, IRSF, KELT-south",-32.3783,20.8105,1798,0,https://www.saao.ac.za/,https://suthweather.saao.ac.za/,No weather archive
-Large Binocular Telescope Observatory, LBT-DX, 32.701308, -109.889064, 3221, 0, https://www.lbto.org/,,
+Large Binocular Telescope Observatory, "LBT-DX, LBT-SX", 32.701308, -109.889064, 3221, 0, https://www.lbto.org/,,
 1.3m Alt-Az telescope of the Slovak Academy of Sciences, Astelco 1300/10400, 49, 20, 1789, 0,,,1.3m Alt-Az; Instr - MUSICOS: R ~35000; f/4
 Southern Astrophysical Research Telescope, SOAR 4.1m, -30.237891667, -70.733641667, 2713, 0, https://noirlab.edu/science/programs/ctio/telescopes/soar-telescope,,

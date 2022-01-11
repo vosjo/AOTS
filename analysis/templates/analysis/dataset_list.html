@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block head %}
-   
+
    {% include "datatables.html" %}
    <script type="text/javascript" src="{% static 'js/dataset_list.js' %}"></script>
 
@@ -14,12 +14,12 @@
 
 <i display="none" id="project-pk" project={{project.pk}}></i>
 
-<div class='upload'>
-   
-  
+<div class='upload_old'>
+
+
    <form action="{% url "analysis:dataset_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload">
       <h3> Upload new Dataset </h3>
-      
+
       {% if user.is_authenticated %}
       {% csrf_token %}
       {% if upload_form.non_field_errors %}
@@ -36,8 +36,8 @@
       <p> Log in to upload files! </p>
       {% endif %}
    </form>
-   
-   
+
+
 </div>
 
 
@@ -65,8 +65,8 @@
       </tr>
    </tfoot>
    </table>
-    
+
 </section>
 
-   
+
 {% endblock %}

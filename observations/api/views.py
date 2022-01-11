@@ -17,6 +17,7 @@ from rest_framework.decorators import api_view
 
 from .serializers import (
     SpectrumSerializer,
+    UserInfoSerializer,
     RawSpecFileSerializer,
     SpectrumListSerializer,
     SpecFileSerializer,
@@ -26,6 +27,7 @@ from .serializers import (
 
 from .filter import (
     SpectrumFilter,
+    UserInfoFilter,
     SpecFileFilter,
     RawSpecFileFilter,
     LightCurveFilter,
@@ -34,6 +36,7 @@ from .filter import (
 
 from observations.models import (
     Spectrum,
+    UserInfo,
     SpecFile,
     RawSpecFile,
     LightCurve,
@@ -66,6 +69,14 @@ def processSpectrum(request, spectrum_pk):
    return Response(SpectrumSerializer(spectrum).data)
 
 
+class UserInfoViewSet(viewsets.ModelViewSet):
+   queryset = UserInfo.objects.all()
+   serializer_class = UserInfoSerializer
+
+   filter_backends = (DjangoFilterBackend,)
+   filterset_class = UserInfoFilter
+
+
 # ===============================================================
 # SpecFile
 # ===============================================================
@@ -76,7 +87,6 @@ class SpecFileViewSet(viewsets.ModelViewSet):
 
    filter_backends = (DjangoFilterBackend,)
    filterset_class = SpecFileFilter
-
 
 
 @api_view(['POST'])

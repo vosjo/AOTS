@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_datatables',
     'django_filters',
-    
+
 ]
 
 MIDDLEWARE = [
@@ -79,7 +79,7 @@ TEMPLATES = [
         },
     },
 ]
-      
+
 
 # Django rest framework with datatables support:
 # https://github.com/izimobil/django-rest-framework-datatables
@@ -89,23 +89,23 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
         'AOTS.custom_permissions.IsAllowedOnProject',
     ),
-    
+
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
-    
+
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework_datatables.filters.DatatablesFilterBackend',
     ),
-    
+
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
     'PAGE_SIZE': 10,
 }
-    
 
-#   Specifying a primary key defauls - required since Django 3.2    
+
+#   Specifying a primary key defauls - required since Django 3.2
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Login url
@@ -118,7 +118,7 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 
-# Extra locations for static files 
+# Extra locations for static files
 STATICFILES_DIRS = ['site_static',]
 
 WSGI_APPLICATION = 'AOTS.wsgi.application'

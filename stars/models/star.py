@@ -23,7 +23,7 @@ class Tag(models.Model):
    """
    #-- Multiple stars can have the same tag, and multiple tags can be added to one star
 
-   name = models.CharField(max_length=75, unique=True)
+   name = models.CharField(max_length=75)
 
    #-- a tag belongs to a specific project
    #   when that project is deleted, the star is also deleted.

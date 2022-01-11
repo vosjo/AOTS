@@ -1,17 +1,22 @@
- 
+
 {% extends "base.html" %}
 {% load static %}
 {% load conversion_tags %}
 
 {% block head %}
    {% include "bokeh.html" %}
-   
+
    <script type="text/javascript" src="{% static 'js/stars_detail.js' %}"></script>
    <link rel="stylesheet" href="//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css" />
-   
+
 {% endblock %}
 
-{% block headertitle %}Systems: {{ star.name }} - {{ star.classification }}{% endblock %}
+{% block headertitle %}
+    Systems: {{ star.name }}
+        {% if star.classification != '' %}
+            - {{ star.classification }}
+        {% endif %}
+{% endblock %}
 
 {% block content %}
 
@@ -23,33 +28,33 @@
    <span><i class="material-icons status-icon small FI"></i>Finished</span>
    <span><i class="material-icons status-icon small RE"></i>Rejected</span>
    </div>
-   
+
    {% for tag in related_stars %}
    <div>
    <h3 title="{{tag.tag.description}}" style="border-color: {{tag.tag.color}};"> {{tag.tag.name}} </h2>
    <ul>
    {% if tag.stars_lower_hidden > 0 %}
-      <li> 
+      <li>
          (... {{ tag.stars_lower_hidden }} more ...)
       </li>
    {% endif %}
    {% for s in tag.stars_lower %}
-      <li> 
+      <li>
          <i class="material-icons status-icon small {{s.observing_status}}"></i>
-         <a href={% url 'systems:star_detail' project.slug s.id %}>{{ s.name }}</a> 
+         <a href={% url 'systems:star_detail' project.slug s.id %}>{{ s.name }}</a>
       </li>
    {% endfor %}
-      <li> 
-         <a href={% url 'systems:star_detail' project.slug star.id %} class="active">-- {{ star.name }} --</a> 
+      <li>
+         <a href={% url 'systems:star_detail' project.slug star.id %} class="active">-- {{ star.name }} --</a>
       </li>
    {% for s in tag.stars_upper %}
-      <li> 
+      <li>
          <i class="material-icons status-icon small {{s.observing_status}}"></i>
-         <a href={% url 'systems:star_detail' project.slug s.id %}>{{ s.name }}</a> 
+         <a href={% url 'systems:star_detail' project.slug s.id %}>{{ s.name }}</a>
       </li>
    {% endfor %}
    {% if tag.stars_upper_hidden > 0 %}
-      <li> 
+      <li>
          (... {{ tag.stars_upper_hidden }} more ...)
       </li>
    {% endif %}
@@ -65,9 +70,9 @@
    <section class='data-section' id="summary">
 
    <h3>Summary</h3>
-   
+
    <div class="flex-data-container j-center">
-   
+
    <div class="tag-container">
    <h3>Basic Data </h3>
    {% if user.is_authenticated %}
@@ -76,16 +81,21 @@
    <table class="datatable">
    <tbody>
       <tr> <th>Name:</th> <td class="mono">{{ star.name }}</td> </tr>
-      <tr> <th>Coordinates:</th> <td class="mono">{{ star.ra|dgr2hms }} {{ star.dec|dgr2dms }}</td> </tr>
-      <tr> <th></th> <td class="mono">{{ star.ra }} {{ star.dec }}</td> </tr>
-<!--       <tr> <th>Dec:</th> <td class="mono">{{ star.dec|dgr2dms }}</td> </tr> -->
+      <tr> <th>Coordinates:</th>
+        <td class="mono">{{ star.ra|dgr2hms }} (h:m:s)</td>
+        <td class="mono">{{ star.dec|dgr2dms }} (&#176:':'')</td>
+      </tr>
+      <tr> <th></th>
+        <td class="mono">{{ star.ra|raround }} (&#176)</td>
+        <td class="mono">{{ star.dec|degsign }} (&#176)</td>
+      </tr>
       <tr> <th>Classification:</th> <td class="mono">{{ star.classification }}</td> </tr>
       <tr> <th>Class. type:</th> <td class="mono">{{ star.get_classification_type_display}}</td> </tr>
       <tr> <th>Observing Status:</th> <td class="mono">{{ star.get_observing_status_display }}</td> </tr>
    </tbody>
    </table>
    </div>
-   
+
    <div class="tag-container">
       <h3>Parameters</h3>
       <i id="allParameterButton" class="material-icons button edit" title="View all parameters">visibility</i>
@@ -114,10 +124,10 @@
       </tbody>
       </table>
       {% endif %}
-      
-      
+
+
    </div>
-   
+
    <div class="tag-container">
       <h3>Notes</h3>
       {% if user.is_authenticated %}
@@ -125,7 +135,7 @@
       {% endif %}
       <div id="noteField">{{star.note|linebreaks}}</div>
    </div>
-   
+
    <div class="tag-container" style="max-width:250px; height:255px;">
       <div id="aladin-lite-div" style="width:250px;height:250px;"></div>
       <script type="text/javascript" src="//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>
@@ -134,26 +144,26 @@
       aladin.addCatalog(A.catalogFromVizieR('I/345', '{{star.ra}} {{star.dec}}', 1.01/60, {onClick: 'showTable'}));
       </script>
    </div>
-   
+
    </div>
-   
+
    <div class="flex-data-container">
-   
+
    <div class="tag-container">
-      
+
       <h3>Aliases</h3>
       {% if user.is_authenticated %}
       <i id="identifierAddButton" class="material-icons button add" title="Add new" star_id={{star.pk}}>add_box</i>
       {% endif %}
-   
+
       <div class="flex-data-container" id="identifier_list">
       {% for name in star.identifier_set.all %}
          {% if name.href != "" %}
              <div class="identifier" id="identifier-{{name.pk}}"><a href={{ name.href }}  target="_blank"> {{ name.name }} </a>
          {% else %}
-             <div class="identifier" id="identifier-{{name.pk}}">{{ name.name }} 
+             <div class="identifier" id="identifier-{{name.pk}}">{{ name.name }}
          {% endif %}
-      
+
       {% if user.is_authenticated %}
       <i class="material-icons button delete" id="delete-identifier-{{name.pk}}" title="Delete">delete</i>
       {% endif %}
@@ -162,56 +172,56 @@
       <p> None known.</p>
       {% endfor %}
       </div>
-      
+
    </div>
-   
+
    <div class="tag-container">
-   
+
       <h3>Tags</h3>
       {% if user.is_authenticated %}
       <i id="tagEditButton" class="material-icons button edit" title="Edit" star_id={{star.pk}}>edit</i>
       {% endif %}
-   
+
       <div class="flex-data-container" id="tag_list" star_id={{star.pk}}>
       <p>Loading...</p>
       </div>
-      
+
    </div>
-   
+
    </div>
-   
+
    <hr>
-   
+
    </section>
-   
+
    <section class='data-section'  id="observations">
    <i id="toggle-obs" class="material-icons button show" title="Expand/hide">visibility</i>
-   
+
    <h3 class='indent'>Observations</h3>
-   
+
    <div id="obs_summary" class='data-summary'>
-      Photometric observations: {{star.photometry_set.all|length}}, 
+      Photometric observations: {{star.photometry_set.all|length}},
       Spectroscopic observations: {{star.spectrum_set.all|length}},
       Light curves: {{star.lightcurve_set.all|length}}
    </div>
-   
+
    <div id="obs_detail" class='data-detail'>
-   
+
     <div class="flex-data-container j-center">
-      
+
       <div class="block w600">
-         <h3 class="center"> Photometry </h3> 
+         <h3 class="center"> Photometry </h3>
          {{ sed_plot|safe }}
          <i style="display:block;text-align:center">
-         <a target="_blank" href="https://stilism.obspm.fr/reddening?frame=icrs&vlong={{star.ra}}&ulong=deg&vlat={{star.dec}}&ulat=deg"> 
+         <a target="_blank" href="https://stilism.obspm.fr/reddening?frame=icrs&vlong={{star.ra}}&ulong=deg&vlat={{star.dec}}&ulat=deg">
          Stilism Reddening Map (Lallement+2018)
-         </a> 
+         </a>
          </i>
       </div>
-    
+
       {% if star.photometry_set.all %}
       <div class="block">
-         <h3 class="center"> Photometry </h3> 
+         <h3 class="center"> Photometry </h3>
          <table class="obs-table">
          <thead>
             <tr>
@@ -234,11 +244,11 @@
          </table>
       </div>
       {% endif %}
-    
-    
+
+
       {%if star.spectrum_set.all %}
       <div class="block">
-         <h3 class="center"> Spectra </h3> 
+         <h3 class="center"> Spectra </h3>
          <table class="obs-table">
          <thead>
             <tr>
@@ -269,10 +279,10 @@
          </table>
       </div>
       {% endif %}
-      
+
       {%if star.lightcurve_set.all %}
       <div class="block">
-         <h3 class="center"> Light curves </h3> 
+         <h3 class="center"> Light curves </h3>
          <table class="obs-table">
          <thead>
             <tr>
@@ -301,37 +311,37 @@
          </table>
       </div>
       {% endif %}
-    
+
    </div> <!--obs all-->
-   
+
    </div>
-   
+
    <hr>
-   
+
    </section>
-   
+
    {% for figure, dataset in datasets %}
-      
+
       <section class='data-section'  id="dataset-{{dataset.pk}}">
-         
-         <h3> 
-         <a href={% url 'analysis:dataset_detail' project.slug dataset.pk %}>{{dataset.method.name}}</a> 
+
+         <h3>
+         <a href={% url 'analysis:dataset_detail' project.slug dataset.pk %}>{{dataset.method.name}}</a>
          {% if dataset.valid %}
          (<i class="material-icons status-icon valid bold" title='Valid'></i>)
          {% else %}
          (<i class="material-icons status-icon invalid bold" title='Invalid'></i>)
          {% endif %}
          </h3>
-         
+
          <div class="flex-data-container j-center">
-         
+
          <div class="block w600">
-            <h3 class="center"> {{dataset.name}} </h3> 
+            <h3 class="center"> {{dataset.name}} </h3>
             {{ figure|safe }}
          </div>
-                  
+
          <div class="block w600">
-            <h3 class="center"> Parameters </h3> 
+            <h3 class="center"> Parameters </h3>
             <table class="paramtable">
             <thead>
                <tr> <th>Parameter</th> <th>Prim.</th> <th>Sec.</th> </tr>
@@ -345,32 +355,32 @@
             {% endfor %}
             </tbody>
             </table>
-            
+
             <h3 class="center"> Description </h3>
-            
+
             <div>{{dataset.note|linebreaks}}</div>
-            
+
          </div>
-         
+
          </div>
-   
+
          <hr>
-         
+
       </section>
    {% endfor %}
-   
+
    {{ script|safe }}
-   
+
    <!-- Div ect necessary for editing on page stuff with ajax -->
    <div id="noteEdit" title="Edit system Note">
       <textarea name="edit-message" id="edit-message" cols="80" rows="5"></textarea>
    </div>
-   
+
    <div id="identifierAdd" title="Add an identifier">
       <input id="identifierAddtext" type='text' placeholder="New alias" size="50">
       <input id="identifierAddhref" type='text' placeholder="optional link" size="100">
    </div>
-   
+
    <div id="tadAdd" title="Add a tag">
       <ul id="tagOptions">
       {% for tag in tags %}
@@ -378,7 +388,7 @@
       {% endfor %}
       </ul>
    </div>
-   
+
    <div id="allParameters">
       <table class="paramtable overview">
       <thead>
@@ -389,10 +399,10 @@
             {% endfor %}
          </tr>
       </thead>
-      
+
       <tbody>
          {% for comp in allParameters %}
-         
+
             <tr> <th> <b> {{comp.component}} </b> </th> </tr>
             {% for pline in comp.params %}
             <tr>
@@ -402,10 +412,10 @@
                {% endfor %}
             </tr>
             {% endfor %}
-         
+
          {% endfor %}
       </tbody>
       </table>
    </div>
-   
+
 {% endblock %}

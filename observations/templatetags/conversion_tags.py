@@ -1,4 +1,4 @@
- 
+
 from django import template
 
 from astropy.coordinates.angles import Angle
@@ -31,6 +31,21 @@ def dgr2dms(value):
    except Exception as e:
       return value
    return "{:+03.0f}:{:02.0f}:{:05.2f}".format(a[0], abs(a[1]), abs(a[2]))
+
+@register.filter
+def roundtwo(value):
+    return "{:.2f}".format(value)
+
+@register.filter
+def raround(value):
+    return "{:.4f}".format(value)
+
+@register.filter
+def degsign(value):
+    if value >= 0.:
+        return "+{:.4f}".format(value)
+    else:
+        return "-{:.4f}".format(abs(value))
 
 @register.filter
 def hjd2date(hjd):
@@ -75,9 +90,9 @@ def format_float_negative_na(value,args):
    """
    Formats a float up to a given set of decimals, display NA if negative
    """
-   
+
    decimals,unit = args.split("|")
-   
+
    if value >= 0:
       return "{{:0.{}f}} ".format(decimals).format(value) + unit
    else:
@@ -92,7 +107,7 @@ def format_wind_speed(speed):
       return "{:0.1f} km/s".format(speed)
    else:
       return "NA"
-   
+
 @register.filter
 def format_wind_direction(direction):
    """

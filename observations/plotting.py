@@ -176,19 +176,31 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
         #   Extract data
         wave, flux, header = specfile.get_spectrum()
 
-        #   Instrument specific settings
-        if instrument == 'UVES':
+        #   Barycentric correction
+        if not spectrum.barycor_bool:
             #   Set value for barycenter correction
             barycor = spectrum.barycor
             #   Apply barycenter correction
             wave = spectools.doppler_shift(wave, barycor)
-        elif instrument == 'HERMES' or instrument == 'FEROS':
+
+        #   Instrument specific settings
+        if instrument == 'HERMES' or instrument == 'FEROS':
             #   Restrict wavelength range
             sel = np.where(wave > 3860)
             wave, flux = wave[sel], flux[sel]
 
         #   Rebin spectrum
-        wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
+        #   If the spectrum is already normalized, set 'mean' to True to keep
+        #   the continuum at ~1.
+        if spectrum.normalized:
+            wave, flux = spectools.rebin_spectrum(
+                wave,
+                flux,
+                binsize=rebin,
+                mean=True,
+                )
+        else:
+            wave, flux = spectools.rebin_spectrum(wave, flux, binsize=rebin)
 
 
         ###

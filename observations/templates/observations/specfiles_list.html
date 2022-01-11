@@ -17,103 +17,23 @@
 
 <section class='data-section'>
 
-    <div class="main-container border">
+    <div class="main-container">
         <div class='header-item'>
             <h3 id="nameField"> Upload new Spectra</h3>
         </div>
 
         <div class="flex-data-container j-center">
-
-            <div class="tag-container">
-                <h4>Reduced Data</h4>
-                <div class="flex-data-container">
-
-                <div class="tag-container">
-                    <h4>Simple FITS Upload </h4>
-
-                    <div class="block">
-                    <form action="{% url "observations:specfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload_2" id="specfile-upload-form">
-
-                        {% if user.is_authenticated %}
-                            {% csrf_token %}
-                            {% if upload_form.non_field_errors %}
-                                <p>{{ upload_form.non_field_errors }}</p>
-                            {% endif %}
-
-                            <p>
-                            {{ upload_form.specfile_field.errors }}
-                            {{ upload_form.specfile_field }}
-                            </p>
-
-<!--                             <input type="submit" class="material-icons button" value="file_upload"/> -->
-                            <input type="submit" class="upload-button"
-                                value="Upload"/>
-                        {% else %}
-                            <p> Log in to upload files! </p>
-                        {% endif %}
-                    </form>
-                    </div>
-                </div>
-
-                <div class="tag-container">
-                <h4>Advanced Upload </h4>
-                    <div class='upload'>
-                    <a href="{% url "observations:spectra_new" project.slug %}">
-                        <img class="image-link" width="350px" src="{% static "images/upload_form_not.png" %}">
-                    </a>
-                    </div>
-                </div>
-
-                </div>
-            </div>
-
-            <div class="tag-container">
-                <h4>Raw Data Upload </h4>
-                <div class="block">
-                <form action="{% url "observations:specfile_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload_2" id="raw-upload-form">
-
-                    {% if user.is_authenticated %}
-                        {% csrf_token %}
-                        {% if raw_upload_form.non_field_errors %}
-                            <p>{{ raw_upload_form.non_field_errors }}</p>
-                        {% endif %}
-
-                        <p>
-                        <table>
-                        <tbody>
-                        {{ raw_upload_form.as_table }}
-                        </tbody>
-                        </table>
-                        </p>
-
-                        <progress id="progress-bar" value="0" max="100"
-                            class="progress hidden"></progress>
-                        <!--<input type="submit" class="material-icons button"
-                        value="file_upload"/>-->
-                        <input type="submit" class="upload-button"
-                            value="Upload"/>
-
-
-                    {% else %}
-                        <p> Log in to upload files! </p>
-                    {% endif %}
-                </form>
-                </div>
-                <div class='upload'>
-                <a href="{% url "observations:rawspecfile_list" project.slug %}">
-                    Raw File List
-                </a>
-                </div>
+            <div class='upload'>
+            <a href="{% url "observations:spectra_upload" project.slug %}">
+                <img class="image-link" width="350px" src="{% static "images/upload_form.png" %}">
+            </a>
             </div>
         </div>
-
     </div>
-
-    <br>
-    <br>
 
 </section>
 
+<br>
 
 <i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
 

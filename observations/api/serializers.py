@@ -205,8 +205,8 @@ class RawSpecFileSerializer(ModelSerializer):
 
     stars     = SerializerMethodField()
     added_on  = SerializerMethodField()
-    #specfiles = SerializerMethodField()
     filename  = SerializerMethodField()
+    added_by  = SerializerMethodField()
 
     class Meta:
         model = RawSpecFile
@@ -219,20 +219,21 @@ class RawSpecFileSerializer(ModelSerializer):
                 'added_on',
                 'filename',
                 'exptime',
-                #'specfiles',
+                'added_by',
                 ]
         read_only_fields = ('pk', 'stars',)
 
     def get_stars(self, obj):
         SystemDict = {}
         for sfile in obj.specfile.all():
-            SystemDict[sfile.spectrum.star.name] = reverse(
-                'systems:star_detail',
-                kwargs={
-                    'project':sfile.project.slug,
-                    'star_id':sfile.spectrum.star.pk,
-                    },
-                )
+            if sfile.spectrum is not None and sfile.spectrum.star is not None:
+                SystemDict[sfile.spectrum.star.name] = reverse(
+                    'systems:star_detail',
+                    kwargs={
+                        'project':sfile.project.slug,
+                        'star_id':sfile.spectrum.star.pk,
+                        },
+                    )
         return SystemDict
 
     def get_added_on(self, obj):
@@ -241,13 +242,8 @@ class RawSpecFileSerializer(ModelSerializer):
     def get_filename(self, obj):
         return obj.rawfile.name.split('/')[-1]
 
-
-    #def get_specfiles(self, obj):
-        #SpecFileList = []
-        #for sfile in obj.specfile.all():
-            #SpecFileList.append(sfile.hjd)
-        #return SpecFileList
-
+    def get_added_by(self, obj):
+        return obj.added_by.username
 
 
 # ===============================================================

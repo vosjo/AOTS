@@ -55,7 +55,7 @@ $(document).ready(function () {
       $("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
           "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>" +
           "<input id='addsystem-button' class='tb-button' value='Add System(s)' type='button'>" +
-          "<input id='delete-button' class='tb-button' value='Delete System' type='button' disabled>");
+          "<input id='delete-button' class='tb-button' value='Delete System(s)' type='button' disabled>");
    }
    else {$("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
           "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>");

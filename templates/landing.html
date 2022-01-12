@@ -12,18 +12,18 @@
 
    gtag('config', 'UA-160011552-2');
    </script>-->
-   
+
    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css"> <!--CSS for google Icons-->
    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
    <link href="{% static 'jquery-ui.css' %}" rel="stylesheet" type="text/css">
-   
+
    <script
 			  src="https://code.jquery.com/jquery-3.6.0.min.js"
 			  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
 			  crossorigin="anonymous"></script>
    <script type="text/javascript" src="{% static 'js/base_js.js' %}"></script>
    <script type="text/javascript" src="{% static 'jquery-ui.min.js' %}"></script>
-   
+
    {% block head %}{% endblock %}
 </head>
 
@@ -32,19 +32,19 @@
    <div class="page-wrap">
 
    <header>
-   
+
    <!--<div class="block">
    <img width="50px" height="75px"  src="{% static 'bimot_logo.svg' %}"/>
    </div>-->
-   
+
    <div id='titlebar'>
       <h1>AOTS</h1>
       <h2>{% block headertitle %}{% endblock %}</h2>
    </div>
-   
+
    <nav>
-   
-   
+
+
    <div id="toolbar" role='navigation'>
          <ul>
             <li>
@@ -74,31 +74,31 @@
             </li>
             {% endif %}
          </ul>
-      
+
       </div>
-   
+
 <!--       <div id="subtoolbar" role='navigation'> -->
 <!--       </div> -->
-   
+
    </nav>
-   
+
    {% block header %}{% endblock %}
    </header>
-   
+
    <ul id="messages">
       {% for message in messages %}
       <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       {% endfor %}
    </ul>
-   
-   
+
+
    {% block content %}{% endblock %}
    </div>
-   
+
    <script type="text/javascript">
       // Save in this variable if there is an authenticated user
       // This variable is accessible on every other place in the code.
-      {% if user.is_authenticated %} 
+      {% if user.is_authenticated %}
       var user_authenticated = true;
       {% else %}
       var user_authenticated = false;
@@ -109,7 +109,8 @@
       <div>
 
       <i>
-      contact: jorisvos (at) uni-potsdam.de
+<!--       contact: jorisvos (at) uni-potsdam.de -->
+      contact: aots (at) astro.physik.uni-potsdam.de
       </i>
 
       <i>
@@ -126,6 +127,6 @@
   data-message="We use cookies to improve your browsing experience."
   moreinfo="https://en.wikipedia.org/wiki/HTTP_cookie">
 </script>
-   
+
 </body>
 </html>

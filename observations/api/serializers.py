@@ -124,8 +124,10 @@ class UserInfoSerializer(ModelSerializer):
     def get_spectrum(self, obj):
         if obj.spectrum is None:
             return ''
-        else:
-            return obj.spectrum
+        return reverse(
+            'observations:spectrum_detail',
+            kwargs={'project':obj.project.slug, 'spectrum_id':obj.spectrum.pk},
+            )
 
     def get_observatory(self, obj):
         try:

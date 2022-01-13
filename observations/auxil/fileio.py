@@ -257,6 +257,52 @@ def read_spectrum(filename, return_header=False):
             flux = data[0]
             wave = data[2]
 
+        elif 'SBIG ST' in header.get('INSTRUME', ''):
+            '''
+            OST/BACHES data (also Echelle data, but only stored in one hdu)
+            '''
+            #   Get history from fits header because it contains the wavelength
+            #   starting points of the individual orders
+            history = header.get('HISTORY', '')
+
+            #   Get data
+            data = fits.getdata(filename)
+
+            #   Extract start points (sps)
+            k=1
+            sps=[]
+            for line in history:
+                liste=line.split()
+                if len(liste) == 0:
+                    k=1
+                    continue
+                if k == 0 :
+                    sps = sps + liste
+                if k == 1:
+                    if 'WSTART' not in liste[0]:
+                        continue
+                    else:
+                        k=0
+
+            #   Prepare list for flux and wavelength data
+            flux = []
+            wave = []
+
+            #   Wavelength increment
+            dnu = float(header["CDELT1"])
+
+            #   Loop over all orders
+            for j, __fl in enumerate(data):
+                #   Calculate wavelength array
+                npoints = len(__fl)
+                nu0     = float(sps[j])
+                nun     = nu0 + (npoints-1)*dnu
+                __wa    = np.linspace(nu0,nun,npoints)
+
+                #   Add flux and wavelength array to lists
+                flux.append(__fl)
+                wave.append(__wa)
+
         elif not "CRVAL1" in header:
             """
             Spectrum likely included as table data

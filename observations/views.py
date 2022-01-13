@@ -118,6 +118,7 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
         'figures': div,
         'script': script,
         'form': form,
+        'rebin': rebin,
     }
 
     return render(request, 'observations/spectrum_detail.html', context)

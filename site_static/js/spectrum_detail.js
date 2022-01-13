@@ -116,6 +116,10 @@ function statusNorm() {
     //  Check if spectrum is already normalized -> no normalization necessary
     let normSensible = $("#normalized").attr('normalized');
 
+    //  Get and set binning value
+    let binValue = $("#rebin").attr('rebin');
+    $('#id_binning').attr('value', binValue);
+
     //  Disable normalization if true
     if (normSensible == 'true') {
         $('#id_normalize').attr('disabled', true);

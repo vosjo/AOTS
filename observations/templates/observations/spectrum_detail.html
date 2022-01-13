@@ -174,9 +174,10 @@
 
         <div class="buttons-container">
 
-            <!-- Dummy to get normalization status -->
+            <!-- Dummy to get normalization status and binning -->
             <i display="none" id="normalized"
                 normalized={{ spectrum.normalized|yesno:"true,false" }}></i>
+            <i display="none" id="rebin" rebin={{rebin}}></i>
 
             <h3>Modify data</h3>
             <form action="{% url "observations:spectrum_detail" project.slug spectrum.pk %}" method="post">

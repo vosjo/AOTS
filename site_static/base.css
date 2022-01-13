@@ -90,6 +90,7 @@ div#toolbar ul li ul{
    border: 1px solid rgba(0,0,0,.1);
    z-index:11;
 }
+
 div#toolbar ul li ul li ul{
    display: none;
    top: 0;
@@ -99,8 +100,8 @@ div#toolbar ul li ul li ul{
 }
 div#toolbar ul li ul li ul li{
    white-space: nowrap;
+   width: inherit;
 }
-
 
 div#subtoolbar {
    display: block;

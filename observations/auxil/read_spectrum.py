@@ -125,9 +125,12 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
 
     #    Observatory
     if 'obs_pk' in user_info.keys():
+        #   Selection from dropdown in the user info form
         spectrum.observatory = Observatory.objects.get(pk=user_info['obs_pk'])
     elif 'observatory_id' in user_info.keys():
+        #   Selection based on the information given in the user info form
         if user_info['observatory_id'] == None:
+            #   If form contains no information try header
             spectrum.observatory = instrument_headers.get_observatory(
             header,
             spectrum.project,
@@ -137,6 +140,7 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
                 pk=user_info['observatory_id']
                 )
     else:
+        #   Extract observatory infos from header or create a new observatory
         spectrum.observatory = instrument_headers.get_observatory(
             header,
             spectrum.project,

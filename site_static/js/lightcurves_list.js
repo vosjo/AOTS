@@ -2,11 +2,11 @@
 var lighcurve_table = null;
 
 $(document).ready(function () {
-   
+
    // Table functionality
    lighcurve_table = $('#lightcurvetable').DataTable({
    autoWidth: false,
-   serverSide: true, 
+   serverSide: true,
    ajax: {
       url: '/api/observations/lightcurves/?format=datatables&keep=telescope,href',
       data: get_filter_keywords,
@@ -20,28 +20,28 @@ $(document).ready(function () {
       { data: 'instrument', render : instrument_render },
       { data: 'exptime' },
       { data: 'cadence' },
-      { data: 'pk', render: action_render, width: '100', 
+      { data: 'pk', render: action_render, width: '100',
         className: 'dt-center', visible: user_authenticated, orderable: false},
    ],
    paging: true,
    pageLength: 20,
-   lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all. 
+   lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all.
    scrollY: $(window).height() - $('header').outerHeight(true) - 196,
    scrollCollapse: true,
    });
-   
+
    // Event listener to the two range filtering inputs to redraw on input
    $('#filter-form').submit( function(event) {
       event.preventDefault();
       lighcurve_table.draw();
    } );
-   
+
    // make the filter button open the filter menu
    $('#filter-dashboard-button').on('click', openNav);
    function openNav() {
       $("#filter-dashboard").toggleClass('visible');
       $("#filter-dashboard-button").toggleClass('open');
-      
+
       var text = $('#filter-dashboard-button').text();
       if (text == "filter_list"){
             $('#filter-dashboard-button').text("close");
@@ -49,15 +49,15 @@ $(document).ready(function () {
             $('#filter-dashboard-button').text("filter_list");
       }
    };
-   
-   
+
+
    // Delete spectrum completely event listener
    $("#lightcurvetable").on('click', 'i[id^=delete-spectrum-]', function(){
       var thisrow = $(this).closest('tr');
       var data = lighcurve_table.row(thisrow).data();
       delete_spectrum(thisrow, data);
    });
-   
+
 });
 
 // Table filter functionality
@@ -70,21 +70,31 @@ function get_filter_keywords( d ) {
       "telescope": $('#filter_telescope').val(),
       "instrument": $('#filter_instrument').val(),
    } );
-   
-   if ($('#filter_hjd').val() != '') {
+
+   if ($('#filter_hjd').val() !== '') {
+      let hjd_min = $('#filter_hjd').val().split(':')[0];
+      if (hjd_min == '') {
+          hjd_min = 0.;
+      }
+      let hjd_max = $('#filter_hjd').val().split(':')[1];
+      if (hjd_max == '') {
+          hjd_max = 1000000000.;
+      }
       d = $.extend( {}, d, {
-         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
-         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
+//          "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
+//          "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
+         "hjd_min": parseFloat( hjd_min ),
+         "hjd_max": parseFloat( hjd_max ),
       } );
    }
-   
+
    if ($('#filter_exptime').val() != '') {
       d = $.extend( {}, d, {
          "exptime_min": parseFloat( $('#filter_exptime').val().split(':')[0] | 0 ),
          "exptime_max": parseFloat( $('#filter_exptime').val().split(':')[1] | 1000000000),
       } );
    }
-   
+
    return d
 }
 

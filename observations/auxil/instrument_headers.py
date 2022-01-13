@@ -24,6 +24,8 @@ def extract_header_info(header, user_info={}):
         data = derive_hermes_info(header)
     elif header.get('INSTRUME', '') == 'SP_1.3m_MUSI':
         data = derive_MUSICOS_info(header)
+    elif 'SBIG ST' in header.get('INSTRUME', ''):
+        data = derive_baches_info(header)
     elif header.get('INSTRUME', '') in ['MODS1B', 'MODS1R', 'MODS2B', 'MODS2R']:
         data = derive_MODS_info(header)
     elif ('SOAR 4.1m' in header.get('TELESCOP', '') and
@@ -108,6 +110,15 @@ def get_observatory(header, project):
     elif 'GEOLAT' in header:
         lat, lon = header.get('GEOLAT', 0), header.get('GEOLON', 0)
         alt      = header.get('GEOALT', 0)
+        loc = EarthLocation.from_geodetic(
+            lat=lat*u.deg,
+            lon=lon*u.deg,
+            height=alt*u.m,
+            )
+    elif 'SITELAT' in header and 'SITELONG' in header:
+        lat = Angle(header.get('SITELAT', 0).strip(), unit='degree').degree
+        lon = Angle(header.get('SITELONG', 0).strip(), unit='degree').degree
+        alt = 0.
         loc = EarthLocation.from_geodetic(
             lat=lat*u.deg,
             lon=lon*u.deg,
@@ -499,6 +510,76 @@ def derive_SDSS_info(header):
    return data
 
 
+def derive_baches_info(header):
+    """
+        Read header information from an OST/BACHES spectrum
+    """
+
+    data = {}
+
+    #   HJD
+    if 'JD-HELIO' in header:
+        data['hjd'] = header['JD-HELIO']
+    elif 'JD' in header:
+        data['hjd'] = header['JD']
+    elif 'DATE-OBS' in header:
+        date        = header.get('DATE-OBS', '2000-00-00')
+        if 'T' not in date:
+            if 'UT' in header:
+                ut          = header.get('UT', '00:00:00.0')
+                data['hjd'] = Time(date+'T'+ut, format='fits').jd
+        else:
+            data['hjd'] = Time(
+                header.get('DATE-OBS', '2000-00-00T00:00:00.0Z'),
+                format='fits'
+                ).jd
+    else:
+        data['hjd'] = 2400000
+
+    #   Pointing info
+    if 'OBJCTRA' in header:
+        value  = header['OBJCTRA']
+        try:
+            data['ra'] = Angle(value.strip(), unit='hour').degree
+        except:
+            data['ra'] = -1
+    else:
+        data['ra']  = header.get('RA', -1)
+
+    if 'OBJCTDEC' in header:
+        value = header['OBJCTDEC']
+        try:
+            data['dec'] = Angle(value.strip(), unit='degree').degree
+        except:
+            data['dec'] = -1
+    else:
+        data['dec'] = header.get('DEC', -1)
+
+    data['alt'] = float(header.get('OBJCTALT', -1))
+    data['az']  = float(header.get('OBJCTAZ', -1))
+
+    #   Object
+    data['objectname'] = header.get('OBJECT', '')
+    if data['objectname'].strip() == '':
+        data['objectname'] = header.get('FILENAME', '')
+
+    #   Telescope and instrument info
+    data['instrument']   = header.get('INSTRUME', 'SDSS')
+    data['telescope']    = header.get('TELESCOP', 'SDSS 2.5-M')
+    data['exptime']      = np.round(header.get('EXPTIME', -1), 0)
+    data['resolution']   = 150000
+    data['airmass']      = header.get('AIRMASS', -1)
+
+    #   Observer
+    data['observer']     = header.get('OBSERVER', 'UK')
+    if data['observer'] == 'UK':
+        data['observer'] = header.get('SWOWNER', 'UK')
+
+    #   File characterization
+    data['filetype']     = 'BACHES'
+
+    return data
+
 
 def derive_LAMOST_info(header):
    """
@@ -530,7 +611,6 @@ def derive_LAMOST_info(header):
    data['wind_speed'] = header.get('WINDS', -1)
    data['wind_direction'] = header.get('WINDD', -1)
    data['seeing'] = header.get('SEEING', -1)
-
 
    return data
 

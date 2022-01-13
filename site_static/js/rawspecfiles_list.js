@@ -263,11 +263,17 @@ function get_filter_keywords( d ) {
    } );
 
    if ($('#filter_hjd').val() != '') {
+      let hjd_min = $('#filter_hjd').val().split(':')[0];
+      if (hjd_min == '') {
+          hjd_min = 0.;
+      }
+      let hjd_max = $('#filter_hjd').val().split(':')[1];
+      if (hjd_max == '') {
+          hjd_max = 1000000000.;
+      }
       d = $.extend( {}, d, {
-//          "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] | 0 ),
-//          "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] | 1000000000),
-         "hjd_min": parseFloat( $('#filter_hjd').val().split(':')[0] ),
-         "hjd_max": parseFloat( $('#filter_hjd').val().split(':')[1] ),
+         "hjd_min": parseFloat( hjd_min ),
+         "hjd_max": parseFloat( hjd_max ),
       } );
    };
 

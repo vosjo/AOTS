@@ -18,6 +18,7 @@ from .views import (
    getSpecfilePath,
    getRawSpecfilePath,
    getSpecfileRawPath,
+   getLightCurvePath
    )
 
 app_name = 'observations-api'
@@ -81,5 +82,10 @@ urlpatterns = [
        'lightcurves/<int:lightcurve_pk>/header/',
        getLightCurveHeader,
        name='lightcurve_header',
+       ),
+   path(
+       'lightcurves/<int:lightcurve_pk>/path/',
+       getLightCurvePath,
+       name='lightcurve_path',
        ),
 ]

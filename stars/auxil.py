@@ -1,5 +1,6 @@
 from astroquery.vizier import Vizier
 from astroquery.simbad import Simbad
+from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import Angle
 
 import astropy.units as u
@@ -29,7 +30,6 @@ def invalid_form(request, redirect, project_slug):
         reverse(redirect, kwargs={'project':project_slug})
         )
     print("Invalid form...")
-    #print(upload_form_detail.cleaned_data)
 
 
 def populate_system(star, star_pk):
@@ -81,7 +81,8 @@ def populate_system(star, star_pk):
     #   Set spectral type
     if check_vizier:
         sobj.classification  = simbad_tbl[0]['SP_TYPE']
-        sobj.classification_type = 'SP'
+        if simbad_tbl[0]['SP_TYPE'] != '':
+            sobj.classification_type = 'SP'
     else:
         sobj.classification  = star['sp_type']
         if 'classification_type' in star:
@@ -237,7 +238,10 @@ def populate_system(star, star_pk):
                 columns=content['columns']+content['err_columns'],
                 )
             #   Get data, assume a radius of 1"
-            photo = v.query_region(star["main_id"], radius=1*u.arcsec)
+            photo = v.query_region(
+                SkyCoord(ra=ra, dec=dec, unit=(u.deg, u.deg), frame='icrs'),
+                radius=1*u.arcsec,
+                )
             #   Check if catalog contains data for this object
             if len(photo) != 0:
                 #   Loop over photometry bands

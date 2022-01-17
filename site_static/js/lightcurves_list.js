@@ -49,7 +49,7 @@ $(document).ready(function () {
    scrollY: $(window).height() - $('header').outerHeight(true) - 196,
    scrollCollapse: true,
    });
-    
+
    // check and uncheck tables rows
    $('#lightcurvetable tbody').on( 'click', 'td.select-control', function () {
       var tr = $(this).closest('tr');
@@ -78,7 +78,7 @@ $(document).ready(function () {
          });
       }
    });
-   
+
    // Event listener to the two range filtering inputs to redraw on input
    $('#filter-form').submit( function(event) {
       event.preventDefault();
@@ -109,7 +109,7 @@ $(document).ready(function () {
 
    if (user_authenticated){
       $("div.toolbar").html(
-          "<input id='dl-button'  class='tb-button' value='Download Lightcurve' type='button' disabled>" +
+          "<input id='dl-button'  class='tb-button' value='Download Lightcurve(s)' type='button' disabled>" +
           '<progress id="progress-bar" value="0" max="100" class="progress-bar"></progress>'
       );
       $("#dl-button").click( download_lightcurves );
@@ -310,7 +310,7 @@ function download_lightcurves() {
                 //  Save zip file
                 saveAs(blob, "Lightcurves_"+timecode+".zip");
                 //  Reset download button
-                showProgress("Download Lightcurves");
+                showProgress("Download Lightcurve(s)");
             }, function (e) {
                 showError(e);
             });

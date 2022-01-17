@@ -174,7 +174,8 @@
       {{ upload_form.system }}
       </p>
 
-      <input id="system-add-upload-button" type="submit" class="material-icons button" value="file_upload"/>
+<!--       <input id="system-add-upload-button" type="submit" class="material-icons button" value="file_upload"/> -->
+      <input type="submit" class="upload-button" value="Upload .csv File"/>
       {% else %}
       <p> Log in to upload files! </p>
       {% endif %}
@@ -206,32 +207,35 @@
         </fieldset>
 
         <fieldset>
-        <legend>Name and values*</legend>
+        <legend>Name and values</legend>
         <div class="cg-block">
             <table class="system-form-table">
                 <tr>
                     <td>
-                        <label for="{{ form_detail.main_id.id_for_label }}">Name (main id):</label>
+                        <label for="{{ form_detail.main_id.id_for_label }}">Name (main id):*</label>
                     </td>
                     <td>
                         {{ form_detail.main_id }}
                         <span class="error"> {{ form_detail.main_id.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td class='bold'>
+                        <label for="{{ form_detail.get_simbad.id_for_label }}">Use Simbad:</label>
                     </td>
-                    <td>
+                    <td class='left'>
+                        {{ form_detail.get_simbad }}
+                        <span class="error"> {{ form_detail.get_simbad.errors.as_text }} </span>
                     </td>
                 </tr>
                 <tr>
-                    <td>
-                        <label for="{{ form_detail.ra.id_for_label }}">Right ascension:</label>
+                    <td id='label'>
+                        <label for="{{ form_detail.ra.id_for_label }}">Right ascension:*</label>
                     </td>
                     <td>
                         {{ form_detail.ra }}
                         <span class="error"> {{ form_detail.ra.errors.as_text }} </span>
                     </td>
-                    <td>
-                        <label for="{{ form_detail.dec.id_for_label }}">Declination:</label>
+                    <td id='label'>
+                        <label for="{{ form_detail.dec.id_for_label }}">Declination:*</label>
                     </td>
                     <td>
                         {{ form_detail.dec }}
@@ -239,27 +243,30 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.sp_type.id_for_label }}">Spectral Type:</label>
                     </td>
                     <td>
                         {{ form_detail.sp_type }}
                         <span class="error"> {{ form_detail.sp_type.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
+                        <label for="{{ form_detail.classification_type.id_for_label }}">Classification typ:</label>
                     </td>
-                    <td>
+                    <td class='left'>
+                        {{ form_detail.classification_type }}
+                        <span class="error"> {{ form_detail.classification_type.errors.as_text }} </span>
                     </td>
                 </tr>
                 <tr>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.parallax.id_for_label }}">Parallax:</label>
                     </td>
                     <td>
                         {{ form_detail.parallax }}
                         <span class="error"> {{ form_detail.parallax.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.parallax_error.id_for_label }}">Parallax Error:</label>
                     </td>
                     <td>
@@ -276,14 +283,14 @@
         <div class="cg-block">
             <table class="system-form-table">
                 <tr>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.pmra_x.id_for_label }}">Right ascension:</label>
                     </td>
                     <td>
                         {{ form_detail.pmra_x }}
                         <span class="error"> {{ form_detail.pmra_x.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.pmra_error.id_for_label }}">Error:</label>
                     </td>
                     <td>
@@ -292,14 +299,14 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.pmdec_x.id_for_label }}">Declination:</label>
                     </td>
                     <td>
                         {{ form_detail.pmdec_x }}
                         <span class="error"> {{ form_detail.pmdec_x.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.pmdec_error.id_for_label }}">Error:</label>
                     </td>
                     <td>
@@ -315,55 +322,51 @@
         <div class="cg-block">
             <table class="system-form-table">
                 <tr>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.phot_g_mean_mag.id_for_label }}">G:  </label>
                     </td>
                     <td>
                         {{ form_detail.phot_g_mean_mag }}
                         <span class="error"> {{ form_detail.phot_g_mean_mag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
+                        <label for="{{ form_detail.phot_g_mean_magerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
+                        {{ form_detail.phot_g_mean_magerr }}
+                        <span class="error"> {{ form_detail.phot_g_mean_magerr.errors.as_text }} </span>
                     </td>
                 </tr>
                 <tr>
-                    <td>
-                        <label for="{{ form_detail.phot_bp_mean_mag.id_for_label }}">Gbp:</label>
+                    <td id='label'>
+                        <label for="{{ form_detail.phot_bp_mean_mag.id_for_label }}">BP:</label>
                     </td>
                     <td>
                         {{ form_detail.phot_bp_mean_mag}}
                         <span class="error"> {{ form_detail.phot_bp_mean_mag.errors.as_text }} </span>
                     </td>
+                    <td id='label'>
+                        <label for="{{ form_detail.phot_bp_mean_magerr.id_for_label }}">Error:  </label>
+                    </td>
                     <td>
-                        <label for="{{ form_detail.phot_rp_mean_mag.id_for_label }}">Grp:</label>
+                        {{ form_detail.phot_bp_mean_magerr }}
+                        <span class="error"> {{ form_detail.phot_bp_mean_magerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td id='label'>
+                        <label for="{{ form_detail.phot_rp_mean_mag.id_for_label }}">RP:</label>
                     </td>
                     <td>
                         {{ form_detail.phot_rp_mean_mag }}
                         <span class="error"> {{ form_detail.phot_rp_mean_mag.errors.as_text }} </span>
                     </td>
-                </tr>
-            </table>
-        </div>
-        </fieldset>
-
-        <fieldset><legend>UV (Galex) photometry</legend>
-        <div class="cg-block">
-            <table class="system-form-table">
-                <tr>
-                    <td>
-                        <label for="{{ form_detail.FUV.id_for_label }}">Far-UV (FUV):  </label>
+                    <td id='label'>
+                        <label for="{{ form_detail.phot_rp_mean_magerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
-                        {{ form_detail.FUV }}
-                        <span class="error"> {{ form_detail.FUV.errors.as_text }} </span>
-                    </td>
-                    <td>
-                        <label for="{{ form_detail.NUV.id_for_label }}">Near-UV (NUV):  </label>
-                    </td>
-                    <td>
-                        {{ form_detail.NUV }}
-                        <span class="error"> {{ form_detail.NUV.errors.as_text }} </span>
+                        {{ form_detail.phot_rp_mean_magerr }}
+                        <span class="error"> {{ form_detail.phot_rp_mean_magerr.errors.as_text }} </span>
                     </td>
                 </tr>
             </table>
@@ -375,15 +378,47 @@
             <span id="system-form-instrument-select">{{ form_detail.instrument }}</span> photometry</legend>
         <div class="cg-block">
             <table class="system-form-table" id="form-photometry">
-                <tr id='JHKWISE'>
+                <tr id='GALEX'>
+                    <td id='label'>
+                        <label for="{{ form_detail.FUV.id_for_label }}">Far-UV (FUV):  </label>
+                    </td>
                     <td>
+                        {{ form_detail.FUV }}
+                        <span class="error"> {{ form_detail.FUV.errors.as_text }} </span>
+                    </td>
+                    <td id='label'>
+                        <label for="{{ form_detail.FUVerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.FUVerr }}
+                        <span class="error"> {{ form_detail.FUVerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='GALEX'>
+                    <td id='label'>
+                        <label for="{{ form_detail.NUV.id_for_label }}">Near-UV (NUV):  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.NUV }}
+                        <span class="error"> {{ form_detail.NUV.errors.as_text }} </span>
+                    </td>
+                    <td id='label'>
+                        <label for="{{ form_detail.NUVerr.id_for_label }}">Error:  </label>
+                    </td>
+                    <td>
+                        {{ form_detail.NUVerr }}
+                        <span class="error"> {{ form_detail.NUVerr.errors.as_text }} </span>
+                    </td>
+                </tr>
+                <tr id='JHKWISE'>
+                    <td id='label'>
                         <label for="{{ form_detail.Jmag.id_for_label }}">J:  </label>
                     </td>
                     <td>
                         {{ form_detail.Jmag }}
                         <span class="error"> {{ form_detail.Jmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Jmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -392,14 +427,14 @@
                     </td>
                 </tr>
                 <tr id='JHKWISE'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Hmag.id_for_label }}">H:  </label>
                     </td>
                     <td>
                         {{ form_detail.Hmag }}
                         <span class="error"> {{ form_detail.Hmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Hmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -408,14 +443,14 @@
                     </td>
                 </tr>
                 <tr id='JHKWISE'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Kmag.id_for_label }}">K:  </label>
                     </td>
                     <td>
                         {{ form_detail.Kmag }}
                         <span class="error"> {{ form_detail.Kmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Kmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -424,14 +459,14 @@
                     </td>
                 </tr>
                 <tr id='JHKWISE'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.W1mag.id_for_label }}">W1:  </label>
                     </td>
                     <td>
                         {{ form_detail.W1mag }}
                         <span class="error"> {{ form_detail.W1mag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.W1magerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -440,14 +475,14 @@
                     </td>
                 </tr>
                 <tr id='JHKWISE'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.W2mag.id_for_label }}">W2:  </label>
                     </td>
                     <td>
                         {{ form_detail.W2mag }}
                         <span class="error"> {{ form_detail.W2mag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.W2magerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -456,14 +491,14 @@
                     </td>
                 </tr>
                 <tr id='JHKWISE'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.W3mag.id_for_label }}">W3:  </label>
                     </td>
                     <td>
                         {{ form_detail.W3mag }}
                         <span class="error"> {{ form_detail.W3mag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.W3magerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -472,14 +507,14 @@
                     </td>
                 </tr>
                 <tr id='JHKWISE'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.W4mag.id_for_label }}">W4:  </label>
                     </td>
                     <td>
                         {{ form_detail.W4mag }}
                         <span class="error"> {{ form_detail.W4mag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.W4magerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -488,14 +523,14 @@
                     </td>
                 </tr>
                 <tr id='SKYMAP'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Umag.id_for_label }}">J:  </label>
                     </td>
                     <td>
                         {{ form_detail.Umag }}
                         <span class="error"> {{ form_detail.Umag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Umagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -504,14 +539,14 @@
                     </td>
                 </tr>
                 <tr id='SKYMAP'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Vmag.id_for_label }}">V:  </label>
                     </td>
                     <td>
                         {{ form_detail.Vmag }}
                         <span class="error"> {{ form_detail.Vmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Vmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -520,14 +555,14 @@
                     </td>
                 </tr>
                 <tr id='SKYMAP'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Gmag.id_for_label }}">G:  </label>
                     </td>
                     <td>
                         {{ form_detail.Gmag }}
                         <span class="error"> {{ form_detail.Gmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Gmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -536,14 +571,14 @@
                     </td>
                 </tr>
                 <tr id='SKYMAP'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Rmag.id_for_label }}">R:  </label>
                     </td>
                     <td>
                         {{ form_detail.Rmag }}
                         <span class="error"> {{ form_detail.Rmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Rmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -552,14 +587,14 @@
                     </td>
                 </tr>
                 <tr id='SKYMAP'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Imag.id_for_label }}">I:  </label>
                     </td>
                     <td>
                         {{ form_detail.Imag }}
                         <span class="error"> {{ form_detail.Imag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Imagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -568,14 +603,14 @@
                     </td>
                 </tr>
                 <tr id='SKYMAP'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Zmag.id_for_label }}">Z:  </label>
                     </td>
                     <td>
                         {{ form_detail.Zmag }}
                         <span class="error"> {{ form_detail.Zmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.Zmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -584,14 +619,14 @@
                     </td>
                 </tr>
                 <tr id='APASS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APBmag.id_for_label }}">B:  </label>
                     </td>
                     <td>
                         {{ form_detail.APBmag }}
                         <span class="error"> {{ form_detail.APBmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APBmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -600,14 +635,14 @@
                     </td>
                 </tr>
                 <tr id='APASS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APVmag.id_for_label }}">V:  </label>
                     </td>
                     <td>
                         {{ form_detail.APVmag }}
                         <span class="error"> {{ form_detail.APVmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APVmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -616,14 +651,14 @@
                     </td>
                 </tr>
                 <tr id='APASS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APGmag.id_for_label }}">G:  </label>
                     </td>
                     <td>
                         {{ form_detail.APGmag }}
                         <span class="error"> {{ form_detail.APGmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APGmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -632,14 +667,14 @@
                     </td>
                 </tr>
                 <tr id='APASS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APRmag.id_for_label }}">R:  </label>
                     </td>
                     <td>
                         {{ form_detail.APRmag }}
                         <span class="error"> {{ form_detail.APRmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APRmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -648,14 +683,14 @@
                     </td>
                 </tr>
                 <tr id='APASS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APImag.id_for_label }}">I:  </label>
                     </td>
                     <td>
                         {{ form_detail.APImag }}
                         <span class="error"> {{ form_detail.APImag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.APImagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -664,14 +699,14 @@
                     </td>
                 </tr>
                 <tr id='SDSS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSUmag.id_for_label }}">J:  </label>
                     </td>
                     <td>
                         {{ form_detail.SDSSUmag }}
                         <span class="error"> {{ form_detail.SDSSUmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSUmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -680,14 +715,14 @@
                     </td>
                 </tr>
                 <tr id='SDSS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSGmag.id_for_label }}">G:  </label>
                     </td>
                     <td>
                         {{ form_detail.SDSSGmag }}
                         <span class="error"> {{ form_detail.SDSSGmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSGmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -696,14 +731,14 @@
                     </td>
                 </tr>
                 <tr id='SDSS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSRmag.id_for_label }}">R:  </label>
                     </td>
                     <td>
                         {{ form_detail.SDSSRmag }}
                         <span class="error"> {{ form_detail.SDSSRmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSRmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -712,14 +747,14 @@
                     </td>
                 </tr>
                 <tr id='SDSS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSImag.id_for_label }}">I:  </label>
                     </td>
                     <td>
                         {{ form_detail.SDSSImag }}
                         <span class="error"> {{ form_detail.SDSSImag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSImagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -728,14 +763,14 @@
                     </td>
                 </tr>
                 <tr id='SDSS'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSZmag.id_for_label }}">Z:  </label>
                     </td>
                     <td>
                         {{ form_detail.SDSSZmag }}
                         <span class="error"> {{ form_detail.SDSSZmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.SDSSZmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -744,14 +779,14 @@
                     </td>
                 </tr>
                 <tr id='PANSTAR'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANGmag.id_for_label }}">G:  </label>
                     </td>
                     <td>
                         {{ form_detail.PANGmag }}
                         <span class="error"> {{ form_detail.PANGmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANGmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -760,14 +795,14 @@
                     </td>
                 </tr>
                 <tr id='PANSTAR'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANRmag.id_for_label }}">R:  </label>
                     </td>
                     <td>
                         {{ form_detail.PANRmag }}
                         <span class="error"> {{ form_detail.PANRmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANRmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -776,14 +811,14 @@
                     </td>
                 </tr>
                 <tr id='PANSTAR'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANImag.id_for_label }}">I:  </label>
                     </td>
                     <td>
                         {{ form_detail.PANImag }}
                         <span class="error"> {{ form_detail.PANImag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANImagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -792,14 +827,14 @@
                     </td>
                 </tr>
                 <tr id='PANSTAR'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANZmag.id_for_label }}">Z:  </label>
                     </td>
                     <td>
                         {{ form_detail.PANZmag }}
                         <span class="error"> {{ form_detail.PANZmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANZmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -808,14 +843,14 @@
                     </td>
                 </tr>
                 <tr id='PANSTAR'>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANYmag.id_for_label }}">Y:  </label>
                     </td>
                     <td>
                         {{ form_detail.PANYmag }}
                         <span class="error"> {{ form_detail.PANYmag.errors.as_text }} </span>
                     </td>
-                    <td>
+                    <td id='label'>
                         <label for="{{ form_detail.PANYmagerr.id_for_label }}">Error:  </label>
                     </td>
                     <td>
@@ -829,10 +864,11 @@
 
         </div>
 
-        <p class="add-system-footnote">Blocks marked with a '*' are required</p>
+        <p class="add-system-footnote">Values marked with a '*' are required</p>
 
         <div class="system-form-submit">
-            <input type="submit" class="system-form-submit-button" value="Add System"/>
+<!--             <input type="submit" class="system-form-submit-button" value="Add System"/> -->
+            <input type="submit" class="upload-button" value="Add System"/>
         </div>
 
         {% else %}

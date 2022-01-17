@@ -234,23 +234,36 @@ class UploadSystemForm(forms.Form):
 
 
 class UploadSystemDetailForm(forms.Form):
-    #   Target
+    #   Target name
     main_id = forms.CharField(max_length=50, required=True)
-    #ra = forms.CharField(max_length=15, required=True)
-    #dec = forms.CharField(max_length=15, required=True)
+
+    #   Download from Simbad/Vizier?
+    get_simbad = forms.BooleanField(initial=False, required=False)
+
+    #   Coordinates
     ra  = RAField(
         max_length=20,
-        required=True,
+        #required=True,
+        required=False,
         widget=forms.TextInput(attrs={'placeholder':'  h:m:s or d.d°'}),
         )
     dec = DecField(
         max_length=20,
-        required=True,
+        #required=True,
+        required=False,
         widget=forms.TextInput(attrs={'placeholder':'  ° : \' : \'\' or d.d°'}),
         )
 
     #   Spectral type
-    sp_type = forms.CharField(max_length=30, required=False)
+    sp_type             = forms.CharField(max_length=30, required=False)
+    classification_type = forms.ChoiceField(
+        choices = (
+            ('SP', 'Spectroscopic'),
+            ('PH',  'Photometric'),
+            ),
+        initial = 'PH',
+        required=False,
+        )
 
     #   Parallax
     parallax = forms.FloatField(required=False)
@@ -352,11 +365,12 @@ class UploadSystemDetailForm(forms.Form):
         )
 
     INSTRUMENTS = (
-        ('JHKWISE', 'JHK and WISE'),
-        ('SKYMAP', 'SKYMAP'),
         ('APASS', 'APASS'),
+        ('SKYMAP', 'SKYMAP'),
         ('SDSS', 'SDSS'),
         ('PANSTAR', 'PANSTAR'),
+        ('JHKWISE', 'JHK and WISE'),
+        ('GALEX', 'Galex'),
     )
 
     instrument = forms.CharField(widget=forms.Select(choices=INSTRUMENTS))

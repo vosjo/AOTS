@@ -37,6 +37,9 @@ class Tag(models.Model):
    added_on = models.DateTimeField(auto_now_add=True)
    last_modified = models.DateTimeField(auto_now=True)
 
+   class Meta:
+      ordering = ['name']
+
    #-- representation of self
    def __str__(self):
       return "{}:{}".format(self.name, self.description)

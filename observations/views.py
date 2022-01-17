@@ -12,6 +12,7 @@ from .models import (
     Observatory,
     )
 from stars.models import Star, Project
+from stars.auxil import invalid_form
 
 from .forms import (
     UploadSpecFileForm,
@@ -258,21 +259,12 @@ def add_spectra(request, project=None, **kwargs):
                     kwargs={'project':project.slug}
                     ))
             else:
-                #   Handel invalid forms
-                messages.add_message(
+                #   Handel invalid form
+                invalid_form(
                     request,
-                    messages.ERROR,
-                    "Invalid form. Please try again.",
-                    )
-
-                #   Return and redirect
-                return HttpResponseRedirect(reverse(
                     'observations:spectra_upload',
-                    kwargs={'project':project.slug}
-                    ))
-                print( "Invalid form:")
-                print (upload_form.cleaned_data)
-
+                    project.slug,
+                    )
 
     #   Block uploads by anonymous
     elif request.method != 'GET' and not request.user.is_authenticated:

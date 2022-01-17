@@ -14,6 +14,7 @@ from observations.plotting import plot_sed
 
 import io
 from .forms import StarForm, UploadSystemForm, UploadSystemDetailForm
+from .auxil import populate_system, invalid_form
 
 # from .plotting import plot_photometry
 
@@ -78,48 +79,71 @@ def star_list(request, project=None, **kwargs):
                         continue
                     systems = csv.DictReader(io.TextIOWrapper(f.file))
                     for star in systems:
+                        #   Initialize star model
+                        sobj = Star(
+                            name=star["main_id"],
+                            project=project,
+                            ra=0.,
+                            dec=0.,
+                        )
+                        sobj.save()
+
                         try:
-                            success, message = mk_new_system(star, project)
+                            success, message = populate_system(star, sobj.pk)
                             l = messages.SUCCESS if success else messages.ERROR
                             messages.add_message(request, l, message)
                         except Exception as e:
+                            #   Handel error
                             print(e)
+                            sobj.delete()
                             messages.add_message(
                                 request,
                                 messages.ERROR,
-                                "Exception occurred when adding: " + str(f.name),
+                                "Exception occurred when adding: {}".format(
+                                    str(f.name)
+                                    ),
                             )
-                        # except:
-                        # messages.add_message(
-                        # request,
-                        # messages.ERROR,
-                        # "Exception occured when adding: "\
-                        # +str(star["main_id"]),
-                        # )
 
                 return HttpResponseRedirect(reverse(
                     'systems:star_list',
                     kwargs={'project': project.slug},
                 ))
+
+            else:
+                #   Handel invalid form
+                invalid_form(request, 'systems:star_list', project.slug)
+
         else:
             upload_form_detail = UploadSystemDetailForm(
                 request.POST,
                 request.FILES,
             )
             if upload_form_detail.is_valid():
+                #   Uploaded data
+                star = upload_form_detail.cleaned_data
+
+                #   Initialize star model
+                sobj = Star(
+                    name=star["main_id"],
+                    project=project,
+                    ra=0.,
+                    dec=0.,
+                )
+                sobj.save()
+
                 try:
-                    success, message = mk_new_system(
-                        upload_form_detail.cleaned_data,
-                        project,
-                    )
+                    success, message = populate_system(star, sobj.pk)
                     level = messages.SUCCESS if success else messages.ERROR
                     messages.add_message(request, level, message)
                 except Exception as e:
                     print(e)
+                    sobj.delete()
                     messages.add_message(
                         request,
                         messages.ERROR,
-                        "Exception occurred when adding a system",
+                        "Exception occurred when adding: {}".format(
+                            star["main_id"]
+                            ),
                     )
 
                 return HttpResponseRedirect(reverse(
@@ -127,9 +151,8 @@ def star_list(request, project=None, **kwargs):
                     kwargs={'project': project.slug},
                 ))
             else:
-
-                print("invalid")
-                print(upload_form_detail.cleaned_data)
+                #   Handel invalid form
+                invalid_form(request, 'systems:star_list', project.slug)
 
     elif request.method != 'GET' and not request.user.is_authenticated:
         messages.add_message(
@@ -145,241 +168,6 @@ def star_list(request, project=None, **kwargs):
     }
 
     return render(request, 'stars/star_list.html', context)
-
-
-def mk_new_system(star, project):
-    ##### TODO: ADD HERE A REAL FUNCTION: #####
-    #   Function to identify RA AND DEC input and convert it to deg
-    ra = float(star['ra'])
-    dec = float(star['dec'])
-    ###########################################
-
-    #   Check for duplicates
-    duplicates = Star.objects.filter(name=star["main_id"]) \
-        .filter(ra__range=[ra - 1 / 3600., ra + 1 / 3600.]) \
-        .filter(dec__range=[dec - 1 / 3600., dec + 1 / 3600.]) \
-        .filter(project__exact=project.pk)
-
-    # print("duplicates", duplicates)
-
-    if len(duplicates) != 0:
-        return False, "System exists already: " + star["main_id"]
-
-    #   Initialize star model
-    sobj = Star(
-        name=star["main_id"],
-        project=project,
-        ra=ra,
-        dec=dec,
-        classification=star['sp_type'],
-        classification_type='PH',
-        observing_status='ON',
-    )
-    sobj.save()
-
-    ident = sobj.identifier_set.all()[0]
-    ident.href = "http://simbad.u-strasbg.fr/simbad/" \
-                 + "sim-id?Ident=" + star['main_id'] \
-                     .replace(" ", "").replace('+', "%2B")
-    ident.save()
-
-    if 'JNAME' in star:
-        sobj.identifier_set.create(name=star['JNAME'])
-
-    # -- Add Tags
-    if 'tags' in star:
-        for tag in star["tags"]:
-            sobj.tags.add(tag)
-
-    #-- Add photometry
-    #   Internal photometry names
-    passbands = [
-        'GAIA2.G',
-        'GAIA2.BP',
-        'GAIA2.RP',
-        '2MASS.J',
-        '2MASS.H',
-        '2MASS.K',
-        'WISE.W1',
-        'WISE.W2',
-        'WISE.W3',
-        'WISE.W4',
-        'GALEX.FUV',
-        'GALEX.NUV',
-        'SKYMAP.U',
-        'SKYMAP.V',
-        'SKYMAP.G',
-        'SKYMAP.R',
-        'SKYMAP.I',
-        'SKYMAP.Z',
-        'APASS.B',
-        'APASS.V',
-        'APASS.G',
-        'APASS.R',
-        'APASS.I',
-        'SDSS.U',
-        'SDSS.G',
-        'SDSS.R',
-        'SDSS.I',
-        'SDSS.Z',
-        'PANSTAR.G',
-        'PANSTAR.R',
-        'PANSTAR.I',
-        'PANSTAR.Z',
-        'PANSTAR.Y',
-    ]
-    #   CSV or form names
-    photnames = [
-        'phot_g_mean_mag',
-        'phot_bp_mean_mag',
-        'phot_rp_mean_mag',
-        'Jmag',
-        'Hmag',
-        'Kmag',
-        'W1mag',
-        'W2mag',
-        'W3mag',
-        'W4mag',
-        'FUV',
-        'NUV',
-        'Umag',
-        'Vmag',
-        'Gmag',
-        'Rmag',
-        'Imag',
-        'Zmag',
-        'APBmag',
-        'APVmag',
-        'APGmag',
-        'APRmag',
-        'APImag',
-        'SDSSUmag',
-        'SDSSGmag',
-        'SDSSRmag',
-        'SDSSImag',
-        'SDSSZmag',
-        'PANGmag',
-        'PANRmag',
-        'PANImag',
-        'PANZmag',
-        'PANYmag'
-    ]
-    #   Error names
-    errs = ['phot_g_mean_magerr',
-            'phot_bp_mean_magerr',
-            'phot_rp_mean_magerr',
-            'Jmagerr',
-            'Hmagerr',
-            'Kmagerr',
-            'W1magerr',
-            'W2magerr',
-            'W3magerr',
-            'W4magerr',
-            'FUVerr',
-            'NUVerr',
-            'Umagerr',
-            'Vmagerr',
-            'Gmagerr',
-            'Rmagerr',
-            'Imagerr',
-            'Zmagerr',
-            'APBmagerr',
-            'APVmagerr',
-            'APGmagerr',
-            'APRmagerr',
-            'APImagerr',
-            'SDSSUmagerr',
-            'SDSSGmagerr',
-            'SDSSRmagerr',
-            'SDSSImagerr',
-            'SDSSZmagerr',
-            'PANGmagerr',
-            'PANRmagerr',
-            'PANImagerr',
-            'PANZmagerr',
-            'PANYmagerr']
-
-    for i, phot in enumerate(photnames):
-        #   Check if photometry band was provided
-        if phot in star:
-            #   Check if photometry error was provided
-            if phot in star:
-                if errs[i] in star:
-                    if (star[phot] != None and star[phot] != "" and
-                        star[errs[i]] != None and star[errs[i]] != ""):
-                        sobj.photometry_set.create(
-                            band=passbands[i],
-                            measurement=star[phot],
-                            error=star[errs[i]],
-                            unit='mag',
-                        )
-                    elif star[phot] != None and star[phot] != "":
-                        sobj.photometry_set.create(
-                            band=passbands[i],
-                            measurement=star[phot],
-                            error=0.,
-                            unit='mag',
-                        )
-                else:
-                    if star[phot] != None and star[phot] != "":
-                        sobj.photometry_set.create(
-                            band=passbands[i],
-                            measurement=star[phot],
-                            error=0.,
-                            unit='mag',
-                        )
-
-    # -- Add parameters from gaia DR2
-    if (star['parallax'] != None or
-        star['pmra_x'] != None or
-        star['pmdec_x'] != None):
-
-        try:
-            dsgaia = DataSource.objects.get(
-                name__exact='Gaia DR2',
-                project=project,
-            )
-        except DataSource.DoesNotExist:
-            dsgaia = DataSource.objects.create(
-                name='Gaia DR2',
-                note='2nd Gaia data release',
-                reference='https://doi.org/10.1051/0004-6361/201833051',
-                project=project,
-            )
-
-        if star['parallax'] != None:
-            sobj.parameter_set.create(
-                data_source=dsgaia,
-                name='parallax',
-                component=0,
-                value=star['parallax'],
-                error=star['parallax_error'],
-                unit='',
-            )
-
-        if star['pmra_x'] != None:
-            sobj.parameter_set.create(
-                data_source=dsgaia,
-                name='pmra',
-                component=0,
-                value=star['pmra_x'],
-                error=star['pmra_error'],
-                unit='mas',
-            )
-
-        if star['pmdec_x'] != None:
-            sobj.parameter_set.create(
-                data_source=dsgaia,
-                name='pmdec',
-                component=0,
-                value=star['pmdec_x'],
-                error=star['pmdec_error'],
-                unit='mas',
-            )
-
-    sobj.save()
-
-    return True, ""
 
 
 @check_user_can_view_project

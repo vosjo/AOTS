@@ -675,10 +675,10 @@ section.data-section > i.show {
 
 div.data-summary {
    margin-left: 2%;
+   display: none;
 }
 
 div.data-detail {
-   display: none;
 }
 
 div.flex-data-container {
@@ -1285,13 +1285,13 @@ footer i {
 }
 
 .cg-block {
-   width: 700px;
+   margin-right: 10%;
 }
 
-[id=system-add-upload-button] {
+/*[id=system-add-upload-button] {
    font-family: 'Material Icons' !important;
     font-size: 24px !important;
-}
+}*/
 
 .system-form-table {
    width: 100%;
@@ -1302,6 +1302,14 @@ footer i {
    text-align: right;
 }
 
+.system-form-table td.left{
+   text-align: left;
+}
+
+.system-form-table td.bold{
+   font-weight: bold;
+}
+
 .system-form-submit {
    width: 100%;
    display: flex;
@@ -1309,9 +1317,9 @@ footer i {
    justify-content: center;
 }
 
-.system-form-submit-button{
+/*.system-form-submit-button{
    font-size: larger !important;
-}
+}*/
 
 .add-system-csv-example {
    text-align: right;

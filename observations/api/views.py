@@ -174,6 +174,13 @@ def getLightCurveHeader(request, lightcurve_pk):
 
    return Response(header)
 
+@api_view(['GET'])
+def getLightCurvePath(request, lightcurve_pk):
+   lightcurve = LightCurve.objects.get(pk=lightcurve_pk)
+   path     = lightcurve.lcfile.url
+
+   return Response(path)
+
 
 # ===============================================================
 # Observatory

@@ -87,6 +87,9 @@
    <table id="lightcurvetable" class="fullwidth">
    <thead>
       <tr>
+      {% if user.is_authenticated %}
+      <th><i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i></th>
+      {% endif %}
       <th>HJD</th>
       <th>System</th>
       <th>Instrument</th>
@@ -97,6 +100,9 @@
    </thead>
    <tfoot>
       <tr>
+      {% if user.is_authenticated %}
+      <th></th>
+      {% endif %}
       <th>HJD</th>
       <th>System</th>
       <th>Instrument</th>

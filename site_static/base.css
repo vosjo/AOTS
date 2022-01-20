@@ -137,10 +137,6 @@ div#subtoolbar ul li a{
 
 .icon {
    align-self: center;
-/*    position: relative; */
-  /* Adjust these values accordingly */
-/*   top: 5px; */
-/*   left: -5px; */
 }
 
 body {
@@ -1232,7 +1228,6 @@ span.header-value {
    color: red;
 }
 
-
 /* Footer stuff */
 * {
   margin: 0;
@@ -1306,10 +1301,6 @@ footer i {
    text-align: left;
 }
 
-.system-form-table td.bold{
-   font-weight: bold;
-}
-
 .system-form-submit {
    width: 100%;
    display: flex;
@@ -1320,6 +1311,10 @@ footer i {
 /*.system-form-submit-button{
    font-size: larger !important;
 }*/
+
+td.bold{
+   font-weight: bold;
+}
 
 .add-system-csv-example {
    text-align: right;

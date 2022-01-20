@@ -17,6 +17,7 @@ from stars.auxil import invalid_form
 from .forms import (
     UploadSpecFileForm,
     UploadRawSpecFileForm,
+    PatchRawSpecFileForm,
     UploadLightCurveForm,
     UploadSpectraDetailForm,
     SpectrumModForm,
@@ -323,6 +324,13 @@ def rawspecfile_list(request, project=None,  **kwargs):
     raw_upload_form.fields['specfile'].queryset = SpecFile.objects\
         .filter(project__exact=project.pk)
 
+    raw_patch_form = PatchRawSpecFileForm()
+    raw_patch_form.fields['system_patch'].queryset = Star.objects\
+        .filter(project__exact=project.pk)\
+        .exclude(spectrum__isnull=True)
+    raw_patch_form.fields['specfile_patch'].queryset = SpecFile.objects\
+        .filter(project__exact=project.pk)
+
     # Handle file upload
     if request.method == 'POST' and request.user.is_authenticated:
         #   Raw files
@@ -384,6 +392,7 @@ def rawspecfile_list(request, project=None,  **kwargs):
     context = {
         'project': project,
         'raw_upload_form': raw_upload_form,
+        'raw_patch_form': raw_patch_form,
         }
 
     return render(request, 'observations/rawspecfiles_list.html', context)

@@ -1,5 +1,6 @@
 
 var rawspecfile_table = null;
+var edit_linkage_window = null;
 
 $(document).ready(function () {
    let columns;
@@ -111,10 +112,12 @@ $(document).ready(function () {
           "<input id='dl-button'  class='tb-button' value='Download raw data' type='button' disabled>" +
           '<progress id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
           "<input id='delete-button'  class='tb-button' value='Delete raw data' type='button' disabled>" +
+          "<input id='change-button'  class='tb-button' value='Change file allocations' type='button' disabled>" +
           "<p class='hide' id='result'></p>"
       );
       $("#dl-button").click( download_rawfiles );
       $("#delete-button").click( delete_all_selected_rawspecfiles );
+      $("#change-button").click( openLinkageEditWindow );
    }
 
     //  Adjust form drop dropdown content - First read System drop down
@@ -247,6 +250,43 @@ $(document).ready(function () {
             deselect_row(this);
          });
     });
+
+   //   Initialize edit windows
+   edit_linkage_window = $("#editLinkage").dialog({
+        autoOpen: false,
+        width: '30%',
+        minwidth: '350',
+        modal: true,
+        title: "Adjust file allocations",
+        buttons: { "Update": updateLinkage },
+        close: function() { edit_linkage_window.dialog( "close" ); }
+   });
+
+
+    //  Adjust form drop dropdown content in the edit window
+    //  - First read System drop down
+    $("#id_system_patch").change(function(index) {
+        //  Set pk list
+        let pk_list = $(this).val();
+
+        //  Clear Specfile drop down
+        document.getElementById("id_specfile_patch").length = 0;
+        $("#id_specfile_patch").val([]);
+
+        //  Loop over pks
+        $.each(pk_list, function(index, pk) {
+            //  Get Specfile info as JASON
+            $.getJSON("/api/systems/stars/"+pk+'/specfiles/', function(data){
+                //  Refilling Specfile drop down
+                for (let key in data){
+                    if (data.hasOwnProperty(key)){
+                        let value=data[key];
+                        $("#id_specfile_patch").append("<option value = \"" + key + "\">" + value + "</option>");
+                    }
+                };
+            });
+        });
+    });
 });
 
 
@@ -323,6 +363,7 @@ function select_row(row) {
     $('#dl-button').prop('disabled', false);
     $('#rm-button').prop('disabled', false);
     $('#delete-button').prop('disabled', false);
+    $('#change-button').prop('disabled', false);
 }
 
 function deselect_row(row) {
@@ -333,10 +374,12 @@ function deselect_row(row) {
       $('#dl-button').prop('disabled', true);
       $('#rm-button').prop('disabled', true);
       $('#delete-button').prop('disabled', true);
+      $('#change-button').prop('disabled', true);
    } else {
       $('#select-all').text('indeterminate_check_box');
    }
 }
+
 
 //  Delete raw data
 function delete_all_selected_rawspecfiles(){
@@ -372,6 +415,69 @@ function delete_all_selected_rawspecfiles(){
     }
 }
 
+
+//  Open edit window for file linkage
+function openLinkageEditWindow() {
+    edit_linkage_window.dialog( "open" );
+}
+
+function updateLinkage() {
+    //  Bind to selected spectra
+    let spectra = $("#id_specfile_patch");
+    let specfiles = spectra.children().filter(':checked')
+
+    //  Check that spectra are selected
+    if ( specfiles.length == 0 ) {
+        $('#linkage-error').text('You need to select a spectrum file!');
+    } else {
+        //  Loop over SpecFiles, get 'pk'
+        let pk_list_spf = [];
+        specfiles.map(function( index ) {
+            //  Get SpecFile 'pk'
+            let pd_spf = $( this ).val();
+            pk_list_spf.push(pd_spf);
+        });
+
+        //   Get list of selected RawSpecfiles
+        rawspecfile_table.rows('.selected').every( function(rowIdx, tableLoop, rowLoop) {
+            //  Determine ID/PK
+            let pk_raw = this.data()['pk'];
+
+            //  Modify the linkage
+            change_rawspecfiles_linkage(this, pk_raw, pk_list_spf);
+        });
+
+        //   Reset check boxes
+        rawspecfile_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+            deselect_row(this);
+            });
+    }
+}
+
+//  Delete raw data
+function change_rawspecfiles_linkage(row, pk_raw, pk_spf){
+    //  Ajax call to patch SpecFile <-> RawFile association
+    $.ajax({
+        url : "/api/observations/rawspecfiles/"+pk_raw+'/',
+        type : "PATCH",
+        contentType: "application/json; charset=utf-8",
+        data : JSON.stringify({'specfile': pk_spf}),
+        success : function(json) {
+            //  Close edit window
+            edit_linkage_window.dialog( "close" );
+            //  Redraw table row
+            row.data(json).draw('page');
+        },
+        error : function(xhr,errmsg,err) {
+            if (xhr.status === 403){
+                alert('You have to be logged in to delete this spectrum.');
+            }else{
+                alert(xhr.status + ": " + xhr.responseText);
+            }
+            console.log(xhr.status + ": " + xhr.responseText);
+        }
+    });
+}
 
 //  Download options:
 

@@ -128,4 +128,30 @@
 
 </section>
 
+
+<!-- Div ect necessary for editing on page stuff with ajax -->
+<div id="editLinkage" class="ui-dialog">
+    <div id='linkage-error' class='error-message'></div>
+        <table>
+            <tr>
+                <td class='bold'>
+                    <label for="{{ raw_patch_form.system_patch.id_for_label }}">Systems:</label>
+                </td>
+                <td>
+                    {{ raw_patch_form.system_patch }}
+                    <span class="error"> {{ raw_patch_form.system_patch.errors.as_text }} </span>
+                </td>
+            </tr>
+            <tr>
+                <td class='bold'>
+                    <label for="{{ raw_patch_form.specfile_patch.id_for_label }}">Spectra:</label>
+                </td>
+                <td>
+                    {{ raw_patch_form.specfile_patch }}
+                    <span class="error"> {{ raw_patch_form.specfile_patch.errors.as_text }} </span>
+                </td>
+            </tr>
+        </table>
+</div>
+
 {% endblock %}

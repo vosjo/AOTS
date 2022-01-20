@@ -212,6 +212,7 @@ class RawSpecFileSerializer(ModelSerializer):
         model = RawSpecFile
         fields = [
                 'pk',
+                'specfile',
                 'stars',
                 'hjd',
                 'instrument',

@@ -226,7 +226,6 @@ class RawSpecFileFilter(filters.FilterSet):
 
     class Meta:
         model = RawSpecFile
-        #fields = []
         fields = ['project',]
 
     @property

@@ -126,6 +126,26 @@ class UploadRawSpecFileForm(forms.Form):
         widget=forms.ClearableFileInput(attrs={'multiple': True})
         )
 
+
+class PatchRawSpecFileForm(forms.Form):
+    '''
+        Patch form for spectroscopic raw data
+    '''
+    system_patch = forms.ModelMultipleChoiceField(
+        label='Systems',
+        #empty_label='Target name: ra[deg] dec[deg]',
+        queryset=Star.objects.all(),
+        required=False,
+        )
+
+    specfile_patch = forms.ModelMultipleChoiceField(
+        label='Spectra',
+        #empty_label='HJD@Instrument - Filetype',
+        queryset=SpecFile.objects.all(),
+        required=True,
+        )
+
+
 class OrderField(forms.IntegerField):
     '''
         Specific form field for the polynomial order

@@ -377,7 +377,7 @@ def rawspecfile_list(request, project=None,  **kwargs):
                         message_list.append([False, message_text])
 
                 return JsonResponse(
-                    {'info':'Data uploaded', 'messages':message_list}
+                    {'info': 'Data uploaded', 'messages':message_list}
                     )
 
     #   Block uploads by anonymous

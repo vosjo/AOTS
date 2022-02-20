@@ -25,6 +25,112 @@ from AOTS.custom_permissions import check_user_can_view_project
 import logging
 import json
 
+passbands = [
+    'GAIA2.G',
+    'GAIA2.BP',
+    'GAIA2.RP',
+    '2MASS.J',
+    '2MASS.H',
+    '2MASS.K',
+    'WISE.W1',
+    'WISE.W2',
+    'WISE.W3',
+    'WISE.W4',
+    'GALEX.FUV',
+    'GALEX.NUV',
+    'SKYMAP.U',
+    'SKYMAP.V',
+    'SKYMAP.G',
+    'SKYMAP.R',
+    'SKYMAP.I',
+    'SKYMAP.Z',
+    'APASS.B',
+    'APASS.V',
+    'APASS.G',
+    'APASS.R',
+    'APASS.I',
+    'SDSS.U',
+    'SDSS.G',
+    'SDSS.R',
+    'SDSS.I',
+    'SDSS.Z',
+    'PANSTAR.G',
+    'PANSTAR.R',
+    'PANSTAR.I',
+    'PANSTAR.Z',
+    'PANSTAR.Y',
+]
+#   CSV or form names
+photnames = [
+    'phot_g_mean_mag',
+    'phot_bp_mean_mag',
+    'phot_rp_mean_mag',
+    'Jmag',
+    'Hmag',
+    'Kmag',
+    'W1mag',
+    'W2mag',
+    'W3mag',
+    'W4mag',
+    'FUV',
+    'NUV',
+    'Umag',
+    'Vmag',
+    'Gmag',
+    'Rmag',
+    'Imag',
+    'Zmag',
+    'APBmag',
+    'APVmag',
+    'APGmag',
+    'APRmag',
+    'APImag',
+    'SDSSUmag',
+    'SDSSGmag',
+    'SDSSRmag',
+    'SDSSImag',
+    'SDSSZmag',
+    'PANGmag',
+    'PANRmag',
+    'PANImag',
+    'PANZmag',
+    'PANYmag'
+]
+#   Error names
+errs = ['phot_g_mean_magerr',
+        'phot_bp_mean_magerr',
+        'phot_rp_mean_magerr',
+        'Jmagerr',
+        'Hmagerr',
+        'Kmagerr',
+        'W1magerr',
+        'W2magerr',
+        'W3magerr',
+        'W4magerr',
+        'FUVerr',
+        'NUVerr',
+        'Umagerr',
+        'Vmagerr',
+        'Gmagerr',
+        'Rmagerr',
+        'Imagerr',
+        'Zmagerr',
+        'APBmagerr',
+        'APVmagerr',
+        'APGmagerr',
+        'APRmagerr',
+        'APImagerr',
+        'SDSSUmagerr',
+        'SDSSGmagerr',
+        'SDSSRmagerr',
+        'SDSSImagerr',
+        'SDSSZmagerr',
+        'PANGmagerr',
+        'PANRmagerr',
+        'PANImagerr',
+        'PANZmagerr',
+        'PANYmagerr']
+
 
 # Create your views here.
 
@@ -33,16 +139,16 @@ def project_list(request):
         Simplified view of the project page
     """
 
-    public_projects = Project.objects\
+    public_projects = Project.objects \
         .filter(is_public__exact=True).order_by('name')
     private_projects = None
 
     if not request.user.is_anonymous:
         user = request.user
-        private_projects = Project.objects\
+        private_projects = Project.objects \
             .filter(is_public__exact=False) \
-            .filter(pk__in=user.get_read_projects().values('pk'))\
-                .order_by('name')
+            .filter(pk__in=user.get_read_projects().values('pk')) \
+            .order_by('name')
 
     context = {'public_projects': public_projects,
                'private_projects': private_projects,
@@ -191,113 +297,8 @@ def mk_new_system(star, project):
         for tag in star["tags"]:
             sobj.tags.add(tag)
 
-    #-- Add photometry
+    # -- Add photometry
     #   Internal photometry names
-    passbands = [
-        'GAIA2.G',
-        'GAIA2.BP',
-        'GAIA2.RP',
-        '2MASS.J',
-        '2MASS.H',
-        '2MASS.K',
-        'WISE.W1',
-        'WISE.W2',
-        'WISE.W3',
-        'WISE.W4',
-        'GALEX.FUV',
-        'GALEX.NUV',
-        'SKYMAP.U',
-        'SKYMAP.V',
-        'SKYMAP.G',
-        'SKYMAP.R',
-        'SKYMAP.I',
-        'SKYMAP.Z',
-        'APASS.B',
-        'APASS.V',
-        'APASS.G',
-        'APASS.R',
-        'APASS.I',
-        'SDSS.U',
-        'SDSS.G',
-        'SDSS.R',
-        'SDSS.I',
-        'SDSS.Z',
-        'PANSTAR.G',
-        'PANSTAR.R',
-        'PANSTAR.I',
-        'PANSTAR.Z',
-        'PANSTAR.Y',
-    ]
-    #   CSV or form names
-    photnames = [
-        'phot_g_mean_mag',
-        'phot_bp_mean_mag',
-        'phot_rp_mean_mag',
-        'Jmag',
-        'Hmag',
-        'Kmag',
-        'W1mag',
-        'W2mag',
-        'W3mag',
-        'W4mag',
-        'FUV',
-        'NUV',
-        'Umag',
-        'Vmag',
-        'Gmag',
-        'Rmag',
-        'Imag',
-        'Zmag',
-        'APBmag',
-        'APVmag',
-        'APGmag',
-        'APRmag',
-        'APImag',
-        'SDSSUmag',
-        'SDSSGmag',
-        'SDSSRmag',
-        'SDSSImag',
-        'SDSSZmag',
-        'PANGmag',
-        'PANRmag',
-        'PANImag',
-        'PANZmag',
-        'PANYmag'
-    ]
-    #   Error names
-    errs = ['phot_g_mean_magerr',
-            'phot_bp_mean_magerr',
-            'phot_rp_mean_magerr',
-            'Jmagerr',
-            'Hmagerr',
-            'Kmagerr',
-            'W1magerr',
-            'W2magerr',
-            'W3magerr',
-            'W4magerr',
-            'FUVerr',
-            'NUVerr',
-            'Umagerr',
-            'Vmagerr',
-            'Gmagerr',
-            'Rmagerr',
-            'Imagerr',
-            'Zmagerr',
-            'APBmagerr',
-            'APVmagerr',
-            'APGmagerr',
-            'APRmagerr',
-            'APImagerr',
-            'SDSSUmagerr',
-            'SDSSGmagerr',
-            'SDSSRmagerr',
-            'SDSSImagerr',
-            'SDSSZmagerr',
-            'PANGmagerr',
-            'PANRmagerr',
-            'PANImagerr',
-            'PANZmagerr',
-            'PANYmagerr']
 
     for i, phot in enumerate(photnames):
         #   Check if photometry band was provided
@@ -306,7 +307,7 @@ def mk_new_system(star, project):
             if phot in star:
                 if errs[i] in star:
                     if (star[phot] != None and star[phot] != "" and
-                        star[errs[i]] != None and star[errs[i]] != ""):
+                            star[errs[i]] != None and star[errs[i]] != ""):
                         sobj.photometry_set.create(
                             band=passbands[i],
                             measurement=star[phot],
@@ -331,8 +332,8 @@ def mk_new_system(star, project):
 
     # -- Add parameters from gaia DR2
     if (star['parallax'] != None or
-        star['pmra_x'] != None or
-        star['pmdec_x'] != None):
+            star['pmra_x'] != None or
+            star['pmdec_x'] != None):
 
         try:
             dsgaia = DataSource.objects.get(
@@ -397,16 +398,23 @@ def tag_list(request, project=None, **kwargs):
 
 def update_photometry(cleaned_data, project, star_id):
     star = get_object_or_404(Star, pk=star_id)
-    for i, (phot, pval) in enumerate(cleaned_data):
+    for i, pair in enumerate(cleaned_data.items()):
+        if "err" not in pair[0]:
+            phot = passbands[photnames.index(pair[0])]
+        else:
+            continue
+        pval = pair[1]
+        phset = star.photometry_set.filter(band=phot)
         if pval is None:
-            phset = star.photometry_set.filter(band=phot)
-            if len(phset) > 0:
+            if len(phset) != 0:
                 phset[0].delete()
-        elif "err" not in phot:
-            star.photometry_set.update_or_create(
+        else:
+            if len(phset) != 0:
+                phset[0].delete()
+            star.photometry_set.create(
                 band=phot,
                 measurement=pval,
-                error=cleaned_data[phot+"err"],
+                error=cleaned_data[pair[0] + "err"],
                 unit='mag',
             )
     return True, ""
@@ -426,7 +434,7 @@ def star_detail(request, star_id, project=None, **kwargs):
     star = get_object_or_404(Star, pk=star_id)
     context = {
         'star': star,
-        'tags': Tag.objects.filter(project__exact = project),
+        'tags': Tag.objects.filter(project__exact=project),
         'project': project,
         'update_phot_form': update_phot_form,
     }
@@ -481,13 +489,13 @@ def star_detail(request, star_id, project=None, **kwargs):
     pSource = DataSource.objects.filter(id__in=pSource_pks).order_by('name')
 
     for comp in [analModels.SYSTEM, analModels.PRIMARY, analModels.SECONDARY]:
-        pNames = star.parameter_set\
-            .filter(component__exact=comp, valid__exact=True)\
+        pNames = star.parameter_set \
+            .filter(component__exact=comp, valid__exact=True) \
             .values_list('name').distinct()
         pNames = sorted(
             [name[0] for name in pNames],
             key=analModels.parameter_order,
-            )
+        )
 
         allParameters = star.parameter_set.all().filter(component__exact=comp)
 
@@ -499,7 +507,7 @@ def star_detail(request, star_id, project=None, **kwargs):
                     p = allParameters.get(
                         name__exact=name,
                         data_source__exact=source.pk,
-                        )
+                    )
                     values.append(r"{} &pm; {}".format(p.rvalue(), p.rerror()))
                     pinfo = p
                 except Exception as e:
@@ -511,9 +519,9 @@ def star_detail(request, star_id, project=None, **kwargs):
 
     if request.method == 'POST' and request.user.is_authenticated:
         update_phot_form = UpdatePhotometryForm(
-                request.POST,
-                request.FILES,
-            )
+            request.POST,
+            request.FILES,
+        )
         if update_phot_form.is_valid():
             try:
                 success, message = update_photometry(
@@ -540,7 +548,6 @@ def star_detail(request, star_id, project=None, **kwargs):
 
             print("invalid")
             print(update_phot_form.cleaned_data)
-
 
     context['allParameters'] = parameters
     context['parameterSources'] = pSource

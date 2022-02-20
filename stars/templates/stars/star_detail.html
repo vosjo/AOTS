@@ -31,7 +31,7 @@
 
    {% for tag in related_stars %}
    <div>
-   <h3 title="{{tag.tag.description}}" style="border-color: {{tag.tag.color}};"> {{tag.tag.name}} </h2>
+   <h3 title="{{tag.tag.description}}" style="border-color: {{tag.tag.color}};"> {{tag.tag.name}} </h3>
    <ul>
    {% if tag.stars_lower_hidden > 0 %}
       <li>
@@ -76,7 +76,7 @@
    <div class="tag-container">
    <h3>Basic Data </h3>
    {% if user.is_authenticated %}
-   <a href={% url 'systems:star_edit' project.slug star.id %} class="material-icons button edit" title="Edit">edit</a>
+   <a class="material-icons button edit" title="Edit" href={% url 'systems:star_edit' project.slug star.id %}>edit</a>
    {% endif %}
    <table class="datatable">
    <tbody>
@@ -221,7 +221,13 @@
 
       {% if star.photometry_set.all %}
       <div class="block">
+      <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post" enctype="multipart/form-data" class="" id="phot-update-form">
+      {% csrf_token %}
+      {% if user.is_authenticated %}
+         <h3 class="center"> Photometry <button id="photedit" class="photedit"><i class="material-icons button" title="Edit">edit</i>Edit values</button><input id="phot-submit-btn" type="submit" value="Save Changes" hidden></h3>
+         {% else %}
          <h3 class="center"> Photometry </h3>
+      {% endif %}
          <table class="obs-table">
          <thead>
             <tr>
@@ -235,13 +241,34 @@
          {% for phot in star.photometry_set.all %}
             <tr>
             <td class="mono">{{ phot.band }}</td>
-            <td>{{ phot.get_value }}</td>
-            <td>{{ phot.get_error }}</td>
+            <td class="photvalconst" data-band={{ phot.band }}>{{ phot.get_value }}</td>
+            <td class="photerrconst" data-band={{ phot.band }}>{{ phot.get_error }}</td>
             <td>{{ phot.unit }}</td>
             </tr>
          {% endfor %}
+         {% for field in update_phot_form %}
+            {% if not "err" in field.label %}
+            <tr hidden>
+            <td class="mono">{{ field.label }}</td>
+            <td class="photvalinp" data-band={{ field.label }}>{{ field }}</td>
+            {% for errfield in update_phot_form %}
+                {% if errfield.label ==  field.label|add:"err" %}
+                    <td class="photerrinp" data-band={{ field.label }}>{{ errfield }}</td>
+                {% endif %}
+            {% endfor %}
+            <td>{{ phot.unit }}</td>
+            </tr>
+            {% endif %}
+         {% endfor %}
+
+         {% if user.is_authenticated %}
+         <tr id="addbandrow" hidden>
+             <td><button id="addband"><i class="material-icons button" title="Edit">add</i>Add Band</button></td>
+         </tr>
+         {% endif %}
          </tbody>
          </table>
+         </form>
       </div>
       {% endif %}
 

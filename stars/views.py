@@ -13,7 +13,7 @@ from analysis import models as analModels
 from observations.plotting import plot_sed
 
 import io
-from .forms import StarForm, UploadSystemForm, UploadSystemDetailForm
+from .forms import StarForm, UploadSystemForm, UploadSystemDetailForm, UpdatePhotometryForm
 
 # from .plotting import plot_photometry
 
@@ -395,6 +395,23 @@ def tag_list(request, project=None, **kwargs):
     return render(request, 'stars/tag_list.html', {'project': project})
 
 
+def update_photometry(cleaned_data, project, star_id):
+    star = get_object_or_404(Star, pk=star_id)
+    for i, (phot, pval) in enumerate(cleaned_data):
+        if pval is None:
+            phset = star.photometry_set.filter(band=phot)
+            if len(phset) > 0:
+                phset[0].delete()
+        elif "err" not in phot:
+            star.photometry_set.update_or_create(
+                band=phot,
+                measurement=pval,
+                error=cleaned_data[phot+"err"],
+                unit='mag',
+            )
+    return True, ""
+
+
 @check_user_can_view_project
 def star_detail(request, star_id, project=None, **kwargs):
     """
@@ -404,12 +421,14 @@ def star_detail(request, star_id, project=None, **kwargs):
           https://gist.github.com/conor10/8085ac62fd81ad3002e582d1be65c398
     """
     project = get_object_or_404(Project, slug=project)
+    update_phot_form = UpdatePhotometryForm()
 
     star = get_object_or_404(Star, pk=star_id)
     context = {
         'star': star,
         'tags': Tag.objects.filter(project__exact = project),
         'project': project,
+        'update_phot_form': update_phot_form,
     }
 
     #   Make related systems list, but only show 10 systems before and after the
@@ -489,6 +508,39 @@ def star_detail(request, star_id, project=None, **kwargs):
             params.append({'values': values, 'pinfo': pinfo})
 
         parameters.append({'params': params, 'component': component_names[comp]})
+
+    if request.method == 'POST' and request.user.is_authenticated:
+        update_phot_form = UpdatePhotometryForm(
+                request.POST,
+                request.FILES,
+            )
+        if update_phot_form.is_valid():
+            try:
+                success, message = update_photometry(
+                    update_phot_form.cleaned_data,
+                    project,
+                    star_id
+                )
+                level = messages.SUCCESS if success else messages.ERROR
+                messages.add_message(request, level, message)
+            except Exception as e:
+                print(e)
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Exception occurred while updating photometry",
+                )
+
+            return HttpResponseRedirect(reverse(
+                'systems:star_detail',
+                kwargs={'project': project.slug,
+                        "star_id": star_id},
+            ))
+        else:
+
+            print("invalid")
+            print(update_phot_form.cleaned_data)
+
 
     context['allParameters'] = parameters
     context['parameterSources'] = pSource

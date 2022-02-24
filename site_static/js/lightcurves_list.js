@@ -97,7 +97,7 @@ $(document).ready(function () {
       } else {
             $('#filter-dashboard-button').text("filter_list");
       }
-   };
+   }
 
 
    // Delete lightcurve completely event listener
@@ -110,9 +110,11 @@ $(document).ready(function () {
    if (user_authenticated){
       $("div.toolbar").html(
           "<input id='dl-button'  class='tb-button' value='Download Lightcurve(s)' type='button' disabled>" +
+          "<input id='delete-button'  class='tb-button' value='Delete Lightcurve(s)' type='button' disabled>" +
           '<progress id="progress-bar" value="0" max="100" class="progress-bar"></progress>'
       );
       $("#dl-button").click( download_lightcurves );
+      $("#delete-button").click( delete_lightcurves );
    }
    $('#lightcurvetable_length').change(function() {
        lightcurve_table.rows().every( function (rowIdx, tableLoop, rowLoop) {
@@ -141,11 +143,11 @@ function get_filter_keywords( d ) {
 
    if ($('#filter_hjd').val() !== '') {
       let hjd_min = $('#filter_hjd').val().split(':')[0];
-      if (hjd_min == '') {
+      if (hjd_min === '') {
           hjd_min = 0.;
       }
       let hjd_max = $('#filter_hjd').val().split(':')[1];
-      if (hjd_max == '') {
+      if (hjd_max === '') {
           hjd_max = 1000000000.;
       }
       d = $.extend( {}, d, {
@@ -177,6 +179,7 @@ function select_row(row) {
       $('#select-all').text('check_box');
    }
     $('#dl-button').prop('disabled', false);
+    $('#delete-button').prop('disabled', false);
 }
 
 function deselect_row(row) {
@@ -185,21 +188,20 @@ function deselect_row(row) {
    if ( lightcurve_table.rows('.selected').data().length === 0 ) {
       $('#select-all').text('check_box_outline_blank');
       $('#dl-button').prop('disabled', true);
+      $('#delete-button').prop('disabled', true);
    } else {
       $('#select-all').text('indeterminate_check_box');
    }
 }
 
 //  Update progress bar
-function updatePercent(percent) {
-    $("#progress-bar")
-        .val(percent);
+function updatePercent(bar, percent) {
+    bar.val(percent);
 }
 
 //  Change download button text
-function showProgress(text) {
-    $("#dl-button")
-    .val(text);
+function showProgress(button, text) {
+    button.val(text);
 }
 
 // Table renderers
@@ -229,7 +231,7 @@ function action_render( data, type, full, meta ) {
 
 
 function delete_lightcurve(row, data) {
-   if (confirm('Are you sure you want to delete this light curve? This can NOT be undone.')==true){
+   if (confirm('Are you sure you want to delete this light curve? This can NOT be undone.')===true){
       $.ajax({
          url : "/api/observations/lightcurves/"+data['pk']+"/",
          type : "DELETE", // http method
@@ -245,7 +247,54 @@ function delete_lightcurve(row, data) {
    }
 }
 
+function delete_lightcurves() {
+   if (confirm('Are you sure you want to delete these lightcuves? This can NOT be undone!')===true){
+      let rows = [];
+      //   Get list of selected lightcurves
+      lightcurve_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+         rows.push(this);
+      });
+
+      //   Set Promise -> evaluates to a resolved Promise
+      let p = $.when()
+
+      // Loop over selected lightcurves
+      $.each(rows, function (index, row) {
+         let pk = row.data()['pk'];
+
+         //    Promise chaining using .then() + async function definition
+         //    to allow the use of await
+         p = p.then( async function () {
+             await $.ajax({
+                 url : "/api/observations/lightcurves/"+pk+'/',
+                 type : "DELETE",
+                 success : function(json) {
+                     //  Remove the lightcurve from table
+                     lightcurve_table.row(row).remove().draw('full-hold');
+                 },
+                 error : function(xhr,errmsg,err) {
+                     if (xhr.status === 403){
+                         alert('You have to be logged in to delete this lightcurve.');
+                     }else{
+                         alert(xhr.status + ": " + xhr.responseText);
+                     }
+                     console.log(xhr.status + ": " + xhr.responseText);
+                 }
+             });
+         });
+      })
+
+      //   Reset check boxes
+      lightcurve_table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+         deselect_row(this);
+      });
+      }
+}
+
 function download_lightcurves() {
+   //   Prevent impatient users from clicking again.
+   $('#dl-button').prop('disabled', true);
+   showProgress($("#dl-button") ,"Be Patient...");
    //   Prepare file list
    let lcfilelist = [];
    //   Get list of selected lightcurves
@@ -303,14 +352,15 @@ function download_lightcurves() {
             zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
                 //  Update download progress
                 let msg = "            " + metadata.percent.toFixed(2) + " %           ";
-                showProgress(msg);
-                updatePercent(metadata.percent|0);
+                showProgress($("#dl-button") ,msg);
+                updatePercent($("#progress-bar"), metadata.percent|0);
             })
             .then(function callback(blob) {
                 //  Save zip file
                 saveAs(blob, "Lightcurves_"+timecode+".zip");
                 //  Reset download button
-                showProgress("Download Lightcurve(s)");
+                $('#dl-button').prop('disabled', false);
+                showProgress($("#dl-button") ,"Download Lightcurve(s)");
             }, function (e) {
                 showError(e);
             });

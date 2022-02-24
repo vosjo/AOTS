@@ -301,7 +301,6 @@ def populate_system(star, star_pk):
                                 unit='mag',
                             )
 
-    # -- Add parameters from gaia DR2
     if check_vizier:
         #   Download GAIA EDR3 data
         gaia_data = Vizier(

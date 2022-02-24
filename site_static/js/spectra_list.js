@@ -344,6 +344,9 @@ function showError_raw(text) {
 
 //  Download Spectra
 function download_specfiles() {
+   //   Prevent impatient users from clicking again.
+   $('#dl-button').prop('disabled', true);
+   showProgress($("#dl-button") ,"Be Patient...");
    //   Prepare file list
    let spfilelist = [];
    //   Get list of selected spectra
@@ -413,6 +416,7 @@ function download_specfiles() {
                 //  Save zip file
                 saveAs(blob, "Spectra_"+timecode+".zip");
                 //  Reset download button
+                $('#dl-button').prop('disabled', false);
                 showProgress("Download Spectra");
             }, function (e) {
                 showError(e);
@@ -424,6 +428,9 @@ function download_specfiles() {
 
 //  Download Raw Data
 function download_rawfiles() {
+    //   Prevent impatient users from clicking again.
+    $('#dl-raw-button').prop('disabled', true);
+    showProgress($("#dl-raw-button") ,"Be Patient...");
 
     //   Prepare file list
     let rawfileList = [];
@@ -509,6 +516,7 @@ function download_rawfiles() {
                 //  Save zip file
                 saveAs(blob, "Raw_Data_"+timecode+".zip");
                 //  Reset download button
+                $('#dl-raw-button').prop('disabled', false);
                 showProgress_raw("Download Raw Data");
             }, function (e) {
                 showError_raw(e);

@@ -67,6 +67,7 @@
             {% else %}
             <li>
                <i class="icon material-icons">lock</i>
+               <a href="/accounts/login/?next={{request.path}}">Log In</a>
                <ul>
                <li><a href="/accounts/login/?next={{request.path}}">Log In</a></li>
                <li><a href="/accounts/password_reset">Reset password</a></li>

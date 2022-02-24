@@ -374,3 +374,91 @@ class UploadSystemDetailForm(forms.Form):
     )
 
     instrument = forms.CharField(widget=forms.Select(choices=INSTRUMENTS))
+
+# ===========================================================================================
+#   SYSTEM DETAIL PHOTOMETRY
+# ===========================================================================================
+
+
+class UpdatePhotometryForm(forms.Form):
+    #   Gaia photometry and Errors
+    phot_g_mean_mag = forms.FloatField(required=False, label='GAIA2.G', show_hidden_initial=True)
+    phot_bp_mean_mag = forms.FloatField(required=False, label='GAIA2.BP', show_hidden_initial=True)
+    phot_rp_mean_mag = forms.FloatField(required=False, label='GAIA2.RP', show_hidden_initial=True)
+    phot_g_mean_magerr = forms.FloatField(required=False, label='GAIA2.Gerr', show_hidden_initial=True)
+    phot_bp_mean_magerr = forms.FloatField(required=False, label='GAIA2.BPerr', show_hidden_initial=True)
+    phot_rp_mean_magerr = forms.FloatField(required=False, label='GAIA2.RPerr', show_hidden_initial=True)
+
+    #   JHK photometry and Errors
+    Jmag = forms.FloatField(required=False, label='2MASS.J', show_hidden_initial=True)
+    Hmag = forms.FloatField(required=False, label='2MASS.H', show_hidden_initial=True)
+    Kmag = forms.FloatField(required=False, label='2MASS.K', show_hidden_initial=True)
+    Jmagerr = forms.FloatField(required=False, label='2MASS.Jerr', show_hidden_initial=True)
+    Hmagerr = forms.FloatField(required=False, label='2MASS.Herr', show_hidden_initial=True)
+    Kmagerr = forms.FloatField(required=False, label='2MASS.Kerr', show_hidden_initial=True)
+
+    #   WISE photometry and Errors
+    W1mag = forms.FloatField(required=False, label='WISE.W1', show_hidden_initial=True)
+    W2mag = forms.FloatField(required=False, label='WISE.W2', show_hidden_initial=True)
+    W3mag = forms.FloatField(required=False, label='WISE.W3', show_hidden_initial=True)
+    W4mag = forms.FloatField(required=False, label='WISE.W4', show_hidden_initial=True)
+    W1magerr = forms.FloatField(required=False, label='WISE.W1err', show_hidden_initial=True)
+    W2magerr = forms.FloatField(required=False, label='WISE.W2err', show_hidden_initial=True)
+    W3magerr = forms.FloatField(required=False, label='WISE.W3err', show_hidden_initial=True)
+    W4magerr = forms.FloatField(required=False, label='WISE.W4err', show_hidden_initial=True)
+
+    # UV(Galex) photometry and Errors
+    FUV = forms.FloatField(required=False, label='GALEX.FUV', show_hidden_initial=True)
+    NUV = forms.FloatField(required=False, label='GALEX.NUV', show_hidden_initial=True)
+    FUVerr = forms.FloatField(required=False, label='GALEX.FUVerr', show_hidden_initial=True)
+    NUVerr = forms.FloatField(required=False, label='GALEX.NUVerr', show_hidden_initial=True)
+
+    # SKYMAP photometry and Errors
+    Umag = forms.FloatField(required=False, label='SKYMAP.U', show_hidden_initial=True)
+    Vmag = forms.FloatField(required=False, label='SKYMAP.V', show_hidden_initial=True)
+    Gmag = forms.FloatField(required=False, label='SKYMAP.G', show_hidden_initial=True)
+    Rmag = forms.FloatField(required=False, label='SKYMAP.R', show_hidden_initial=True)
+    Imag = forms.FloatField(required=False, label='SKYMAP.I', show_hidden_initial=True)
+    Zmag = forms.FloatField(required=False, label='SKYMAP.Z', show_hidden_initial=True)
+    Umagerr = forms.FloatField(required=False, label='SKYMAP.Uerr', show_hidden_initial=True)
+    Vmagerr = forms.FloatField(required=False, label='SKYMAP.Verr', show_hidden_initial=True)
+    Gmagerr = forms.FloatField(required=False, label='SKYMAP.Gerr', show_hidden_initial=True)
+    Rmagerr = forms.FloatField(required=False, label='SKYMAP.Rerr', show_hidden_initial=True)
+    Imagerr = forms.FloatField(required=False, label='SKYMAP.Ierr', show_hidden_initial=True)
+    Zmagerr = forms.FloatField(required=False, label='SKYMAP.Zerr', show_hidden_initial=True)
+
+    # APASS photometry and Errors
+    APBmag = forms.FloatField(required=False, label='APASS.B', show_hidden_initial=True)
+    APVmag = forms.FloatField(required=False, label='APASS.V', show_hidden_initial=True)
+    APGmag = forms.FloatField(required=False, label='APASS.G', show_hidden_initial=True)
+    APRmag = forms.FloatField(required=False, label='APASS.R', show_hidden_initial=True)
+    APImag = forms.FloatField(required=False, label='APASS.I', show_hidden_initial=True)
+    APBmagerr = forms.FloatField(required=False, label='APASS.Berr', show_hidden_initial=True)
+    APVmagerr = forms.FloatField(required=False, label='APASS.Verr', show_hidden_initial=True)
+    APGmagerr = forms.FloatField(required=False, label='APASS.Gerr', show_hidden_initial=True)
+    APRmagerr = forms.FloatField(required=False, label='APASS.Rerr', show_hidden_initial=True)
+    APImagerr = forms.FloatField(required=False, label='APASS.Ierr', show_hidden_initial=True)
+
+    # SDSS photometry and Errors
+    SDSSUmag = forms.FloatField(required=False, label='SDSS.U', show_hidden_initial=True)
+    SDSSGmag = forms.FloatField(required=False, label='SDSS.G', show_hidden_initial=True)
+    SDSSRmag = forms.FloatField(required=False, label='SDSS.R', show_hidden_initial=True)
+    SDSSImag = forms.FloatField(required=False, label='SDSS.I', show_hidden_initial=True)
+    SDSSZmag = forms.FloatField(required=False, label='SDSS.Z', show_hidden_initial=True)
+    SDSSUmagerr = forms.FloatField(required=False, label='SDSS.Uerr', show_hidden_initial=True)
+    SDSSGmagerr = forms.FloatField(required=False, label='SDSS.Gerr', show_hidden_initial=True)
+    SDSSRmagerr = forms.FloatField(required=False, label='SDSS.Rerr', show_hidden_initial=True)
+    SDSSImagerr = forms.FloatField(required=False, label='SDSS.Ierr', show_hidden_initial=True)
+    SDSSZmagerr = forms.FloatField(required=False, label='SDSS.Zerr', show_hidden_initial=True)
+
+    # PANSTAR photometry and Errors
+    PANGmag = forms.FloatField(required=False, label='PANSTAR.G', show_hidden_initial=True)
+    PANRmag = forms.FloatField(required=False, label='PANSTAR.R', show_hidden_initial=True)
+    PANImag = forms.FloatField(required=False, label='PANSTAR.I', show_hidden_initial=True)
+    PANZmag = forms.FloatField(required=False, label='PANSTAR.Z', show_hidden_initial=True)
+    PANYmag = forms.FloatField(required=False, label='PANSTAR.Y', show_hidden_initial=True)
+    PANGmagerr = forms.FloatField(required=False, label='PANSTAR.Gerr', show_hidden_initial=True)
+    PANRmagerr = forms.FloatField(required=False, label='PANSTAR.Rerr', show_hidden_initial=True)
+    PANImagerr = forms.FloatField(required=False, label='PANSTAR.Ierr', show_hidden_initial=True)
+    PANZmagerr = forms.FloatField(required=False, label='PANSTAR.Zerr', show_hidden_initial=True)
+    PANYmagerr = forms.FloatField(required=False, label='PANSTAR.Yerr', show_hidden_initial=True)

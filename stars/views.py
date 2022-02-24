@@ -13,7 +13,12 @@ from analysis import models as analModels
 from observations.plotting import plot_sed
 
 import io
-from .forms import StarForm, UploadSystemForm, UploadSystemDetailForm
+from .forms import (
+    StarForm,
+    UploadSystemForm,
+    UploadSystemDetailForm,
+    UpdatePhotometryForm,
+    )
 from .auxil import populate_system, invalid_form
 
 # from .plotting import plot_photometry
@@ -26,6 +31,112 @@ from AOTS.custom_permissions import check_user_can_view_project
 import logging
 import json
 
+passbands = [
+    'GAIA2.G',
+    'GAIA2.BP',
+    'GAIA2.RP',
+    '2MASS.J',
+    '2MASS.H',
+    '2MASS.K',
+    'WISE.W1',
+    'WISE.W2',
+    'WISE.W3',
+    'WISE.W4',
+    'GALEX.FUV',
+    'GALEX.NUV',
+    'SKYMAP.U',
+    'SKYMAP.V',
+    'SKYMAP.G',
+    'SKYMAP.R',
+    'SKYMAP.I',
+    'SKYMAP.Z',
+    'APASS.B',
+    'APASS.V',
+    'APASS.G',
+    'APASS.R',
+    'APASS.I',
+    'SDSS.U',
+    'SDSS.G',
+    'SDSS.R',
+    'SDSS.I',
+    'SDSS.Z',
+    'PANSTAR.G',
+    'PANSTAR.R',
+    'PANSTAR.I',
+    'PANSTAR.Z',
+    'PANSTAR.Y',
+]
+#   CSV or form names
+photnames = [
+    'phot_g_mean_mag',
+    'phot_bp_mean_mag',
+    'phot_rp_mean_mag',
+    'Jmag',
+    'Hmag',
+    'Kmag',
+    'W1mag',
+    'W2mag',
+    'W3mag',
+    'W4mag',
+    'FUV',
+    'NUV',
+    'Umag',
+    'Vmag',
+    'Gmag',
+    'Rmag',
+    'Imag',
+    'Zmag',
+    'APBmag',
+    'APVmag',
+    'APGmag',
+    'APRmag',
+    'APImag',
+    'SDSSUmag',
+    'SDSSGmag',
+    'SDSSRmag',
+    'SDSSImag',
+    'SDSSZmag',
+    'PANGmag',
+    'PANRmag',
+    'PANImag',
+    'PANZmag',
+    'PANYmag'
+]
+#   Error names
+errs = ['phot_g_mean_magerr',
+        'phot_bp_mean_magerr',
+        'phot_rp_mean_magerr',
+        'Jmagerr',
+        'Hmagerr',
+        'Kmagerr',
+        'W1magerr',
+        'W2magerr',
+        'W3magerr',
+        'W4magerr',
+        'FUVerr',
+        'NUVerr',
+        'Umagerr',
+        'Vmagerr',
+        'Gmagerr',
+        'Rmagerr',
+        'Imagerr',
+        'Zmagerr',
+        'APBmagerr',
+        'APVmagerr',
+        'APGmagerr',
+        'APRmagerr',
+        'APImagerr',
+        'SDSSUmagerr',
+        'SDSSGmagerr',
+        'SDSSRmagerr',
+        'SDSSImagerr',
+        'SDSSZmagerr',
+        'PANGmagerr',
+        'PANRmagerr',
+        'PANImagerr',
+        'PANZmagerr',
+        'PANYmagerr']
+
 
 # Create your views here.
 
@@ -34,16 +145,16 @@ def project_list(request):
         Simplified view of the project page
     """
 
-    public_projects = Project.objects\
+    public_projects = Project.objects \
         .filter(is_public__exact=True).order_by('name')
     private_projects = None
 
     if not request.user.is_anonymous:
         user = request.user
-        private_projects = Project.objects\
+        private_projects = Project.objects \
             .filter(is_public__exact=False) \
-            .filter(pk__in=user.get_read_projects().values('pk'))\
-                .order_by('name')
+            .filter(pk__in=user.get_read_projects().values('pk')) \
+            .order_by('name')
 
     context = {'public_projects': public_projects,
                'private_projects': private_projects,
@@ -183,6 +294,30 @@ def tag_list(request, project=None, **kwargs):
     return render(request, 'stars/tag_list.html', {'project': project})
 
 
+def update_photometry(cleaned_data, project, star_id):
+    star = get_object_or_404(Star, pk=star_id)
+    for i, pair in enumerate(cleaned_data.items()):
+        if "err" not in pair[0]:
+            phot = passbands[photnames.index(pair[0])]
+        else:
+            continue
+        pval = pair[1]
+        phset = star.photometry_set.filter(band=phot)
+        if pval is None:
+            if len(phset) != 0:
+                phset[0].delete()
+        else:
+            if len(phset) != 0:
+                phset[0].delete()
+            star.photometry_set.create(
+                band=phot,
+                measurement=pval,
+                error=cleaned_data[pair[0] + "err"],
+                unit='mag',
+            )
+    return True, ""
+
+
 @check_user_can_view_project
 def star_detail(request, star_id, project=None, **kwargs):
     """
@@ -192,12 +327,14 @@ def star_detail(request, star_id, project=None, **kwargs):
           https://gist.github.com/conor10/8085ac62fd81ad3002e582d1be65c398
     """
     project = get_object_or_404(Project, slug=project)
+    update_phot_form = UpdatePhotometryForm()
 
     star = get_object_or_404(Star, pk=star_id)
     context = {
         'star': star,
-        'tags': Tag.objects.filter(project__exact = project),
+        'tags': Tag.objects.filter(project__exact=project),
         'project': project,
+        'update_phot_form': update_phot_form,
     }
 
     #   Make related systems list, but only show 10 systems before and after the
@@ -250,13 +387,13 @@ def star_detail(request, star_id, project=None, **kwargs):
     pSource = DataSource.objects.filter(id__in=pSource_pks).order_by('name')
 
     for comp in [analModels.SYSTEM, analModels.PRIMARY, analModels.SECONDARY]:
-        pNames = star.parameter_set\
-            .filter(component__exact=comp, valid__exact=True)\
+        pNames = star.parameter_set \
+            .filter(component__exact=comp, valid__exact=True) \
             .values_list('name').distinct()
         pNames = sorted(
             [name[0] for name in pNames],
             key=analModels.parameter_order,
-            )
+        )
 
         allParameters = star.parameter_set.all().filter(component__exact=comp)
 
@@ -268,7 +405,7 @@ def star_detail(request, star_id, project=None, **kwargs):
                     p = allParameters.get(
                         name__exact=name,
                         data_source__exact=source.pk,
-                        )
+                    )
                     values.append(r"{} &pm; {}".format(p.rvalue(), p.rerror()))
                     pinfo = p
                 except Exception as e:
@@ -277,6 +414,37 @@ def star_detail(request, star_id, project=None, **kwargs):
             params.append({'values': values, 'pinfo': pinfo})
 
         parameters.append({'params': params, 'component': component_names[comp]})
+
+    if request.method == 'POST' and request.user.is_authenticated:
+        update_phot_form = UpdatePhotometryForm(
+            request.POST,
+            request.FILES,
+        )
+        if update_phot_form.is_valid():
+            try:
+                success, message = update_photometry(
+                    update_phot_form.cleaned_data,
+                    project,
+                    star_id
+                )
+                level = messages.SUCCESS if success else messages.ERROR
+                messages.add_message(request, level, message)
+            except Exception as e:
+                print(e)
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Exception occurred while updating photometry",
+                )
+
+            return HttpResponseRedirect(reverse(
+                'systems:star_detail',
+                kwargs={'project': project.slug,
+                        "star_id": star_id},
+            ))
+        else:
+            #   Handel invalid form
+            invalid_form(request, 'stars/star_detail.html', project.slug)
 
     context['allParameters'] = parameters
     context['parameterSources'] = pSource

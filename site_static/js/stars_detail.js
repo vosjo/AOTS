@@ -1,5 +1,6 @@
 
 var star = {}
+let photeditenabled = false
 
 $(document).ready(function() {
 
@@ -40,6 +41,7 @@ $(document).ready(function() {
    $( "#identifierAddButton").click( openIdentifierAddBox );
    $( "#tagEditButton").click( openTagEditBox );
    $( "#allParameterButton").click( openAllParameterBox );
+   $( "#photedit").click( enablephotedit );
 
    // Delete identifier on click
    $(".identifier").on('click', 'i[id^=delete-identifier-]', function(){
@@ -58,7 +60,25 @@ $(document).ready(function() {
          $(this).text('visibility')
       }
 
-   });
+      $(".photvalconst").each(function(){
+          let band = $(this).data("band")
+          $(".dropdownlink").each(function (){
+              if( band === $(this).data("band")){
+                $(this).hide()
+            }
+          })
+      });
+        $(".dropdownlink").click(function(e) {
+            $(this).hide()
+            let band = $(this).data("band")
+            $(".phottablerow").each(function (i, row){
+                let rowband = $(row).find('td[class="mono"]').text()
+                if(rowband === band){
+                    $(this).show()
+            }
+            })
+        })
+    });
 
 });
 
@@ -212,4 +232,68 @@ function update_tags(){
          console.log(xhr.status + ": " + xhr.responseText);
       }
    });
-};
+}
+
+// Enable Editing Photometry on Button click
+function enablephotedit(){
+    photedit = $("#photedit");
+    if(photeditenabled){
+        photedit.show();
+        $("#phot-submit-btn").hide();
+        $(".photval").each(function (ind, obj) {
+        });
+        $(".photerr").each(function (ind, obj) {
+        });
+        $("#submitrow").hide();
+        $("#addband").hide();
+        photeditenabled = false;
+        }
+    else{
+        photedit.hide();
+        $("#phot-submit-btn").show();
+        let existingbands = [];
+        let bandvalues = [];
+        let banderrvalues = [];
+        $(".photvalconst").each(function (ind, obj) {
+            let band = $(this).data("band");
+            existingbands.push(band);
+            let magval = parseFloat($(this).text());
+            bandvalues.push(magval);
+            $(this).closest('tr').hide();
+        });
+        $(".photerrconst").each(function (ind, obj) {
+            let magval = parseFloat($(this).text());
+            banderrvalues.push(magval);
+        });
+        $(".photvalinp").each(function (ind, obj) {
+            let band = $(this).data("band");
+            let arrind = jQuery.inArray(band, existingbands);
+            if (arrind > -1){
+                $(this).closest('tr').show();
+                $(this).find('input[type=number]').val(bandvalues[arrind]);
+                $(this).parent().find('td[class=photerrinp]').find('input[type=number]').val(banderrvalues[arrind]);
+            }
+        });
+        $("#submitrow").show();
+        $("#addband").show();
+        photeditenabled = true;
+    }
+}
+
+
+function Toggledropdown(){
+    $("#addbanddropdown").toggleClass("show");
+}
+
+
+
+// Close the dropdown menu if the user clicks outside of it
+$(window).click(function(e) {
+  if (!e.target.matches('.dropbtn')) {
+    $(".dropdown-content").each(function (i){
+      if ($(this).hasClass('show')) {
+        $(this).removeClass('show');
+      }
+    })
+  }
+})

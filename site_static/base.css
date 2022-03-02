@@ -19,6 +19,7 @@
     word-wrap: normal;
     white-space: nowrap;
     direction: ltr;
+    cursor: pointer;
 
     /* Support for all WebKit browsers. */
     -webkit-font-smoothing: antialiased;
@@ -1358,6 +1359,7 @@ td.bold{
 
 .photedit {
    margin-left: 10px;
+   cursor: pointer;
 }
 
 .dropdown {
@@ -1377,8 +1379,17 @@ td.bold{
   padding: 5px 7px 5px 7px;
   text-decoration: none;
   display: block;
+  cursor: pointer;
 }
 
 .dropdown-content a:hover {background-color: #ddd}
 
 .show {display:block;}
+
+.phot-submit-btn {
+   cursor: pointer;
+}
+
+.dropbtn{
+   cursor: pointer;
+}

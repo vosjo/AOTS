@@ -336,6 +336,72 @@
                         </table>
                         </form>
                     </div>
+                {% else %}
+                    <div class="block">
+                        {% if user.is_authenticated %}
+                            <h3 class="center"> Photometry
+                                <button id="photedit" class="photedit"><i class="material-icons button" title="Edit">edit</i>Add Photometry
+                                </button>
+                            </h3>
+                            <div class="dropdown" >
+                                <button onclick="Toggledropdown()" class="dropbtn" id="addband" hidden><i class="material-icons button" title="Add">add</i>Add Band</button>
+                                <div id="addbanddropdown" class="dropdown-content">
+                                    {% for field in update_phot_form %}
+                                        {% if not "err" in field.label %}
+                                            <a class="dropdownlink" data-band={{ field.label }}>{{ field.label }}</a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
+                                  enctype="multipart/form-data" class="" id="phot-update-form">
+                            {% csrf_token %}
+                        {% else %}
+                            <h3 class="center"> Photometry </h3>
+                        {% endif %}
+                        <table class="obs-table">
+                            <thead>
+                            <tr>
+                                <th>Band</th>
+                                <th>Value</th>
+                                <th>Error</th>
+                                <th>Unit</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr id = "tr-novaluesyet">
+                                <td>Add</td>
+                                <td>Some</td>
+                                <td>Photometry</td>
+                                <td>Values!</td>
+                            </tr>
+                            {% for field in update_phot_form %}
+                                {% if not "err" in field.label %}
+                                    <tr class="phottablerow" hidden>
+                                        <td class="mono">{{ field.label }}</td>
+                                        <td class="photvalinp" data-band={{ field.label }}>{{ field }}</td>
+                                        {% for errfield in update_phot_form %}
+                                            {% if errfield.label ==  field.label|add:"err" %}
+                                                <td class="photerrinp" data-band={{ field.label }}>{{ errfield }}</td>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <td>mag</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if user.is_authenticated %}
+                                <tr id="submitrow" hidden>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><input id="phot-submit-btn" class="phot-submit-btn" type="submit" value="Save Changes" form="phot-update-form" hidden></td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                        </form>
+                    </div>
                 {% endif %}
 
 

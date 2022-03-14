@@ -298,6 +298,7 @@
                                 <th>Value</th>
                                 <th>Error</th>
                                 <th>Unit</th>
+                                <th></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -307,6 +308,7 @@
                                     <td class="photvalconst" data-band={{ phot.band }}>{{ phot.get_value }}</td>
                                     <td class="photerrconst" data-band={{ phot.band }}>{{ phot.get_error }}</td>
                                     <td>{{ phot.unit }}</td>
+                                    <td></td>
                                 </tr>
                             {% endfor %}
                             {% for field in update_phot_form %}
@@ -320,6 +322,7 @@
                                             {% endif %}
                                         {% endfor %}
                                         <td>mag</td>
+                                        <td><i class="material-icons button close rmband" title="Remove Band">close</i></td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}
@@ -366,6 +369,7 @@
                                 <th>Value</th>
                                 <th>Error</th>
                                 <th>Unit</th>
+                                <th></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -374,6 +378,7 @@
                                 <td>Some</td>
                                 <td>Photometry</td>
                                 <td>Values!</td>
+                                <td></td>
                             </tr>
                             {% for field in update_phot_form %}
                                 {% if not "err" in field.label %}
@@ -386,6 +391,7 @@
                                             {% endif %}
                                         {% endfor %}
                                         <td>mag</td>
+                                        <td><i class="material-icons button close rmband" title="Remove Band">close</i></td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}

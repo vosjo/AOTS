@@ -84,13 +84,40 @@ $(document).ready(function () {
         $(".phottablerow").each(function (i, row) {
             let rowband = $(row).find('td[class="mono"]').text()
             if (rowband === band) {
-                $(this).show()
+                console.log($(row).find('td[class="photvalconst"]'))
+                if (!$(row).find('td[class="photvalconst"]').length) {
+                    $(this).show()
+                }
             }
         })
         let novaluesrow = $("#tr-novaluesyet")
         if (novaluesrow.is(":visible")){
             novaluesrow.hide()
         }
+    })
+    $(".rmband").click(function (e) {
+        let band;
+        $(this).parent().parent().children().each(function (){
+            if (typeof $(this).attr("class") != "undefined") {
+                if ($(this).attr("class") === "photvalinp") {
+                    band = $(this).data("band")
+                    let inp = $(this).children()[0]
+                    $(inp).val("")
+                }
+                else {
+                    if ($(this).attr("class") === "photerrinp"){
+                        let err = $(this).children()[0]
+                        $(err).val("")
+                    }
+                }
+            }
+            $(this).closest(".phottablerow").hide()
+            $(".dropdownlink").each(function (i, row) {
+                if ($(this).data("band") === band){
+                    $(this).show()
+                }
+            })
+        })
     })
 });
 
@@ -283,6 +310,11 @@ function enablephotedit() {
             let magval = parseFloat($(this).text());
             bandvalues.push(magval);
             $(this).closest('tr').hide();
+            $(".dropdownlink").each(function(){
+                if ($(this).data("band") === band){
+                    $(this).hide()
+                }
+            })
         });
         $(".photerrconst").each(function (ind, obj) {
             let magval = parseFloat($(this).text());

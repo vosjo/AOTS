@@ -331,6 +331,7 @@ function enablephotedit() {
         });
         $("#submitrow").show();
         $("#addband").show();
+        $("#getvizier").show();
         photeditenabled = true;
     }
 }
@@ -351,3 +352,7 @@ $(window).click(function (e) {
         })
     }
 })
+
+function GetVizier() {
+
+}

@@ -9,10 +9,118 @@ import numpy as np
 
 from django.contrib import messages
 from django.http import HttpResponseRedirect
-from django.shortcuts import reverse
+from django.shortcuts import reverse, get_object_or_404
 
 from .models import Star
 from analysis.models import DataSource
+
+
+passbands = [
+    'GAIA2.G',
+    'GAIA2.BP',
+    'GAIA2.RP',
+    '2MASS.J',
+    '2MASS.H',
+    '2MASS.K',
+    'WISE.W1',
+    'WISE.W2',
+    'WISE.W3',
+    'WISE.W4',
+    'GALEX.FUV',
+    'GALEX.NUV',
+    'SKYMAP.U',
+    'SKYMAP.V',
+    'SKYMAP.G',
+    'SKYMAP.R',
+    'SKYMAP.I',
+    'SKYMAP.Z',
+    'APASS.B',
+    'APASS.V',
+    'APASS.G',
+    'APASS.R',
+    'APASS.I',
+    'SDSS.U',
+    'SDSS.G',
+    'SDSS.R',
+    'SDSS.I',
+    'SDSS.Z',
+    'PANSTAR.G',
+    'PANSTAR.R',
+    'PANSTAR.I',
+    'PANSTAR.Z',
+    'PANSTAR.Y',
+]
+#   CSV or form names
+photnames = [
+    'phot_g_mean_mag',
+    'phot_bp_mean_mag',
+    'phot_rp_mean_mag',
+    'Jmag',
+    'Hmag',
+    'Kmag',
+    'W1mag',
+    'W2mag',
+    'W3mag',
+    'W4mag',
+    'FUV',
+    'NUV',
+    'Umag',
+    'Vmag',
+    'Gmag',
+    'Rmag',
+    'Imag',
+    'Zmag',
+    'APBmag',
+    'APVmag',
+    'APGmag',
+    'APRmag',
+    'APImag',
+    'SDSSUmag',
+    'SDSSGmag',
+    'SDSSRmag',
+    'SDSSImag',
+    'SDSSZmag',
+    'PANGmag',
+    'PANRmag',
+    'PANImag',
+    'PANZmag',
+    'PANYmag'
+]
+#   Error names
+errs = ['phot_g_mean_magerr',
+        'phot_bp_mean_magerr',
+        'phot_rp_mean_magerr',
+        'Jmagerr',
+        'Hmagerr',
+        'Kmagerr',
+        'W1magerr',
+        'W2magerr',
+        'W3magerr',
+        'W4magerr',
+        'FUVerr',
+        'NUVerr',
+        'Umagerr',
+        'Vmagerr',
+        'Gmagerr',
+        'Rmagerr',
+        'Imagerr',
+        'Zmagerr',
+        'APBmagerr',
+        'APVmagerr',
+        'APGmagerr',
+        'APRmagerr',
+        'APImagerr',
+        'SDSSUmagerr',
+        'SDSSGmagerr',
+        'SDSSRmagerr',
+        'SDSSImagerr',
+        'SDSSZmagerr',
+        'PANGmagerr',
+        'PANRmagerr',
+        'PANImagerr',
+        'PANZmagerr',
+        'PANYmagerr']
+
 
 def invalid_form(request, redirect, project_slug):
     '''
@@ -414,3 +522,26 @@ def populate_system(star, star_pk):
 
     return True, "New system ({}) created".format(star["main_id"])
 
+
+def update_photometry(cleaned_data, project, star_id):
+    star = get_object_or_404(Star, pk=star_id)
+    for i, pair in enumerate(cleaned_data.items()):
+        if "err" not in pair[0]:
+            phot = passbands[photnames.index(pair[0])]
+        else:
+            continue
+        pval = pair[1]
+        phset = star.photometry_set.filter(band=phot)
+        if pval is None:
+            if len(phset) != 0:
+                phset[0].delete()
+        else:
+            if len(phset) != 0:
+                phset[0].delete()
+            star.photometry_set.create(
+                band=phot,
+                measurement=pval,
+                error=cleaned_data[pair[0] + "err"],
+                unit='mag',
+            )
+    return True, ""

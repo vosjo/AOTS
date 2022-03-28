@@ -264,11 +264,8 @@
                         </a>
                     </i>
                 </div>
-
                 {% if star.photometry_set.all %}
                     <div class="block">
-
-
                         {% if user.is_authenticated %}
                             <h3 class="center"> Photometry
                                 <button id="photedit" class="photedit"><i class="material-icons button" title="Edit">edit</i>Edit
@@ -285,6 +282,10 @@
                                     {% endfor %}
                                 </div>
                             </div>
+                            <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
+                                  enctype="multipart/form-data" class="" id="vizier_form">
+                            <button><i class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier</button>
+                            </form>
                             <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
                                   enctype="multipart/form-data" class="" id="phot-update-form">
                             {% csrf_token %}
@@ -332,7 +333,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td><input id="phot-submit-btn" type="submit" value="Save Changes" form="phot-update-form" hidden></td>
+                                    <td><input id="phot-submit-btn" type="submit" name="photbtn" value="Save Changes" form="phot-update-form" hidden></td>
                                 </tr>
                             {% endif %}
                             </tbody>
@@ -356,6 +357,10 @@
                                     {% endfor %}
                                 </div>
                             </div>
+                            <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
+                                  enctype="multipart/form-data" class="" id="vizier_form">
+                            <button><i class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier</button>
+                            </form>
                             <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
                                   enctype="multipart/form-data" class="" id="phot-update-form">
                             {% csrf_token %}
@@ -401,7 +406,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td><input id="phot-submit-btn" class="phot-submit-btn" type="submit" value="Save Changes" form="phot-update-form" hidden></td>
+                                    <td><input id="phot-submit-btn" class="phot-submit-btn" name="photbtn" type="submit" value="Save Changes" form="phot-update-form" hidden></td>
                                 </tr>
                             {% endif %}
                             </tbody>

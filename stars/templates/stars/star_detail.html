@@ -267,6 +267,7 @@
                 {% if star.photometry_set.all %}
                     <div class="block">
                         {% if user.is_authenticated %}
+                            <div class="phot-head">
                             <h3 class="center"> Photometry
                                 <button id="photedit" class="photedit"><i class="material-icons button" title="Edit">edit</i>Edit
                                     values
@@ -282,16 +283,13 @@
                                     {% endfor %}
                                 </div>
                             </div>
-                            <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
-                                  enctype="multipart/form-data" class="" id="vizier_form">
-                            <button><i class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier</button>
-                            </form>
-                            <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
-                                  enctype="multipart/form-data" class="" id="phot-update-form">
-                            {% csrf_token %}
+                            </div>
                         {% else %}
                             <h3 class="center"> Photometry </h3>
                         {% endif %}
+                        <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
+                        enctype="multipart/form-data" class="" id="phot-update-form">
+                        {% csrf_token %}
                         <table class="obs-table">
                             <thead>
                             <tr>
@@ -334,15 +332,22 @@
                                     <td></td>
                                     <td></td>
                                     <td><input id="phot-submit-btn" type="submit" name="photbtn" value="Save Changes" form="phot-update-form" hidden></td>
+                                    <td>OR</td>
                                 </tr>
                             {% endif %}
                             </tbody>
                         </table>
                         </form>
+                        <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
+                                  enctype="multipart/form-data" class="" id="vizier_form">
+                                {% csrf_token %}
+                            <button class="vizierbtn" name="vizierbtn" id="vizierbtn" hidden><i class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier</button>
+                        </form>
                     </div>
                 {% else %}
                     <div class="block">
                         {% if user.is_authenticated %}
+                            <div class="phot-head">
                             <h3 class="center"> Photometry
                                 <button id="photedit" class="photedit"><i class="material-icons button" title="Edit">edit</i>Add Photometry
                                 </button>
@@ -357,16 +362,13 @@
                                     {% endfor %}
                                 </div>
                             </div>
-                            <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
-                                  enctype="multipart/form-data" class="" id="vizier_form">
-                            <button><i class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier</button>
-                            </form>
-                            <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
-                                  enctype="multipart/form-data" class="" id="phot-update-form">
-                            {% csrf_token %}
+                            </div>
                         {% else %}
                             <h3 class="center"> Photometry </h3>
                         {% endif %}
+                        <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
+                            enctype="multipart/form-data" class="" id="phot-update-form">
+                            {% csrf_token %}
                         <table class="obs-table">
                             <thead>
                             <tr>
@@ -407,15 +409,19 @@
                                     <td></td>
                                     <td></td>
                                     <td><input id="phot-submit-btn" class="phot-submit-btn" name="photbtn" type="submit" value="Save Changes" form="phot-update-form" hidden></td>
+                                    <td>OR</td>
                                 </tr>
                             {% endif %}
                             </tbody>
                         </table>
                         </form>
+                    <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
+                                  enctype="multipart/form-data" class="" id="vizier_form">
+                            {% csrf_token %}
+                            <button class="vizierbtn" name="vizierbtn" id="vizierbtn" hidden><i class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier</button>
+                    </form>
                     </div>
                 {% endif %}
-
-
                 {% if star.spectrum_set.all %}
                     <div class="block">
                         <h3 class="center"> Spectra </h3>

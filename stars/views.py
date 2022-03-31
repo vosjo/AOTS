@@ -279,16 +279,45 @@ def star_detail(request, star_id, project=None, **kwargs):
         parameters.append({'params': params, 'component': component_names[comp]})
 
     if request.method == 'POST' and request.user.is_authenticated:
-        update_phot_form = UpdatePhotometryForm(
-            request.POST,
-            request.FILES,
-        )
-        if update_phot_form.is_valid():
+        # Differentiate between Vizier and Edit form submit buttons
+        if "vizierbtn" not in request.POST:
+            update_phot_form = UpdatePhotometryForm(
+                request.POST,
+                request.FILES,
+            )
+            if update_phot_form.is_valid():
+                try:
+                    success, message = update_photometry(
+                        update_phot_form.cleaned_data,
+                        project,
+                        star_id,
+                        False
+                    )
+                    level = messages.SUCCESS if success else messages.ERROR
+                    messages.add_message(request, level, message)
+                except Exception as e:
+                    print(e)
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        "Exception occurred while updating photometry",
+                    )
+
+                return HttpResponseRedirect(reverse(
+                    'systems:star_detail',
+                    kwargs={'project': project.slug,
+                            "star_id": star_id},
+                ))
+            else:
+                #   Handle invalid form
+                invalid_form(request, 'stars/star_detail.html', project.slug)
+        else:
             try:
                 success, message = update_photometry(
-                    update_phot_form.cleaned_data,
+                    None,
                     project,
-                    star_id
+                    star_id,
+                    True
                 )
                 level = messages.SUCCESS if success else messages.ERROR
                 messages.add_message(request, level, message)
@@ -305,10 +334,6 @@ def star_detail(request, star_id, project=None, **kwargs):
                 kwargs={'project': project.slug,
                         "star_id": star_id},
             ))
-        else:
-            #   Handel invalid form
-            invalid_form(request, 'stars/star_detail.html', project.slug)
-
     context['allParameters'] = parameters
     context['parameterSources'] = pSource
 

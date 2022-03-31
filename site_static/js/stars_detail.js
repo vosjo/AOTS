@@ -119,6 +119,11 @@ $(document).ready(function () {
             })
         })
     })
+    $(".vizierbtn").click(function (e) {
+        if(!confirm("Do you really want to get photometry from Vizier? THIS WILL OVERWRITE CURRENT VALUES!")) {
+            e.preventDefault();
+        }
+    });
 });
 
 // Create the page dynamicaly
@@ -331,7 +336,7 @@ function enablephotedit() {
         });
         $("#submitrow").show();
         $("#addband").show();
-        $("#getvizier").show();
+        $("#vizierbtn").show();
         photeditenabled = true;
     }
 }

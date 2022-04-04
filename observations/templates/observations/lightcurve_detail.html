@@ -1,14 +1,13 @@
- 
 {% extends "base.html" %}
 {% load static %}
 {% load conversion_tags %}
 
 {% block head %}
 
-   {% include "bokeh.html" %}
-   {% include "bokeh_widgets.html" %}
-   <script type="text/javascript" src="{% static 'js/lightcurve_detail.js' %}"></script>
-   
+    {% include "bokeh.html" %}
+    {% include "bokeh_widgets.html" %}
+    <script type="text/javascript" src="{% static 'js/lightcurve_detail.js' %}"></script>
+
 {% endblock %}
 
 
@@ -16,209 +15,275 @@
 
 
 {% block content %}
-   
-   <div id="sidenav">
-   <h2> All Lightcurves for <span class="nobreak">{{lightcurve.star.name}}</span> </h2>
-   {% for inst, lightcurves in all_lightcurves.items %}
-      <h3> {{ inst }} </h3>
-      <ul>
-      {% for lc in lightcurves %}
-         {% if lc.id == lightcurve.id %}
-         <li> <a href={% url 'observations:lightcurve_detail' project.slug lc.id %} class="active"> {{ lc.hjd|floatformat:3 }} - {{ lc.hjd|hjd2date }}</a> </li>
-         {% else %}
-         <li> <a href={% url 'observations:lightcurve_detail' project.slug lc.id %}> {{ lc.hjd|floatformat:3 }} - {{ lc.hjd|hjd2date }}</a> </li>
-         {% endif %}
-      {% endfor %}
-      </ul>
-   {% endfor %}
-   </div>
 
-   <section class='data-section'>
-   
-   <div class="main-container-h border">
-      
-      {% if user.is_authenticated %}
-      <i id="spectrumEditButton" class="material-icons button edit" title="edit" spectrum_id={{lightcurve.pk}}>edit</i>
-      {% endif %}
-      
-      <div class='header-item'>
-      <h3 id="nameField"> {{ lightcurve }}</h3> 
-      </div>
-      
-      <div class='header-item'>
-      <p class="material-icons">star</p> 
-      <h3><a href={% url 'systems:star_detail' project.slug lightcurve.star.pk %}>{{ lightcurve.star.name }}</a></h3>  
-      </div>
-      
-      
-      <div class='header-item'>
-      {% if lightcurve.valid %}
-      <i id="lightcurve-valid-icon" class="material-icons status-icon valid bold" title='Good quality'></i>
-      {% else %}
-      <i id="lightcurve-valid-icon" class="material-icons status-icon invalid bold" title='Bad quality'></i>
-      {% endif %}
-      <h3> Valid</h3> 
-      </div>
-      
-      
-   </div>
+    <div id="sidenav">
+        <h2> All Lightcurves for <span class="nobreak">{{ lightcurve.star.name }}</span></h2>
+        {% for inst, lightcurves in all_lightcurves.items %}
+            <h3> {{ inst }} </h3>
+            <ul>
+                {% for lc in lightcurves %}
+                    {% if lc.id == lightcurve.id %}
+                        <li>
+                            <a href={% url 'observations:lightcurve_detail' project.slug lc.id %} class="active"> {{ lc.hjd|floatformat:3 }}
+                                - {{ lc.hjd|hjd2date }}</a></li>
+                    {% else %}
+                        <li>
+                            <a href={% url 'observations:lightcurve_detail' project.slug lc.id %}> {{ lc.hjd|floatformat:3 }}
+                                - {{ lc.hjd|hjd2date }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
 
-<!--    <h3>Observing Information</h3> -->
-   
-   <div class="flex-data-container j-center">
-   
-   <div class="tag-container">
-   <h3>Basic Data </h3>
-   
-   <div class="block">
-   <div class="block">
-   <table class='datatable'>
-   <tbody>
-      <tr> <th>Target:</th> <td class="mono">{{ lightcurve.objectname }}</td> </tr>
-      <tr> <th>Target Coord.:</th> <td class="mono">{{ lightcurve.star.ra|dgr2hms }}  {{ lightcurve.star.dec|dgr2dms }}</td> </tr>
-      <tr> <th>Obs. Coord.:</th> <td class="mono">{{ lightcurve.ra|dgr2hms }}  {{ lightcurve.dec|dgr2dms }}</td> </tr>
-      <tr> <th>HJD:</th> <td class="mono">{{ lightcurve.hjd }}</td> </tr>
-      <tr> <th>Date:</th> <td class="mono">{{ lightcurve.hjd|hjd2datetime }}</td> </tr>
-      <tr> <th>Instrument:</th> <td class="mono">{{ lightcurve.instrument }} @ {{ lightcurve.telescope }}</td> </tr>
-      <tr> <th>Passband:</th> <td class="mono">{{ lightcurve.passband }}</td> </tr>
-      <tr> <th>Observer:</th> <td class="mono">{{ lightcurve.observer}}</td> </tr>
-   </tbody>
-   </table>
-   </div>
-   
-   <div class="block">
-   <table class='datatable'>
-   <tbody>
-      <tr> <th>Exposure:</th> <td class="mono">{{ lightcurve.exptime|format_float_negative_na:'1|s' }}</td> </tr>
-      <tr> <th>Cadence:</th> <td class="mono">{{ lightcurve.cadence|format_float_negative_na:'1|s' }}</td> </tr>
-      <tr> <th>Duration:</th> <td class="mono">{{ lightcurve.duration|format_float_negative_na:'2|h' }}</td> </tr>
-      <tr> <th>Seeing:</th> <td class="mono">{{ lightcurve.seeing|format_float_negative_na:'1|"' }}</td> </tr>
-      <tr> <th>Moon Illumination:</th> <td class="mono">{{ lightcurve.moon_illumination|format_float_negative_na:'1|%' }} </td> </tr>
-      <tr> <th>Wind speed:</th> <td class="mono">{{ lightcurve.wind_speed|format_float_negative_na:'1|km/s' }}</td> </tr>
-      <tr> <th>Wind direction:</th> <td class="mono">{{ lightcurve.wind_direction|format_wind_direction }}</td> </tr>
-      {% if lightcurve.get_weather_url != '' %}
-         <tr> <th>Weather link:</th> <td class="mono"> <a target="_blank" href="{{ lightcurve.get_weather_url }}"> {{ lightcurve.observatory.short_name }} </a></td> </tr>
-      {% else %}
-         <tr> <th>Weather link:</th> <td class="mono">NA</td> </tr>
-      {% endif %}
-   </tbody>
-   </table>
-   </div>
-   </div>
-   
-   
-   </div>
-   
-   <div class="tag-container">
-      <h3>Visibility</h3>
-      <div class='block'>
-      {{ figures.visibility|safe }}
-      </div>
-   </div>
-   
-   <div class="tag-container">
-      <h3>Light cuve files</h3>
-      <ul>
-         <li>{{ lightcurve.filetype }} 
-             <a href={% url 'observations-api:lightcurve_header' lightcurve.id %} class='showheader' name='{{lightcurve.filetype}}'>(header)</a>
-             {% if user.is_authenticated %}
-             <a href="{{ lightcurve.lcfile.url }}"><p class="material-icons inline-icon" title="Download">cloud_download</p></a>
-             {% endif %}
-         </li>
-      </ul>
-      
-      
-      <h3>
-      Note  
-      {% if user.is_authenticated %}
-         (<i id="noteEditButton" class="material-icons button inline-icon" title="edit" lightcurve_id={{lightcurve.pk}}>edit</i>)
-      {% endif %}
-      </h3>
-      
-      <div id="noteField">{{lightcurve.note|linebreaks}}</div>
-      
-   </div>
-   
-   </div>
-   
-   <hr>
-   
-   </section>
-   
-   <section class='data-section'>
+    <section class='data-section'>
 
-   
-   <div class="flex-data-container">
-   
-   {% if figures.lc_time %}
-<!--    <div class="block w1100"> -->
-      {{ figures.lc_time|safe }}
-<!--    </div> -->
-   {% endif %} 
-   
-   </div>
-   
-   <div>
-   
-   <form action="{% url "observations:lightcurve_detail" project.slug lightcurve.pk %}" method="get" enctype="multipart/form-data">
-      
-      <tbody>
-      <tr> 
-         <td>Period (hours):</td>
-         <td> <input type="number" name='period' step=0.00000000001 value={{ period }}> </td>
-         <td>Phase bins size:</td>
-         <td> <input type="number" name='binsize' min=0.0001 max=1 step=0.0001 value={{ binsize }}> </td>
-         <td> <input type="submit" value="phase lightcurve"/> </td>
-      </tr>
-      </tbody>
+        <div class="main-container-h border">
 
-   </form>
-   
-   </div>
-   
-   <div class="flex-data-container">
-   
-   {% if figures.lc_phase %}
-<!--    <div class="block w1100"> -->
-      {{ figures.lc_phase|safe }}
-<!--    </div> -->
-   {% endif %} 
-   
-   </div>
-   
-   <hr>
-   
-   </section>
-   
-   <div id="headerWindow">
-      <ul id="headerList">
-      </ul>
-   </div>
-   
-   {{ script|safe }}
-   
-   
-   <!-- Div ect necessary for editing on page stuff with ajax -->
-   <div id="noteEdit" title="Edit lightcurve Note">
-      <textarea name="edit-message" id="edit-message" cols="80" rows="5"></textarea>
-   </div>
-   
-   <div id="lightcurveEdit" title="Edit lightcurve">
-   
-      <ul>
-         <li>
-         <label for="lightcurve-valid">
-         <input type="checkbox" id="lightcurve-valid" lightcurve_id="{{lightcurve.pk}}">
-         Valid </label>
-         </li>
-         
-         <li>
-         <label for="lightcurve-fluxunits"> Exposure Time: 
-         <input id="lightcurve-exptime" type='text' size="100">
-         </label>
-         </li>
-         
-      </ul>
-   </div>
+            {% if user.is_authenticated %}
+                <i id="spectrumEditButton" class="material-icons button edit" title="edit"
+                   spectrum_id={{ lightcurve.pk }}>edit</i>
+            {% endif %}
+
+            <div class='header-item'>
+                <h3 id="nameField"> {{ lightcurve }}</h3>
+            </div>
+
+            <div class='header-item'>
+                <p class="material-icons">star</p>
+                <h3>
+                    <a href={% url 'systems:star_detail' project.slug lightcurve.star.pk %}>{{ lightcurve.star.name }}</a>
+                </h3>
+            </div>
+
+
+            <div class='header-item'>
+                {% if lightcurve.valid %}
+                    <i id="lightcurve-valid-icon" class="material-icons status-icon valid bold"
+                       title='Good quality'></i>
+                {% else %}
+                    <i id="lightcurve-valid-icon" class="material-icons status-icon invalid bold"
+                       title='Bad quality'></i>
+                {% endif %}
+                <h3> Valid</h3>
+            </div>
+
+
+        </div>
+
+        <!--    <h3>Observing Information</h3> -->
+
+        <div class="flex-data-container j-center">
+
+            <div class="tag-container">
+                <h3>Basic Data </h3>
+
+                <div class="block">
+                    <div class="block">
+                        <table class='datatable'>
+                            <tbody>
+                            <tr>
+                                <th>Target:</th>
+                                <td class="mono">{{ lightcurve.objectname }}</td>
+                            </tr>
+                            <tr>
+                                <th>Target Coord.:</th>
+                                <td class="mono">{{ lightcurve.star.ra|dgr2hms }} {{ lightcurve.star.dec|dgr2dms }}</td>
+                            </tr>
+                            <tr>
+                                <th>Obs. Coord.:</th>
+                                <td class="mono">{{ lightcurve.ra|dgr2hms }} {{ lightcurve.dec|dgr2dms }}</td>
+                            </tr>
+                            <tr>
+                                <th>HJD:</th>
+                                <td class="mono">{{ lightcurve.hjd }}</td>
+                            </tr>
+                            <tr>
+                                <th>Date:</th>
+                                <td class="mono">{{ lightcurve.hjd|hjd2datetime }}</td>
+                            </tr>
+                            <tr>
+                                <th>Instrument:</th>
+                                <td class="mono">{{ lightcurve.instrument }} @ {{ lightcurve.telescope }}</td>
+                            </tr>
+                            <tr>
+                                <th>Passband:</th>
+                                <td class="mono">{{ lightcurve.passband }}</td>
+                            </tr>
+                            <tr>
+                                <th>Observer:</th>
+                                <td class="mono">{{ lightcurve.observer }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="block">
+                        <table class='datatable'>
+                            <tbody>
+                            <tr>
+                                <th>Exposure:</th>
+                                <td class="mono">{{ lightcurve.exptime|format_float_negative_na:'1|s' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Cadence:</th>
+                                <td class="mono">{{ lightcurve.cadence|format_float_negative_na:'1|s' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Duration:</th>
+                                <td class="mono">{{ lightcurve.duration|format_float_negative_na:'2|h' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Seeing:</th>
+                                <td class="mono">{{ lightcurve.seeing|format_float_negative_na:'1|"' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Moon Illumination:</th>
+                                <td class="mono">{{ lightcurve.moon_illumination|format_float_negative_na:'1|%' }} </td>
+                            </tr>
+                            <tr>
+                                <th>Wind speed:</th>
+                                <td class="mono">{{ lightcurve.wind_speed|format_float_negative_na:'1|km/s' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Wind direction:</th>
+                                <td class="mono">{{ lightcurve.wind_direction|format_wind_direction }}</td>
+                            </tr>
+                            {% if lightcurve.get_weather_url != '' %}
+                                <tr>
+                                    <th>Weather link:</th>
+                                    <td class="mono"><a target="_blank"
+                                                        href="{{ lightcurve.get_weather_url }}"> {{ lightcurve.observatory.short_name }} </a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <th>Weather link:</th>
+                                    <td class="mono">NA</td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="tag-container">
+                <h3>Visibility</h3>
+                <div class='block'>
+                    {{ figures.visibility|safe }}
+                </div>
+            </div>
+
+            <div class="tag-container">
+                <h3>Light cuve files</h3>
+                <ul>
+                    <li>{{ lightcurve.filetype }}
+                        <a href={% url 'observations-api:lightcurve_header' lightcurve.id %} class='showheader'
+                           name='{{ lightcurve.filetype }}'>(header)</a>
+                        {% if user.is_authenticated %}
+                            <a href="{{ lightcurve.lcfile.url }}"><p class="material-icons inline-icon"
+                                                                     title="Download">cloud_download</p></a>
+                        {% endif %}
+                    </li>
+                </ul>
+
+
+                <h3>
+                    Note
+                    {% if user.is_authenticated %}
+                        (<i id="noteEditButton" class="material-icons button inline-icon" title="edit"
+                            lightcurve_id={{ lightcurve.pk }}>edit</i>)
+                    {% endif %}
+                </h3>
+
+                <div id="noteField">{{ lightcurve.note|linebreaks }}</div>
+
+            </div>
+
+        </div>
+
+        <hr>
+
+    </section>
+
+    <section class='data-section'>
+
+
+        <div class="flex-data-container">
+
+            {% if figures.lc_time %}
+                <!--    <div class="block w1100"> -->
+                {{ figures.lc_time|safe }}
+                <!--    </div> -->
+            {% endif %}
+
+        </div>
+
+        <div>
+
+            <form action="{% url "observations:lightcurve_detail" project.slug lightcurve.pk %}" method="get"
+                  enctype="multipart/form-data">
+
+                <tbody>
+                <tr>
+                    <td>Period (hours):</td>
+                    <td><input type="number" name='period' step=0.00000000001 value={{ period }}></td>
+                    <td>Phase bins size:</td>
+                    <td><input type="number" name='binsize' min=0.0001 max=1 step=0.0001 value={{ binsize }}></td>
+                    <td><input type="submit" value="phase lightcurve"/></td>
+                </tr>
+                </tbody>
+
+            </form>
+
+        </div>
+
+        <div class="flex-data-container">
+
+            {% if figures.lc_phase %}
+                <!--    <div class="block w1100"> -->
+                {{ figures.lc_phase|safe }}
+                <!--    </div> -->
+            {% endif %}
+
+        </div>
+
+        <hr>
+
+    </section>
+
+    <div id="headerWindow">
+        <ul id="headerList">
+        </ul>
+    </div>
+
+    {{ script|safe }}
+
+
+    <!-- Div ect necessary for editing on page stuff with ajax -->
+    <div id="noteEdit" title="Edit lightcurve Note">
+        <textarea name="edit-message" id="edit-message" cols="80" rows="5"></textarea>
+    </div>
+
+    <div id="lightcurveEdit" title="Edit lightcurve">
+
+        <ul>
+            <li>
+                <label for="lightcurve-valid">
+                    <input type="checkbox" id="lightcurve-valid" lightcurve_id="{{ lightcurve.pk }}">
+                    Valid </label>
+            </li>
+
+            <li>
+                <label for="lightcurve-fluxunits"> Exposure Time:
+                    <input id="lightcurve-exptime" type='text' size="100">
+                </label>
+            </li>
+
+        </ul>
+    </div>
 
 {% endblock %}

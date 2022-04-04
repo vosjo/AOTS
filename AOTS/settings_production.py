@@ -1,4 +1,3 @@
-
 from os.path import join
 
 import environ
@@ -32,25 +31,25 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         },
     },
     'handlers': {
         'default': {
             'level': 'DEBUG',
             'class': 'logging.handlers.WatchedFileHandler',
-            #'class': 'logging.handlers.RotatingFileHandler',
-            #'maxBytes': 1024 * 1024 * 100,  # 100 mb
-            'filename': join(env("LOG_DIR", default='/tmp/'),'not_django.log'),
+            # 'class': 'logging.handlers.RotatingFileHandler',
+            # 'maxBytes': 1024 * 1024 * 100,  # 100 mb
+            'filename': join(env("LOG_DIR", default='/tmp/'), 'not_django.log'),
             'formatter': 'standard'
         },
         'django': {
             'level': 'DEBUG',
             'class': 'logging.handlers.WatchedFileHandler',
-            #'class': 'logging.handlers.RotatingFileHandler',
-            #'maxBytes': 1024 * 1024 * 100,  # 100 mb
-            'filename': join(env("LOG_DIR", default='/tmp/'),'django.log'),
+            # 'class': 'logging.handlers.RotatingFileHandler',
+            # 'maxBytes': 1024 * 1024 * 100,  # 100 mb
+            'filename': join(env("LOG_DIR", default='/tmp/'), 'django.log'),
             'formatter': 'standard'
         },
     },
@@ -63,7 +62,7 @@ LOGGING = {
         'django': {
             'handlers': ['django'],
             'level': 'INFO',
-            #'level': 'DEBUG',
+            # 'level': 'DEBUG',
             'propagate': False,
         },
     },

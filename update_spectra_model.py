@@ -1,21 +1,20 @@
 import os
+
 os.environ["DJANGO_SETTINGS_MODULE"] = "AOTS.settings"
 
 import django
+
 django.setup()
 
-import numpy as np
-
-from stars.models import Project, Star
+from stars.models import Project
 from observations.auxil.read_spectrum import (
     derive_spectrum_info,
     derive_specfile_info,
-    )
-
+)
 
 ##  Delete all systems in database
-#for star in Star.objects.all():
-    #star.delete()
+# for star in Star.objects.all():
+# star.delete()
 
 #   Load projects
 projects = Project.objects.all()
@@ -70,22 +69,3 @@ for pro in projects:
             #   Update SpecFile information
             message, success = derive_specfile_info(spf_pk, user_info)
             print('        ', message, success)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,10 +1,8 @@
 import os
 
+import numpy as np
 from astropy.io import fits, ascii
 
-import numpy as np
-
-from . import tools
 
 def istext(filename):
     """
@@ -17,14 +15,14 @@ def istext(filename):
     """
     try:
         #   Open file and read first 512 bytes
-        #s=open(filename).read(512)
-        s=open(filename).read(100000)
-        #s = open(filename).read()
+        # s=open(filename).read(512)
+        s = open(filename).read(100000)
+        # s = open(filename).read()
 
         #   Define text/ascii characters
-        text_characters = ""\
-            .join(map(chr, range(32, 127))) + ""\
-            .join( list("\n\r\t\b"))
+        text_characters = "" \
+                              .join(map(chr, range(32, 127))) + "" \
+                              .join(list("\n\r\t\b"))
 
         #    Empty files are considered text
         if not s:
@@ -42,7 +40,7 @@ def istext(filename):
 
         #   If more than 30% non-text characters, then
         #   this is considered a binary file
-        if float(len(t))/float(len(s)) > 0.30:
+        if float(len(t)) / float(len(s)) > 0.30:
             return False
         return True
     except UnicodeDecodeError as e:
@@ -57,17 +55,17 @@ def cal_wave(header, npoints):
     """
         Calculates wave length range from Header information
     """
-    #dnu = float(header["CDELT1"]) if 'CDELT1' in header else header['CD1_1']
-    #nu_0 = float(header["CRVAL1"]) # the first wavelength value
-    #nu_n = nu_0 + (npoints-1)*dnu
-    #wave = np.linspace(nu_0,nu_n,npoints)
+    # dnu = float(header["CDELT1"]) if 'CDELT1' in header else header['CD1_1']
+    # nu_0 = float(header["CRVAL1"]) # the first wavelength value
+    # nu_n = nu_0 + (npoints-1)*dnu
+    # wave = np.linspace(nu_0,nu_n,npoints)
 
-    #if ('CTYP1' in header and 'log' in header['CTYP1']) or \
-        #('CTYPE1' in header and 'log' in header['CTYPE1']):
-        #wave = np.exp(wave)
+    # if ('CTYP1' in header and 'log' in header['CTYP1']) or \
+    # ('CTYPE1' in header and 'log' in header['CTYPE1']):
+    # wave = np.exp(wave)
 
     if 'CRPIX1' in header:
-        ref_pix = int(header["CRPIX1"])-1
+        ref_pix = int(header["CRPIX1"]) - 1
     else:
         ref_pix = 0
 
@@ -78,21 +76,21 @@ def cal_wave(header, npoints):
     else:
         raise Exception(
             'Can not find wavelength dispersion in header.'
-            +' Looked for CDELT1 and CD1_1'
-            )
+            + ' Looked for CDELT1 and CD1_1'
+        )
 
-    nu0 = float(header["CRVAL1"]) - ref_pix*dnu
-    nun = nu0 + (npoints-1)*dnu
-    wave = np.linspace(nu0,nun,npoints)
+    nu0 = float(header["CRVAL1"]) - ref_pix * dnu
+    nun = nu0 + (npoints - 1) * dnu
+    wave = np.linspace(nu0, nun, npoints)
 
     #   Fix wavelengths for logarithmic sampling
-    #if 'ctype1' in header and header['CTYPE1']=='log(wavelength)':
-        #wave = np.exp(wave)
-    #elif 'ctype1' in header and header['CTYPE1']=='AWAV-LOG':
-        ##   PHOENIX spectra
-        #wave = np.exp(wave)
+    # if 'ctype1' in header and header['CTYPE1']=='log(wavelength)':
+    # wave = np.exp(wave)
+    # elif 'ctype1' in header and header['CTYPE1']=='AWAV-LOG':
+    ##   PHOENIX spectra
+    # wave = np.exp(wave)
     if ('CTYP1' in header and 'log' in header['CTYP1']) or \
-        ('CTYPE1' in header and 'log' in header['CTYPE1']):
+            ('CTYPE1' in header and 'log' in header['CTYPE1']):
         wave = np.exp(wave)
 
     return wave
@@ -140,9 +138,9 @@ def read_echelle(filename, starthdu=0):
     wave_list = []
 
     #   Read data from all extensions/orders
-    for i in range(starthdu,nHDUs):
+    for i in range(starthdu, nHDUs):
         #   Extract data
-        data   = hduLIST[i].data
+        data = hduLIST[i].data
         #   Extract header
         header = hduLIST[i].header
 
@@ -173,7 +171,7 @@ def read_spectrum(filename, return_header=False):
     if istext(filename):
         #   Assume that this file has 2 columns containing wavelength and flux
         #   Text files are considered to not contain a header!
-        data = ascii.read(filename, names = ['wave', 'flux'])
+        data = ascii.read(filename, names=['wave', 'flux'])
 
         if return_header:
             return data['wave'], data['flux'], {}
@@ -206,17 +204,17 @@ def read_spectrum(filename, return_header=False):
     else:
         hdu = 0
         try:
-            telescope  = fits.getval(filename, 'TELESCOP')
+            telescope = fits.getval(filename, 'TELESCOP')
         except:
             try:
-                telescope  = fits.getval(filename, 'TELESCOP', ext=1)
+                telescope = fits.getval(filename, 'TELESCOP', ext=1)
                 hdu = 1
             except Exception as e:
                 print('Exception occurred in read_spectrum().')
                 print('Context: Reading telescope info from Header.')
                 print('Problem: ', e)
 
-                telescope  = 'UK'
+                telescope = 'UK'
 
         #    Read Header
         header = fits.getheader(filename, hdu)
@@ -246,8 +244,8 @@ def read_spectrum(filename, return_header=False):
             """
             SDSS spectrum
             """
-            data       = fits.getdata(filename, 1)
-            wave, flux = 10**data['loglam'], data['flux']
+            data = fits.getdata(filename, 1)
+            wave, flux = 10 ** data['loglam'], data['flux']
 
         elif 'LAMOST' in header.get('TELESCOP', ''):
             '''
@@ -269,20 +267,20 @@ def read_spectrum(filename, return_header=False):
             data = fits.getdata(filename)
 
             #   Extract start points (sps)
-            k=1
-            sps=[]
+            k = 1
+            sps = []
             for line in history:
-                liste=line.split()
+                liste = line.split()
                 if len(liste) == 0:
-                    k=1
+                    k = 1
                     continue
-                if k == 0 :
+                if k == 0:
                     sps = sps + liste
                 if k == 1:
                     if 'WSTART' not in liste[0]:
                         continue
                     else:
-                        k=0
+                        k = 0
 
             #   Prepare list for flux and wavelength data
             flux = []
@@ -295,9 +293,9 @@ def read_spectrum(filename, return_header=False):
             for j, __fl in enumerate(data):
                 #   Calculate wavelength array
                 npoints = len(__fl)
-                nu0     = float(sps[j])
-                nun     = nu0 + (npoints-1)*dnu
-                __wa    = np.linspace(nu0,nun,npoints)
+                nu0 = float(sps[j])
+                nun = nu0 + (npoints - 1) * dnu
+                __wa = np.linspace(nu0, nun, npoints)
 
                 #   Add flux and wavelength array to lists
                 flux.append(__fl)
@@ -310,11 +308,11 @@ def read_spectrum(filename, return_header=False):
             data = fits.getdata(filename, 1)
 
             if instrument == 'XSHOOTER':
-                wave = data['WAVE'][0]*10.
+                wave = data['WAVE'][0] * 10.
                 flux = data['FLUX'][0]
             else:
                 if 'WAVE' in data.dtype.names or 'wave' in data.dtype.names:
-                    wave = data['WAVE'] # eso DR3
+                    wave = data['WAVE']  # eso DR3
                 else:
                     wave = data['wavelength']
 
@@ -329,9 +327,9 @@ def read_spectrum(filename, return_header=False):
             try:
                 #    MODS spectrograph
                 if instrument in ['MODS1B', 'MODS1R', 'MODS2B', 'MODS2R']:
-                    row=1
+                    row = 1
                 else:
-                    row=0
+                    row = 0
 
                 wave, flux = read_1D_spectrum(filename, row=row)
 
@@ -352,9 +350,9 @@ def read_spectrum(filename, return_header=False):
                     print('   Problem:', e)
 
     if return_header:
-        return wave,flux,header
+        return wave, flux, header
     else:
-        return wave,flux
+        return wave, flux
 
 
 def read_lightcurve(filename, return_header=False):
@@ -369,11 +367,10 @@ def read_lightcurve(filename, return_header=False):
     time = data['time']
     flux = data['PDCSAP_FLUX']
 
-
     if return_header:
-        return time,flux,header
+        return time, flux, header
     else:
-        return time,flux
+        return time, flux
 
 
 def get_rawfile_path(instance, filename):

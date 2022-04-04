@@ -1,13 +1,12 @@
-
 {% extends "base.html" %}
 {% load static %}
 {% load conversion_tags %}
 
 {% block head %}
 
-   {% include "bokeh.html" %}
-   {% include "bokeh_widgets.html" %}
-   <script type="text/javascript" src="{% static 'js/spectrum_detail.js' %}"></script>
+    {% include "bokeh.html" %}
+    {% include "bokeh_widgets.html" %}
+    <script type="text/javascript" src="{% static 'js/spectrum_detail.js' %}"></script>
 
 {% endblock %}
 
@@ -17,238 +16,302 @@
 
 {% block content %}
 
-   <div id="sidenav">
-   <h2> All Spectra for <span class="nobreak">{{spectrum.star.name}}</span> </h2>
-   {% for inst, spectra in all_spectra.items %}
-      <h3> {{ inst }} </h3>
-      <ul>
-      {% for spec in spectra %}
-         {% if spec.id == spectrum.id %}
-         <li> <a href={% url 'observations:spectrum_detail' project.slug spec.id %} class="active"> {{ spec.hjd|floatformat:3 }} - {{ spec.hjd|hjd2date }}</a> </li>
-         {% else %}
-         <li> <a href={% url 'observations:spectrum_detail' project.slug spec.id %}> {{ spec.hjd|floatformat:3 }} - {{ spec.hjd|hjd2date }}</a> </li>
-         {% endif %}
-      {% endfor %}
-      </ul>
-   {% endfor %}
-   </div>
+    <div id="sidenav">
+        <h2> All Spectra for <span class="nobreak">{{ spectrum.star.name }}</span></h2>
+        {% for inst, spectra in all_spectra.items %}
+            <h3> {{ inst }} </h3>
+            <ul>
+                {% for spec in spectra %}
+                    {% if spec.id == spectrum.id %}
+                        <li>
+                            <a href={% url 'observations:spectrum_detail' project.slug spec.id %} class="active"> {{ spec.hjd|floatformat:3 }}
+                                - {{ spec.hjd|hjd2date }}</a></li>
+                    {% else %}
+                        <li>
+                            <a href={% url 'observations:spectrum_detail' project.slug spec.id %}> {{ spec.hjd|floatformat:3 }}
+                                - {{ spec.hjd|hjd2date }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
 
-   <section class='data-section'>
+    <section class='data-section'>
 
-   <div class="main-container-h border">
+        <div class="main-container-h border">
 
-      {% if user.is_authenticated %}
-      <i id="spectrumEditButton" class="material-icons button edit" title="edit" spectrum_id={{spectrum.pk}}>edit</i>
-      {% endif %}
-
-      <div class='header-item'>
-      <h3 id="nameField"> {{ spectrum }}</h3>
-      </div>
-
-      <div class='header-item'>
-      <p class="material-icons">star</p>
-      <h3><a href={% url 'systems:star_detail' project.slug spectrum.star.pk %}>{{ spectrum.star.name }}</a></h3>
-      </div>
-
-
-      <div class='header-item'>
-      {% if spectrum.valid %}
-      <i id="spectrum-valid-icon" class="material-icons status-icon valid bold" title='Good quality'></i>
-      {% else %}
-      <i id="spectrum-valid-icon" class="material-icons status-icon invalid bold" title='Bad quality'></i>
-      {% endif %}
-      <h3> Valid</h3>
-      </div>
-
-      <div class='header-item'>
-      {% if spectrum.fluxcal %}
-      <i id="spectrum-fluxcal-icon" class="material-icons status-icon valid bold" title='Flux calibrated'></i>
-      {% else %}
-      <i id="spectrum-fluxcal-icon" class="material-icons status-icon invalid bold" title='Not flux calibrated'></i>
-      {% endif %}
-      <h3> Flux calibrated </h3>
-      </div>
-
-
-   </div>
-
-<!--    <h3>Observing Information</h3> -->
-
-   <div class="flex-data-container j-center">
-
-   <div class="tag-container">
-   <h3>Basic Data </h3>
-
-   <div class="block">
-   <div class="block">
-   <table class='datatable'>
-   <tbody>
-      <tr> <th>Target:</th> <td class="mono">{{ spectrum.objectname }}</td> </tr>
-      <tr> <th>Target Coord.:</th> <td class="mono">{{ spectrum.star.ra|dgr2hms }}  {{ spectrum.star.dec|dgr2dms }}</td> </tr>
-      <tr> <th>Obs. Coord.:</th> <td class="mono">{{ spectrum.ra|dgr2hms }}  {{ spectrum.dec|dgr2dms }}</td> </tr>
-      <tr> <th>HJD:</th> <td class="mono">{{ spectrum.hjd }}</td> </tr>
-      <tr> <th>Date:</th> <td class="mono">{{ spectrum.hjd|hjd2datetime }}</td> </tr>
-      <tr> <th>Instrument:</th> <td class="mono">{{ spectrum.instrument }} @ {{ spectrum.telescope }}</td> </tr>
-      <tr> <th>Resolution:</th> <td class="mono">{{ spectrum.resolution|format_float_negative_na:'0|' }}</td> </tr>
-      <tr> <th>Observer:</th> <td class="mono">{{ spectrum.observer}}</td> </tr>
-   </tbody>
-   </table>
-   </div>
-
-   <div class="block">
-   <table class='datatable'>
-   <tbody>
-      <tr> <th>Exposure:</th> <td class="mono">{{ spectrum.exptime|format_float_negative_na:'1|s' }}</td> </tr>
-      <tr> <th>SNR:</th> <td class="mono">{{ spectrum.snr|format_float_negative_na:'0|' }}</td> </tr>
-      <tr> <th>Seeing:</th> <td class="mono">{{ spectrum.seeing|format_float_negative_na:'1|"'}}</td> </tr>
-      <tr> <th>Airmass:</th> <td class="mono">{{ spectrum.airmass|format_float_negative_na:'2|'}}</td> </tr>
-      <tr> <th>Moon Illumination:</th> <td class="mono">{{ spectrum.moon_illumination|format_float_negative_na:'1|%' }}</td> </tr>
-      <tr> <th>Moon Separation:</th> <td class="mono">{{ spectrum.moon_separation|format_float_negative_na:'1|°' }}</td> </tr>
-      <tr> <th>Wind:</th> <td class="mono">{{ spectrum.wind_speed|format_float_negative_na:'1|km/s' }} {{ spectrum.wind_direction|format_wind_direction }}</td> </tr>
-      {% if spectrum.get_weather_url != '' %}
-         <tr> <th>Weather link:</th> <td class="mono"> <a target="_blank" href="{{ spectrum.get_weather_url }}"> {{ spectrum.observatory.short_name }} </a></td> </tr>
-      {% else %}
-         <tr> <th>Weather link:</th> <td class="mono">NA</td> </tr>
-      {% endif %}
-   </tbody>
-   </table>
-   </div>
-   </div>
-
-
-   </div>
-
-   <div class="tag-container">
-      <h3>Visibility</h3>
-      <div class='block'>
-      {{ figures.visibility|safe }}
-      </div>
-   </div>
-
-   <div class="tag-container">
-      <h3>Files belonging to this spectrum</h3>
-      <ul>
-      {% for sfile in spectrum.specfile_set.all %}
-         <li>{{ sfile.filetype }}
-             <a href={% url 'observations-api:specfile_header' sfile.id %} class='showheader' name='{{sfile.filetype}}'>(header)</a>
-             {% if user.is_authenticated %}
-             <a href="{{ sfile.specfile.url }}"><p class="material-icons inline-icon" title="Download">cloud_download</p></a>
-             {% endif %}
-         </li>
-      {% endfor %}
-      </ul>
-
-      <hr class='box'>
-
-      <h3>
-      Note
-      {% if user.is_authenticated %}
-         (<i id="noteEditButton" class="material-icons button inline-icon" title="edit" spectrum_id={{spectrum.pk}}>edit</i>)
-      {% endif %}
-      </h3>
-
-      <div id="noteField">{{spectrum.note|linebreaks}}</div>
-
-   </div>
-
-   </div>
-
-   <hr>
-
-   </section>
-
-   <section class='data-section'>
-
-   <h3>The Spectrum</h3>
-
-   <p>The spectrum is shifted with a barycentric correction of {{spectrum.barycor|roundtwo}} km/s.</p>
-
-   <div class="flex-data-container">
-        <div id="spectrum">
-            {% if figures.spec %}
-            <!--    <div class="block w1100"> -->
-                {{ figures.spec|safe }}
-            <!--    </div> -->
+            {% if user.is_authenticated %}
+                <i id="spectrumEditButton" class="material-icons button edit" title="edit"
+                   spectrum_id={{ spectrum.pk }}>edit</i>
             {% endif %}
+
+            <div class='header-item'>
+                <h3 id="nameField"> {{ spectrum }}</h3>
+            </div>
+
+            <div class='header-item'>
+                <p class="material-icons">star</p>
+                <h3><a href={% url 'systems:star_detail' project.slug spectrum.star.pk %}>{{ spectrum.star.name }}</a>
+                </h3>
+            </div>
+
+
+            <div class='header-item'>
+                {% if spectrum.valid %}
+                    <i id="spectrum-valid-icon" class="material-icons status-icon valid bold" title='Good quality'></i>
+                {% else %}
+                    <i id="spectrum-valid-icon" class="material-icons status-icon invalid bold" title='Bad quality'></i>
+                {% endif %}
+                <h3> Valid</h3>
+            </div>
+
+            <div class='header-item'>
+                {% if spectrum.fluxcal %}
+                    <i id="spectrum-fluxcal-icon" class="material-icons status-icon valid bold"
+                       title='Flux calibrated'></i>
+                {% else %}
+                    <i id="spectrum-fluxcal-icon" class="material-icons status-icon invalid bold"
+                       title='Not flux calibrated'></i>
+                {% endif %}
+                <h3> Flux calibrated </h3>
+            </div>
+
+
         </div>
 
-        <div class="buttons-container">
+        <!--    <h3>Observing Information</h3> -->
 
-            <!-- Dummy to get normalization status and binning -->
-            <i display="none" id="normalized"
-                normalized={{ spectrum.normalized|yesno:"true,false" }}></i>
-            <i display="none" id="rebin" rebin={{rebin}}></i>
+        <div class="flex-data-container j-center">
 
-            <h3>Modify data</h3>
-            <form action="{% url "observations:spectrum_detail" project.slug spectrum.pk %}" method="post">
-                {% csrf_token %}
-                <div id="div-norm" class="Wrapper">
-                    <label for="{{ form.normalize.id_for_label }}">Normalize:</label>
-                    {{ form.normalize }}
-                    <span class="error"> {{ form.normalize.errors.as_text }} </span>
+            <div class="tag-container">
+                <h3>Basic Data </h3>
+
+                <div class="block">
+                    <div class="block">
+                        <table class='datatable'>
+                            <tbody>
+                            <tr>
+                                <th>Target:</th>
+                                <td class="mono">{{ spectrum.objectname }}</td>
+                            </tr>
+                            <tr>
+                                <th>Target Coord.:</th>
+                                <td class="mono">{{ spectrum.star.ra|dgr2hms }} {{ spectrum.star.dec|dgr2dms }}</td>
+                            </tr>
+                            <tr>
+                                <th>Obs. Coord.:</th>
+                                <td class="mono">{{ spectrum.ra|dgr2hms }} {{ spectrum.dec|dgr2dms }}</td>
+                            </tr>
+                            <tr>
+                                <th>HJD:</th>
+                                <td class="mono">{{ spectrum.hjd }}</td>
+                            </tr>
+                            <tr>
+                                <th>Date:</th>
+                                <td class="mono">{{ spectrum.hjd|hjd2datetime }}</td>
+                            </tr>
+                            <tr>
+                                <th>Instrument:</th>
+                                <td class="mono">{{ spectrum.instrument }} @ {{ spectrum.telescope }}</td>
+                            </tr>
+                            <tr>
+                                <th>Resolution:</th>
+                                <td class="mono">{{ spectrum.resolution|format_float_negative_na:'0|' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Observer:</th>
+                                <td class="mono">{{ spectrum.observer }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="block">
+                        <table class='datatable'>
+                            <tbody>
+                            <tr>
+                                <th>Exposure:</th>
+                                <td class="mono">{{ spectrum.exptime|format_float_negative_na:'1|s' }}</td>
+                            </tr>
+                            <tr>
+                                <th>SNR:</th>
+                                <td class="mono">{{ spectrum.snr|format_float_negative_na:'0|' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Seeing:</th>
+                                <td class="mono">{{ spectrum.seeing|format_float_negative_na:'1|"' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Airmass:</th>
+                                <td class="mono">{{ spectrum.airmass|format_float_negative_na:'2|' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Moon Illumination:</th>
+                                <td class="mono">{{ spectrum.moon_illumination|format_float_negative_na:'1|%' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Moon Separation:</th>
+                                <td class="mono">{{ spectrum.moon_separation|format_float_negative_na:'1|°' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Wind:</th>
+                                <td class="mono">{{ spectrum.wind_speed|format_float_negative_na:'1|km/s' }} {{ spectrum.wind_direction|format_wind_direction }}</td>
+                            </tr>
+                            {% if spectrum.get_weather_url != '' %}
+                                <tr>
+                                    <th>Weather link:</th>
+                                    <td class="mono"><a target="_blank"
+                                                        href="{{ spectrum.get_weather_url }}"> {{ spectrum.observatory.short_name }} </a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <th>Weather link:</th>
+                                    <td class="mono">NA</td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div id="div-order" class="Wrapper">
-                    <label for="{{ form.order.id_for_label }}">Polynomial order:</label>
-                    <br>
-                    {{ form.order }}
-<!--                     <span class="error"> {{ form.order.errors|striptags }} </span> -->
-                    <span class="error"> {{ form.order.errors.as_text }} </span>
+
+
+            </div>
+
+            <div class="tag-container">
+                <h3>Visibility</h3>
+                <div class='block'>
+                    {{ figures.visibility|safe }}
                 </div>
-                <div class="Wrapper">
-                    <label for="{{ form.binning.id_for_label }}">Binning:</label>
-                    <br>
-                    {{ form.binning }}
-                    <span class="error"> {{ form.binning.errors.as_text }} </span>
-                </div>
-                <input id="updateFigure" type="submit" value="Update Figure" class='plot-button'/>
-            </form>
+            </div>
+
+            <div class="tag-container">
+                <h3>Files belonging to this spectrum</h3>
+                <ul>
+                    {% for sfile in spectrum.specfile_set.all %}
+                        <li>{{ sfile.filetype }}
+                            <a href={% url 'observations-api:specfile_header' sfile.id %} class='showheader'
+                               name='{{ sfile.filetype }}'>(header)</a>
+                            {% if user.is_authenticated %}
+                                <a href="{{ sfile.specfile.url }}"><p class="material-icons inline-icon"
+                                                                      title="Download">cloud_download</p></a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <hr class='box'>
+
+                <h3>
+                    Note
+                    {% if user.is_authenticated %}
+                        (<i id="noteEditButton" class="material-icons button inline-icon" title="edit"
+                            spectrum_id={{ spectrum.pk }}>edit</i>)
+                    {% endif %}
+                </h3>
+
+                <div id="noteField">{{ spectrum.note|linebreaks }}</div>
+
+            </div>
+
         </div>
-   </div>
 
-   <hr>
+        <hr>
 
-   </section>
+    </section>
 
-   <div id="headerWindow">
-      <ul id="headerList">
-      </ul>
-   </div>
+    <section class='data-section'>
 
-   {{ script|safe }}
+        <h3>The Spectrum</h3>
+
+        <p>The spectrum is shifted with a barycentric correction of {{ spectrum.barycor|roundtwo }} km/s.</p>
+
+        <div class="flex-data-container">
+            <div id="spectrum">
+                {% if figures.spec %}
+                    <!--    <div class="block w1100"> -->
+                    {{ figures.spec|safe }}
+                    <!--    </div> -->
+                {% endif %}
+            </div>
+
+            <div class="buttons-container">
+
+                <!-- Dummy to get normalization status and binning -->
+                <i display="none" id="normalized"
+                   normalized={{ spectrum.normalized|yesno:"true,false" }}></i>
+                <i display="none" id="rebin" rebin={{ rebin }}></i>
+
+                <h3>Modify data</h3>
+                <form action="{% url "observations:spectrum_detail" project.slug spectrum.pk %}" method="post">
+                    {% csrf_token %}
+                    <div id="div-norm" class="Wrapper">
+                        <label for="{{ form.normalize.id_for_label }}">Normalize:</label>
+                        {{ form.normalize }}
+                        <span class="error"> {{ form.normalize.errors.as_text }} </span>
+                    </div>
+                    <div id="div-order" class="Wrapper">
+                        <label for="{{ form.order.id_for_label }}">Polynomial order:</label>
+                        <br>
+                        {{ form.order }}
+                        <!--                     <span class="error"> {{ form.order.errors|striptags }} </span> -->
+                        <span class="error"> {{ form.order.errors.as_text }} </span>
+                    </div>
+                    <div class="Wrapper">
+                        <label for="{{ form.binning.id_for_label }}">Binning:</label>
+                        <br>
+                        {{ form.binning }}
+                        <span class="error"> {{ form.binning.errors.as_text }} </span>
+                    </div>
+                    <input id="updateFigure" type="submit" value="Update Figure" class='plot-button'/>
+                </form>
+            </div>
+        </div>
+
+        <hr>
+
+    </section>
+
+    <div id="headerWindow">
+        <ul id="headerList">
+        </ul>
+    </div>
+
+    {{ script|safe }}
 
 
-   <!-- Div ect necessary for editing on page stuff with ajax -->
-   <div id="noteEdit" title="Edit spectrum Note">
-      <textarea name="edit-message" id="edit-message" cols="80" rows="5"></textarea>
-   </div>
+    <!-- Div ect necessary for editing on page stuff with ajax -->
+    <div id="noteEdit" title="Edit spectrum Note">
+        <textarea name="edit-message" id="edit-message" cols="80" rows="5"></textarea>
+    </div>
 
-   <div id="spectrumEdit" title="Edit spectrum">
+    <div id="spectrumEdit" title="Edit spectrum">
 
-      <ul>
-         <li>
-         {% if spectrum.valid %}
-         <input type="checkbox" id="spectrum-valid" spectrum_id="{{spectrum.pk}}"  checked>
-         {% else %}
-         <input type="checkbox" id="spectrum-valid" spectrum_id="{{spectrum.pk}}">
-         {% endif %}
-         <label for="spectrum-valid"> Valid </label>
-         </li>
+        <ul>
+            <li>
+                {% if spectrum.valid %}
+                    <input type="checkbox" id="spectrum-valid" spectrum_id="{{ spectrum.pk }}" checked>
+                {% else %}
+                    <input type="checkbox" id="spectrum-valid" spectrum_id="{{ spectrum.pk }}">
+                {% endif %}
+                <label for="spectrum-valid"> Valid </label>
+            </li>
 
-         <li>
-         {% if spectrum.fluxcal %}
-         <input type="checkbox" id="spectrum-fluxcal" spectrum_id="{{spectrum.pk}}" checked>
-         {% else %}
-         <input type="checkbox" id="spectrum-fluxcal" spectrum_id="{{spectrum.pk}}">
-         {% endif %}
-         <label for="spectrum-fluxcal">Flux calibrated </label>
-         </li>
+            <li>
+                {% if spectrum.fluxcal %}
+                    <input type="checkbox" id="spectrum-fluxcal" spectrum_id="{{ spectrum.pk }}" checked>
+                {% else %}
+                    <input type="checkbox" id="spectrum-fluxcal" spectrum_id="{{ spectrum.pk }}">
+                {% endif %}
+                <label for="spectrum-fluxcal">Flux calibrated </label>
+            </li>
 
-         <li>
-         <label for="spectrum-fluxunits"> Flux units:
-         <input id="spectrum-fluxunits" type='text' size="100">
-         </label>
-         </li>
-      </ul>
-   </div>
+            <li>
+                <label for="spectrum-fluxunits"> Flux units:
+                    <input id="spectrum-fluxunits" type='text' size="100">
+                </label>
+            </li>
+        </ul>
+    </div>
 
 {% endblock %}

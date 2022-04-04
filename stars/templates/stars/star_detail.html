@@ -268,158 +268,177 @@
                     <div class="block">
                         {% if user.is_authenticated %}
                             <div class="phot-head">
-                            <h3 class="center"> Photometry
-                                <button id="photedit" class="photedit"><i class="material-icons button" title="Edit">edit</i>Edit
-                                    values
-                                </button>
-                            </h3>
-                            <div class="dropdown" >
-                                <button onclick="Toggledropdown()" class="dropbtn" id="addband" hidden><i class="material-icons button" title="Add">add</i>Add Band</button>
-                                <div id="addbanddropdown" class="dropdown-content">
-                                    {% for field in update_phot_form %}
-                                        {% if not "err" in field.label %}
-                                            <a class="dropdownlink" data-band={{ field.label }}>{{ field.label }}</a>
-                                        {% endif %}
-                                    {% endfor %}
+                                <h3 class="center"> Photometry
+                                    <button id="photedit" class="photedit"><i class="material-icons button"
+                                                                              title="Edit">edit</i>Edit
+                                        values
+                                    </button>
+                                </h3>
+                                <div class="dropdown">
+                                    <button onclick="Toggledropdown()" class="dropbtn" id="addband" hidden><i
+                                            class="material-icons button" title="Add">add</i>Add Band
+                                    </button>
+                                    <div id="addbanddropdown" class="dropdown-content">
+                                        {% for field in update_phot_form %}
+                                            {% if not "err" in field.label %}
+                                                <a class="dropdownlink"
+                                                   data-band={{ field.label }}>{{ field.label }}</a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
                                 </div>
-                            </div>
                             </div>
                         {% else %}
                             <h3 class="center"> Photometry </h3>
                         {% endif %}
                         <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
-                        enctype="multipart/form-data" class="" id="phot-update-form">
-                        {% csrf_token %}
-                        <table class="obs-table">
-                            <thead>
-                            <tr>
-                                <th>Band</th>
-                                <th>Value</th>
-                                <th>Error</th>
-                                <th>Unit</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for phot in star.photometry_set.all %}
-                                <tr class="phottablerow">
-                                    <td class="mono">{{ phot.band }}</td>
-                                    <td class="photvalconst" data-band={{ phot.band }}>{{ phot.get_value }}</td>
-                                    <td class="photerrconst" data-band={{ phot.band }}>{{ phot.get_error }}</td>
-                                    <td>{{ phot.unit }}</td>
-                                    <td></td>
+                              enctype="multipart/form-data" class="" id="phot-update-form">
+                            {% csrf_token %}
+                            <table class="obs-table">
+                                <thead>
+                                <tr>
+                                    <th>Band</th>
+                                    <th>Value</th>
+                                    <th>Error</th>
+                                    <th>Unit</th>
+                                    <th></th>
                                 </tr>
-                            {% endfor %}
-                            {% for field in update_phot_form %}
-                                {% if not "err" in field.label %}
-                                    <tr class="phottablerow" hidden>
-                                        <td class="mono">{{ field.label }}</td>
-                                        <td class="photvalinp" data-band={{ field.label }}>{{ field }}</td>
-                                        {% for errfield in update_phot_form %}
-                                            {% if errfield.label ==  field.label|add:"err" %}
-                                                <td class="photerrinp" data-band={{ field.label }}>{{ errfield }}</td>
-                                            {% endif %}
-                                        {% endfor %}
-                                        <td>mag</td>
-                                        <td><i class="material-icons button close rmband" title="Remove Band">close</i></td>
+                                </thead>
+                                <tbody>
+                                {% for phot in star.photometry_set.all %}
+                                    <tr class="phottablerow">
+                                        <td class="mono">{{ phot.band }}</td>
+                                        <td class="photvalconst" data-band={{ phot.band }}>{{ phot.get_value }}</td>
+                                        <td class="photerrconst" data-band={{ phot.band }}>{{ phot.get_error }}</td>
+                                        <td>{{ phot.unit }}</td>
+                                        <td></td>
+                                    </tr>
+                                {% endfor %}
+                                {% for field in update_phot_form %}
+                                    {% if not "err" in field.label %}
+                                        <tr class="phottablerow" hidden>
+                                            <td class="mono">{{ field.label }}</td>
+                                            <td class="photvalinp" data-band={{ field.label }}>{{ field }}</td>
+                                            {% for errfield in update_phot_form %}
+                                                {% if errfield.label ==  field.label|add:"err" %}
+                                                    <td class="photerrinp"
+                                                        data-band={{ field.label }}>{{ errfield }}</td>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <td>mag</td>
+                                            <td><i class="material-icons button close rmband"
+                                                   title="Remove Band">close</i></td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if user.is_authenticated %}
+                                    <tr id="submitrow" hidden>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td><input id="phot-submit-btn" type="submit" name="photbtn"
+                                                   value="Save Changes" form="phot-update-form" hidden></td>
+                                        <td>OR</td>
                                     </tr>
                                 {% endif %}
-                            {% endfor %}
-
-                            {% if user.is_authenticated %}
-                                <tr id="submitrow" hidden>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td><input id="phot-submit-btn" type="submit" name="photbtn" value="Save Changes" form="phot-update-form" hidden></td>
-                                    <td>OR</td>
-                                </tr>
-                            {% endif %}
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
                         </form>
                         <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
-                                  enctype="multipart/form-data" class="" id="vizier_form">
-                                {% csrf_token %}
-                            <button class="vizierbtn" name="vizierbtn" id="vizierbtn" hidden><i class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier</button>
+                              enctype="multipart/form-data" class="" id="vizier_form">
+                            {% csrf_token %}
+                            <button class="vizierbtn" name="vizierbtn" id="vizierbtn" hidden><i
+                                    class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier
+                            </button>
                         </form>
                     </div>
                 {% else %}
                     <div class="block">
                         {% if user.is_authenticated %}
                             <div class="phot-head">
-                            <h3 class="center"> Photometry
-                                <button id="photedit" class="photedit"><i class="material-icons button" title="Edit">edit</i>Add Photometry
-                                </button>
-                            </h3>
-                            <div class="dropdown" >
-                                <button onclick="Toggledropdown()" class="dropbtn" id="addband" hidden><i class="material-icons button" title="Add">add</i>Add Band</button>
-                                <div id="addbanddropdown" class="dropdown-content">
-                                    {% for field in update_phot_form %}
-                                        {% if not "err" in field.label %}
-                                            <a class="dropdownlink" data-band={{ field.label }}>{{ field.label }}</a>
-                                        {% endif %}
-                                    {% endfor %}
+                                <h3 class="center"> Photometry
+                                    <button id="photedit" class="photedit"><i class="material-icons button"
+                                                                              title="Edit">edit</i>Add Photometry
+                                    </button>
+                                </h3>
+                                <div class="dropdown">
+                                    <button onclick="Toggledropdown()" class="dropbtn" id="addband" hidden><i
+                                            class="material-icons button" title="Add">add</i>Add Band
+                                    </button>
+                                    <div id="addbanddropdown" class="dropdown-content">
+                                        {% for field in update_phot_form %}
+                                            {% if not "err" in field.label %}
+                                                <a class="dropdownlink"
+                                                   data-band={{ field.label }}>{{ field.label }}</a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
                                 </div>
-                            </div>
                             </div>
                         {% else %}
                             <h3 class="center"> Photometry </h3>
                         {% endif %}
                         <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
-                            enctype="multipart/form-data" class="" id="phot-update-form">
+                              enctype="multipart/form-data" class="" id="phot-update-form">
                             {% csrf_token %}
-                        <table class="obs-table">
-                            <thead>
-                            <tr>
-                                <th>Band</th>
-                                <th>Value</th>
-                                <th>Error</th>
-                                <th>Unit</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr id = "tr-novaluesyet">
-                                <td>Add</td>
-                                <td>Some</td>
-                                <td>Photometry</td>
-                                <td>Values!</td>
-                                <td></td>
-                            </tr>
-                            {% for field in update_phot_form %}
-                                {% if not "err" in field.label %}
-                                    <tr class="phottablerow" hidden>
-                                        <td class="mono">{{ field.label }}</td>
-                                        <td class="photvalinp" data-band={{ field.label }}>{{ field }}</td>
-                                        {% for errfield in update_phot_form %}
-                                            {% if errfield.label ==  field.label|add:"err" %}
-                                                <td class="photerrinp" data-band={{ field.label }}>{{ errfield }}</td>
-                                            {% endif %}
-                                        {% endfor %}
-                                        <td>mag</td>
-                                        <td><i class="material-icons button close rmband" title="Remove Band">close</i></td>
+                            <table class="obs-table">
+                                <thead>
+                                <tr>
+                                    <th>Band</th>
+                                    <th>Value</th>
+                                    <th>Error</th>
+                                    <th>Unit</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr id="tr-novaluesyet">
+                                    <td>Add</td>
+                                    <td>Some</td>
+                                    <td>Photometry</td>
+                                    <td>Values!</td>
+                                    <td></td>
+                                </tr>
+                                {% for field in update_phot_form %}
+                                    {% if not "err" in field.label %}
+                                        <tr class="phottablerow" hidden>
+                                            <td class="mono">{{ field.label }}</td>
+                                            <td class="photvalinp" data-band={{ field.label }}>{{ field }}</td>
+                                            {% for errfield in update_phot_form %}
+                                                {% if errfield.label ==  field.label|add:"err" %}
+                                                    <td class="photerrinp"
+                                                        data-band={{ field.label }}>{{ errfield }}</td>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <td>mag</td>
+                                            <td><i class="material-icons button close rmband"
+                                                   title="Remove Band">close</i></td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if user.is_authenticated %}
+                                    <tr id="submitrow" hidden>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td><input id="phot-submit-btn" class="phot-submit-btn" name="photbtn"
+                                                   type="submit" value="Save Changes" form="phot-update-form" hidden>
+                                        </td>
+                                        <td>OR</td>
                                     </tr>
                                 {% endif %}
-                            {% endfor %}
-
-                            {% if user.is_authenticated %}
-                                <tr id="submitrow" hidden>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td><input id="phot-submit-btn" class="phot-submit-btn" name="photbtn" type="submit" value="Save Changes" form="phot-update-form" hidden></td>
-                                    <td>OR</td>
-                                </tr>
-                            {% endif %}
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
                         </form>
-                    <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
-                                  enctype="multipart/form-data" class="" id="vizier_form">
+                        <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
+                              enctype="multipart/form-data" class="" id="vizier_form">
                             {% csrf_token %}
-                            <button class="vizierbtn" name="vizierbtn" id="vizierbtn" hidden><i class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier</button>
-                    </form>
+                            <button class="vizierbtn" name="vizierbtn" id="vizierbtn" hidden><i
+                                    class="material-icons button" title="Auto Awesome">auto_awesome</i>Get from Vizier
+                            </button>
+                        </form>
                     </div>
                 {% endif %}
                 {% if star.spectrum_set.all %}

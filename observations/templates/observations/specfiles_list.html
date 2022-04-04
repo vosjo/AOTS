@@ -3,8 +3,8 @@
 
 {% block head %}  <!--Add necessary javascript and css files for this page-->
 
-   {% include "datatables.html" %}
-   <script type="text/javascript" src="{% static 'js/specfiles_list.js' %}"></script>
+    {% include "datatables.html" %}
+    <script type="text/javascript" src="{% static 'js/specfiles_list.js' %}"></script>
 
 {% endblock %}
 
@@ -12,111 +12,112 @@
 
 {% block content %}
 
-<i display="none" id="project-pk" project={{project.pk}}
-    project_slug={{project.slug}}></i>
+    <i display="none" id="project-pk" project={{ project.pk }}
+            project_slug={{ project.slug }}></i>
 
-<section class='data-section'>
+    <section class='data-section'>
 
-    <div class="main-container">
-        <div class='header-item'>
-            <h3 id="nameField"> Upload new Spectra</h3>
-        </div>
+        <div class="main-container">
+            <div class='header-item'>
+                <h3 id="nameField"> Upload new Spectra</h3>
+            </div>
 
-        <div class="flex-data-container j-center">
-            <div class='upload'>
-            <a href="{% url "observations:spectra_upload" project.slug %}">
-                <img class="image-link" width="350px" src="{% static "images/upload_form.png" %}">
-            </a>
+            <div class="flex-data-container j-center">
+                <div class='upload'>
+                    <a href="{% url "observations:spectra_upload" project.slug %}">
+                        <img class="image-link" width="350px" src="{% static "images/upload_form.png" %}">
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
 
-</section>
+    </section>
 
-<br>
+    <br>
 
-<i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
+    <i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
 
-<div id="filter-dashboard">
+    <div id="filter-dashboard">
 
-   <form method="get" action="/observations/" class="table-filter" id="filter-form">
-   <h3 class="center"> Filter Specfiles </h3>
+        <form method="get" action="/observations/" class="table-filter" id="filter-form">
+            <h3 class="center"> Filter Specfiles </h3>
 
-   <div class="table-filter-item">
-      <p class="filter-label">Target:</p>
-      <input class="filter-input" id="filter_target" type="text" placeholder="identifier">
-   </div>
+            <div class="table-filter-item">
+                <p class="filter-label">Target:</p>
+                <input class="filter-input" id="filter_target" type="text" placeholder="identifier">
+            </div>
 
-   <hr>
+            <hr>
 
-   <div class="table-filter-item">
-      <p class="filter-label">HJD:</p>
-      <input class="filter-input" id="filter_hjd" type="text" placeholder="min:max">
-   </div>
+            <div class="table-filter-item">
+                <p class="filter-label">HJD:</p>
+                <input class="filter-input" id="filter_hjd" type="text" placeholder="min:max">
+            </div>
 
-   <div class="table-filter-item">
-      <p class="filter-label">Instrument:</p>
-      <input class="filter-input" id="filter_instrument" type="text" placeholder="instrument">
-   </div>
+            <div class="table-filter-item">
+                <p class="filter-label">Instrument:</p>
+                <input class="filter-input" id="filter_instrument" type="text" placeholder="instrument">
+            </div>
 
-   <hr>
+            <hr>
 
-   <div class="table-filter-item">
-      <p class="filter-label">Filetype:</p>
-      <input class="filter-input" id="filter_filetype" type="text" placeholder="file type">
-   </div>
+            <div class="table-filter-item">
+                <p class="filter-label">Filetype:</p>
+                <input class="filter-input" id="filter_filetype" type="text" placeholder="file type">
+            </div>
 
-   <div class="table-filter-item">
-      <p class="filter-label">Filename:</p>
-      <input class="filter-input" id="filter_filename" type="text" placeholder="file name">
-   </div>
+            <div class="table-filter-item">
+                <p class="filter-label">Filename:</p>
+                <input class="filter-input" id="filter_filename" type="text" placeholder="file name">
+            </div>
 
-   <input type="submit" class="button filter" id="submit-search" value="Apply">
-   </form>
-
-</div>
-
-<section class='data-section'>
-    <div class="main-container">
-        <div class='header-item'>
-        <h3 id="nameField"> Uploaded files </h3>
-        </div>
-        <div class='header-item'>
-        <h4> (multiple files might be combined into a single <a href="{% url "observations:spectra_list" project.slug %}">spectrum<a>) </h4>
-        </div>
+            <input type="submit" class="button filter" id="submit-search" value="Apply">
+        </form>
 
     </div>
 
-</section>
+    <section class='data-section'>
+        <div class="main-container">
+            <div class='header-item'>
+                <h3 id="nameField"> Uploaded files </h3>
+            </div>
+            <div class='header-item'>
+                <h4> (multiple files might be combined into a single <a
+                        href="{% url "observations:spectra_list" project.slug %}">spectrum<a>)</h4>
+            </div>
 
-<section>
-   <table id="specfiletable" class="fullwidth">
-   <thead>
-      <tr>
-      <th>HJD</th>
-      <th>Instrument</th>
-      <th>Filetype</th>
-      <th>Filename</th>
-      <th>Added on</th>
-      <th>System</th>
-      <th>Processed</th>
-      <th>Action</th>
-      </tr>
-   </thead>
-   <tfoot>
-      <tr>
-      <th>HJD</th>
-      <th>Instrument</th>
-      <th>Filetype</th>
-      <th>Filename</th>
-      <th>Added on</th>
-      <th>System</th>
-      <th>Processed</th>
-      <th>Action</th>
-      </tr>
-   </tfoot>
-   </table>
+        </div>
 
-</section>
+    </section>
+
+    <section>
+        <table id="specfiletable" class="fullwidth">
+            <thead>
+            <tr>
+                <th>HJD</th>
+                <th>Instrument</th>
+                <th>Filetype</th>
+                <th>Filename</th>
+                <th>Added on</th>
+                <th>System</th>
+                <th>Processed</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tfoot>
+            <tr>
+                <th>HJD</th>
+                <th>Instrument</th>
+                <th>Filetype</th>
+                <th>Filename</th>
+                <th>Added on</th>
+                <th>System</th>
+                <th>Processed</th>
+                <th>Action</th>
+            </tr>
+            </tfoot>
+        </table>
+
+    </section>
 
 {% endblock %}

@@ -1,4 +1,3 @@
-
 import os
 
 import environ
@@ -15,15 +14,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-    
-    
+
 # Logging
 # https://docs.djangoproject.com/en/dev/topics/logging/#configuring-logging
 # https://stackoverflow.com/questions/21943962/how-to-see-details-of-django-errors-with-gunicorn
@@ -33,8 +30,8 @@ LOGGING = {
     'disable_existing_loggers': True,
     'formatters': {
         'standard': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         },
     },
     'handlers': {
@@ -44,7 +41,7 @@ LOGGING = {
             'filename': os.path.join(
                 env("LOG_DIR", default='/tmp/'),
                 'debug.log'
-                ),
+            ),
             'formatter': 'standard'
         },
     },
@@ -61,4 +58,3 @@ LOGGING = {
         },
     },
 }
-

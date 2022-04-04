@@ -3,101 +3,105 @@
 
 {% block head %}
 
-   {% include "datatables.html" %}
-   <script type="text/javascript" src="{% static 'js/spectra_list.js' %}"></script>
-   
+    {% include "datatables.html" %}
+    <script type="text/javascript" src="{% static 'js/spectra_list.js' %}"></script>
+
 {% endblock %}
 
 {% block headertitle %} Spectra {% endblock %}
 
 {% block content %}
 
-<i display="none" id="project-pk" project={{project.pk}}></i>
+    <i display="none" id="project-pk" project={{ project.pk }}></i>
 
-<i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
+    <i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
 
-<div id="filter-dashboard">
+    <div id="filter-dashboard">
 
-   <form method="get" action="/observations/" class="table-filter" id="filter-form">
-   <h3 class="center"> Filter Spectra </h3>
-   
-   <div class="table-filter-item">
-      <p class="filter-label">Target:</p>
-      <input class="filter-input" id="filter_target" type="text" placeholder="identifier">
-   </div>
-   
-   <hr>
-   
-   <div class="table-filter-item">
-      <p class="filter-label">HJD:</p>
-      <input class="filter-input" id="filter_hjd" type="text" placeholder="min:max">
-   </div>
-   
-   <div class="table-filter-item">
-      <p class="filter-label">Exptime:</p>
-      <input class="filter-input" id="filter_exptime" type="text" placeholder="min:max">
-   </div>
-   
-   <hr>
-   
-   <div class="table-filter-item">
-      <p class="filter-label">Instrument:</p>
-      <input class="filter-input" id="filter_instrument" type="text" placeholder="instrument">
-   </div>
-   
-   <div class="table-filter-item">
-      <p class="filter-label">Telescope:</p>
-      <input class="filter-input" id="filter_telescope" type="text" placeholder="telescope">
-   </div>
-   
-   <hr>
-   
-   <div class="table-filter-item">
-      <p class="filter-label">Flux calibrated: </p>
-      <ul id="fluxcal_options">
-         <li><label for="id_fluxcal_uk"><input id="id_fluxcal_uk" name="status" type="radio" checked/> Undefined</label></li>
-         <li><label for="id_fluxcal_yes"><input id="id_fluxcal_yes" name="status" type="radio" /> Yes</label></li>
-         <li><label for="id_fluxcal_no"><input id="id_fluxcal_no" name="status" type="radio" /> No</label></li>
-      </ul>
-   </div>
-   
-   <input type="submit" class="button filter" id="submit-search" value="Apply">
-   </form>
-   
-</div>
+        <form method="get" action="/observations/" class="table-filter" id="filter-form">
+            <h3 class="center"> Filter Spectra </h3>
 
-<section>
+            <div class="table-filter-item">
+                <p class="filter-label">Target:</p>
+                <input class="filter-input" id="filter_target" type="text" placeholder="identifier">
+            </div>
 
-   <table id="spectratable" class="fullwidth">
-   <thead>
-      <tr>
-      {% if user.is_authenticated %}
-      <th><i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i></th>
-      {% endif %}
-      <th>HJD</th>
-      <th>System</th>
-      <th>Instrument</th>
-      <th>Resolution</th>
-      <th>Airmass</th>
-      <th>Exposure time</th>
-      </tr>
-   </thead>
-   <tfoot>
-      <tr>
-      {% if user.is_authenticated %}
-      <th></th>
-      {% endif %}
-      <th>HJD</th>
-      <th>System</th>
-      <th>Instrument</th>
-      <th>Resolution</th>
-      <th>Airmass</th>
-      <th>Exposure time</th>
-      </tr>
-   </tfoot>
-   </table>
-    
+            <hr>
 
-</section>
+            <div class="table-filter-item">
+                <p class="filter-label">HJD:</p>
+                <input class="filter-input" id="filter_hjd" type="text" placeholder="min:max">
+            </div>
+
+            <div class="table-filter-item">
+                <p class="filter-label">Exptime:</p>
+                <input class="filter-input" id="filter_exptime" type="text" placeholder="min:max">
+            </div>
+
+            <hr>
+
+            <div class="table-filter-item">
+                <p class="filter-label">Instrument:</p>
+                <input class="filter-input" id="filter_instrument" type="text" placeholder="instrument">
+            </div>
+
+            <div class="table-filter-item">
+                <p class="filter-label">Telescope:</p>
+                <input class="filter-input" id="filter_telescope" type="text" placeholder="telescope">
+            </div>
+
+            <hr>
+
+            <div class="table-filter-item">
+                <p class="filter-label">Flux calibrated: </p>
+                <ul id="fluxcal_options">
+                    <li><label for="id_fluxcal_uk"><input id="id_fluxcal_uk" name="status" type="radio" checked/>
+                        Undefined</label></li>
+                    <li><label for="id_fluxcal_yes"><input id="id_fluxcal_yes" name="status" type="radio"/> Yes</label>
+                    </li>
+                    <li><label for="id_fluxcal_no"><input id="id_fluxcal_no" name="status" type="radio"/> No</label>
+                    </li>
+                </ul>
+            </div>
+
+            <input type="submit" class="button filter" id="submit-search" value="Apply">
+        </form>
+
+    </div>
+
+    <section>
+
+        <table id="spectratable" class="fullwidth">
+            <thead>
+            <tr>
+                {% if user.is_authenticated %}
+                    <th><i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i>
+                    </th>
+                {% endif %}
+                <th>HJD</th>
+                <th>System</th>
+                <th>Instrument</th>
+                <th>Resolution</th>
+                <th>Airmass</th>
+                <th>Exposure time</th>
+            </tr>
+            </thead>
+            <tfoot>
+            <tr>
+                {% if user.is_authenticated %}
+                    <th></th>
+                {% endif %}
+                <th>HJD</th>
+                <th>System</th>
+                <th>Instrument</th>
+                <th>Resolution</th>
+                <th>Airmass</th>
+                <th>Exposure time</th>
+            </tr>
+            </tfoot>
+        </table>
+
+
+    </section>
 
 {% endblock %}

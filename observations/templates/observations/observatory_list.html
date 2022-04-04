@@ -3,8 +3,8 @@
 
 {% block head %}
 
-   {% include "datatables.html" %}
-   <script type="text/javascript" src="{% static 'js/observatory_list.js' %}"></script>
+    {% include "datatables.html" %}
+    <script type="text/javascript" src="{% static 'js/observatory_list.js' %}"></script>
 
 {% endblock %}
 
@@ -12,54 +12,58 @@
 
 {% block content %}
 
-<i display="none" id="project-pk" project={{project.pk}}></i>
+    <i display="none" id="project-pk" project={{ project.pk }}></i>
 
-<section>
+    <section>
 
-   <table id="observatorytable" class="fullwidth">
-   <thead>
-      <tr>
-      <th>Name</th>
-      <th>Telescopes</th>
-      <th>Latitude (deg)</th>
-      <th>Longitude (deg)</th>
-      <th>Altitude (m)</th>
-      <th>Space Craft</th>
-      <th>Note</th>
-      <th>Action <i class="observatoryAddButton material-icons button add" title="Add new">add_box</i></th>
-      </tr>
-   </thead>
-   <tfoot>
-      <tr>
-      <th>Name</th>
-      <th>Telescopes</th>
-      <th>Latitude (deg)</th>
-      <th>Longitude (deg)</th>
-      <th>Altitude (m)</th>
-      <th>Space Craft</th>
-      <th>Note</th>
-      <th>Action <i class="observatoryAddButton material-icons button add" title="Add new">add_box</i></th>
-      </tr>
-   </tfoot>
-   </table>
-
-
-</section>
+        <table id="observatorytable" class="fullwidth">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Telescopes</th>
+                <th>Latitude (deg)</th>
+                <th>Longitude (deg)</th>
+                <th>Altitude (m)</th>
+                <th>Space Craft</th>
+                <th>Note</th>
+                <th>Action <i class="observatoryAddButton material-icons button add" title="Add new">add_box</i></th>
+            </tr>
+            </thead>
+            <tfoot>
+            <tr>
+                <th>Name</th>
+                <th>Telescopes</th>
+                <th>Latitude (deg)</th>
+                <th>Longitude (deg)</th>
+                <th>Altitude (m)</th>
+                <th>Space Craft</th>
+                <th>Note</th>
+                <th>Action <i class="observatoryAddButton material-icons button add" title="Add new">add_box</i></th>
+            </tr>
+            </tfoot>
+        </table>
 
 
-<div id="observatoryEdit">
-   <ul>
-      <li> <p class="label">Name:</p>             <input id="observatoryEditName" type='text' size="50" maxlength="100">         </li>
-      <li> <p class="label">Short Name:</p>       <input id="observatoryEditShortName" type='text' size="50" maxlength="15" >         </li>
-      <li> <p class="label">Telescopes:</p>       <input id="observatoryEditTelescopes" type='text' size="50">   </li>
-      <li> <p class="label">Latitude (deg):</p>   <input id="observatoryEditLatitude" type='number' size="50">   </li>
-      <li> <p class="label">Longitude (deg):</p>  <input id="observatoryEditLongitude" type='number' size="50">  </li>
-      <li> <p class="label">Altitude (meter):</p> <input id="observatoryEditAltitude" type='number' size="50">   </li>
-      <li> <p class="label">space craft:</p>      <input id="observatoryEditSpacecraft" type='checkbox'>           </li>
-      <li> <p class="label">Note:</p>             <input id="observatoryEditNote" type='text' size="100">        </li>
-      <li> <p class="label">Website:</p>          <input id="observatoryEditUrl" type='text' size="100">         </li>
-      <li> <p class="label">Weather url:</p>      <input id="observatoryEditWeatherUrl" type='text' size="100">  </li>
-   </ul>
-</div>
+    </section>
+
+
+    <div id="observatoryEdit">
+        <ul>
+            <li><p class="label">Name:</p>             <input id="observatoryEditName" type='text' size="50"
+                                                              maxlength="100"></li>
+            <li><p class="label">Short Name:</p>       <input id="observatoryEditShortName" type='text' size="50"
+                                                              maxlength="15"></li>
+            <li><p class="label">Telescopes:</p>       <input id="observatoryEditTelescopes" type='text' size="50"></li>
+            <li><p class="label">Latitude (deg):</p>   <input id="observatoryEditLatitude" type='number' size="50"></li>
+            <li><p class="label">Longitude (deg):</p>  <input id="observatoryEditLongitude" type='number' size="50">
+            </li>
+            <li><p class="label">Altitude (meter):</p> <input id="observatoryEditAltitude" type='number' size="50"></li>
+            <li><p class="label">space craft:</p>      <input id="observatoryEditSpacecraft" type='checkbox'></li>
+            <li><p class="label">Note:</p>             <input id="observatoryEditNote" type='text' size="100"></li>
+            <li><p class="label">Website:</p>          <input id="observatoryEditUrl" type='text' size="100"></li>
+            <li><p class="label">Weather url:</p>      <input id="observatoryEditWeatherUrl" type='text' size="100">
+            </li>
+        </ul>
+    </div>
 
 {% endblock %}

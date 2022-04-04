@@ -1,5 +1,3 @@
-
-
 from django.urls import path
 
 from . import views
@@ -12,7 +10,7 @@ urlpatterns = [
         'spectra/<int:spectrum_id>/',
         views.spectrum_detail,
         name='spectrum_detail',
-        ),
+    ),
     path('spectra/upload', views.add_spectra, name='spectra_upload'),
     #   SpecFiles
     path('specfiles/', views.specfile_list, name='specfile_list'),
@@ -24,7 +22,7 @@ urlpatterns = [
         'lightcurves/<int:lightcurve_id>/',
         views.lightcurve_detail,
         name='lightcurve_detail',
-        ),
+    ),
     #   Observatories
     path('observatories/', views.observatory_list, name='observatory_list'),
 ]

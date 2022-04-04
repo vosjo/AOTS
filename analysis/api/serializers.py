@@ -1,18 +1,16 @@
-
 from django.urls import reverse
-
-from rest_framework.serializers import ModelSerializer, SerializerMethodField, HyperlinkedRelatedField
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from analysis.models import Method, DataSet, Parameter
 from stars.api.serializers import SimpleStarSerializer
 
+
 class MethodSerializer(ModelSerializer):
-   
-   data_type_display = SerializerMethodField()
-   
-   class Meta:
-      model = Method
-      fields = [
+    data_type_display = SerializerMethodField()
+
+    class Meta:
+        model = Method
+        fields = [
             'pk',
             'name',
             'description',
@@ -22,22 +20,21 @@ class MethodSerializer(ModelSerializer):
             'data_type_display',
             'derived_parameters',
             'project'
-      ]
-      read_only_fields = ('pk',)
-      
-   def get_data_type_display(self, obj):
-      return obj.get_data_type_display()
+        ]
+        read_only_fields = ('pk',)
+
+    def get_data_type_display(self, obj):
+        return obj.get_data_type_display()
+
 
 class DataSetListSerializer(ModelSerializer):
-   
-   star = SerializerMethodField()
-   method = SerializerMethodField()
-   href = SerializerMethodField()
-   
-   
-   class Meta:
-      model = DataSet
-      fields = [
+    star = SerializerMethodField()
+    method = SerializerMethodField()
+    href = SerializerMethodField()
+
+    class Meta:
+        model = DataSet
+        fields = [
             'star',
             'pk',
             'name',
@@ -47,30 +44,29 @@ class DataSetListSerializer(ModelSerializer):
             'added_on',
             'project',
             'href',
-      ]
-      read_only_fields = ('pk',)
-      
-   def get_star(self, obj):
-      if obj.star:
-         return SimpleStarSerializer(obj.star).data
-      else:
-         return {}
-   
-   def get_method(self, obj):
-      if obj.method:
-         return MethodSerializer(obj.method).data
-      else:
-         return {}
-      
-   def get_href(self, obj):
-      return reverse('analysis:dataset_detail', kwargs={'project':obj.project.slug, 'dataset_id':obj.pk})
+        ]
+        read_only_fields = ('pk',)
+
+    def get_star(self, obj):
+        if obj.star:
+            return SimpleStarSerializer(obj.star).data
+        else:
+            return {}
+
+    def get_method(self, obj):
+        if obj.method:
+            return MethodSerializer(obj.method).data
+        else:
+            return {}
+
+    def get_href(self, obj):
+        return reverse('analysis:dataset_detail', kwargs={'project': obj.project.slug, 'dataset_id': obj.pk})
 
 
 class ParameterListSerializer(ModelSerializer):
-   
-   class Meta:
-      model = Parameter
-      fields = [
+    class Meta:
+        model = Parameter
+        fields = [
             'pk',
             'star',
             'name',
@@ -80,5 +76,5 @@ class ParameterListSerializer(ModelSerializer):
             'error',
             'unit',
             'valid',
-      ]
-      read_only_fields = ('pk',)
+        ]
+        read_only_fields = ('pk',)

@@ -68,7 +68,7 @@ function openTagAddBox() {
     });
 
     tag_window.dialog("open");
-};
+}
 
 function addTag() {
     $.ajax({
@@ -90,7 +90,7 @@ function addTag() {
         }
     });
 
-};
+}
 
 // Edit method
 function openTagEditBox(tabelrow, data) {
@@ -110,7 +110,7 @@ function openTagEditBox(tabelrow, data) {
     $("#tag-name").val(data['name']);
     $("#tag-description").val(data['description']);
     $("#tag-color").val(data['color']);
-};
+}
 
 function editTag(tabelrow, data) {
     $.ajax({
@@ -131,7 +131,7 @@ function editTag(tabelrow, data) {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 // Delete method
 function deleteTag(tabelrow, data) {
@@ -149,5 +149,5 @@ function deleteTag(tabelrow, data) {
             }
         });
     }
-    ;
-};
+
+}

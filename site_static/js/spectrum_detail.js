@@ -76,7 +76,7 @@ function openNoteUpdateBox() {
 
     update_note_window.dialog("open");
     $("#edit-message").val($("#noteField").text().trim());
-};
+}
 
 
 function openSpectrumEditBox() {
@@ -101,7 +101,7 @@ function openSpectrumEditBox() {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 
 function statusNorm() {
@@ -138,7 +138,7 @@ function statusNorm() {
         $('#id_order').attr('disabled', true);
         $('#div-order').attr('class', 'Wrapper_gray');
     }
-};
+}
 
 
 // Update the note of the spectrum
@@ -158,7 +158,7 @@ function updateNote() {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 
 function editSpectrum() {
@@ -185,7 +185,7 @@ function editSpectrum() {
                 $("#spectrum-valid-icon").addClass("invalid")
                 $("#spectrum-valid-icon").removeClass("valid")
             }
-            ;
+
 
             if (json.fluxcal) {
                 $("#spectrum-fluxcal-icon").removeClass("invalid")
@@ -194,11 +194,11 @@ function editSpectrum() {
                 $("#spectrum-fluxcal-icon").addClass("invalid")
                 $("#spectrum-fluxcal-icon").removeClass("valid")
             }
-            ;
+
         },
 
         error: function (xhr, errmsg, err) {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}

@@ -73,7 +73,7 @@ function openNoteUpdateBox() {
 
     update_note_window.dialog("open");
     $("#edit-message").val($("#noteField").text().trim());
-};
+}
 
 
 function openLichtCurveEditBox() {
@@ -88,7 +88,7 @@ function openLichtCurveEditBox() {
     $("#lightcurve-valid").val(true);
     $("#lightcurve-fluxcal").val(false);
     $("#lightcurve-fluxunits").val('test');
-};
+}
 
 
 // Update the note of the lightcurve
@@ -109,7 +109,7 @@ function updateNote() {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 
 function editLichtCurve() {
@@ -134,7 +134,7 @@ function editLichtCurve() {
                 $("#lightcurve-valid-icon").addClass("invalid")
                 $("#lightcurve-valid-icon").removeClass("valid")
             }
-            ;
+
 
             if (json.fluxcal) {
                 $("#lightcurve-fluxcal-icon").removeClass("invalid")
@@ -143,11 +143,11 @@ function editLichtCurve() {
                 $("#lightcurve-fluxcal-icon").addClass("invalid")
                 $("#lightcurve-fluxcal-icon").removeClass("valid")
             }
-            ;
+
         },
 
         error: function (xhr, errmsg, err) {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}

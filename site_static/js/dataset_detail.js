@@ -31,7 +31,7 @@ function openNoteEditBox() {
 
     edit_note_window.dialog("open");
     $("#edit-note").val($("#noteField").text().trim());
-};
+}
 
 function updateNote() {
     var dataset_id = $('#noteEditButton').attr('dataset_id');
@@ -49,7 +49,7 @@ function updateNote() {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 function openNameEditBox() {
     edit_name_window = $("#nameEdit").dialog({
@@ -62,7 +62,7 @@ function openNameEditBox() {
 
     edit_name_window.dialog("open");
     $("#edit-name").val($("#nameField").text().trim());
-};
+}
 
 function updateName() {
     var dataset_id = $('#nameEditButton').attr('dataset_id');
@@ -80,14 +80,14 @@ function updateName() {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 function toggleParameterValid(cb) {
     var parameter_id = cb.getAttribute('parameter_id');
     var valid = cb.checked
 
     updateParameterValid(parameter_id, valid)
-};
+}
 
 function updateParameterValid(parameter_id, valid) {
     $.ajax({
@@ -110,7 +110,7 @@ function toggleDatasetValid(cb) {
     var valid = cb.checked
 
     updateDatasetValid(dataset_id, valid)
-};
+}
 
 function updateDatasetValid(dataset_id, valid) {
     $.ajax({
@@ -127,4 +127,4 @@ function updateDatasetValid(dataset_id, valid) {
             $('#dataset-valid-' + dataset_id).checked = !valid
         }
     });
-};
+}

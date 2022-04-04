@@ -52,7 +52,7 @@ $(document).ready(function () {
         } else {
             $('#filter-dashboard-button').text("filter_list");
         }
-    };
+    }
 
     // Event listeners
     $("#specfiletable").on('click', 'i[id^=process-specfile-]', function () {
@@ -86,7 +86,7 @@ $(document).ready(function () {
                         $("#id_specfile").append("<option value = \"" + key + "\">" + value + "</option>");
                     }
                 }
-                ;
+
             });
         });
     });
@@ -136,7 +136,7 @@ function star_render(data, type, full, meta) {
             systems.push("<a href='" + value + "' > " + key + "</a>");
         }
     }
-    ;
+
     return systems
 }
 
@@ -171,7 +171,7 @@ function processSpecfile(row, data) {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 function deleteSpecfile(row, data) {
     if (confirm('Are you sure you want to remove this spectrum file?') == true) {
@@ -188,5 +188,5 @@ function deleteSpecfile(row, data) {
             }
         });
     }
-    ;
-};
+
+}

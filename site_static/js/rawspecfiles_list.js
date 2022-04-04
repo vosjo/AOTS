@@ -33,7 +33,7 @@ $(document).ready(function () {
 //          { data: 'specfiles', orderable: false, render: processed_render },
         ];
     }
-    ;
+
 
     // Table functionality
     rawspecfile_table = $('#rawspecfiletable').DataTable({
@@ -104,7 +104,7 @@ $(document).ready(function () {
         } else {
             $('#filter-dashboard-button').text("filter_list");
         }
-    };
+    }
 
     // Add toolbar to table
     if (user_authenticated) {
@@ -140,7 +140,7 @@ $(document).ready(function () {
                         $("#id_specfile").append("<option value = \"" + key + "\">" + value + "</option>");
                     }
                 }
-                ;
+
             });
         });
     });
@@ -160,7 +160,7 @@ $(document).ready(function () {
         if (data != null) {
             $("#progress-bar").removeClass("hidden");
         }
-        ;
+
         //  Get project
         let project = $('#project-pk').attr('project_slug')
         //  Ajax call to make it happen
@@ -199,7 +199,7 @@ $(document).ready(function () {
                             "<li class=\"error\">An undefined error has occurred.</li>"
                         );
                     }
-                    ;
+
                 });
 
                 //  Redraw table
@@ -223,7 +223,7 @@ $(document).ready(function () {
                                     + "</option>");
                             }
                         }
-                        ;
+
                     });
                 });
 
@@ -290,7 +290,7 @@ $(document).ready(function () {
                         $("#id_specfile_patch").append("<option value = \"" + key + "\">" + value + "</option>");
                     }
                 }
-                ;
+
             });
         });
     });
@@ -323,7 +323,7 @@ function get_filter_keywords(d) {
             "hjd_max": parseFloat(hjd_max),
         });
     }
-    ;
+
 
     if ($('#filter_expo_time').val() != '') {
         d = $.extend({}, d, {
@@ -331,7 +331,7 @@ function get_filter_keywords(d) {
             "expo_max": parseFloat($('#filter_expo_time').val().split(':')[1]),
         });
     }
-    ;
+
 
     return d
 }

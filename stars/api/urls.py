@@ -8,7 +8,7 @@ from .views import (
     getStarSpecfiles,
 )
 
-###from django.urls import include, re_path
+#  from django.urls import include, re_path
 
 app_name = 'stars-api'
 
@@ -22,7 +22,7 @@ urlpatterns = [
 
     # url(r'^', include(router.urls)),
 
-    ###re_path(r'^', include(router.urls)),
+    # re_path(r'^', include(router.urls)),
 
     # url(r'^stars/(?P<star_pk>[\w-]+)/remove_tag/(?P<tag_pk>[\w-]+)/$', star_remove_tag,
     # name='star_remove_tag'),
@@ -31,7 +31,7 @@ urlpatterns = [
 
     # url(r'^tags$', TagListAPIView.as_view(), name='tag_list'),
     # url(r'^tags/create/$', TagCreateAPIView.as_view(), name='tag_create'),
-    ##url(r'^tags/(?P<pk>[\w-]+)/$', TagDetailAPIView.as_view(), name='tag_detail'),
+    # url(r'^tags/(?P<pk>[\w-]+)/$', TagDetailAPIView.as_view(), name='tag_detail'),
     # url(r'^tags/(?P<pk>[\w-]+)/delete/$', TagDeleteAPIView.as_view(), name='tag_delete'),
 
     # url(r'^identifiers$', IdentifierListAPIView.as_view(), name='identifier_list'),

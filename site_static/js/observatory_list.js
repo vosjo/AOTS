@@ -106,7 +106,7 @@ function openObservatoryAddBox() {
     });
 
     observatory_window.dialog("open");
-};
+}
 
 
 function addObservatory() {
@@ -136,7 +136,7 @@ function addObservatory() {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 
 // Edit an exiting observatory
@@ -164,7 +164,7 @@ function openObservatoryEditBox(tabelrow, data) {
     $("#observatoryEditNote").val(data['note']);
     $("#observatoryEditUrl").val(data['url']);
     $("#observatoryEditWeatherUrl").val(data['weatherurl']);
-};
+}
 
 function editObservatory(tabelrow, data) {
 
@@ -194,7 +194,7 @@ function editObservatory(tabelrow, data) {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 
 // Delete an observatory
@@ -213,7 +213,7 @@ function deleteObservatory(row, data) {
                         + 'since spectra still refer to it.'
                     );
                 }
-                ;
+
                 console.log(xhr.status + ": " + xhr.responseText);
             }
         });

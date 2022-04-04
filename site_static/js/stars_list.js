@@ -61,7 +61,7 @@ $(document).ready(function () {
         $("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
             "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>");
     }
-    ;
+
 
     // Event listener to the two range filtering inputs to redraw on input
     $('#filter-form').submit(function (event) {
@@ -105,7 +105,7 @@ $(document).ready(function () {
         } else {
             $('#filter-dashboard-button').text("filter_list");
         }
-    };
+    }
 
     // check and uncheck tables rows
     $('#datatable tbody').on('click', 'td.select-control', function () {

@@ -35,11 +35,11 @@ def get_data(parameters):
     pnames = set(parameters.values())
     pnames.discard('')
 
-    print(pnames)
+    # print(pnames)
     params = Parameter.objects.filter(cname__in=pnames, average=True)
-    print(params)
+    # print(params)
     stars = params.values_list('star', flat=True).distinct()
-    print(stars)
+    # print(stars)
     stars = Star.objects.filter(pk__in=stars)
 
     # -- get the parameter values
@@ -48,7 +48,7 @@ def get_data(parameters):
         values, errors = [], []
         for star in stars:
             try:
-                print(pname, star.name)
+                # print(pname, star.name)
                 p = params.get(cname__exact=pname, star__exact=star.pk, average__exact=True)
                 values.append(p.value)
                 errors.append(p.error)
@@ -61,7 +61,7 @@ def get_data(parameters):
     # dtypes = [('system', 'a50')] + [(str(p), 'f8') for p in pnames]
     # parameter_table = np.core.records.fromarrays(parameter_table, dtype=dtypes)
 
-    print(parameter_table)
+    # print(parameter_table)
 
     return parameter_table, list(pnames)
 

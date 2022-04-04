@@ -234,9 +234,9 @@ class StarViewSet(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 def getStarSpecfiles(request, star_pk):
-    '''
+    """
         Get all SpecFiles associated with a system
-    '''
+    """
 
     #   Get system and spectra
     star = Star.objects.get(pk=star_pk)

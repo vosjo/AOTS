@@ -79,7 +79,7 @@ $(document).ready(function () {
                 $('#th_observatory_longitude').removeClass('underline');
                 $('#th_observatory_altitude').removeClass('underline');
             }
-            ;
+
         });
 
     $('#id_add_info').change(
@@ -119,7 +119,7 @@ $(document).ready(function () {
             } else {
                 disabled_all();
             }
-            ;
+
         });
 });
 

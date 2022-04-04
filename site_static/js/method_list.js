@@ -74,7 +74,7 @@ function openMethodAddBox() {
     });
 
     method_add_window.dialog("open");
-};
+}
 
 function addMethod() {
     $.ajax({
@@ -99,7 +99,7 @@ function addMethod() {
         }
     });
 
-};
+}
 
 // Edit method
 function openMethodEditBox(tabelrow, method_data) {
@@ -122,7 +122,7 @@ function openMethodEditBox(tabelrow, method_data) {
     $("#method-color").val(method_data['color']);
     $('#method-dataType').val(method_data['data_type']);
     $('#method-parameters').val(method_data['derived_parameters']);
-};
+}
 
 function editMethod(tabelrow, method_data) {
     console.log($('#method-dataType').val());
@@ -147,7 +147,7 @@ function editMethod(tabelrow, method_data) {
             console.log(xhr.status + ": " + xhr.responseText);
         }
     });
-};
+}
 
 // Delete method
 function deleteMethod(tabelrow, method_data) {
@@ -165,5 +165,5 @@ function deleteMethod(tabelrow, method_data) {
             }
         });
     }
-    ;
-};
+
+}

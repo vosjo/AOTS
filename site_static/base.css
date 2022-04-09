@@ -464,6 +464,7 @@ img.project-logo {
 .status-icon {
    line-height: inherit;
    vertical-align: middle;
+   cursor: default;
 }
 
 .status-icon.FI:after {

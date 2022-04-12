@@ -133,7 +133,7 @@ class StarListSerializer(ModelSerializer):
       datatables_always_serialize = ('href','pk')
 
    def get_tags(self, obj):
-      tags = SimpleTagSerializer(obj.tags, many=True).data
+      tags = TagSerializer(obj.tags, many=True).data
       return tags
 
    def get_datasets(self, obj):

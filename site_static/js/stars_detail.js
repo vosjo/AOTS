@@ -126,7 +126,7 @@ $(document).ready(function () {
     });
 });
 
-// Create the page dynamicaly
+// Create the page dynamically
 function makepage() {
     show_tags() // handle the tags
 }

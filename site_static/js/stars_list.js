@@ -12,7 +12,7 @@ $(document).ready(function () {
    dom: 'l<"toolbar">frtip',
    serverSide: true,
    ajax: {
-      url: '/api/systems/stars/?format=datatables&keep=nphot,nspec,nlc,ra_hms,dec_dms',  //adding "&keep=id,rank" will force return of id and rank fields
+      url: '/api/systems/stars/?format=datatables&keep=nphot,nspec,nlc,ra_hms,dec_dms,observing_status_display',  //adding "&keep=id,rank" will force return of id and rank fields
       data: get_filter_keywords,
       contentType: "application/json; charset=utf-8",
       dataType: "json",
@@ -139,17 +139,23 @@ $(document).ready(function () {
    load_tags ();
 
    // initialize edit windows
-   edit_status_window = $("#editStatus").dialog({autoOpen: false,
-         width: '150',
-         modal: true});
+   edit_status_window = $("#editStatus").dialog({
+        autoOpen: false,
+        width: '150',
+        modal: true,
+   });
 
-   edit_tags_window = $("#editTags").dialog({autoOpen: false,
-         width: '250',
-         modal: true});
+   edit_tags_window = $("#editTags").dialog({
+        autoOpen: false,
+        width: '250',
+        modal: true,
+   });
 
-   add_systems_window = $("#addSystems").dialog({autoOpen: false,
-         width: '875',
-         modal: true});
+   add_systems_window = $("#addSystems").dialog({
+        autoOpen: false,
+        width: '875',
+        modal: true,
+   });
 
    // event listeners for edit buttons
    $( "#status-button").click( openStatusEditWindow );
@@ -522,11 +528,11 @@ function load_tags () {
 
             $('#tagOptions').append("<li title='" + tag['description'] +
             "'><input class='tristate' name='tags' type='checkbox' value='"
-            + tag['pk'] + "' />" + tag['name'] + "</li>" );
+            + tag['pk'] + "' /> " + tag['name'] + "</li>" );
 
             $('#tag_filter_options').append(
             "<li><label><input id='id_status_" + i + "' name='tags' type='radio' value='" +
-            tag['pk'] + "' />" + tag['name'] + "</label></li>");
+            tag['pk'] + "' /> " + tag['name'] + "</label></li>");
 
             //  Add tag options to add-system form
             $('#id_tags').append('<li><label for="id_tags_'+i+'"><input id="id_tags_'+i+'" type="checkbox" name="tags" value="'+tag['pk']+'"> '+tag['name'].replace(/\_/g, ' ')+'</label></li>')

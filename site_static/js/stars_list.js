@@ -477,8 +477,21 @@ function classification_render( data, type, full, meta ) {
 }
 
 function status_render( data, type, full, meta ) {
+   let title
+   if(full['observing_status'] === "NE"){
+   title = "New"
+   }
+   if(full['observing_status'] === "RE"){
+   title = "Rejected"
+   }
+   if(full['observing_status'] === "ON"){
+   title = "Ongoing"
+   }
+   if(full['observing_status'] === "FI"){
+   title = "Finished"
+   }
    return '<i class="material-icons status-icon ' + data +  '" title="' +
-          full['observing_status_display'] +'"></i>'
+          title +'"></i>'
 }
 
 
@@ -586,7 +599,7 @@ function updateStarStatus(row, status) {
 
       success : function(json) {
          edit_status_window.dialog( "close" );
-         row.data(json).draw('page');
+         $(".fullwidth.dataTable").DataTable().draw('page');
       },
 
       error : function(xhr,errmsg,err) {
@@ -677,7 +690,7 @@ function update_star_tags(row, new_tags){
 
       success : function(json) {
          // update the table and close the edit window
-         row.data( json ).draw('page');
+         $(".fullwidth.dataTable").DataTable().draw('page');
          edit_tags_window.dialog( "close" );
       },
 

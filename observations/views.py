@@ -10,7 +10,7 @@ from .models import (
     RawSpecFile,
     LightCurve,
     Observatory,
-    )
+)
 from stars.models import Star, Project
 from stars.auxil import invalid_form
 
@@ -20,10 +20,12 @@ from .forms import (
     PatchRawSpecFileForm,
     UploadLightCurveForm,
     UploadSpectraDetailForm,
-    SpectrumModForm,
-    )
+    SpectrumModForm, UpdateObservatoryForm,
+)
 
 from .auxil import read_spectrum, read_lightcurve
+
+from observations.auxil.update_observatory import update_observatory
 
 from .plotting import plot_visibility, plot_spectrum, plot_lightcurve
 
@@ -34,7 +36,7 @@ from AOTS.custom_permissions import check_user_can_view_project
 
 
 @check_user_can_view_project
-def spectra_list(request, project=None,  **kwargs):
+def spectra_list(request, project=None, **kwargs):
     """
         Spectra index page using datatables and restframework api
     """
@@ -45,7 +47,7 @@ def spectra_list(request, project=None,  **kwargs):
 
 
 @check_user_can_view_project
-def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
+def spectrum_detail(request, spectrum_id, project=None, **kwargs):
     '''
         Show detailed spectrum information
     '''
@@ -59,8 +61,8 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
     total_size = sum([s.specfile.size for s in spectrum.specfile_set.all()])
     if total_size > 500000:
         rebin = 10
-        #request.GET._mutable = True
-        #request.GET['rebin'] = 10
+        # request.GET._mutable = True
+        # request.GET['rebin'] = 10
     else:
         rebin = 1
 
@@ -73,7 +75,7 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
     #   Check if user specified binning factor and normalization in the url
     if request.method == 'GET':
         rebin = int(request.GET.get('rebin', rebin))
-        norm  = request.GET.get('normalize')
+        norm = request.GET.get('normalize')
         if norm == 0:
             normalize = False
         elif norm == 1:
@@ -85,7 +87,7 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
     all_instruments = spectrum.star.spectrum_set.values_list(
         'instrument',
         flat=True,
-        )
+    )
     all_spectra = {}
     for inst in set(all_instruments):
         all_spectra[inst] = spectrum.star.spectrum_set.filter(instrument__exact=inst).order_by('hjd')
@@ -95,22 +97,22 @@ def spectrum_detail(request, spectrum_id, project=None,  **kwargs):
         form = SpectrumModForm(request.POST)
         if form.is_valid():
             normalize = form.cleaned_data['normalize']
-            order     = form.cleaned_data['order']
-            rebin     = form.cleaned_data['binning']
+            order = form.cleaned_data['order']
+            rebin = form.cleaned_data['binning']
     else:
         form = SpectrumModForm()
 
     #   Make plots
-    vis  = plot_visibility(spectrum)
+    vis = plot_visibility(spectrum)
     spec = plot_spectrum(
         spectrum_id,
         rebin=rebin,
         normalize=normalize,
         porder=order,
-        )
+    )
 
     #   Create HTML content
-    script, div = components({'spec':spec, 'visibility':vis}, CDN)
+    script, div = components({'spec': spec, 'visibility': vis}, CDN)
 
     #   Make dict with the content
     context = {
@@ -170,33 +172,33 @@ def add_spectra(request, project=None, **kwargs):
 
                 #   Check if observatory is set
                 if 'observatory' in parameters:
-                    obs    = user_info['observatory']
+                    obs = user_info['observatory']
                     user_info['obs_pk'] = obs.pk
 
                 #   Make new observatory?
                 elif ('observatory_name' in parameters and
-                     'observatory_latitude' in parameters and
-                     'observatory_longitude' in parameters and
-                     'observatory_altitude' in parameters):
-                        obs_name      = user_info['observatory_name']
-                        obs_latitude  = user_info['observatory_latitude']
-                        obs_longitude = user_info['observatory_longitude']
-                        obs_altitude  = user_info['observatory_altitude']
-                        if 'observatory_is_spacecraft' in parameters:
-                            obs_in_space=user_info['observatory_is_spacecraft']
-                        else:
-                            obs_in_space=True
+                      'observatory_latitude' in parameters and
+                      'observatory_longitude' in parameters and
+                      'observatory_altitude' in parameters):
+                    obs_name = user_info['observatory_name']
+                    obs_latitude = user_info['observatory_latitude']
+                    obs_longitude = user_info['observatory_longitude']
+                    obs_altitude = user_info['observatory_altitude']
+                    if 'observatory_is_spacecraft' in parameters:
+                        obs_in_space = user_info['observatory_is_spacecraft']
+                    else:
+                        obs_in_space = True
 
-                        observatory = Observatory(
-                            project=project,
-                            name=obs_name,
-                            latitude=obs_latitude,
-                            longitude=obs_longitude,
-                            altitude=obs_altitude,
-                            space_craft=obs_in_space,
-                            )
-                        observatory.save()
-                        user_info['obs_pk'] = observatory.pk
+                    observatory = Observatory(
+                        project=project,
+                        name=obs_name,
+                        latitude=obs_latitude,
+                        longitude=obs_longitude,
+                        altitude=obs_altitude,
+                        space_craft=obs_in_space,
+                    )
+                    observatory.save()
+                    user_info['obs_pk'] = observatory.pk
 
                 #   Get files
                 files = request.FILES.getlist('spectrumfile')
@@ -207,7 +209,7 @@ def add_spectra(request, project=None, **kwargs):
                         specfile=f,
                         project=project,
                         added_by=request.user,
-                        )
+                    )
                     newspec.save()
 
                     #   Now process it and add it to a Spectrum and Object
@@ -217,7 +219,7 @@ def add_spectra(request, project=None, **kwargs):
                             newspec.pk,
                             create_new_star=new,
                             user_info=user_info,
-                            )
+                        )
                         #   Set success/error message
                         if success:
                             level = messages.SUCCESS
@@ -234,7 +236,7 @@ def add_spectra(request, project=None, **kwargs):
                                 user_info,
                                 newspec.spectrum.pk,
                                 added_by=request.user,
-                                )
+                            )
 
                             #   Set success/error message
                             if success:
@@ -251,21 +253,20 @@ def add_spectra(request, project=None, **kwargs):
                             request,
                             messages.ERROR,
                             "Exception occurred when adding: " + str(f),
-                            )
-
+                        )
 
                 #   Return and redirect
                 return HttpResponseRedirect(reverse(
                     'observations:specfile_list',
-                    kwargs={'project':project.slug}
-                    ))
+                    kwargs={'project': project.slug}
+                ))
             else:
                 #   Handel invalid form
                 invalid_form(
                     request,
                     'observations:spectra_upload',
                     project.slug,
-                    )
+                )
 
     #   Block uploads by anonymous
     elif request.method != 'GET' and not request.user.is_authenticated:
@@ -273,13 +274,13 @@ def add_spectra(request, project=None, **kwargs):
             request,
             messages.ERROR,
             "You need to login for that action!",
-            )
+        )
 
     #   Initialize upload form
     upload_form = UploadSpectraDetailForm()
 
     #   Limit observatories to those of the project
-    upload_form.fields['observatory'].queryset = Observatory.objects\
+    upload_form.fields['observatory'].queryset = Observatory.objects \
         .filter(project__exact=project)
 
     #   Set dict for the renderer
@@ -289,7 +290,7 @@ def add_spectra(request, project=None, **kwargs):
 
 
 @check_user_can_view_project
-def specfile_list(request, project=None,  **kwargs):
+def specfile_list(request, project=None, **kwargs):
     '''
         SpecFile index page
     '''
@@ -300,15 +301,15 @@ def specfile_list(request, project=None,  **kwargs):
     #   Set dict for the renderer
     context = {
         'project': project,
-        #'upload_form': upload_form,
-        #'raw_upload_form': raw_upload_form,
-        }
+        # 'upload_form': upload_form,
+        # 'raw_upload_form': raw_upload_form,
+    }
 
     return render(request, 'observations/specfiles_list.html', context)
 
 
 @check_user_can_view_project
-def rawspecfile_list(request, project=None,  **kwargs):
+def rawspecfile_list(request, project=None, **kwargs):
     '''
         RawFile index page, including raw file upload
     '''
@@ -318,17 +319,17 @@ def rawspecfile_list(request, project=None,  **kwargs):
 
     #   Initialize upload forms
     raw_upload_form = UploadRawSpecFileForm()
-    raw_upload_form.fields['system'].queryset = Star.objects\
-        .filter(project__exact=project.pk)\
+    raw_upload_form.fields['system'].queryset = Star.objects \
+        .filter(project__exact=project.pk) \
         .exclude(spectrum__isnull=True)
-    raw_upload_form.fields['specfile'].queryset = SpecFile.objects\
+    raw_upload_form.fields['specfile'].queryset = SpecFile.objects \
         .filter(project__exact=project.pk)
 
     raw_patch_form = PatchRawSpecFileForm()
-    raw_patch_form.fields['system_patch'].queryset = Star.objects\
-        .filter(project__exact=project.pk)\
+    raw_patch_form.fields['system_patch'].queryset = Star.objects \
+        .filter(project__exact=project.pk) \
         .exclude(spectrum__isnull=True)
-    raw_patch_form.fields['specfile_patch'].queryset = SpecFile.objects\
+    raw_patch_form.fields['specfile_patch'].queryset = SpecFile.objects \
         .filter(project__exact=project.pk)
 
     # Handle file upload
@@ -351,7 +352,7 @@ def rawspecfile_list(request, project=None,  **kwargs):
                     newrawspec = RawSpecFile(
                         project=project,
                         added_by=request.user,
-                        )
+                    )
                     newrawspec.save()
                     newrawspec.rawfile.save(f.name, f)
 
@@ -361,7 +362,7 @@ def rawspecfile_list(request, project=None,  **kwargs):
                         success, message = read_spectrum.process_raw_spec(
                             newrawspec.pk,
                             specfiles,
-                            )
+                        )
 
                         #   Set success/error message
                         if success:
@@ -373,12 +374,12 @@ def rawspecfile_list(request, project=None,  **kwargs):
                         #   Handel error
                         print(e)
                         newrawspec.delete()
-                        message_text = "Exception occurred when adding: "+str(f)
+                        message_text = "Exception occurred when adding: " + str(f)
                         message_list.append([False, message_text])
 
                 return JsonResponse(
-                    {'info': 'Data uploaded', 'messages':message_list}
-                    )
+                    {'info': 'Data uploaded', 'messages': message_list}
+                )
 
     #   Block uploads by anonymous
     elif request.method != 'GET' and not request.user.is_authenticated:
@@ -386,65 +387,62 @@ def rawspecfile_list(request, project=None,  **kwargs):
             request,
             messages.ERROR,
             "You need to login for that action!",
-            )
+        )
 
     #   Set dict for the render
     context = {
         'project': project,
         'raw_upload_form': raw_upload_form,
         'raw_patch_form': raw_patch_form,
-        }
+    }
 
     return render(request, 'observations/rawspecfiles_list.html', context)
 
 
 @check_user_can_view_project
-def lightcurve_list(request, project=None,  **kwargs):
-   """
+def lightcurve_list(request, project=None, **kwargs):
+    """
        Lightcurve index page using datatables and restframework api
    """
 
-   project = get_object_or_404(Project, slug=project)
+    project = get_object_or_404(Project, slug=project)
 
-   upload_form = UploadLightCurveForm()
+    upload_form = UploadLightCurveForm()
 
+    # Handle file upload
+    if request.method == 'POST' and request.user.is_authenticated:
+        if 'lcfile' in request.FILES:
+            upload_form = UploadLightCurveForm(request.POST, request.FILES)
+            if upload_form.is_valid():
 
-   # Handle file upload
-   if request.method == 'POST' and request.user.is_authenticated:
-      if 'lcfile' in request.FILES:
-         upload_form = UploadLightCurveForm(request.POST, request.FILES)
-         if upload_form.is_valid():
+                files = request.FILES.getlist('lcfile')
+                for f in files:
+                    # -- save the new specfile
+                    newlc = LightCurve(lcfile=f, project=project, added_by=request.user)
+                    newlc.save()
 
-            files = request.FILES.getlist('lcfile')
-            for f in files:
-               #-- save the new specfile
-               newlc = LightCurve(lcfile=f, project=project, added_by=request.user)
-               newlc.save()
+                    # -- now process it and add it to a Spectrum and Object
+                    try:
+                        success, message = read_lightcurve.process_lightcurve(newlc.pk, create_new_star=True)
+                        level = messages.SUCCESS if success else messages.ERROR
+                        messages.add_message(request, level, message)
+                    except Exception as e:
+                        print(e)
+                        newlc.delete()
+                        messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f))
 
-               #-- now process it and add it to a Spectrum and Object
-               try:
-                  success, message = read_lightcurve.process_lightcurve(newlc.pk, create_new_star=True)
-                  level = messages.SUCCESS if success else messages.ERROR
-                  messages.add_message(request, level, message)
-               except Exception as e:
-                  print(e)
-                  newlc.delete()
-                  messages.add_message(request, messages.ERROR, "Exception occured when adding: " + str(f))
+                return HttpResponseRedirect(reverse('observations:lightcurve_list', kwargs={'project': project.slug}))
 
+    elif request.method != 'GET' and not request.user.is_authenticated:
+        messages.add_message(request, messages.ERROR, "You need to login for that action!")
 
-            return HttpResponseRedirect(reverse('observations:lightcurve_list', kwargs={'project':project.slug}))
+    context = {'project': project, 'upload_form': upload_form}
 
-   elif request.method != 'GET' and not request.user.is_authenticated:
-      messages.add_message(request, messages.ERROR, "You need to login for that action!")
-
-
-   context = {'project': project, 'upload_form': upload_form}
-
-   return render(request, 'observations/lightcurve_list.html', context)
+    return render(request, 'observations/lightcurve_list.html', context)
 
 
 @check_user_can_view_project
-def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
+def lightcurve_detail(request, lightcurve_id, project=None, **kwargs):
     '''
         Show detailed information to lightcurves
     '''
@@ -453,7 +451,7 @@ def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
 
     lightcurve = get_object_or_404(LightCurve, pk=lightcurve_id)
 
-    context = {'period' : None}
+    context = {'period': None}
 
     period, binsize = None, 0.001
     if request.method == 'GET':
@@ -472,14 +470,14 @@ def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
 
         context['binsize'] = binsize
 
-    #-- order all lightcurves belonging to the same star
+    # -- order all lightcurves belonging to the same star
     all_instruments = lightcurve.star.lightcurve_set.values_list(
         'instrument',
         flat=True,
-        )
+    )
     all_lightcurves = {}
     for inst in set(all_instruments):
-        all_lightcurves[inst] = lightcurve.star.lightcurve_set\
+        all_lightcurves[inst] = lightcurve.star.lightcurve_set \
             .filter(instrument__exact=inst).order_by('hjd')
 
     vis = plot_visibility(lightcurve)
@@ -487,13 +485,13 @@ def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
         lightcurve_id,
         period=period,
         binsize=binsize,
-        )
+    )
     script, div = components(
-        {'lc_time':lc_time, 'lc_phase':lc_phase, 'visibility':vis},
+        {'lc_time': lc_time, 'lc_phase': lc_phase, 'visibility': vis},
         CDN
-        )
+    )
 
-    context['project'] =  project
+    context['project'] = project
     context['lightcurve'] = lightcurve
     context['all_lightcurves'] = all_lightcurves
     context['figures'] = div
@@ -503,11 +501,40 @@ def lightcurve_detail(request, lightcurve_id, project=None,  **kwargs):
 
 
 @check_user_can_view_project
-def observatory_list(request, project=None,  **kwargs):
-    """
-        Observatory index page using datatables and restframework api
-    """
-
+def observatory_list(request, project=None, **kwargs):
     project = get_object_or_404(Project, slug=project)
+    update_obs_form = UpdateObservatoryForm()
+    if request.method == 'POST' and request.user.is_authenticated:
+        update_obs_form = UpdateObservatoryForm(
+            request.POST,
+            request.FILES,
+        )
+        if update_obs_form.is_valid():
+            try:
+                success, message = update_observatory(
+                    update_obs_form.cleaned_data
+                )
+                level = messages.SUCCESS if success else messages.ERROR
+                messages.add_message(request, level, message)
+            except Exception as e:
+                print(e)
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Exception occurred while updating photometry",
+                )
 
-    return render(request, 'observations/observatory_list.html', {'project': project})
+            return HttpResponseRedirect(reverse(
+                'observations:observatory_list',
+                kwargs={'project': project.slug},
+            ))
+        else:
+            #   Handle invalid form
+            invalid_form(request, 'observations:observatory_list', project.slug)
+
+    context = {
+        'project': project,
+        'update_obs_form': update_obs_form
+    }
+
+    return render(request, 'observations/observatory_list.html', context)

@@ -43,6 +43,7 @@ urlpatterns = [
    path('w/<slug:project>/', RedirectView.as_view(pattern_name='systems:star_list')),
    path('w/<slug:project>/systems/', include('stars.urls', namespace='systems')),
    path('w/<slug:project>/observations/', include('observations.urls', namespace='observations')),
+   path('w/<slug:project>/observations/', RedirectView.as_view(pattern_name='observations:observatory_list')),
    path('w/<slug:project>/analysis/', include('analysis.urls', namespace='analysis')),
 
    path('api/', include(router.urls), name='project-api'),

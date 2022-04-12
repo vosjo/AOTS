@@ -477,21 +477,8 @@ function classification_render( data, type, full, meta ) {
 }
 
 function status_render( data, type, full, meta ) {
-   let title
-   if(full['observing_status'] === "NE"){
-   title = "New"
-   }
-   if(full['observing_status'] === "RE"){
-   title = "Rejected"
-   }
-   if(full['observing_status'] === "ON"){
-   title = "Ongoing"
-   }
-   if(full['observing_status'] === "FI"){
-   title = "Finished"
-   }
    return '<i class="material-icons status-icon ' + data +  '" title="' +
-          title +'"></i>'
+          full['observing_status_display'] +'"></i>'
 }
 
 
@@ -680,7 +667,7 @@ function updateTags() {
 
 function update_star_tags(row, new_tags){
    var star_pk = row.data()['pk']
-   console.log(row.data());
+//    console.log(row.data());
    $.ajax({
       url : "/api/systems/stars/"+star_pk+'/',
       type : "PATCH",

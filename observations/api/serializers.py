@@ -141,7 +141,8 @@ class UserInfoSerializer(ModelSerializer):
 
 class SpecFileSerializer(ModelSerializer):
 
-    star = SerializerMethodField()
+    star     = SerializerMethodField()
+    star_pk  = SerializerMethodField()
     spectrum = SerializerMethodField()
     added_on = SerializerMethodField()
     filename = SerializerMethodField()
@@ -151,6 +152,7 @@ class SpecFileSerializer(ModelSerializer):
         fields = [
                 'pk',
                 'star',
+                'star_pk',
                 'spectrum',
                 'hjd',
                 'instrument',
@@ -158,7 +160,7 @@ class SpecFileSerializer(ModelSerializer):
                 'added_on',
                 'filename',
                 ]
-        read_only_fields = ('pk', 'star')
+        read_only_fields = ('pk', 'star', 'star_pk')
 
     def get_star(self, obj):
         if obj.spectrum is None or obj.spectrum.star is None:
@@ -168,6 +170,11 @@ class SpecFileSerializer(ModelSerializer):
             kwargs={'project':obj.project.slug, 'star_id':obj.spectrum.star.pk},
             )
         return {obj.spectrum.star.name:link}
+
+    def get_star_pk(self, obj):
+        if obj.spectrum is None or obj.spectrum.star is None:
+            return {None:None}
+        return {obj.spectrum.star.pk:obj.spectrum.star.name}
 
     def get_spectrum(self, obj):
         if obj.spectrum is None:
@@ -215,6 +222,7 @@ class RawSpecFileSerializer(ModelSerializer):
                 'specfile',
                 'stars',
                 'hjd',
+                'obs_date',
                 'instrument',
                 'filetype',
                 'added_on',
@@ -226,6 +234,8 @@ class RawSpecFileSerializer(ModelSerializer):
 
     def get_stars(self, obj):
         SystemDict = {}
+
+        #   Process specfile allocations
         for sfile in obj.specfile.all():
             if sfile.spectrum is not None and sfile.spectrum.star is not None:
                 SystemDict[sfile.spectrum.star.name] = reverse(
@@ -235,6 +245,17 @@ class RawSpecFileSerializer(ModelSerializer):
                         'star_id':sfile.spectrum.star.pk,
                         },
                     )
+
+        #   Process star allocations
+        for star in obj.star.all():
+            SystemDict[star.name] = reverse(
+                'systems:star_detail',
+                kwargs={
+                    'project':star.project.slug,
+                    'star_id':star.pk,
+                    },
+                )
+
         return SystemDict
 
     def get_added_on(self, obj):

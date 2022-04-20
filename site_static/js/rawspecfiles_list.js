@@ -1,6 +1,7 @@
 
-var rawspecfile_table = null;
-var edit_linkage_window = null;
+let rawspecfile_table = null;
+let edit_linkage_window = null;
+let add_spectra_window = null;
 
 $(document).ready(function () {
    let columns;
@@ -13,24 +14,28 @@ $(document).ready(function () {
             render:         selection_render,
             width:          '10',
          },
-         { data: 'hjd' },
+         { data: 'obs_date' },
+//          { data: 'hjd' },
          { data: 'instrument' },
          { data: 'filetype' },
          { data: 'exptime' },
          { data: 'filename' },
          { data: 'added_on' },
+         { data: 'specfile', render: reduced_render },
          { data: 'stars', orderable: false, render: stars_render },
 //          { data: 'specfiles', orderable: false, render: processed_render },
       ];
    }
    else {
    columns = [
-         { data: 'hjd' },
+         { data: 'obs_date' },
+//          { data: 'hjd' },
          { data: 'instrument' },
          { data: 'filetype' },
          { data: 'exptime' },
          { data: 'filename' },
          { data: 'added_on' },
+         { data: 'specfile', render: reduced_render  },
          { data: 'stars', orderable: false, render: stars_render },
 //          { data: 'specfiles', orderable: false, render: processed_render },
       ];
@@ -111,16 +116,43 @@ $(document).ready(function () {
       $("div.toolbar").html(
           "<input id='dl-button'  class='tb-button' value='Download raw data' type='button' disabled>" +
           '<progress id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
-          "<input id='delete-button'  class='tb-button' value='Delete raw data' type='button' disabled>" +
+          "<input id='add-button' class='tb-button' value='Add Raw spectra' type='button'>" +
+          '<progress id="progress-bar-upload" value="0" max="100" class="progress-bar"></progress>' +
           "<input id='change-button'  class='tb-button' value='Change file allocations' type='button' disabled>" +
+          "<input id='delete-button'  class='tb-button' value='Delete raw data' type='button' disabled>" +
           "<p class='hide' id='result'></p>"
       );
       $("#dl-button").click( download_rawfiles );
       $("#delete-button").click( delete_all_selected_rawspecfiles );
       $("#change-button").click( openLinkageEditWindow );
+      $("#add-button").click( openAddSpectraWindow );
    }
 
-    //  Adjust form drop dropdown content - First read System drop down
+    //  Save content of system and specfile form fields to allow their reset
+    let saved_system   = $("#id_system")[0]['innerHTML'];
+    let saved_specfile = $("#id_specfile")[0]['innerHTML'];
+
+
+    //  Add spectra form:
+    //  Adjust form drop dropdown content I: read system name
+    $("#id_system_name").on("keyup", function() {
+        let name = $(this).val().toLowerCase();
+        $("#id_system option").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(name) > -1)
+        });
+    });
+
+    //  Add spectra form:
+    //  Adjust form drop dropdown content II: read observation date
+    $("#id_specfile_date").on("keyup", function() {
+        var date = $(this).val().toLowerCase();
+        $("#id_specfile option").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(date) > -1)
+        });
+    });
+
+    //  Add spectra form:
+    //  Adjust form drop dropdown content III: evaluate system drop down
     $("#id_system").change(function() {
         //  Set pk list
         let pk_list = $(this).val();
@@ -144,6 +176,133 @@ $(document).ready(function () {
         });
     });
 
+    //  Add spectra form:
+    //  Adjust form drop dropdown content IV: evaluate spectra drop down
+    $("#id_specfile").change(function() {
+        //  Set pk list
+        let pk_list = $(this).val();
+
+        //  Clear Specfile drop down
+        document.getElementById("id_system").length = 0;
+        $("#id_system").val([]);
+
+        //  Loop over pks
+        $.each(pk_list, function(index, pk) {
+            //  Get Specfile info as JASON
+            $.getJSON("/api/observations/specfiles/"+pk+'/', function(data){
+                data = data['star_pk']
+                //  Refilling System drop down
+                for (let key in data){
+                    let value=data[key];
+                    if (data.hasOwnProperty(key)){
+                        let value=data[key];
+                        $("#id_system").append("<option value = \"" + key + "\">" + value + "</option>");
+                    }
+                };
+            });
+        });
+    });
+
+    //  Add spectra form:
+    //  Reset system and specfile form fields by means of double click
+    $("#id_system").on("dblclick", function() {
+        document.getElementById("id_system").length = 0;
+        $("#id_system").val([]);
+        $("#id_system").append(saved_system);
+    });
+
+    $("#id_specfile").on("dblclick", function() {
+        document.getElementById("id_specfile").length = 0;
+        $("#id_specfile").val([]);
+        $("#id_specfile").append(saved_specfile);
+    });
+
+    //  Edit linkage form:
+    //  Adjust form drop dropdown content I: read system name
+    $("#id_system_name_patch").on("keyup", function() {
+        let name = $(this).val().toLowerCase();
+        $("#id_system_patch option").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(name) > -1)
+        });
+    });
+
+    //  Edit linkage form:
+    //  Adjust form drop dropdown content II: read observation date
+    $("#id_specfile_date_patch").on("keyup", function() {
+        var date = $(this).val().toLowerCase();
+        $("#id_specfile_patch option").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(date) > -1)
+        });
+    });
+
+    //  Edit linkage form:
+    //  Adjust form drop dropdown content III: evaluate system drop down
+    $("#id_system_patch").change(function(index) {
+        //  Set pk list
+        let pk_list = $(this).val();
+
+        //  Clear Specfile drop down
+        document.getElementById("id_specfile_patch").length = 0;
+        $("#id_specfile_patch").val([]);
+
+        //  Loop over pks
+        $.each(pk_list, function(index, pk) {
+            //  Get Specfile info as JASON
+            $.getJSON("/api/systems/stars/"+pk+'/specfiles/', function(data){
+                //  Refilling Specfile drop down
+                for (let key in data){
+                    if (data.hasOwnProperty(key)){
+                        let value=data[key];
+                        $("#id_specfile_patch").append("<option value = \"" + key + "\">" + value + "</option>");
+                    }
+                };
+            });
+        });
+    });
+
+    //  Edit linkage form:
+    //  Adjust form drop dropdown content IV: evaluate spectra drop down
+    $("#id_specfile_patch").change(function() {
+        //  Set pk list
+        let pk_list = $(this).val();
+
+        //  Clear Specfile drop down
+        document.getElementById("id_system_patch").length = 0;
+        $("#id_system_patch").val([]);
+
+        //  Loop over pks
+        $.each(pk_list, function(index, pk) {
+            //  Get Specfile info as JASON
+            $.getJSON("/api/observations/specfiles/"+pk+'/', function(data){
+                data = data['star_pk']
+                //  Refilling System drop down
+                for (let key in data){
+                    let value=data[key];
+                    if (data.hasOwnProperty(key)){
+                        let value=data[key];
+                        $("#id_system_patch").append("<option value = \"" + key + "\">" + value + "</option>");
+                    }
+                };
+            });
+        });
+    });
+
+    //  Edit linkage form:
+    //  Reset system and specfile form fields by means of double click
+    $("#id_system_patch").on("dblclick", function() {
+        document.getElementById("id_system_patch").length = 0;
+        $("#id_system_patch").val([]);
+        $("#id_system_patch").append(saved_system);
+    });
+
+    $("#id_specfile_patch").on("dblclick", function() {
+        document.getElementById("id_specfile_patch").length = 0;
+        $("#id_specfile_patch").val([]);
+        $("#id_specfile_patch").append(saved_specfile);
+    });
+
+
+
     //  Add progress bar for raw data file upload
     $("#raw-upload-form").submit(function(e){
         //  Prevent normal behaviour
@@ -157,7 +316,7 @@ $(document).ready(function () {
         const data     = rawfiles.files[0];
         //  Display progress bar
         if(data != null){
-            $("#progress-bar").removeClass("hidden");
+            $("#progress-bar-upload").removeClass("hidden");
         };
         //  Get project
         let project = $('#project-pk').attr('project_slug')
@@ -173,7 +332,7 @@ $(document).ready(function () {
                 xhr.upload.addEventListener('progress', e=>{
                     if(e.lengthComputable){
                         const percentProgress = (e.loaded/e.total)*100;
-                        $("#progress-bar").val(percentProgress);
+                        $("#progress-bar-upload").val(percentProgress);
                     }
                 });
                 return xhr
@@ -224,7 +383,7 @@ $(document).ready(function () {
                 });
 
                 //  Remove progress bar
-//                 $("#progress-bar").addClass("not-visible");
+//                 $("#progress-bar-upload").addClass("not-visible");
             },
             error: function(err){
                 console.log('error', err);
@@ -254,41 +413,47 @@ $(document).ready(function () {
    //   Initialize edit windows
    edit_linkage_window = $("#editLinkage").dialog({
         autoOpen: false,
-        width: '30%',
-        minwidth: '350',
+//         width: '40%',
+        width: '975',
+//         minwidth: '350',
         modal: true,
         title: "Adjust file allocations",
         buttons: { "Update": updateLinkage },
         close: function() { edit_linkage_window.dialog( "close" ); }
    });
 
-
-    //  Adjust form drop dropdown content in the edit window
-    //  - First read System drop down
-    $("#id_system_patch").change(function(index) {
-        //  Set pk list
-        let pk_list = $(this).val();
-
-        //  Clear Specfile drop down
-        document.getElementById("id_specfile_patch").length = 0;
-        $("#id_specfile_patch").val([]);
-
-        //  Loop over pks
-        $.each(pk_list, function(index, pk) {
-            //  Get Specfile info as JASON
-            $.getJSON("/api/systems/stars/"+pk+'/specfiles/', function(data){
-                //  Refilling Specfile drop down
-                for (let key in data){
-                    if (data.hasOwnProperty(key)){
-                        let value=data[key];
-                        $("#id_specfile_patch").append("<option value = \"" + key + "\">" + value + "</option>");
-                    }
-                };
-            });
-        });
-    });
+//    initialize_add_spectra_window();
+   add_spectra_window = $("#addRawSpec").dialog({
+        autoOpen: false,
+        width: '975',
+        modal: true,
+        autoOpen: false,
+        title: "Add raw data",
+//         cache: false,
+        close: function() { add_spectra_window.dialog( "close" ); },
+//         close: function() { add_spectra_window.dialog( "destroy" ); },
+   });
 });
 
+
+// function initialize_add_spectra_window() {
+//     add_spectra_window = $("#addRawSpec").dialog({
+//         autoOpen: false,
+//         width: '975',
+//         modal: true,
+//         title: "Add raw data",
+// //         cache: false,
+//         close: function() { add_spectra_window.dialog( "close" ); },
+// //         buttons: {
+// //             "Refresh": function () {
+// //                 add_spectra_window.dialog( "destroy" );
+// //                 initialize_add_spectra_window();
+// // //                 window.location.reload();
+// //                 add_spectra_window.dialog( "open" );
+// //             }
+// //         },
+//    });
+// }
 
 // Table filter functionality
 
@@ -300,6 +465,7 @@ function get_filter_keywords( d ) {
       "filename": $('#filter_filename').val(),
       "filetype": $('#filter_filetype').val(),
       "systems": $('#filter_systems').val(),
+      "obs_date": $('#filter_obs_date').val(),
    } );
 
    if ($('#filter_hjd').val() != '') {
@@ -349,6 +515,16 @@ function stars_render( data, type, full, meta ) {
     return systems
 }
 
+function reduced_render( data, type, full, meta ) {
+    let nspecfiles = data.length;
+//     console.log(nspecfiles);
+    if ( nspecfiles === 0 ) {
+        return '<i class="material-icons status-icon invalid" title="Not allocated to a reduced Spectrum."></i>'
+    } else {
+        return '<i class="material-icons status-icon valid" title="Allocated to a reduced Spectrum."></i>'
+    }
+}
+
 
 // Selection and Deselection of rows
 
@@ -380,6 +556,24 @@ function deselect_row(row) {
    }
 }
 
+
+//  Open add spectra window
+function openAddSpectraWindow() {
+//     add_spectra_window = $("#addRawSpec").dialog({
+//         autoOpen: false,
+//         title: "Add raw data",
+//         close: function() {
+//             add_spectra_window.dialog( "close" );
+//     //           $(".upload-button").click();
+//         },
+//     });
+
+    $("#raw-upload-form").submit(function() {
+        $(this).closest(".ui-dialog-content").dialog("close");
+    });
+
+    add_spectra_window.dialog( "open" );
+}
 
 //  Delete raw data
 function delete_all_selected_rawspecfiles(){

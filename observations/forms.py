@@ -106,18 +106,32 @@ class UploadRawSpecFileForm(forms.Form):
     '''
         Upload form for spectroscopic raw data
     '''
+
+    system_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form_long'}),
+        required=False,
+        )
+
     system = forms.ModelMultipleChoiceField(
         label='Systems',
-        # empty_label='Target name: ra[deg] dec[deg]',
         queryset=Star.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'form_long_extra'}),
         required=False,
     )
 
+    specfile_date = forms.DateTimeField(
+        label='Observation date',
+        widget=forms.TextInput(attrs={'class': 'form_long'}),
+        required=False,
+        )
+
     specfile = forms.ModelMultipleChoiceField(
         label='Spectra',
-        # empty_label='HJD@Instrument - Filetype',
         queryset=SpecFile.objects.all(),
-        required=True,
+        widget=forms.SelectMultiple(attrs={'class': 'form_long_extra'}),
+        #required=True,
+        required=False,
     )
 
     #   Raw file upload field
@@ -131,17 +145,29 @@ class PatchRawSpecFileForm(forms.Form):
     '''
         Patch form for spectroscopic raw data
     '''
+    system_name_patch = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form_long'}),
+        required=False,
+        )
+
     system_patch = forms.ModelMultipleChoiceField(
         label='Systems',
-        # empty_label='Target name: ra[deg] dec[deg]',
         queryset=Star.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'form_long_extra'}),
         required=False,
     )
 
+    specfile_date_patch = forms.DateTimeField(
+        label='Observation date',
+        widget=forms.TextInput(attrs={'class': 'form_long'}),
+        required=False,
+        )
+
     specfile_patch = forms.ModelMultipleChoiceField(
         label='Spectra',
-        # empty_label='HJD@Instrument - Filetype',
         queryset=SpecFile.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'form_long_extra'}),
         required=True,
     )
 

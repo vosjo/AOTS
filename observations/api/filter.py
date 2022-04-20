@@ -216,6 +216,15 @@ class RawSpecFileFilter(filters.FilterSet):
         lookup_expr='icontains',
         )
 
+    #   Obs. date filter
+    obs_date = filters.CharFilter(
+        field_name='obs_date',
+        lookup_expr='icontains',
+    )
+
+    obs_date_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
+    obs_date_max = filters.NumberFilter(field_name="hjd", lookup_expr='lte')
+
     #   System method
     def system_name_icontains(self, queryset, name, value):
         return queryset.filter(specfile__spectrum__star__name__icontains=value)

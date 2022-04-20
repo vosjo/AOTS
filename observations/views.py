@@ -317,18 +317,22 @@ def rawspecfile_list(request, project=None, **kwargs):
     #   Set project
     project = get_object_or_404(Project, slug=project)
 
+    #   Monkey patch __str__ representation of `Star`, so that only the
+    #   object name is displayed
+    def __str__(self):
+      return "{}".format(self.name)
+    Star.__str__ = __str__
+
     #   Initialize upload forms
     raw_upload_form = UploadRawSpecFileForm()
     raw_upload_form.fields['system'].queryset = Star.objects \
-        .filter(project__exact=project.pk) \
-        .exclude(spectrum__isnull=True)
+        .filter(project__exact=project.pk)
     raw_upload_form.fields['specfile'].queryset = SpecFile.objects \
         .filter(project__exact=project.pk)
 
     raw_patch_form = PatchRawSpecFileForm()
     raw_patch_form.fields['system_patch'].queryset = Star.objects \
-        .filter(project__exact=project.pk) \
-        .exclude(spectrum__isnull=True)
+        .filter(project__exact=project.pk)
     raw_patch_form.fields['specfile_patch'].queryset = SpecFile.objects \
         .filter(project__exact=project.pk)
 
@@ -340,8 +344,9 @@ def rawspecfile_list(request, project=None, **kwargs):
             #   Get form
             raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
             if raw_upload_form.is_valid():
-                #   Read selected Specfile
+                #   Read selected Specfile and/or system/star
                 specfiles = raw_upload_form.cleaned_data['specfile']
+                stars     = raw_upload_form.cleaned_data['system']
 
                 message_list = []
 
@@ -362,13 +367,10 @@ def rawspecfile_list(request, project=None, **kwargs):
                         success, message = read_spectrum.process_raw_spec(
                             newrawspec.pk,
                             specfiles,
+                            stars,
                         )
 
                         #   Set success/error message
-                        if success:
-                            level = messages.SUCCESS
-                        else:
-                            level = messages.ERROR
                         message_list.append([success, message])
                     except Exception as e:
                         #   Handel error

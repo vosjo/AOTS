@@ -1081,7 +1081,7 @@ p.upload {
    border-color: rgba(64, 117, 144, 0.4);
 }
 
-form.upload_2 {
+/*form.upload_2 {
    display: flex;
    flex-direction: column;
    align-items: center;
@@ -1090,7 +1090,7 @@ form.upload_2 {
    margin: 5px;
    margin-top: 10px;
    border: solid 1px rgba(64, 117, 144, 0.3);
-}
+}*/
 
 progress.progress {
    margin: 5px;
@@ -1131,6 +1131,15 @@ progress.progress {
     background-color: #c5d5dd;
     color: black;
 }
+
+.form_long {
+    width: 250px;
+}
+
+.form_long_extra {
+    width: 260px;
+}
+
 #identifier-form {
    display: flex;
    align-items: stretch;
@@ -1399,4 +1408,8 @@ td.bold{
    float: right;
    cursor: pointer;
    margin-top: 10px;
+}
+
+.small{
+    font-size: 11px
 }

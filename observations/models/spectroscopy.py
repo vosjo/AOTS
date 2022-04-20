@@ -228,6 +228,9 @@ class SpecFile(models.Model):
 
     specfile = models.FileField(upload_to=fileio.get_specfile_path)
 
+    #   Observation time
+    obs_date = models.CharField(max_length=50, default='')
+
     #   Bookkeeping
     added_on = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
@@ -257,9 +260,12 @@ class SpecFile(models.Model):
             h = {}
         return h
 
-    #-- representation of self
+    #   Representation of self
     def __str__(self):
-        return "{}@{} - {}".format(self.hjd, self.instrument, self.filetype)
+        return "{} - {}".format(
+            self.obs_date,
+            self.instrument,
+            )
 
 
 ###     RawSpecFile     ###
@@ -276,6 +282,12 @@ class RawSpecFile(models.Model):
     #   The raw data can belong to multiple specfiles
     specfile = models.ManyToManyField(
         SpecFile,
+        blank=True,
+        )
+
+    #   A raw data file can belong to multiple stars
+    star = models.ManyToManyField(
+        Star,
         blank=True,
         )
 
@@ -297,6 +309,9 @@ class RawSpecFile(models.Model):
 
     #   The raw file
     rawfile = models.FileField(upload_to=fileio.get_rawfile_path)
+
+    #   Observation time
+    obs_date = models.CharField(max_length=50, default='')
 
     #   Bookkeeping
     added_on      = models.DateTimeField(auto_now_add=True)
@@ -327,7 +342,11 @@ class RawSpecFile(models.Model):
 
     #   Representation of self
     def __str__(self):
-        return "{}@{} - {}".format(self.hjd, self.instrument, self.filetype)
+        return "{}@{} - {}".format(
+            self.hjd,
+            self.instrument,
+            self.obs_date,
+            )
 
 
 ###     Deletion handlers   ###

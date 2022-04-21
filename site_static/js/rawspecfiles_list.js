@@ -19,7 +19,7 @@ $(document).ready(function () {
          { data: 'instrument' },
          { data: 'filetype' },
          { data: 'exptime' },
-         { data: 'filename' },
+         { data: 'filename', orderable: false },
          { data: 'added_on' },
          { data: 'specfile', render: reduced_render },
          { data: 'stars', orderable: false, render: stars_render },

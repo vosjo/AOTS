@@ -350,7 +350,8 @@ def derive_rawfile_info(rawfile_id, user_info={}):
     rawfile.instrument = data['instrument']
     rawfile.filetype   = data['filetype']
     rawfile.exptime    = data['exptime']
-    rawfile.obs_date   = data['date-obs']
+    #rawfile.obs_date   = data['date-obs']
+    rawfile.obs_date   = Time(data['hjd'], format='jd', precision=0).iso
 
     #   Save file
     rawfile.save()

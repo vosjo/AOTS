@@ -248,10 +248,10 @@ def derive_generic_raw(header):
     else:
         data['hjd'] = 2400000
 
-    if 'DATE-OBS' in header:
-        data['date-obs'] = header.get('DATE-OBS', '2000-00-00')
-    else:
-        data['date-obs'] = Time(data['hjd'], format='jd', precision=0).iso
+    #if 'DATE-OBS' in header:
+        #data['date-obs'] = header.get('DATE-OBS', '2000-00-00')
+    #else:
+        #data['date-obs'] = Time(data['hjd'], format='jd', precision=0).iso
 
     #   Pointing info
     data['objectname'] = header.get('OBJECT', '')

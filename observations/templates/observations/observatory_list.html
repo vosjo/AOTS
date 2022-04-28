@@ -48,23 +48,24 @@
 
 
     <div id="observatoryEdit">
-    <form action="{% url "observations:observatory_list" project.slug %}" method="post" enctype="multipart/form-data" class="" id="update-obs-form">
-    {% csrf_token %}
-    {{update_obs_form.pk.as_hidden}}
-        <ul>
-            <li><p class="label">Name:</p> {{update_obs_form.name}}</li>
-            <li><p class="label">Short Name:</p> {{update_obs_form.short_name}}</li>
-            <li><p class="label">Telescopes:</p> {{update_obs_form.telescopes}}</li>
-            <li><p class="label">Latitude (deg):</p> {{update_obs_form.latitude}}</li>
-            <li><p class="label">Longitude (deg):</p> {{update_obs_form.longitude}}</li>
-            <li><p class="label">Altitude (meter):</p> {{update_obs_form.altitude}}</li>
-            <li><p class="label">space craft:</p> {{update_obs_form.space_craft}}</li>
-            <li><p class="label">Note:</p> {{update_obs_form.note}}</li>
-            <li><p class="label">Website:</p> {{update_obs_form.url}}</li>
-            <li><p class="label">Weather url:</p> {{update_obs_form.weatherurl}}</li>
-            <li><input type="submit" value="Update"></li>
-        </ul>
-    </form>
+        <form action="{% url "observations:observatory_list" project.slug %}" method="post"
+              enctype="multipart/form-data" class="" id="update-obs-form">
+            {% csrf_token %}
+            {{ update_obs_form.pk.as_hidden }}
+            <ul>
+                <li><p class="label">Name:</p> {{ update_obs_form.name }}</li>
+                <li><p class="label">Short Name:</p> {{ update_obs_form.short_name }}</li>
+                <li><p class="label">Telescopes:</p> {{ update_obs_form.telescopes }}</li>
+                <li><p class="label">Latitude (deg):</p> {{ update_obs_form.latitude }}</li>
+                <li><p class="label">Longitude (deg):</p> {{ update_obs_form.longitude }}</li>
+                <li><p class="label">Altitude (meter):</p> {{ update_obs_form.altitude }}</li>
+                <li><p class="label">space craft:</p> {{ update_obs_form.space_craft }}</li>
+                <li><p class="label">Note:</p> {{ update_obs_form.note }}</li>
+                <li><p class="label">Website:</p> {{ update_obs_form.url }}</li>
+                <li><p class="label">Weather url:</p> {{ update_obs_form.weatherurl }}</li>
+                <li><input type="submit" value="Update"></li>
+            </ul>
+        </form>
     </div>
 
 {% endblock %}

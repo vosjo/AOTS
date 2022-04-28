@@ -1,13 +1,9 @@
-import re
-
-import numpy as np
-
-from django.db.models import F, ExpressionWrapper, DecimalField
-
 import astropy.units as u
-from astropy.time import Time
-from astropy.coordinates import SkyCoord, AltAz, get_moon
+import numpy as np
 from astroplan.moon import moon_illumination
+from astropy.coordinates import SkyCoord, AltAz, get_moon
+from astropy.time import Time
+from django.db.models import F, ExpressionWrapper, DecimalField
 
 from observations.models import (
     Spectrum,
@@ -15,11 +11,10 @@ from observations.models import (
     SpecFile,
     RawSpecFile,
     Observatory,
-    )
-
-from stars.models import Star, Project
-
+)
+from stars.models import Star
 from . import instrument_headers
+
 
 ###############################################################################
 
@@ -45,6 +40,7 @@ def get_wind_direction(degrees):
         return 'W'
     else:
         return 'NW'
+
 
 def isfloat(value):
     try:
@@ -79,22 +75,22 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
     spectrum.hjd = data.get('hjd', 2400000)
 
     #   Pointing info
-    #spectrum.objectname = data.get('objectname', '')
+    # spectrum.objectname = data.get('objectname', '')
     spectrum.objectname = data.get('objectname', spectrum.hjd)
-    spectrum.ra         = data.get('ra', -1)
-    spectrum.dec        = data.get('dec', -1)
-    spectrum.alt        = data.get('alt', -1)
-    spectrum.az         = data.get('az', -1)
-    spectrum.airmass    = data.get('airmass', -1)
+    spectrum.ra = data.get('ra', -1)
+    spectrum.dec = data.get('dec', -1)
+    spectrum.alt = data.get('alt', -1)
+    spectrum.az = data.get('az', -1)
+    spectrum.airmass = data.get('airmass', -1)
 
     # telescope and instrument info
-    spectrum.instrument   = data.get('instrument', 'UK')
-    spectrum.telescope    = data.get('telescope', 'UK')
-    spectrum.exptime      = data.get('exptime', -1)
-    spectrum.observer     = data.get('observer', 'UK')
-    spectrum.resolution   = data.get('resolution', -1)
-    spectrum.snr          = data.get('snr', -1)
-    spectrum.barycor      = data.get('barycor', 0)
+    spectrum.instrument = data.get('instrument', 'UK')
+    spectrum.telescope = data.get('telescope', 'UK')
+    spectrum.exptime = data.get('exptime', -1)
+    spectrum.observer = data.get('observer', 'UK')
+    spectrum.resolution = data.get('resolution', -1)
+    spectrum.snr = data.get('snr', -1)
+    spectrum.barycor = data.get('barycor', 0)
     spectrum.barycor_bool = data.get('barycor_bool', False)
 
     #    Spectrum normalized?
@@ -110,7 +106,7 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
     spectrum.seeing = data.get('seeing', -1)
 
     #    Flux unit & calibrated flux?
-    spectrum.fluxcal    = data.get('fluxcal', False)
+    spectrum.fluxcal = data.get('fluxcal', False)
     spectrum.flux_units = data.get('flux_units', 'arbitrary unit')
 
     if spectrum.fluxcal:
@@ -118,7 +114,7 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
 
     if spectrum.normalized:
         spectrum.flux_units = 'normalized'
-        spectrum.fluxcal    = False
+        spectrum.fluxcal = False
 
     #    Note
     spectrum.note = data.get('note', '')
@@ -132,19 +128,19 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
         if user_info['observatory_id'] == None:
             #   If form contains no information try header
             spectrum.observatory = instrument_headers.get_observatory(
-            header,
-            spectrum.project,
+                header,
+                spectrum.project,
             )
         else:
             spectrum.observatory = Observatory.objects.get(
                 pk=user_info['observatory_id']
-                )
+            )
     else:
         #   Extract observatory infos from header or create a new observatory
         spectrum.observatory = instrument_headers.get_observatory(
             header,
             spectrum.project,
-            )
+        )
 
     #   Save the changes
     spectrum.save()
@@ -154,15 +150,15 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
 
     #   Moon illumination wit astroplan (astroplan returns a fraction, but we
     #   store percentage)
-    spectrum.moon_illumination =  np.round(moon_illumination(time=time)*100, 1)
+    spectrum.moon_illumination = np.round(moon_illumination(time=time) * 100, 1)
 
     #   Get the sky and moon coordinates at time and location of observations
-    sky  = SkyCoord(ra=spectrum.ra*u.deg, dec=spectrum.dec*u.deg,)
+    sky = SkyCoord(ra=spectrum.ra * u.deg, dec=spectrum.dec * u.deg, )
     moon = get_moon(time)
 
     #   Set observatory and transform sky coordinates to altitude & azimuth
     observatory = spectrum.observatory.get_EarthLocation()
-    frame       = AltAz(obstime=time, location=observatory)
+    frame = AltAz(obstime=time, location=observatory)
 
     star = sky.transform_to(frame)
     moon = moon.transform_to(frame)
@@ -183,8 +179,8 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
         vb = sky.radial_velocity_correction(
             obstime=time,
             location=observatory,
-            )
-        vb = vb.to(u.km/u.s)
+        )
+        vb = vb.to(u.km / u.s)
         spectrum.barycor = vb.value
 
     #   Save the changes
@@ -209,12 +205,12 @@ def derive_specfile_info(specfile_id, user_info={}):
     data = instrument_headers.extract_header_info(h, user_info=user_info)
 
     #   Set variables
-    specfile.hjd        = data.get('hjd', 2400000)
+    specfile.hjd = data.get('hjd', 2400000)
     specfile.instrument = data.get('instrument', 'UK')
-    specfile.filetype   = data.get('filetype', 'UK')
-    specfile.ra         = data.get('ra', -1)
-    specfile.dec        = data.get('dec', -1)
-    specfile.obs_date   = Time(data['hjd'], format='jd', precision=0).iso
+    specfile.filetype = data.get('filetype', 'UK')
+    specfile.ra = data.get('ra', -1)
+    specfile.dec = data.get('dec', -1)
+    specfile.obs_date = Time(data['hjd'], format='jd', precision=0).iso
 
     #   Save file
     specfile.save()
@@ -242,31 +238,31 @@ def process_specfile(specfile_id, create_new_star=True,
 
     specfile = SpecFile.objects.get(pk=specfile_id)
 
-    #-- check for duplicates
-    duplicates = SpecFile.objects.exclude(id__exact = specfile_id) \
-        .filter(ra__range = [specfile.ra-1/3600., specfile.ra+1/3600.]) \
-        .filter(dec__range = [specfile.dec-1/3600., specfile.dec+1/3600.]) \
-        .filter(hjd__range = [specfile.hjd-0.00000001,specfile.hjd+0.00000001])\
-        .filter(instrument__iexact = specfile.instrument) \
-        .filter(filetype__iexact = specfile.filetype) \
-        .filter(project__exact = specfile.project.pk)
+    # -- check for duplicates
+    duplicates = SpecFile.objects.exclude(id__exact=specfile_id) \
+        .filter(ra__range=[specfile.ra - 1 / 3600., specfile.ra + 1 / 3600.]) \
+        .filter(dec__range=[specfile.dec - 1 / 3600., specfile.dec + 1 / 3600.]) \
+        .filter(hjd__range=[specfile.hjd - 0.00000001, specfile.hjd + 0.00000001]) \
+        .filter(instrument__iexact=specfile.instrument) \
+        .filter(filetype__iexact=specfile.filetype) \
+        .filter(project__exact=specfile.project.pk)
 
     if len(duplicates) > 0:
         #     This specfile already exists, so remove it
         specfile.delete()
         return False, "This specfile is a duplicate and was not added!"
 
-    #-- add specfile to existing or new spectrum
+    # -- add specfile to existing or new spectrum
     spectrum = Spectrum.objects.filter(project__exact=specfile.project) \
-        .filter(ra__range = [specfile.ra-1/3600., specfile.ra+1/3600.]) \
-        .filter(dec__range = [specfile.dec-1/3600., specfile.dec+1/3600.]) \
-        .filter(instrument__iexact = specfile.instrument)  \
-        .filter(hjd__range = (specfile.hjd - 0.001, specfile.hjd + 0.001))
+        .filter(ra__range=[specfile.ra - 1 / 3600., specfile.ra + 1 / 3600.]) \
+        .filter(dec__range=[specfile.dec - 1 / 3600., specfile.dec + 1 / 3600.]) \
+        .filter(instrument__iexact=specfile.instrument) \
+        .filter(hjd__range=(specfile.hjd - 0.001, specfile.hjd + 0.001))
 
     if len(spectrum) > 0 and add_to_existing_spectrum:
         spectrum = spectrum[0]
         spectrum.specfile_set.add(specfile)
-        message += "Specfile added to existing Spectrum {} (Target: {})"\
+        message += "Specfile added to existing Spectrum {} (Target: {})" \
             .format(spectrum, spectrum.objectname)
         return True, message
     else:
@@ -278,32 +274,31 @@ def process_specfile(specfile_id, create_new_star=True,
         derive_spectrum_info(
             spectrum.id,
             user_info=user_info,
-            )
-        spectrum.refresh_from_db() # spectrum is not updated automatically!
-        message += "Specfile added to new Spectrum {} (Target: {})"\
+        )
+        spectrum.refresh_from_db()  # spectrum is not updated automatically!
+        message += "Specfile added to new Spectrum {} (Target: {})" \
             .format(spectrum, spectrum.objectname)
 
-
-    #-- add the spectrum to existing or new star if the spectrum is newly created
+    # -- add the spectrum to existing or new star if the spectrum is newly created
     star = Star.objects.filter(project__exact=spectrum.project) \
-        .filter(ra__range = (spectrum.ra - 0.1, spectrum.ra + 0.1)) \
-        .filter(dec__range = (spectrum.dec - 0.1, spectrum.dec + 0.1))
+        .filter(ra__range=(spectrum.ra - 0.1, spectrum.ra + 0.1)) \
+        .filter(dec__range=(spectrum.dec - 0.1, spectrum.dec + 0.1))
 
     if len(star) > 0:
         #     If there is one or more stars returned, select the closest star
         star = star.annotate(
             distance=ExpressionWrapper(
-                ((F('ra')-spectrum.ra)**2 +
-                (F('dec')-spectrum.dec)**2
-                )**(1./2.),
+                ((F('ra') - spectrum.ra) ** 2 +
+                 (F('dec') - spectrum.dec) ** 2
+                 ) ** (1. / 2.),
                 output_field=DecimalField()
-                )
-            ).order_by('distance')[0]
+            )
+        ).order_by('distance')[0]
         star.spectrum_set.add(spectrum)
         message += ", and added to existing System {} (_r = {})".format(
             star,
             star.distance
-            )
+        )
         return True, message
     else:
 
@@ -314,11 +309,11 @@ def process_specfile(specfile_id, create_new_star=True,
 
         #     Need to make a new star
         star = Star(
-            name= spectrum.objectname,
+            name=spectrum.objectname,
             ra=spectrum.ra,
             dec=spectrum.dec,
             project=spectrum.project,
-            )
+        )
         if 'classification' in user_info.keys():
             star.classification = user_info['classification']
         if 'classification_type' in user_info.keys():
@@ -340,23 +335,24 @@ def derive_rawfile_info(rawfile_id, user_info={}):
 
     #   Initialize file and read Header
     rawfile = RawSpecFile.objects.get(pk=rawfile_id)
-    header  = rawfile.get_header()
+    header = rawfile.get_header()
 
     #   Extract info from Header
     data = instrument_headers.extract_header_raw(header, user_info=user_info)
 
     #   Set variables
-    rawfile.hjd        = data['hjd']
+    rawfile.hjd = data['hjd']
     rawfile.instrument = data['instrument']
-    rawfile.filetype   = data['filetype']
-    rawfile.exptime    = data['exptime']
-    #rawfile.obs_date   = data['date-obs']
-    rawfile.obs_date   = Time(data['hjd'], format='jd', precision=0).iso
+    rawfile.filetype = data['filetype']
+    rawfile.exptime = data['exptime']
+    # rawfile.obs_date   = data['date-obs']
+    rawfile.obs_date = Time(data['hjd'], format='jd', precision=0).iso
 
     #   Save file
     rawfile.save()
 
     return "Raw file details added/updated", True
+
 
 def process_raw_spec(rawfile_id, specfiles, stars):
     """
@@ -388,7 +384,7 @@ def process_raw_spec(rawfile_id, specfiles, stars):
     if len(specfiles) == 0 and len(stars) == 0:
         #   Check if either specfiles or stars were specified
         message = " Neither star nor spectrum specified." \
-                + " One of these is required."
+                  + " One of these is required."
 
         return False, message
 
@@ -396,9 +392,8 @@ def process_raw_spec(rawfile_id, specfiles, stars):
     derive_rawfile_info(rawfile_id)
 
     #   Initialize raw file instance and extract file name
-    rawfile     = RawSpecFile.objects.get(pk=rawfile_id)
+    rawfile = RawSpecFile.objects.get(pk=rawfile_id)
     rawfilename = rawfile.rawfile.name.split('/')[-1]
-
 
     ###
     #   Check for specfile duplicates
@@ -409,12 +404,12 @@ def process_raw_spec(rawfile_id, specfiles, stars):
 
         #   Loop over all spec files
         for spfile in specfiles:
-            duplicates = RawSpecFile.objects.exclude(id__exact = rawfile_id) \
-                .filter(hjd__range=[rawfile.hjd-0.00000001,rawfile.hjd+0.00000001])\
-                .filter(instrument__iexact = rawfile.instrument) \
-                .filter(filetype__iexact = rawfile.filetype) \
-                .filter(specfile__exact = spfile.pk)\
-                .filter(project__exact = rawfile.project.pk)
+            duplicates = RawSpecFile.objects.exclude(id__exact=rawfile_id) \
+                .filter(hjd__range=[rawfile.hjd - 0.00000001, rawfile.hjd + 0.00000001]) \
+                .filter(instrument__iexact=rawfile.instrument) \
+                .filter(filetype__iexact=rawfile.filetype) \
+                .filter(specfile__exact=spfile.pk) \
+                .filter(project__exact=rawfile.project.pk)
 
             if len(duplicates) == 0:
                 #   If it is not a duplicate assign raw file to Specfile
@@ -427,10 +422,9 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         if rm_raw:
             rawfile.delete()
 
-            message = rawfilename+" (raw file) is a duplicate and was not added"
+            message = rawfilename + " (raw file) is a duplicate and was not added"
 
             return False, message
-
 
     ###
     #   Check for star duplicates
@@ -441,12 +435,12 @@ def process_raw_spec(rawfile_id, specfiles, stars):
 
         #   Loop over all stars
         for star in stars:
-            duplicates = RawSpecFile.objects.exclude(id__exact = rawfile_id) \
-                .filter(hjd__range=[rawfile.hjd-0.00000001,rawfile.hjd+0.00000001])\
-                .filter(instrument__iexact = rawfile.instrument) \
-                .filter(filetype__iexact = rawfile.filetype) \
-                .filter(star__exact = star.pk)\
-                .filter(project__exact = rawfile.project.pk)
+            duplicates = RawSpecFile.objects.exclude(id__exact=rawfile_id) \
+                .filter(hjd__range=[rawfile.hjd - 0.00000001, rawfile.hjd + 0.00000001]) \
+                .filter(instrument__iexact=rawfile.instrument) \
+                .filter(filetype__iexact=rawfile.filetype) \
+                .filter(star__exact=star.pk) \
+                .filter(project__exact=rawfile.project.pk)
 
             if len(duplicates) == 0:
                 #   If it is not a duplicate assign raw file to Star
@@ -459,28 +453,27 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         if rm_raw:
             rawfile.delete()
 
-            message = rawfilename+" (raw file) is a already associated with a "
+            message = rawfilename + " (raw file) is a already associated with a "
             message += "star. Duplicate and was not added. Use `Change file"
             message += "allocation` option instead."
 
             return False, message
 
-
     ###
     #   Check if the raw file already exists
     #
-    otherRawSpecFiles = RawSpecFile.objects.exclude(id__exact = rawfile_id) \
-        .filter(hjd__range = [rawfile.hjd-0.00000001, rawfile.hjd+0.00000001]) \
-        .filter(instrument__iexact = rawfile.instrument) \
-        .filter(filetype__iexact = rawfile.filetype) \
-        .filter(project__exact = rawfile.project.pk)
+    otherRawSpecFiles = RawSpecFile.objects.exclude(id__exact=rawfile_id) \
+        .filter(hjd__range=[rawfile.hjd - 0.00000001, rawfile.hjd + 0.00000001]) \
+        .filter(instrument__iexact=rawfile.instrument) \
+        .filter(filetype__iexact=rawfile.filetype) \
+        .filter(project__exact=rawfile.project.pk)
 
     #   If file is already in the database, use this one
     if len(otherRawSpecFiles) > 0:
         #   Use the first entry
-        otherRawSpecFile     = otherRawSpecFiles[0]
-        otherRawSpecFileName = otherRawSpecFile.specfile.all()[0]\
-                                    .specfile.name.split('/')[-1]
+        otherRawSpecFile = otherRawSpecFiles[0]
+        otherRawSpecFileName = otherRawSpecFile.specfile.all()[0] \
+            .specfile.name.split('/')[-1]
 
         #   Loop over all spec files
         for spfile in specfiles:
@@ -495,11 +488,10 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         #   Remove the uploaded raw file
         rawfile.delete()
 
-        message += rawfilename+" (raw file) is a duplicate and already "\
-                +  "associated with the reduced file "+otherRawSpecFileName\
-                +  ". Used the already uploaded file."
+        message += rawfilename + " (raw file) is a duplicate and already " \
+                   + "associated with the reduced file " + otherRawSpecFileName \
+                   + ". Used the already uploaded file."
         return True, message
-
 
     ###
     #   Add raw file to existing specfile
@@ -509,11 +501,11 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         message += "{} ({}), ".format(
             spfile,
             spfile.spectrum.star.name,
-            )
+        )
     for star in stars:
         message += "{}, ".format(
             star.name,
-            )
+        )
     return True, message
 
 
@@ -534,6 +526,7 @@ def check_form(data_dict):
             user_info[key] = value
 
     return user_info
+
 
 def add_userinfo(user_info_dict, spectrum_pk, added_by=None):
     '''
@@ -558,13 +551,13 @@ def add_userinfo(user_info_dict, spectrum_pk, added_by=None):
     #   Check and set UserInfo
     if len(user_infos) > 0:
         info_model.delete()
-        message  = 'Provided information not added. Spectrum '
-        message += '({}, {}) is already associated with user information'\
+        message = 'Provided information not added. Spectrum '
+        message += '({}, {}) is already associated with user information' \
             .format(spectrum, spectrum.objectname)
         success = False
     else:
         spectrum.userinfo_set.add(info_model)
-        message = 'Provided information added to spectrum: {} (Target: {})'\
+        message = 'Provided information added to spectrum: {} (Target: {})' \
             .format(spectrum, spectrum.objectname)
         success = True
 

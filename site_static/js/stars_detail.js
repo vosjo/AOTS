@@ -91,21 +91,20 @@ $(document).ready(function () {
             }
         })
         let novaluesrow = $("#tr-novaluesyet")
-        if (novaluesrow.is(":visible")){
+        if (novaluesrow.is(":visible")) {
             novaluesrow.hide()
         }
     })
     $(".rmband").click(function (e) {
         let band;
-        $(this).parent().parent().children().each(function (){
+        $(this).parent().parent().children().each(function () {
             if (typeof $(this).attr("class") != "undefined") {
                 if ($(this).attr("class") === "photvalinp") {
                     band = $(this).data("band")
                     let inp = $(this).children()[0]
                     $(inp).val("")
-                }
-                else {
-                    if ($(this).attr("class") === "photerrinp"){
+                } else {
+                    if ($(this).attr("class") === "photerrinp") {
                         let err = $(this).children()[0]
                         $(err).val("")
                     }
@@ -113,14 +112,14 @@ $(document).ready(function () {
             }
             $(this).closest(".phottablerow").hide()
             $(".dropdownlink").each(function (i, row) {
-                if ($(this).data("band") === band){
+                if ($(this).data("band") === band) {
                     $(this).show()
                 }
             })
         })
     })
     $(".vizierbtn").click(function (e) {
-        if(!confirm("Do you really want to get photometry from Vizier? THIS WILL OVERWRITE CURRENT VALUES!")) {
+        if (!confirm("Do you really want to get photometry from Vizier? THIS WILL OVERWRITE CURRENT VALUES!")) {
             e.preventDefault();
         }
     });
@@ -315,8 +314,8 @@ function enablephotedit() {
             let magval = parseFloat($(this).text());
             bandvalues.push(magval);
             $(this).closest('tr').hide();
-            $(".dropdownlink").each(function(){
-                if ($(this).data("band") === band){
+            $(".dropdownlink").each(function () {
+                if ($(this).data("band") === band) {
                     $(this).hide()
                 }
             })

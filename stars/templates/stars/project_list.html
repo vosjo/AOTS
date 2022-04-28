@@ -3,92 +3,94 @@
 {% load static %}
 
 {% block head %}
-{% include "datatables.html" %}
-<script type="text/javascript" src="{% static 'js/tags_list.js' %}"></script>
+    {% include "datatables.html" %}
+    <script type="text/javascript" src="{% static 'js/tags_list.js' %}"></script>
 {% endblock %}
 
 {% block headertitle %} Projects {% endblock %}
 
 {% block navigation %}
-   <a href="/stars/stars"> INDEX </a>
-   <strong>|</strong> 
-   <a href="/stars/tags" class="active"> Tags </a>
+    <a href="/stars/stars"> INDEX </a>
+    <strong>|</strong>
+    <a href="/stars/tags" class="active"> Tags </a>
 {% endblock %}
 
 
 {% block content %}
 
-{% if private_projects %}
-<section class='data-section' id="private_projects">
+    {% if private_projects %}
+        <section class='data-section' id="private_projects">
 
-<h3 class='indent'>Private projects</h3>
+            <h3 class='indent'>Private projects</h3>
 
-<div class="flex-data-container j-center">
+            <div class="flex-data-container j-center">
 
-   {% for project in private_projects %}
-      
-      <div class='project-container'  id="project-{{project.pk}}">
-      
-         <h3>
-         <a href= {% url 'systems:star_list' project.slug %}>{{project.name}}</a>
-         </h3>
-         
-         <div>
-         
-         {% if project.logo %}
-         <img class="project-logo" src="{{project.logo.url}}" alt="{{project.name}} logo">
-         {% else %}
-         <img class="project-logo" src="{% static "images/default_logo.png" %}" alt="{{project.name}} logo">
-         {% endif %}
-         
-         </div>
-         
-         <i>{{project.description}}</i>
-         
-      </div>
-   {% endfor %}
-   
-</div>
+                {% for project in private_projects %}
 
-<hr>
+                    <div class='project-container' id="project-{{ project.pk }}">
 
-</section>
-{% endif %}
+                        <h3>
+                            <a href= {% url 'systems:star_list' project.slug %}>{{ project.name }}</a>
+                        </h3>
 
+                        <div>
 
-<section class='data-section' id="public_projects">
+                            {% if project.logo %}
+                                <img class="project-logo" src="{{ project.logo.url }}" alt="{{ project.name }} logo">
+                            {% else %}
+                                <img class="project-logo" src="{% static "images/default_logo.png" %}"
+                                     alt="{{ project.name }} logo">
+                            {% endif %}
 
-<h3 class='indent'>Public projects</h3>
+                        </div>
+
+                        <i>{{ project.description }}</i>
+
+                    </div>
+                {% endfor %}
+
+            </div>
+
+            <hr>
+
+        </section>
+    {% endif %}
 
 
-<div class="flex-data-container j-center">
+    <section class='data-section' id="public_projects">
 
-   {% for project in public_projects %}
-      
-      <div class='project-container'  id="project-{{project.pk}}">
-      
-         <h3>
-         <a href= {% url 'systems:star_list' project.slug %}>{{project.name}}</a>
-         </h3>
-         
-         <div>
-         
-         {% if project.logo %}
-         <img class="project-logo" src="{{project.logo.url}}" alt="{{project.name}} logo">
-         {% else %}
-         <img class="project-logo" src="{% static "images/default_logo.png" %}" alt="{{project.name}} logo">
-         {% endif %}
-         
-         </div>
-         
-         <i>{{project.description}}</i>
-         
-      </div>
-   {% endfor %}
-   
-</div>
+        <h3 class='indent'>Public projects</h3>
 
-   
-</section>
-   
+
+        <div class="flex-data-container j-center">
+
+            {% for project in public_projects %}
+
+                <div class='project-container' id="project-{{ project.pk }}">
+
+                    <h3>
+                        <a href= {% url 'systems:star_list' project.slug %}>{{ project.name }}</a>
+                    </h3>
+
+                    <div>
+
+                        {% if project.logo %}
+                            <img class="project-logo" src="{{ project.logo.url }}" alt="{{ project.name }} logo">
+                        {% else %}
+                            <img class="project-logo" src="{% static "images/default_logo.png" %}"
+                                 alt="{{ project.name }} logo">
+                        {% endif %}
+
+                    </div>
+
+                    <i>{{ project.description }}</i>
+
+                </div>
+            {% endfor %}
+
+        </div>
+
+
+    </section>
+
 {% endblock %}

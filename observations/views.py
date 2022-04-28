@@ -1,9 +1,21 @@
-from django.shortcuts import get_object_or_404, render, reverse
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
+from bokeh.embed import components
+from bokeh.resources import CDN
 from django.contrib import messages
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, render, reverse
 
-from django.db.models import Sum
-
+from AOTS.custom_permissions import check_user_can_view_project
+from observations.auxil.update_observatory import update_observatory
+from stars.auxil import invalid_form
+from stars.models import Star, Project
+from .auxil import read_spectrum, read_lightcurve
+from .forms import (
+    UploadRawSpecFileForm,
+    PatchRawSpecFileForm,
+    UploadLightCurveForm,
+    UploadSpectraDetailForm,
+    SpectrumModForm, UpdateObservatoryForm,
+)
 from .models import (
     Spectrum,
     SpecFile,
@@ -11,28 +23,7 @@ from .models import (
     LightCurve,
     Observatory,
 )
-from stars.models import Star, Project
-from stars.auxil import invalid_form
-
-from .forms import (
-    UploadSpecFileForm,
-    UploadRawSpecFileForm,
-    PatchRawSpecFileForm,
-    UploadLightCurveForm,
-    UploadSpectraDetailForm,
-    SpectrumModForm, UpdateObservatoryForm,
-)
-
-from .auxil import read_spectrum, read_lightcurve
-
-from observations.auxil.update_observatory import update_observatory
-
 from .plotting import plot_visibility, plot_spectrum, plot_lightcurve
-
-from bokeh.resources import CDN
-from bokeh.embed import components
-
-from AOTS.custom_permissions import check_user_can_view_project
 
 
 @check_user_can_view_project
@@ -320,7 +311,8 @@ def rawspecfile_list(request, project=None, **kwargs):
     #   Monkey patch __str__ representation of `Star`, so that only the
     #   object name is displayed
     def __str__(self):
-      return "{}".format(self.name)
+        return "{}".format(self.name)
+
     Star.__str__ = __str__
 
     #   Initialize upload forms
@@ -346,7 +338,7 @@ def rawspecfile_list(request, project=None, **kwargs):
             if raw_upload_form.is_valid():
                 #   Read selected Specfile and/or system/star
                 specfiles = raw_upload_form.cleaned_data['specfile']
-                stars     = raw_upload_form.cleaned_data['system']
+                stars = raw_upload_form.cleaned_data['system']
 
                 message_list = []
 

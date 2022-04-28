@@ -1,13 +1,11 @@
 # import re
 # import datetime
 
-from .models import Observatory, SpecFile
-
-from stars.models import Star
-
 from django import forms
 
 from stars.forms import RAField, DecField
+from stars.models import Star
+from .models import Observatory, SpecFile
 
 
 # ===========================================================================================
@@ -111,7 +109,7 @@ class UploadRawSpecFileForm(forms.Form):
         max_length=100,
         widget=forms.TextInput(attrs={'class': 'form_long'}),
         required=False,
-        )
+    )
 
     system = forms.ModelMultipleChoiceField(
         label='Systems',
@@ -124,13 +122,13 @@ class UploadRawSpecFileForm(forms.Form):
         label='Observation date',
         widget=forms.TextInput(attrs={'class': 'form_long'}),
         required=False,
-        )
+    )
 
     specfile = forms.ModelMultipleChoiceField(
         label='Spectra',
         queryset=SpecFile.objects.all(),
         widget=forms.SelectMultiple(attrs={'class': 'form_long_extra'}),
-        #required=True,
+        # required=True,
         required=False,
     )
 
@@ -149,7 +147,7 @@ class PatchRawSpecFileForm(forms.Form):
         max_length=100,
         widget=forms.TextInput(attrs={'class': 'form_long'}),
         required=False,
-        )
+    )
 
     system_patch = forms.ModelMultipleChoiceField(
         label='Systems',
@@ -162,7 +160,7 @@ class PatchRawSpecFileForm(forms.Form):
         label='Observation date',
         widget=forms.TextInput(attrs={'class': 'form_long'}),
         required=False,
-        )
+    )
 
     specfile_patch = forms.ModelMultipleChoiceField(
         label='Spectra',

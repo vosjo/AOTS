@@ -11,12 +11,11 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
-
 import platform
 
 import environ
 
-#from . import api_permissions
+# from . import api_permissions
 
 # Initialise environment variables
 env = environ.Env()
@@ -25,13 +24,11 @@ environ.Env.read_env()
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
-
 
 # Application definition
 
@@ -67,7 +64,7 @@ ROOT_URLCONF = 'AOTS.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates',],
+        'DIRS': ['templates', ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -79,7 +76,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 # Django rest framework with datatables support:
 # https://github.com/izimobil/django-rest-framework-datatables
@@ -104,7 +100,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-
 #   Specifying a primary key defauls - required since Django 3.2
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
@@ -117,12 +112,10 @@ LOGIN_REDIRECT_URL = '/'
 # Logout redirection
 LOGOUT_REDIRECT_URL = '/'
 
-
 # Extra locations for static files
-STATICFILES_DIRS = ['site_static',]
+STATICFILES_DIRS = ['site_static', ]
 
 WSGI_APPLICATION = 'AOTS.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
@@ -147,7 +140,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -161,7 +153,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
@@ -173,9 +164,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 MEDIA_ROOT = 'media'
 MEDIA_URL = '/media/'
 
-
 # Load specific settings for developement of production
 if env("DEVICE") in platform.node():
-   from .settings_production import DEBUG, ALLOWED_HOSTS, DATABASES, LOGGING
+    from .settings_production import DEBUG, ALLOWED_HOSTS, DATABASES, LOGGING
 else:
-   from .settings_development import DEBUG, ALLOWED_HOSTS, DATABASES, LOGGING
+    from .settings_development import DEBUG, ALLOWED_HOSTS, DATABASES, LOGGING

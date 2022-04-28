@@ -2,7 +2,7 @@
  Code part to take care of the csrf token 
 */
 
-$(function() {
+$(function () {
 
 
     // This function gets cookie with a given name
@@ -21,6 +21,7 @@ $(function() {
         }
         return cookieValue;
     }
+
     var csrftoken = getCookie('csrftoken');
 
     /*
@@ -31,6 +32,7 @@ $(function() {
         // these HTTP methods do not require CSRF protection
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
+
     function sameOrigin(url) {
         // test that a given url is a same-origin URL
         // url could be relative or scheme relative or absolute
@@ -46,7 +48,7 @@ $(function() {
     }
 
     $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
+        beforeSend: function (xhr, settings) {
             if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
                 // Send the token to same-origin, relative URLs only.
                 // Send the token only if the method warrants CSRF protection
@@ -56,19 +58,19 @@ $(function() {
         }
     });
 
-}); 
+});
 
 $(document).ready(function () {
-   // Get the 1st and 2nd level pathnames   
-   var firstLevel = window.location.pathname.split( '/' )[1]
-   var secondLevel = window.location.pathname
-   
-   // Copy the correct navigation subdivision into the 2nd level navigation bar
+    // Get the 1st and 2nd level pathnames
+    var firstLevel = window.location.pathname.split('/')[1]
+    var secondLevel = window.location.pathname
+
+    // Copy the correct navigation subdivision into the 2nd level navigation bar
 //    $('a[href*="'+secondLevel+'"]').siblings('ul').clone().appendTo("#subtoolbar");
-   
-   // toggle the active class for the 1st and 2nd level navigation bar
-   $('#toolbar a[href*="/'+secondLevel+'"]').parent('li').toggleClass('active');
+
+    // toggle the active class for the 1st and 2nd level navigation bar
+    $('#toolbar a[href*="/' + secondLevel + '"]').parent('li').toggleClass('active');
 //    $('#subtoolbar a[href*="'+secondLevel+'"]').parent('li').toggleClass('active');
-   
-   
+
+
 });

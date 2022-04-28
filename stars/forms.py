@@ -1,12 +1,11 @@
 import re
 
-from django import forms
-from django.db.models import Q
-from django.core.exceptions import ValidationError
-
-from .models import Star, Identifier, Tag
-
 from astropy.coordinates.angles import Angle
+from django import forms
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+
+from .models import Star, Tag
 
 
 class RAField(forms.CharField):
@@ -78,7 +77,7 @@ class RangeField(forms.CharField):
             raise forms.ValidationError(
                 "Please provide a range using ':'.",
                 code='no_range',
-                )
+            )
         else:
             try:
                 value = value.strip().split(':')
@@ -87,7 +86,7 @@ class RangeField(forms.CharField):
                 raise forms.ValidationError(
                     'Cannot interpret provided range',
                     code='invalid_range',
-                    )
+                )
 
 
 class FilterStarForm(forms.Form):
@@ -96,42 +95,42 @@ class FilterStarForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={'class': 'filter-input', 'placeholder': 'min:max'}
-            ),
-        )
+        ),
+    )
 
     dec = RangeField(
         label="Dec: ",
         required=False,
         widget=forms.TextInput(
             attrs={'class': 'filter-input', 'placeholder': 'min:max'}
-            ),
-        )
+        ),
+    )
 
     mag = RangeField(
         label="V-mag: ",
         required=False,
         widget=forms.TextInput(
             attrs={'class': 'filter-input', 'placeholder': 'min:max'}
-            ),
-        )
+        ),
+    )
 
     status = forms.MultipleChoiceField(
         label="Status: ",
         required=False,
         widget=forms.CheckboxSelectMultiple,
-        )
+    )
 
     classification = forms.MultipleChoiceField(
         label="Class: ",
         required=False,
         widget=forms.CheckboxSelectMultiple,
-        )
+    )
 
     tag = forms.MultipleChoiceField(
         label="Tags: ",
         required=False,
         widget=forms.CheckboxSelectMultiple,
-        )
+    )
 
     def clean(self):
         cd = self.cleaned_data
@@ -143,9 +142,9 @@ class FilterStarForm(forms.Form):
             self.cleaned_data.pop('mag')
 
         if (not 'ra' in self.cleaned_data and
-            not 'dec' in self.cleaned_data and
-            self.cleaned_data['status'] == [] and
-            self.cleaned_data['tag'] == []):
+                not 'dec' in self.cleaned_data and
+                self.cleaned_data['status'] == [] and
+                self.cleaned_data['tag'] == []):
             raise forms.ValidationError("You should at least filter one thing")
 
         return self.cleaned_data
@@ -183,8 +182,8 @@ class SearchStarForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={'class': 'small-text', 'placeholder': 'Search'}
-            ),
-        )
+        ),
+    )
 
     def search(self):
         val = self.cleaned_data['q']
@@ -241,29 +240,29 @@ class UploadSystemDetailForm(forms.Form):
     get_simbad = forms.BooleanField(initial=False, required=False)
 
     #   Coordinates
-    ra  = RAField(
+    ra = RAField(
         max_length=20,
-        #required=True,
+        # required=True,
         required=False,
-        widget=forms.TextInput(attrs={'placeholder':'  h:m:s or d.d°'}),
-        )
+        widget=forms.TextInput(attrs={'placeholder': '  h:m:s or d.d°'}),
+    )
     dec = DecField(
         max_length=20,
-        #required=True,
+        # required=True,
         required=False,
-        widget=forms.TextInput(attrs={'placeholder':'  ° : \' : \'\' or d.d°'}),
-        )
+        widget=forms.TextInput(attrs={'placeholder': '  ° : \' : \'\' or d.d°'}),
+    )
 
     #   Spectral type
-    sp_type             = forms.CharField(max_length=30, required=False)
+    sp_type = forms.CharField(max_length=30, required=False)
     classification_type = forms.ChoiceField(
-        choices = (
+        choices=(
             ('SP', 'Spectroscopic'),
-            ('PH',  'Photometric'),
-            ),
-        initial = 'PH',
+            ('PH', 'Photometric'),
+        ),
+        initial='PH',
         required=False,
-        )
+    )
 
     #   Parallax
     parallax = forms.FloatField(required=False)
@@ -362,7 +361,7 @@ class UploadSystemDetailForm(forms.Form):
         queryset=Tag.objects.all(),
         widget=forms.CheckboxSelectMultiple,
         required=False,
-        )
+    )
 
     INSTRUMENTS = (
         ('APASS', 'APASS'),
@@ -374,6 +373,7 @@ class UploadSystemDetailForm(forms.Form):
     )
 
     instrument = forms.CharField(widget=forms.Select(choices=INSTRUMENTS))
+
 
 # ===========================================================================================
 #   SYSTEM DETAIL PHOTOMETRY

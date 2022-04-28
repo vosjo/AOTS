@@ -1,8 +1,6 @@
-
 from django_filters import rest_framework as filters
 
-from django.db.models import Value, CharField
-
+from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 from observations.models import (
     Spectrum,
     UserInfo,
@@ -10,16 +8,14 @@ from observations.models import (
     RawSpecFile,
     LightCurve,
     Observatory,
-    )
+)
 
-from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 
 # ===============================================================
 #   Spectrum
 # ===============================================================
 
 class SpectrumFilter(filters.FilterSet):
-
     target = filters.CharFilter(field_name="target", method="star_name_icontains", lookup_expr='icontains')
 
     hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
@@ -39,7 +35,7 @@ class SpectrumFilter(filters.FilterSet):
 
     class Meta:
         model = Spectrum
-        fields = ['project',]
+        fields = ['project', ]
 
     @property
     def qs(self):
@@ -52,19 +48,19 @@ class SpectrumFilter(filters.FilterSet):
         if not getter('order[0][column]') is None:
             order_column = int(getter('order[0][column]'))
             order_name = getter('columns[%i][data]' % order_column)
-            if getter('order[0][dir]') == 'desc': order_name = '-'+order_name
+            if getter('order[0][dir]') == 'desc': order_name = '-' + order_name
 
             return parent.order_by(order_name)
         else:
             return parent
 
-class UserInfoFilter(filters.FilterSet):
 
+class UserInfoFilter(filters.FilterSet):
     target = filters.CharFilter(
         field_name="target",
         method="star_name_icontains",
         lookup_expr='icontains',
-        )
+    )
 
     hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
     hjd_max = filters.NumberFilter(field_name="hjd", lookup_expr='lte')
@@ -75,12 +71,12 @@ class UserInfoFilter(filters.FilterSet):
     instrument = filters.CharFilter(
         field_name="instrument",
         lookup_expr='icontains',
-        )
+    )
 
     telescope = filters.CharFilter(
         field_name="telescope",
         lookup_expr='icontains',
-        )
+    )
 
     fluxcal = filters.BooleanFilter(field_name='fluxcal')
 
@@ -89,7 +85,7 @@ class UserInfoFilter(filters.FilterSet):
 
     class Meta:
         model = UserInfo
-        fields = ['project',]
+        fields = ['project', ]
 
     @property
     def qs(self):
@@ -102,12 +98,11 @@ class UserInfoFilter(filters.FilterSet):
         if not getter('order[0][column]') is None:
             order_column = int(getter('order[0][column]'))
             order_name = getter('columns[%i][data]' % order_column)
-            if getter('order[0][dir]') == 'desc': order_name = '-'+order_name
+            if getter('order[0][dir]') == 'desc': order_name = '-' + order_name
 
             return parent.order_by(order_name)
         else:
             return parent
-
 
 
 # ===============================================================
@@ -115,13 +110,12 @@ class UserInfoFilter(filters.FilterSet):
 # ===============================================================
 
 class SpecFileFilter(filters.FilterSet):
-
     #   Target filter
     target = filters.CharFilter(
         field_name="target",
         method="star_name_icontains",
         lookup_expr='icontains',
-        )
+    )
 
     #   JD filter
     hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
@@ -131,20 +125,20 @@ class SpecFileFilter(filters.FilterSet):
     instrument = filters.CharFilter(
         field_name="instrument",
         lookup_expr='icontains',
-        )
+    )
 
     #   File type filter
     filetype = filters.CharFilter(
         field_name="filetype",
         lookup_expr='icontains',
-        )
+    )
 
     #   File name filter
     filename = filters.CharFilter(
         field_name="filename",
         method="file_name_regex",
         lookup_expr='icontains',
-        )
+    )
 
     #   Target method
     def star_name_icontains(self, queryset, name, value):
@@ -152,11 +146,11 @@ class SpecFileFilter(filters.FilterSet):
 
     #   File name methode
     def file_name_regex(self, queryset, name, value):
-        return queryset.filter(specfile__regex='spectra/.*'+value+'.*')
+        return queryset.filter(specfile__regex='spectra/.*' + value + '.*')
 
     class Meta:
         model = SpecFile
-        fields = ['project',]
+        fields = ['project', ]
 
     @property
     def qs(self):
@@ -169,7 +163,7 @@ class SpecFileFilter(filters.FilterSet):
         if not getter('order[0][column]') is None:
             order_column = int(getter('order[0][column]'))
             order_name = getter('columns[%i][data]' % order_column)
-            if getter('order[0][dir]') == 'desc': order_name = '-'+order_name
+            if getter('order[0][dir]') == 'desc': order_name = '-' + order_name
 
             return parent.order_by(order_name)
         else:
@@ -181,13 +175,12 @@ class SpecFileFilter(filters.FilterSet):
 # ===============================================================
 
 class RawSpecFileFilter(filters.FilterSet):
-
     #   System filter
     systems = filters.CharFilter(
         field_name="stars",
         method="system_name_icontains",
         lookup_expr='icontains',
-        )
+    )
 
     #   JD filter
     hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
@@ -197,13 +190,13 @@ class RawSpecFileFilter(filters.FilterSet):
     instrument = filters.CharFilter(
         field_name="instrument",
         lookup_expr='icontains',
-        )
+    )
 
     #   File type filter
     filetype = filters.CharFilter(
         field_name="filetype",
         lookup_expr='icontains',
-        )
+    )
 
     #   Exposure time filter
     expo_min = filters.NumberFilter(field_name="exptime", lookup_expr='gte')
@@ -214,7 +207,7 @@ class RawSpecFileFilter(filters.FilterSet):
         field_name="filename",
         method="file_name_regex",
         lookup_expr='icontains',
-        )
+    )
 
     #   Obs. date filter
     obs_date = filters.CharFilter(
@@ -231,11 +224,11 @@ class RawSpecFileFilter(filters.FilterSet):
 
     #   File name method
     def file_name_regex(self, queryset, name, value):
-        return queryset.filter(rawfile__regex='raw_spectra/.*'+value+'.*')
+        return queryset.filter(rawfile__regex='raw_spectra/.*' + value + '.*')
 
     class Meta:
         model = RawSpecFile
-        fields = ['project',]
+        fields = ['project', ]
 
     @property
     def qs(self):
@@ -248,7 +241,7 @@ class RawSpecFileFilter(filters.FilterSet):
         if not getter('order[0][column]') is None:
             order_column = int(getter('order[0][column]'))
             order_name = getter('columns[%i][data]' % order_column)
-            if getter('order[0][dir]') == 'desc': order_name = '-'+order_name
+            if getter('order[0][dir]') == 'desc': order_name = '-' + order_name
 
             return parent.order_by(order_name)
         else:
@@ -260,7 +253,6 @@ class RawSpecFileFilter(filters.FilterSet):
 # ===============================================================
 
 class LightCurveFilter(filters.FilterSet):
-
     target = filters.CharFilter(field_name="target", method="star_name_icontains", lookup_expr='icontains')
 
     hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
@@ -273,7 +265,7 @@ class LightCurveFilter(filters.FilterSet):
 
     class Meta:
         model = LightCurve
-        fields = ['project',]
+        fields = ['project', ]
 
     @property
     def qs(self):
@@ -286,7 +278,7 @@ class LightCurveFilter(filters.FilterSet):
         if not getter('order[0][column]') is None:
             order_column = int(getter('order[0][column]'))
             order_name = getter('columns[%i][data]' % order_column)
-            if getter('order[0][dir]') == 'desc': order_name = '-'+order_name
+            if getter('order[0][dir]') == 'desc': order_name = '-' + order_name
 
             return parent.order_by(order_name)
         else:
@@ -298,7 +290,6 @@ class LightCurveFilter(filters.FilterSet):
 # ===============================================================
 
 class ObservatoryFilter(filters.FilterSet):
-
     name = filters.CharFilter(field_name="name", lookup_expr='icontains')
 
     class Meta:

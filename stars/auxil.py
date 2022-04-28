@@ -1,18 +1,15 @@
-from astroquery.vizier import Vizier
-from astroquery.simbad import Simbad
+import astropy.units as u
+import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import Angle
-
-import astropy.units as u
-
-import numpy as np
-
+from astroquery.simbad import Simbad
+from astroquery.vizier import Vizier
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import reverse, get_object_or_404
 
-from .models import Star
 from analysis.models import DataSource
+from .models import Star
 
 #   'simbad_id':    ID of the catalog
 #   'columns':      filter definition used by the catalog
@@ -324,7 +321,7 @@ def populate_system(star, star_pk):
                 name=simbad_tbl[0]['MAIN_ID'],
                 href="https://simbad.u-strasbg.fr/simbad/"
                      + "sim-id?Ident=" + simbad_tbl[0]['MAIN_ID']
-                     .replace(" ", "").replace('+', "%2B"),
+                         .replace(" ", "").replace('+', "%2B"),
             )
 
     # -- Add Tags
@@ -332,7 +329,7 @@ def populate_system(star, star_pk):
         for tag in star["tags"]:
             sobj.tags.add(tag)
 
-    # -- Add photometry
+        # -- Add photometry
         #   Loop over catalogs
         for name, content in catalogs.items():
             #   Check if photometry shall be loaded from Vizier

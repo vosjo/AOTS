@@ -3,9 +3,9 @@
 
 {% block head %}
 
-   {% include "datatables.html" %}
-   <script type="text/javascript" src="{% static 'js/method_list.js' %}"></script>
-   
+    {% include "datatables.html" %}
+    <script type="text/javascript" src="{% static 'js/method_list.js' %}"></script>
+
 {% endblock %}
 
 {% block headertitle %} Analysis: Methods {% endblock %}
@@ -13,68 +13,73 @@
 
 {% block content %}
 
-   <i display="none" id="project-pk" project={{project.pk}}></i>
+    <i display="none" id="project-pk" project={{ project.pk }}></i>
 
-   <section>
+    <section>
 
-   <table id="methodtable" class="fullwidth">
-   <thead>
-      <tr>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Slug</th>
-      <th>Color</th>
-      <th>Auto Derive</th>
-      <th>Data-type</th>
-      <th>Action <i class="methodAddButton material-icons button add" title="Add new method">add_box</i></th>
-      </tr>
-   </thead>
-   <tfoot>
-      <tr>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Slug</th>
-      <th>Color</th>
-      <th>Auto Derive</th>
-      <th>Data-type</th>
-      <th>Action <i class="methodAddButton material-icons button add" title="Add new method">add_box</i></th>
-      </tr>
-   </tfoot>
-   </table>
-   
-   
+        <table id="methodtable" class="fullwidth">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Slug</th>
+                <th>Color</th>
+                <th>Auto Derive</th>
+                <th>Data-type</th>
+                <th>Action <i class="methodAddButton material-icons button add" title="Add new method">add_box</i></th>
+            </tr>
+            </thead>
+            <tfoot>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Slug</th>
+                <th>Color</th>
+                <th>Auto Derive</th>
+                <th>Data-type</th>
+                <th>Action <i class="methodAddButton material-icons button add" title="Add new method">add_box</i></th>
+            </tr>
+            </tfoot>
+        </table>
 
-   </section>
 
-   <div id="addEditMethod">
-      <table>
-      <tr><td colspan='2'><input id="method-name" type='text' placeholder="Name" size="50"></td></tr>
-      <tr><td colspan='2'><textarea id="method-description" placeholder="Description" cols="50" rows="2"></textarea></td></tr>
-      <tr>
-      <td><label>Slug</label></td>
-      <td><input id="method-slug" type='text' placeholder="short name" maxlength="10"></td>
-      </tr>
-      <tr>
-      <td><label>Color</label></td>
-      <td><input id="method-color" class="color-input" maxlength="7" name="color" value="#8B0000" type="color"></td>
-      </tr>
-      <tr>
-      <td><label>Data Type</label></td>
-      <td>
-      <select id="method-dataType" name="datatype">
-         <option value="gen">Generic</option>
-         <option value="sed">SED hdf5</option>
-      </select>
-      </td>
-      </tr>
-      <tr>
-      <td><label>Automatially derive parameters:</label></td>
-      </tr>
-      <tr>
-      <td colspan='2'>
-      <input id="method-parameters" type='text' placeholder="',' separated list" size="50"></td>
-      </tr>
-      </table>
-   </div>
+    </section>
+
+    <div id="addEditMethod">
+        <table>
+            <tr>
+                <td colspan='2'><input id="method-name" type='text' placeholder="Name" size="50"></td>
+            </tr>
+            <tr>
+                <td colspan='2'><textarea id="method-description" placeholder="Description" cols="50"
+                                          rows="2"></textarea></td>
+            </tr>
+            <tr>
+                <td><label>Slug</label></td>
+                <td><input id="method-slug" type='text' placeholder="short name" maxlength="10"></td>
+            </tr>
+            <tr>
+                <td><label>Color</label></td>
+                <td><input id="method-color" class="color-input" maxlength="7" name="color" value="#8B0000"
+                           type="color"></td>
+            </tr>
+            <tr>
+                <td><label>Data Type</label></td>
+                <td>
+                    <select id="method-dataType" name="datatype">
+                        <option value="gen">Generic</option>
+                        <option value="sed">SED hdf5</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label>Automatially derive parameters:</label></td>
+            </tr>
+            <tr>
+                <td colspan='2'>
+                    <input id="method-parameters" type='text' placeholder="',' separated list" size="50"></td>
+            </tr>
+        </table>
+    </div>
 
 {% endblock %}

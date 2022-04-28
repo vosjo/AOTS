@@ -1,20 +1,17 @@
 from __future__ import unicode_literals
 
-from django.db import models
-from django.db.models.signals import pre_delete, post_delete, post_save, pre_save, post_init
-from django.dispatch import receiver
-
+import astropy.units as u
+from astroplan import Observer
+from astropy.coordinates import EarthLocation
+from astropy.time import Time
 from django.conf import settings
-
+from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from six import python_2_unicode_compatible
 
 from stars.models import Project
 from users.models import get_sentinel_user
-
-import astropy.units as u
-from astropy.time import Time
-from astropy.coordinates import EarthLocation
-from astroplan import Observer
 
 
 @python_2_unicode_compatible  # to support Python 2

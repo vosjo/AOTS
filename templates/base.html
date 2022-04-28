@@ -3,155 +3,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
-   <link href="{% static 'jquery-ui.css' %}" rel="stylesheet" type="text/css">
-   <link rel="icon"href="{% static 'favicon.ico' %}">
+    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'jquery-ui.css' %}" rel="stylesheet" type="text/css">
+    <link rel="icon" href="{% static 'favicon.ico' %}">
 
-   <script
-        src="https://code.jquery.com/jquery-3.6.0.min.js"
-        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-        crossorigin="anonymous"></script>
-   <script type="text/javascript" src="{% static 'js/base_js.js' %}"></script>
-   <script type="text/javascript" src="{% static 'jquery-ui.min.js' %}"></script>
+    <script
+            src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+            crossorigin="anonymous"></script>
+    <script type="text/javascript" src="{% static 'js/base_js.js' %}"></script>
+    <script type="text/javascript" src="{% static 'jquery-ui.min.js' %}"></script>
 
-   {% block head %}{% endblock %}
+    {% block head %}{% endblock %}
 </head>
 
 <body>
 
-   <div class="page-wrap-base">
+<div class="page-wrap-base">
 
-   <header>
+    <header>
 
-   <!--<div class="block">
+        <!--<div class="block">
    <img width="50px" height="75px"  src="{% static 'bimot_logo.svg' %}"/>
    </div>-->
 
-   <div id='titlebar'>
-      <h1>AOTS: {{project.name}}</h1>
-      <h2>{% block headertitle %}{% endblock %}</h2>
-   </div>
+        <div id='titlebar'>
+            <h1>AOTS: {{ project.name }}</h1>
+            <h2>{% block headertitle %}{% endblock %}</h2>
+        </div>
 
-   <nav>
+        <nav>
 
 
-   <div id="toolbar" role='navigation'>
-         <ul>
-            <li>
-               <i class="icon material-icons">help</i>
-               <a href="/w/documentation"> <u>docs</u> </a>
-            </li>
-            <li>
-               <i class="icon material-icons">assignment</i>
-               <a href="/"> Projects</a>
-            </li>
+            <div id="toolbar" role='navigation'>
+                <ul>
+                    <li>
+                        <i class="icon material-icons">help</i>
+                        <a href="/w/documentation"> <u>docs</u> </a>
+                    </li>
+                    <li>
+                        <i class="icon material-icons">assignment</i>
+                        <a href="/"> Projects</a>
+                    </li>
 
-            <li>
-               <i class="icon material-icons">star</i>
-               <a href={% url 'systems:star_list' project.slug %}>Systems</a>
-               <ul>
-               <li><a href={% url 'systems:star_list' project.slug %}>Systems</a></li>
-               <li><a href={% url 'systems:tag_list' project.slug %}>Tags</a></li>
-               </ul>
-            </li>
-            <li>
-               <i class="icon material-icons">visibility</i>
-               <a href={% url 'observations:spectra_list' project.slug %}>Observations</a>
-               <ul>
-                  <li>
-                     <a href={% url 'observations:spectra_list' project.slug %}>
-                        Spectra</a>
-                     <ul>
-                        <li><a href={% url 'observations:spectra_list' project.slug %}>Overview</a></li>
-                        <li><a href={% url 'observations:spectra_upload' project.slug %}>Upload</a></li>
-                        <li><a href={% url 'observations:specfile_list' project.slug %}>File list</a></li>
-                        <li><a href={% url 'observations:rawspecfile_list' project.slug %}>Raw data</a></li>
-                     </ul>
-                  </li>
-                  <li><a href={% url 'observations:lightcurve_list' project.slug %}>Light Curves</a></li>
-                  <li><a href={% url 'observations:observatory_list' project.slug %}>Observatories</a></li>
-               </ul>
-            </li>
-            <li>
-               <i class="icon material-icons">build</i>
-               <a href={% url 'analysis:dataset_list' project.slug %}>Analysis</a>
-               <ul>
-               <li><a href={% url 'analysis:dataset_list' project.slug %}>Datasets</a></li>
-               <li><a href={% url 'analysis:method_list' project.slug %}>Methods</a></li>
-               <li><a href={% url 'analysis:parameter_plotter' project.slug %}>Parameter plotter</a></li>
-               </ul>
-            </li>
-            {% if user.is_authenticated %}
-            <li>
-               <i class="icon material-icons">account_circle</i>
-               <a href="#">{{user}}</a>
-               <ul>
-               <li><a href="/accounts/logout">Log Out</a></li>
-               <li><a href="/accounts/password_change">Change password</a></li>
-               </ul>
-            </li>
-            {% else %}
-            <li>
-               <i class="icon material-icons">lock</i>
-               <a href="/accounts/login/?next={{request.path}}">Log In</a>
-               <ul>
-               <li><a href="/accounts/login/?next={{request.path}}">Log In</a></li>
-               <li><a href="/accounts/password_reset">Reset password</a></li>
-               </ul>
-            </li>
-            {% endif %}
-         </ul>
+                    <li>
+                        <i class="icon material-icons">star</i>
+                        <a href={% url 'systems:star_list' project.slug %}>Systems</a>
+                        <ul>
+                            <li><a href={% url 'systems:star_list' project.slug %}>Systems</a></li>
+                            <li><a href={% url 'systems:tag_list' project.slug %}>Tags</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <i class="icon material-icons">visibility</i>
+                        <a href={% url 'observations:spectra_list' project.slug %}>Observations</a>
+                        <ul>
+                            <li>
+                                <a href={% url 'observations:spectra_list' project.slug %}>
+                                    Spectra</a>
+                                <ul>
+                                    <li><a href={% url 'observations:spectra_list' project.slug %}>Overview</a></li>
+                                    <li><a href={% url 'observations:spectra_upload' project.slug %}>Upload</a></li>
+                                    <li><a href={% url 'observations:specfile_list' project.slug %}>File list</a></li>
+                                    <li><a href={% url 'observations:rawspecfile_list' project.slug %}>Raw data</a></li>
+                                </ul>
+                            </li>
+                            <li><a href={% url 'observations:lightcurve_list' project.slug %}>Light Curves</a></li>
+                            <li><a href={% url 'observations:observatory_list' project.slug %}>Observatories</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <i class="icon material-icons">build</i>
+                        <a href={% url 'analysis:dataset_list' project.slug %}>Analysis</a>
+                        <ul>
+                            <li><a href={% url 'analysis:dataset_list' project.slug %}>Datasets</a></li>
+                            <li><a href={% url 'analysis:method_list' project.slug %}>Methods</a></li>
+                            <li><a href={% url 'analysis:parameter_plotter' project.slug %}>Parameter plotter</a></li>
+                        </ul>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li>
+                            <i class="icon material-icons">account_circle</i>
+                            <a href="#">{{ user }}</a>
+                            <ul>
+                                <li><a href="/accounts/logout">Log Out</a></li>
+                                <li><a href="/accounts/password_change">Change password</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li>
+                            <i class="icon material-icons">lock</i>
+                            <a href="/accounts/login/?next={{ request.path }}">Log In</a>
+                            <ul>
+                                <li><a href="/accounts/login/?next={{ request.path }}">Log In</a></li>
+                                <li><a href="/accounts/password_reset">Reset password</a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                </ul>
 
-      </div>
+            </div>
 
-<!--       <div id="subtoolbar" role='navigation'> -->
-<!--       </div> -->
+            <!--       <div id="subtoolbar" role='navigation'> -->
+            <!--       </div> -->
 
-   </nav>
+        </nav>
 
-   {% block header %}{% endblock %}
-   </header>
+        {% block header %}{% endblock %}
+    </header>
 
-   <ul id="messages">
-      {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-      {% endfor %}
-   </ul>
+    <ul id="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
 
-   {% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 
-   </div>
+</div>
 
-   <script type="text/javascript">
-      // Save in this variable if there is an authenticated user
-      // This variable is accessible on every other place in the code.
-      {% if user.is_authenticated %}
-      var user_authenticated = true;
-      {% else %}
-      var user_authenticated = false;
-      {% endif %}
-   </script>
+<script type="text/javascript">
+    // Save in this variable if there is an authenticated user
+    // This variable is accessible on every other place in the code.
+    {% if user.is_authenticated %}
+        var user_authenticated = true;
+    {% else %}
+        var user_authenticated = false;
+    {% endif %}
+</script>
 
-   <footer class="site-footer">
-      <div>
-      <i>
-<!--       contact: jorisvos (at) uni-potsdam.de -->
-      contact: aots (at) astro.physik.uni-potsdam.de
-      </i>
+<footer class="site-footer">
+    <div>
+        <i>
+            <!--       contact: jorisvos (at) uni-potsdam.de -->
+            contact: aots (at) astro.physik.uni-potsdam.de
+        </i>
 
-      <i>
-      source code: <a href="https://github.com/vosjo/AOTS">https://github.com/vosjo/AOTS</a>
-      </i>
+        <i>
+            source code: <a href="https://github.com/vosjo/AOTS">https://github.com/vosjo/AOTS</a>
+        </i>
 
-      </div>
-   </footer>
+    </div>
+</footer>
 
 <!--    Cookie banner to comply with EU cookie law -->
 <!--    https://github.com/dobarkod/cookie-banner/ -->
 <script type="text/javascript" id="cookiebanner"
-  src="https://cdn.jsdelivr.net/gh/dobarkod/cookie-banner@1.2.2/dist/cookiebanner.min.js"
-  data-message="We use cookies to improve your browsing experience."
-  moreinfo="https://en.wikipedia.org/wiki/HTTP_cookie">
+        src="https://cdn.jsdelivr.net/gh/dobarkod/cookie-banner@1.2.2/dist/cookiebanner.min.js"
+        data-message="We use cookies to improve your browsing experience."
+        moreinfo="https://en.wikipedia.org/wiki/HTTP_cookie">
 </script>
 
 </body>

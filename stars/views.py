@@ -99,7 +99,7 @@ def star_list(request, project=None, **kwargs):
                                 messages.ERROR,
                                 "Exception occurred when adding: {}".format(
                                     str(f.name)
-                                    ),
+                                ),
                             )
 
                 return HttpResponseRedirect(reverse(
@@ -141,7 +141,7 @@ def star_list(request, project=None, **kwargs):
                         messages.ERROR,
                         "Exception occurred when adding: {}".format(
                             star["main_id"]
-                            ),
+                        ),
                     )
 
                 return HttpResponseRedirect(reverse(

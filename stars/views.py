@@ -9,15 +9,22 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect, reverse
 
 from AOTS.custom_permissions import check_user_can_view_project
-from analysis import models as analModels
-from analysis.models import Method, DataSource
+from analysis.models import Method
 from observations.plotting import plot_sed
-from .auxil import populate_system, invalid_form, update_photometry
+from .auxil import populate_system, invalid_form, update_photometry, get_params
+
+
+def __init__(self, *args, **kwargs):
+    super(EligibilityForm, self).__init__(*args, **kwargs)
+    # dynamic fields here ...
+    self.fields['plan_id'] = CharField()
+
+
 from .forms import (
     StarForm,
     UploadSystemForm,
     UploadSystemDetailForm,
-    UpdatePhotometryForm,
+    UpdatePhotometryForm, UpdateParamsForm,
 )
 from .models import Star, Tag, Project
 
@@ -192,12 +199,16 @@ def star_detail(request, star_id, project=None, **kwargs):
     project = get_object_or_404(Project, slug=project)
     update_phot_form = UpdatePhotometryForm()
 
+    parameters, _ = get_params(star_id)
+    update_params_form = UpdateParamsForm(parameters)
+
     star = get_object_or_404(Star, pk=star_id)
     context = {
         'star': star,
         'tags': Tag.objects.filter(project__exact=project),
         'project': project,
         'update_phot_form': update_phot_form,
+        'update_params_form': update_params_form,
     }
 
     #   Make related systems list, but only show 10 systems before and after the
@@ -242,41 +253,7 @@ def star_detail(request, star_id, project=None, **kwargs):
         context['sed_plot'] = div[0]
         context['script'] = script
 
-    #   Get all parameters for the parameter overview
-    component_names = {0: 'System', 1: 'Primary', 2: 'Secondary'}
-
-    parameters = []
-    pSource_pks = star.parameter_set.values_list('data_source').distinct()
-    pSource = DataSource.objects.filter(id__in=pSource_pks).order_by('name')
-
-    for comp in [analModels.SYSTEM, analModels.PRIMARY, analModels.SECONDARY]:
-        pNames = star.parameter_set \
-            .filter(component__exact=comp, valid__exact=True) \
-            .values_list('name').distinct()
-        pNames = sorted(
-            [name[0] for name in pNames],
-            key=analModels.parameter_order,
-        )
-
-        allParameters = star.parameter_set.all().filter(component__exact=comp)
-
-        params = []
-        for name in pNames:
-            values, pinfo = [], None
-            for source in pSource:
-                try:
-                    p = allParameters.get(
-                        name__exact=name,
-                        data_source__exact=source.pk,
-                    )
-                    values.append(r"{} &pm; {}".format(p.rvalue(), p.rerror()))
-                    pinfo = p
-                except Exception as e:
-                    values.append("/")
-
-            params.append({'values': values, 'pinfo': pinfo})
-
-        parameters.append({'params': params, 'component': component_names[comp]})
+    parameters, pSource = get_params(star_id)
 
     if request.method == 'POST' and request.user.is_authenticated:
         # Differentiate between Vizier and Edit form submit buttons

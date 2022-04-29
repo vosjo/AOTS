@@ -1437,3 +1437,9 @@ td.bold {
 .small {
     font-size: 11px
 }
+
+.paramedit {
+    cursor: pointer;
+    margin-top: 10px;
+    float: right;
+}

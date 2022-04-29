@@ -49,6 +49,7 @@ $(document).ready(function () {
     $("#tagEditButton").click(openTagEditBox);
     $("#allParameterButton").click(openAllParameterBox);
     $("#photedit").click(enablephotedit);
+    $("#paramedit").click(enableparamedit);
 
     // Delete identifier on click
     $(".identifier").on('click', 'i[id^=delete-identifier-]', function () {
@@ -340,6 +341,10 @@ function enablephotedit() {
     }
 }
 
+function enableparamedit() {
+
+}
+
 
 function Toggledropdown() {
     $("#addbanddropdown").toggleClass("show");
@@ -356,7 +361,3 @@ $(window).click(function (e) {
         })
     }
 })
-
-function GetVizier() {
-
-}

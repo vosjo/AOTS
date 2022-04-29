@@ -626,8 +626,22 @@
                 {% endfor %}
 
             {% endfor %}
+            {% for paramset in update_params_form.get_fields %}
+                <tr>
+                    {% for pfield, perrfield in paramset %}
+                        <td>{{ pfield.label }}</td>
+                        <td>{{ pfield }}</td>
+                        ±
+                        <td>{{ perrfield }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
             </tbody>
         </table>
+        <button id="paramedit" class="paramedit">
+            <i class="material-icons button" title="Edit">edit</i>
+            Edit values
+        </button>
     </div>
 
 {% endblock %}

@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import reverse, get_object_or_404
 
+from analysis import models as analModels
 from analysis.models import DataSource
 from .models import Star
 
@@ -580,3 +581,41 @@ def update_photometry(cleaned_data, project, star_id, from_vizier):
                             unit='mag',
                         )
     return True, ""
+
+
+#   Get all parameters for the parameter overview
+def get_params(star_id):
+    star = get_object_or_404(Star, pk=star_id)
+    parameters = []
+    pSource_pks = star.parameter_set.values_list('data_source').distinct()
+    pSource = DataSource.objects.filter(id__in=pSource_pks).order_by('name')
+    component_names = {0: 'System', 1: 'Primary', 2: 'Secondary'}
+    for comp in [analModels.SYSTEM, analModels.PRIMARY, analModels.SECONDARY]:
+        pNames = star.parameter_set \
+            .filter(component__exact=comp, valid__exact=True) \
+            .values_list('name').distinct()
+        pNames = sorted(
+            [name[0] for name in pNames],
+            key=analModels.parameter_order,
+        )
+
+        allParameters = star.parameter_set.all().filter(component__exact=comp)
+
+        params = []
+        for name in pNames:
+            values, pinfo = [], None
+            for source in pSource:
+                try:
+                    p = allParameters.get(
+                        name__exact=name,
+                        data_source__exact=source.pk,
+                    )
+                    values.append(r"{} &pm; {}".format(p.rvalue(), p.rerror()))
+                    pinfo = p
+                except Exception as e:
+                    values.append("/")
+
+            params.append({'values': values, 'pinfo': pinfo})
+
+        parameters.append({'params': params, 'component': component_names[comp]})
+    return parameters, pSource

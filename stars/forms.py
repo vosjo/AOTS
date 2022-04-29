@@ -462,3 +462,28 @@ class UpdatePhotometryForm(forms.Form):
     PANImagerr = forms.FloatField(required=False, label='PANSTAR.Ierr', show_hidden_initial=True)
     PANZmagerr = forms.FloatField(required=False, label='PANSTAR.Zerr', show_hidden_initial=True)
     PANYmagerr = forms.FloatField(required=False, label='PANSTAR.Yerr', show_hidden_initial=True)
+
+
+# ===========================================================================================
+#   SYSTEM PARAMETERS
+# ===========================================================================================
+
+class UpdateParamsForm(forms.Form):
+    def __init__(self, params, *args, **kwargs):
+        super(UpdateParamsForm, self).__init__(*args, **kwargs)
+        for param in params:
+            for paramset in param["params"]:
+                index = param["params"].index(paramset)
+                name = paramset["pinfo"].name
+                self.fields[name + str(index)] = forms.FloatField(required=False, label=name + str(index),
+                                                                  show_hidden_initial=True)
+                self.fields[name + str(index) + "_err"] = forms.FloatField(required=False,
+                                                                           label=name + str(index) + "_err",
+                                                                           show_hidden_initial=True)
+
+    def get_fields(self):
+        None
+#       for field_name in self.fields:
+
+
+#        yield self[field_name]

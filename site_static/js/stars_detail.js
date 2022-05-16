@@ -124,6 +124,31 @@ $(document).ready(function () {
             e.preventDefault();
         }
     });
+
+
+    $($(".pformtr").get().reverse()).each(function (ind, obj) {
+        let comp = $(obj).data("comp");
+        let name = $(obj).data("name");
+        let source = $(obj).data("source");
+        let emptyid = "#emptytd-" + source + "-" + name
+        source = source.replace('-', ' ');
+        let ntr = 0;
+        $("#psources").children().each(function (i, col) {
+            if (col.innerText == source) {
+                ntr = i - 2;
+            }
+        })
+        for (let k = 0; k < ntr; k++) {
+            $("<td></td>").insertAfter($(emptyid));
+        }
+        let appid = "#comp-" + comp;
+        $(obj).insertAfter(appid);
+    });
+    $(".parambtn").click(function (e) {
+        if (!confirm("Do you really want to manually update values? This only allows for a single error value, and may overwrite lower and upper error bounds!")) {
+            e.preventDefault();
+        }
+    });
 });
 
 // Create the page dynamically
@@ -342,7 +367,10 @@ function enablephotedit() {
 }
 
 function enableparamedit() {
-
+    $(".pformtr").show()
+    $(".pconsttr").hide()
+    $("#paramedit").hide()
+    $("#parambtn").show()
 }
 
 

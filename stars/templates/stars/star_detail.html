@@ -600,44 +600,48 @@
     </div>
 
     <div id="allParameters">
-        <table class="paramtable overview">
-            <thead>
-            <tr>
-                <th>Parameter</th>
-                {% for source in parameterSources %}
-                    <th>{{ source.name }}</th>
-                {% endfor %}
-            </tr>
-            </thead>
-
-            <tbody>
-            {% for comp in allParameters %}
-
-                <tr>
-                    <th><b> {{ comp.component }} </b></th>
-                </tr>
-                {% for pline in comp.params %}
-                    <tr>
-                        <th> {{ pline.pinfo.name }} ({{ pline.pinfo.unit }})</th>
-                        {% for p in pline.values %}
-                            <td> {{ p|safe }} </td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-
-            {% endfor %}
-            {% for paramset in update_params_form.get_fields %}
-                <tr>
-                    {% for pfield, perrfield in paramset %}
-                        <td>{{ pfield.label }}</td>
-                        <td>{{ pfield }}</td>
-                        ±
-                        <td>{{ perrfield }}</td>
+        <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
+              enctype="multipart/form-data" class="" id="param-update-form">
+            {% csrf_token %}
+            <table class="paramtable overview">
+                <thead>
+                <tr id="psources">
+                    <th>Parameter</th>
+                    {% for source in parameterSources %}
+                        <th>{{ source.name }}</th>
                     {% endfor %}
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+
+                <tbody>
+                {% for comp in allParameters %}
+                    <tr id="{{ "comp-"|add:comp.component }}">
+                        <th><b> {{ comp.component }} </b></th>
+                    </tr>
+                    {% for pline in comp.params %}
+                        <tr class="pconsttr">
+                            <th> {{ pline.pinfo.name }} ({{ pline.pinfo.unit }})</th>
+                            {% for p in pline.values %}
+                                <td> {{ p|safe }} </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+
+                {% endfor %}
+                {% for pfield, perrfield, name, comp, source in update_params_form.get_fields %}
+                    <tr hidden class="pformtr" data-comp={{ comp }} data-source={{ source }} data-name={{ name }}>
+                        {# Just plop the fields in here, and arrange them with JS later #}
+                        <td>{{ name }}</td>
+                        <td id="emptytd-{{ source }}-{{ name }}"></td>
+                        <td>{{ pfield }}±{{ perrfield }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <button class="paramedit" name="parambtn" id="parambtn" hidden><i
+                    class="material-icons button" title="Save">save</i>Save changes
+            </button>
+        </form>
         <button id="paramedit" class="paramedit">
             <i class="material-icons button" title="Edit">edit</i>
             Edit values

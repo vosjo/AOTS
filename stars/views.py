@@ -11,15 +11,7 @@ from django.shortcuts import get_object_or_404, render, redirect, reverse
 from AOTS.custom_permissions import check_user_can_view_project
 from analysis.models import Method
 from observations.plotting import plot_sed
-from .auxil import populate_system, invalid_form, update_photometry, get_params
-
-
-def __init__(self, *args, **kwargs):
-    super(EligibilityForm, self).__init__(*args, **kwargs)
-    # dynamic fields here ...
-    self.fields['plan_id'] = CharField()
-
-
+from .auxil import populate_system, invalid_form, update_photometry, get_params, update_parameters
 from .forms import (
     StarForm,
     UploadSystemForm,
@@ -199,8 +191,7 @@ def star_detail(request, star_id, project=None, **kwargs):
     project = get_object_or_404(Project, slug=project)
     update_phot_form = UpdatePhotometryForm()
 
-    parameters, _ = get_params(star_id)
-    update_params_form = UpdateParamsForm(parameters)
+    update_params_form = UpdateParamsForm(star_id=star_id)
 
     star = get_object_or_404(Star, pk=star_id)
     context = {
@@ -258,6 +249,37 @@ def star_detail(request, star_id, project=None, **kwargs):
     if request.method == 'POST' and request.user.is_authenticated:
         # Differentiate between Vizier and Edit form submit buttons
         if "vizierbtn" not in request.POST:
+            if "parambtn" in request.POST:
+                update_params_form = UpdateParamsForm(
+                    star_id=star_id,
+                    data=request.POST
+                )
+                if update_params_form.is_valid():
+                    try:
+                        success, message = update_parameters(
+                            update_params_form.cleaned_data,
+                            project,
+                            star_id
+                        )
+                        level = messages.SUCCESS if success else messages.ERROR
+                        messages.add_message(request, level, message)
+                    except Exception as e:
+                        print(e)
+                        messages.add_message(
+                            request,
+                            messages.ERROR,
+                            "Exception occurred while updating photometry",
+                        )
+
+                    return HttpResponseRedirect(reverse(
+                        'systems:star_detail',
+                        kwargs={'project': project.slug,
+                                "star_id": star_id},
+                    ))
+                else:
+                    #   Handle invalid form
+                    print(update_params_form.errors)
+                    invalid_form(request, 'systems:star_detail', project.slug, star_id=star_id)
             update_phot_form = UpdatePhotometryForm(
                 request.POST,
                 request.FILES,
@@ -287,7 +309,7 @@ def star_detail(request, star_id, project=None, **kwargs):
                 ))
             else:
                 #   Handle invalid form
-                invalid_form(request, 'stars/star_detail.html', project.slug)
+                invalid_form(request, 'systems:star_detail', project.slug, star_id=star_id)
         else:
             try:
                 success, message = update_photometry(

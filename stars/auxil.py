@@ -230,9 +230,9 @@ errs = ['phot_g_mean_magerr',
         'PANYmagerr']
 
 
-def invalid_form(request, redirect, project_slug):
+def invalid_form(request, redirect, project_slug, star_id=None):
     """
-        Handel invalid forms
+        Handle invalid forms
     """
     #   Add message
     messages.add_message(
@@ -242,9 +242,15 @@ def invalid_form(request, redirect, project_slug):
     )
     print("Invalid form...")
     #   Return and redirect
-    return HttpResponseRedirect(
-        reverse(redirect, kwargs={'project': project_slug})
-    )
+    if star_id:
+        return HttpResponseRedirect(
+            reverse(redirect, kwargs={'project': project_slug,
+                                      "star_id": star_id})
+        )
+    else:
+        return HttpResponseRedirect(
+            reverse(redirect, kwargs={'project': project_slug})
+        )
 
 
 def populate_system(star, star_pk):
@@ -619,3 +625,34 @@ def get_params(star_id):
 
         parameters.append({'params': params, 'component': component_names[comp]})
     return parameters, pSource
+
+
+def pk_from_source_name(sname, star):
+    pSource_pks = star.parameter_set.values_list('data_source').distinct()
+    for i in pSource_pks:
+        pSource = DataSource.objects.filter(id__in=i)
+        if pSource[0].name == sname:
+            return i, pSource[0]
+
+
+def update_parameters(cleaned_data, project, star_id):
+    star = get_object_or_404(Star, pk=star_id)
+    for key, val in cleaned_data.items():
+        if "err" not in key:
+            name, comp, source = key.split("_")
+            errname = key.split("_")
+            errname[0] += "-err"
+            errname = "_".join(errname)
+            errval = cleaned_data[errname]
+            spk, dSource = pk_from_source_name(source, star)
+            paramset = star.parameter_set.filter(name__exact=name, data_source__exact=spk)
+            if len(paramset) != 0:
+                paramset[0].delete()
+            star.parameter_set.create(
+                name=name,
+                data_source=dSource,
+                value=val,
+                error_l=errval,
+                error_u=errval
+            )
+    return True, ""

@@ -5,6 +5,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
+from .auxil import get_params
 from .models import Star, Tag
 
 
@@ -469,21 +470,37 @@ class UpdatePhotometryForm(forms.Form):
 # ===========================================================================================
 
 class UpdateParamsForm(forms.Form):
-    def __init__(self, params, *args, **kwargs):
+    def __init__(self, star_id, *args, **kwargs):
         super(UpdateParamsForm, self).__init__(*args, **kwargs)
+
+        params, _ = get_params(star_id)
+
         for param in params:
             for paramset in param["params"]:
-                index = param["params"].index(paramset)
+                ind = params.index(param)
+                comp = params[ind]["component"]
                 name = paramset["pinfo"].name
-                self.fields[name + str(index)] = forms.FloatField(required=False, label=name + str(index),
-                                                                  show_hidden_initial=True)
-                self.fields[name + str(index) + "_err"] = forms.FloatField(required=False,
-                                                                           label=name + str(index) + "_err",
-                                                                           show_hidden_initial=True)
+                source = paramset["pinfo"].data_source.name
+                initval, initerrval = paramset["values"][0].split(" &pm; ")
+                initval = float(initval)
+                initerrval = float(initerrval)
+
+                # add initial value directly to field
+                self.fields["_".join([name, comp, source])] = forms.FloatField(required=False,
+                                                                               label=source + "_" + name,
+                                                                               show_hidden_initial=True,
+                                                                               initial=initval)
+                self.fields["_".join([name + "-err", comp, source])] = forms.FloatField(required=False,
+                                                                                        label=source + "_" + name + "_err",
+                                                                                        show_hidden_initial=True,
+                                                                                        initial=initerrval)
 
     def get_fields(self):
-        None
-#       for field_name in self.fields:
-
-
-#        yield self[field_name]
+        for field_name in self.fields:
+            if "err" not in field_name:
+                errname = field_name.split("_")
+                errname[0] += "-err"
+                errname = "_".join(errname)
+                name, comp, source = field_name.split("_")
+                source = source.replace(" ", "-")
+                yield [self[field_name], self[errname], name, comp, source]

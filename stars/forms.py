@@ -501,6 +501,9 @@ class UpdateParamsForm(forms.Form):
                 errname = field_name.split("_")
                 errname[0] += "-err"
                 errname = "_".join(errname)
-                name, comp, source = field_name.split("_")
+                field_name_split = field_name.split("_")
+                name = field_name_split[0]
+                comp = field_name_split[1]
+                source = field_name_split[2]
                 source = source.replace(" ", "-")
                 yield [self[field_name], self[errname], name, comp, source]

@@ -498,12 +498,19 @@ class UpdateParamsForm(forms.Form):
     def get_fields(self):
         for field_name in self.fields:
             if "err" not in field_name:
-                errname = field_name.split("_")
-                errname[0] += "-err"
-                errname = "_".join(errname)
-                field_name_split = field_name.split("_")
-                name = field_name_split[0]
-                comp = field_name_split[1]
-                source = field_name_split[2]
+                if "System" in field_name:
+                    delimiter = "_System_"
+                elif "Primary" in field_name:
+                    delimiter = "_Primary_"
+                elif "Secondary" in field_name:
+                    delimiter = "_Secondary_"
+
+                errname = field_name.split(delimiter)
+                errname[0] += "-err"+delimiter
+                errname = "".join(errname)
+
+                name, source = field_name.split(delimiter)
+                comp = delimiter.replace("_", "")
+
                 source = source.replace(" ", "-")
                 yield [self[field_name], self[errname], name, comp, source]

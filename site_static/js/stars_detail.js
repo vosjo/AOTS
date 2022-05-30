@@ -206,10 +206,18 @@ function openTagEditBox() {
     update_tag_window.dialog("open");
 }
 
+function closeAllParameterBox(all_parameters_window) {
+    $(".pformtr").hide();
+    $(".pconsttr").show();
+    $("#paramedit").show();
+    $("#parambtn").hide();
+    all_parameters_window.dialog("close");
+}
+
 function openAllParameterBox() {
     all_parameters_window = $("#allParameters").dialog({
         close: function () {
-            all_parameters_window.dialog("close");
+            closeAllParameterBox(all_parameters_window)
         }
     });
 

@@ -638,9 +638,11 @@
                 {% endfor %}
                 </tbody>
             </table>
-            <button class="paramedit" name="parambtn" id="parambtn" hidden><i
-                    class="material-icons button" title="Save">save</i>Save changes
-            </button>
+            {% if user.is_authenticated %}
+                <button class="paramedit" name="parambtn" id="parambtn" hidden><i
+                        class="material-icons button" title="Save">save</i>Save changes
+                </button>
+            {% endif %}
         </form>
         <button id="paramedit" class="paramedit">
             <i class="material-icons button" title="Edit">edit</i>

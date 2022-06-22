@@ -1444,3 +1444,6 @@ td.bold {
     float: right;
 }
 
+#copyParametersWindowButton {
+    margin: 5px;
+}

@@ -43,13 +43,23 @@ $(document).ready(function () {
         modal: true
     });
 
+    var copy_parameters_window = $("#copyParameters").dialog({
+        autoOpen: false,
+        title: 'Copy Parameters',
+        width: 'auto',
+        height: 'auto',
+        modal: true
+    });
+
     // add event listeners
     $("#noteEditButton").click(openNoteUpdateBox);
     $("#identifierAddButton").click(openIdentifierAddBox);
     $("#tagEditButton").click(openTagEditBox);
     $("#allParameterButton").click(openAllParameterBox);
+    $("#copyParametersWindowButton").click(openAllParameterCopyBox);
     $("#photedit").click(enablephotedit);
     $("#paramedit").click(enableparamedit);
+    $('#copyParametersBtn').click(copyparams);
 
     // Delete identifier on click
     $(".identifier").on('click', 'i[id^=delete-identifier-]', function () {
@@ -149,6 +159,8 @@ $(document).ready(function () {
             e.preventDefault();
         }
     });
+    let ptextbox = $("#parameterTextBox")
+    ptextbox.val($.trim(ptextbox.val()).replace(/ ± /g, ","))
 });
 
 // Create the page dynamically
@@ -397,3 +409,22 @@ $(window).click(function (e) {
         })
     }
 })
+
+// Window from which parameters can be copied as a .csv
+function openAllParameterCopyBox() {
+    copy_parameters_window = $("#copyParameters").dialog({
+        close: function () {
+            closeAllParameterBox(copy_parameters_window)
+        }
+    });
+
+    copy_parameters_window.dialog("open");
+}
+
+function copyparams() {
+    let copyText = $("#parameterTextBox").val();
+    navigator.clipboard.writeText(copyText).then(function () {
+    }, function () {
+        alert('Failure to copy. Check permissions for clipboard')
+    });
+}

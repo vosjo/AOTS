@@ -196,7 +196,8 @@
 
                 <h3>Aliases</h3>
                 {% if user.is_authenticated %}
-                    <i id="identifierAddButton" class="material-icons button add" title="Add new" star_id={{ star.pk }}>add_box</i>
+                    <i id="identifierAddButton" class="material-icons button add" title="Add new"
+                       star_id={{ star.pk }}>add_box</i>
                 {% endif %}
 
                 <div class="flex-data-container" id="identifier_list">
@@ -209,7 +210,8 @@
                         {% endif %}
 
                     {% if user.is_authenticated %}
-                        <i class="material-icons button delete" id="delete-identifier-{{ name.pk }}" title="Delete">delete</i>
+                        <i class="material-icons button delete" id="delete-identifier-{{ name.pk }}"
+                           title="Delete">delete</i>
                     {% endif %}
                     </div>
                     {% empty %}
@@ -644,10 +646,23 @@
                 </button>
             {% endif %}
         </form>
-        <button id="paramedit" class="paramedit">
-            <i class="material-icons button" title="Edit">edit</i>
-            Edit values
-        </button>
+        <i id="copyParametersWindowButton" class="material-icons button edit"
+           title="Copy Parameters">content_copy</i>
+        {% if user.is_authenticated %}
+            <button id="paramedit" class="paramedit">
+                <i class="material-icons button" title="Edit">edit</i>
+                Edit values
+            </button>
+        {% endif %}
+    </div>
+
+    <div id="copyParameters" title="Copy Parameters">
+{# This formatting needs to stay this way!! #}
+        <textarea disabled autocomplete="off" type="text" id="parameterTextBox">
+        {% for comp in allParameters %}{% for source in parameterSources %}{% if source.name == "AVG" %}{% for pline in comp.params %}{{ comp.component }}-{{ pline.pinfo.name }},{{ comp.component }}-{{ pline.pinfo.name }}-err{% if forloop.last %}{% else %},{% endif %}{% endfor %}{% endif %}{% endfor %}{% endfor %}
+{% for comp in allParameters %}{% for pline in comp.params %}{% for p in pline.values %}{% if forloop.first %}{{ p|safe }}{% if forloop.parentloop.last %}{% else %},{% endif %}{% endif %}{% endfor %}{% endfor %}{% endfor %}
+        </textarea>
+        <button id="copyParametersBtn">Copy text</button>
     </div>
 
 {% endblock %}

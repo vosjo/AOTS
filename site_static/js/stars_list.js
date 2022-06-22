@@ -53,15 +53,18 @@ $(document).ready(function () {
 
     //Add toolbar to table
     if (user_authenticated) {
-        $("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
-            "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>" +
-            "<input id='addsystem-button' class='tb-button' value='Add System(s)' type='button'>" +
-            "<input id='delete-button' class='tb-button' value='Delete System(s)' type='button' disabled>");
-    } else {
-        $("div.toolbar").html("<input id='tag-button'  class='tb-button' value='Edit Tags' type='button' disabled>" +
-            "<input id='status-button' class='tb-button' value='Change Status' type='button' disabled>");
+        $("div.toolbar").html(
+            "<button onclick='Toggledropdown()' class='dropbtn' id='editselected'><i\n" +
+            "                                            class='material-icons button' title='Edit selected'>edit_note</i>Edit selected" +
+            "                                    </button>" +
+            "<button id='addsystem-button' class='tb-button'><i class='material-icons button' title='Add System(s)'>add</i>Add System(s)</button>" +
+            "<div id='editdropdown' class='dropdown-content'>" +
+            "<a id='tag-button'  class='tb-button disabled' >Edit Tags</a>" +
+            "<a id='status-button' class='tb-button disabled'>Change Status</a>" +
+            "<a id='delete-button' class='tb-button disabled'>Delete System(s)</a>" +
+            "</div>"
+        )
     }
-    ;
 
     // Event listener to the two range filtering inputs to redraw on input
     $('#filter-form').submit(function (event) {
@@ -503,9 +506,9 @@ function select_row(row) {
     } else {
         $('#select-all').text('check_box');
     }
-    $('#tag-button').prop('disabled', false)
-    $('#status-button').prop('disabled', false)
-    $('#delete-button').prop('disabled', false)
+    $('#tag-button').removeClass("disabled")
+    $('#status-button').removeClass("disabled")
+    $('#delete-button').removeClass("disabled")
 }
 
 function deselect_row(row) {
@@ -513,9 +516,9 @@ function deselect_row(row) {
     $(row.node()).removeClass('selected');
     if (star_table.rows('.selected').data().length === 0) {
         $('#select-all').text('check_box_outline_blank');
-        $('#tag-button').prop('disabled', true)
-        $('#status-button').prop('disabled', true)
-        $('#delete-button').prop('disabled', true)
+        $('#tag-button').addClass("disabled")
+        $('#status-button').addClass("disabled")
+        $('#delete-button').addClass("disabled")
     } else {
         $('#select-all').text('indeterminate_check_box');
     }
@@ -746,9 +749,9 @@ function deleteSystems() {
                         n += 1;
                         star_table.row(row).remove().draw('full-hold');
                         $('#select-all').text('check_box_outline_blank');
-                        $('#tag-button').prop('disabled', true);
-                        $('#status-button').prop('disabled', true);
-                        $('#delete-button').prop('disabled', true);
+                        $('#tag-button').addClass("disabled");
+                        $('#status-button').addClass("disabled");
+                        $('#delete-button').addClass("disabled");
                         $('#progress-bar').val(n)
                     },
                     error: function (xhr, errmsg, err) {
@@ -808,3 +811,18 @@ function allow_unselect(e) {
         $(this).prop('checked', false);
     }
 }
+
+function Toggledropdown() {
+    $("#editdropdown").toggleClass("show");
+}
+
+// Close the dropdown menu if the user clicks outside of it
+$(window).click(function (e) {
+    if (!e.target.matches('.dropbtn')) {
+        $(".dropdown-content").each(function (i) {
+            if ($(this).hasClass('show')) {
+                $(this).removeClass('show');
+            }
+        })
+    }
+})

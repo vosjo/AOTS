@@ -1447,3 +1447,9 @@ td.bold {
 #copyParametersWindowButton {
     margin: 5px;
 }
+
+
+a.disabled {
+    pointer-events: none;
+    color: gray;
+}

@@ -275,6 +275,7 @@
                                                                               title="Edit">edit</i>Edit
                                         values
                                     </button>
+                                    <i id="copyPhotometryWindowButton" class="material-icons button edit" title="Copy Photometry">content_copy</i>
                                 </h3>
                                 <div class="dropdown">
                                     <button onclick="Toggledropdown()" class="dropbtn" id="addband" hidden><i
@@ -291,7 +292,9 @@
                                 </div>
                             </div>
                         {% else %}
-                            <h3 class="center"> Photometry </h3>
+                            <h3 class="center"> Photometry
+                            <i id="copyPhotometryWindowButton" class="material-icons button edit" title="Copy Photometry">content_copy</i>
+                            </h3>
                         {% endif %}
                         <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
                               enctype="multipart/form-data" class="" id="phot-update-form">
@@ -379,7 +382,7 @@
                                 </div>
                             </div>
                         {% else %}
-                            <h3 class="center"> Photometry </h3>
+                            <h3 class="center"> Photometry</h3>
                         {% endif %}
                         <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
                               enctype="multipart/form-data" class="" id="phot-update-form">
@@ -663,6 +666,16 @@
 {% for comp in allParameters %}{% for pline in comp.params %}{% for p in pline.values %}{% if forloop.first %}{{ p|safe }}{% if forloop.parentloop.last %}{% else %},{% endif %}{% endif %}{% endfor %}{% endfor %}{% endfor %}
         </textarea>
         <button id="copyParametersBtn">Copy text</button>
+    </div>
+
+    <div id="copyPhotometry" title="Copy Photometry">
+{# This formatting needs to stay this way!! #}
+        <textarea disabled autocomplete="off" type="text" id="photometryTextBox">
+band_name, wavelength, mag, err
+{% for phot in star.photometry_set.all %}{{ phot.band }},{{ phot.wavelength }},{{ phot.get_value }},{{ phot.get_error }}
+{% endfor %}
+        </textarea>
+        <button id="copyPhotometryBtn">Copy text</button>
     </div>
 
 {% endblock %}

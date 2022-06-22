@@ -51,15 +51,25 @@ $(document).ready(function () {
         modal: true
     });
 
+    var copy_photometry_window = $("#copyPhotometry").dialog({
+        autoOpen: false,
+        title: 'Copy Photometry',
+        width: 'auto',
+        height: 'auto',
+        modal: true
+    });
+
     // add event listeners
     $("#noteEditButton").click(openNoteUpdateBox);
     $("#identifierAddButton").click(openIdentifierAddBox);
     $("#tagEditButton").click(openTagEditBox);
     $("#allParameterButton").click(openAllParameterBox);
     $("#copyParametersWindowButton").click(openAllParameterCopyBox);
+    $("#copyPhotometryWindowButton").click(openPhotometryCopyBox);
     $("#photedit").click(enablephotedit);
     $("#paramedit").click(enableparamedit);
     $('#copyParametersBtn').click(copyparams);
+    $('#copyPhotometryBtn').click(copyphot);
 
     // Delete identifier on click
     $(".identifier").on('click', 'i[id^=delete-identifier-]', function () {
@@ -159,8 +169,13 @@ $(document).ready(function () {
             e.preventDefault();
         }
     });
+
+    // Strip Whitespace artifacts caused by HTML from csv copytext
     let ptextbox = $("#parameterTextBox")
     ptextbox.val($.trim(ptextbox.val()).replace(/ ± /g, ","))
+
+    let phottextbox = $("#photometryTextBox")
+    phottextbox.val($.trim(phottextbox.val()))
 });
 
 // Create the page dynamically
@@ -414,7 +429,7 @@ $(window).click(function (e) {
 function openAllParameterCopyBox() {
     copy_parameters_window = $("#copyParameters").dialog({
         close: function () {
-            closeAllParameterBox(copy_parameters_window)
+            copy_parameters_window.dialog("close");
         }
     });
 
@@ -423,6 +438,26 @@ function openAllParameterCopyBox() {
 
 function copyparams() {
     let copyText = $("#parameterTextBox").val();
+    navigator.clipboard.writeText(copyText).then(function () {
+    }, function () {
+        alert('Failure to copy. Check permissions for clipboard')
+    });
+}
+
+
+// Window from which photometry can be copied as a .csv
+function openPhotometryCopyBox() {
+    copy_photometry_window = $("#copyPhotometry").dialog({
+        close: function () {
+            copy_photometry_window.dialog("close");
+        }
+    });
+
+    copy_photometry_window.dialog("open");
+}
+
+function copyphot() {
+    let copyText = $("#photometryTextBox").val();
     navigator.clipboard.writeText(copyText).then(function () {
     }, function () {
         alert('Failure to copy. Check permissions for clipboard')

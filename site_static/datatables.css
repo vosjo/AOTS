@@ -615,7 +615,8 @@ div.toolbar {
 }
 
 div.toolbar .tb-button {
-    margin-left: 5px;
+    margin-left: 2px;
+    margin-right: 2px;
 }
 
 div.toolbar .alert {

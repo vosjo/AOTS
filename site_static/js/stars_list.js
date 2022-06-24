@@ -173,8 +173,8 @@ $(document).ready(function () {
     $("#tag-button").click(openTagEditWindow);
     $("#delete-button").click(deleteSystems);
     $("#addsystem-button").click(openAddSystemsWindow);
-    $("#tospectra-button").click(openTagEditWindow);
-    $("#tolightcurve-button").click(openTagEditWindow);
+    $("#tospectra-button").click(toSpecta);
+    $("#tolightcurve-button").click(toLightcurve);
 
 
     //   Reset check boxes when changing number of displayed objects in table
@@ -364,6 +364,8 @@ $(document).ready(function () {
 // Table filter functionality
 
 function get_filter_keywords(d) {
+
+    console.log(d)
 
     var selected_class = $("#classification_options input:checked").map(function () {
         return this.value;
@@ -829,10 +831,18 @@ function allow_unselect(e) {
 
 function Toggleeditdropdown() {
     $("#editdropdown").toggleClass("show");
+    let otherdd = $("#carryoverdropdown");
+    if (otherdd.hasClass("show")){
+        otherdd.toggleClass("show");
+    }
 }
 
 function Togglecarryoverdropdown() {
     $("#carryoverdropdown").toggleClass("show");
+    let otherdd = $("#editdropdown")
+    if (otherdd.hasClass("show")){
+        otherdd.toggleClass("show");
+    }
 }
 
 // Close the dropdown menu if the user clicks outside of it
@@ -845,3 +855,23 @@ $(window).click(function (e) {
         })
     }
 })
+
+function toSpecta(){
+    let pks = []
+    star_table.rows('.selected').every(function(rowIdx, tableLoop, rowLoop) {
+                let pk = this.data()["pk"];
+                pks.push(pk);
+    });
+    sessionStorage.setItem("selectedpks", pks);
+    window.location.href = "../../observations/spectra";
+}
+
+function toLightcurve(){
+    let pks = []
+    star_table.rows('.selected').every(function(rowIdx, tableLoop, rowLoop) {
+                let pk = this.data()["pk"];
+                pks.push(pk);
+    });
+    sessionStorage.setItem("selectedpks", pks);
+    window.location.href = "../../observations/lightcurves";
+}

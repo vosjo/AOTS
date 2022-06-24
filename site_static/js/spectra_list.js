@@ -35,7 +35,7 @@ $(document).ready(function () {
         serverSide: true,
         ajax: {
             url: '/api/observations/spectra/?format=datatables&keep=specfiles,telescope,href',
-            data: get_filter_keywords,
+            data: get_filter_keywords
         },
         searching: false,
         orderMulti: false, //Can only order on one column at a time
@@ -521,4 +521,11 @@ function download_rawfiles() {
 
         });
     });
+}
+
+
+function carryover(p){
+    let pks = sessionStorage.getItem('selectedpks').split(',');
+    console.log($.type(pks), pks);
+    sessionStorage.removeItem("selectedpks");
 }

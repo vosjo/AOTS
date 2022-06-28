@@ -75,13 +75,14 @@ div#titlebar {
 nav {
     display: inline-block;
     float: right;
-    margin-right: 2.5%
+    margin-right: 2.5%;
+    width: 50%;
 }
 
 div#toolbar {
     display: flex-block;
-    align-items: center;
-    float: left;
+    align-items: right;
+    float: right;
     z-index: 10;
 }
 
@@ -1458,4 +1459,8 @@ a.disabled {
     float:left;
     margin-left: 2px;
     margin-right: 2px;
+}
+
+.headerdiv {
+    overflow: hidden;
 }

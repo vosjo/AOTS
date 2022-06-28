@@ -832,7 +832,7 @@ function allow_unselect(e) {
 function Toggleeditdropdown() {
     $("#editdropdown").toggleClass("show");
     let otherdd = $("#carryoverdropdown");
-    if (otherdd.hasClass("show")){
+    if (otherdd.hasClass("show")) {
         otherdd.toggleClass("show");
     }
 }
@@ -840,7 +840,7 @@ function Toggleeditdropdown() {
 function Togglecarryoverdropdown() {
     $("#carryoverdropdown").toggleClass("show");
     let otherdd = $("#editdropdown")
-    if (otherdd.hasClass("show")){
+    if (otherdd.hasClass("show")) {
         otherdd.toggleClass("show");
     }
 }
@@ -856,21 +856,21 @@ $(window).click(function (e) {
     }
 })
 
-function toSpecta(){
+function toSpecta() {
     let pks = []
-    star_table.rows('.selected').every(function(rowIdx, tableLoop, rowLoop) {
-                let pk = this.data()["pk"];
-                pks.push(pk);
+    star_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+        let pk = this.data()["pk"];
+        pks.push(pk);
     });
     sessionStorage.setItem("selectedpks", pks);
     window.location.href = "../../observations/spectra";
 }
 
-function toLightcurve(){
+function toLightcurve() {
     let pks = []
-    star_table.rows('.selected').every(function(rowIdx, tableLoop, rowLoop) {
-                let pk = this.data()["pk"];
-                pks.push(pk);
+    star_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+        let pk = this.data()["pk"];
+        pks.push(pk);
     });
     sessionStorage.setItem("selectedpks", pks);
     window.location.href = "../../observations/lightcurves";

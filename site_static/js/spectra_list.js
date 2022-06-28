@@ -28,15 +28,26 @@ $(document).ready(function () {
             {data: 'exptime'},
         ];
     }
+
+    let ajax_kw;
+    if (sessionStorage.getItem("selectedpks") === null) {
+        ajax_kw = {
+            url: '/api/observations/spectra/?format=datatables&keep=specfiles,telescope,href',
+            data: get_filter_keywords
+        }
+    } else {
+        ajax_kw = {
+            url: '/api/observations/spectra/?format=datatables&keep=specfiles,telescope,href',
+            data: carryover
+        }
+    }
+
     // Table functionality
     spectra_table = $('#spectratable').DataTable({
         dom: 'l<"toolbar">frtip',
         autoWidth: false,
         serverSide: true,
-        ajax: {
-            url: '/api/observations/spectra/?format=datatables&keep=specfiles,telescope,href',
-            data: get_filter_keywords
-        },
+        ajax: ajax_kw,
         searching: false,
         orderMulti: false, //Can only order on one column at a time
         order: [1],
@@ -524,8 +535,17 @@ function download_rawfiles() {
 }
 
 
-function carryover(p){
-    let pks = sessionStorage.getItem('selectedpks').split(',');
-    console.log($.type(pks), pks);
+function carryover(d) {
+    if (sessionStorage.getItem("selectedpks") === null) {
+        return get_filter_keywords(d)
+    }
+    let pks = sessionStorage.getItem('selectedpks');
     sessionStorage.removeItem("selectedpks");
+
+    d = $.extend({}, d, {
+        "project": $('#project-pk').attr('project'),
+        "pk": pks
+    });
+
+    return d;
 }

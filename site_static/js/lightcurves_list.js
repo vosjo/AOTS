@@ -34,15 +34,27 @@ $(document).ready(function () {
             },
         ]
     }
+
+    let ajax_kw;
+    if (sessionStorage.getItem("selectedpks") === null) {
+        ajax_kw = {
+            url: '/api/observations/lightcurves/?format=datatables&keep=telescope,href',
+            data: get_filter_keywords,
+        }
+    } else {
+        console.log("Carryover!")
+        ajax_kw = {
+            url: '/api/observations/lightcurves/?format=datatables&keep=telescope,href',
+            data: carryover,
+        }
+    }
+
     // Table functionality
     lightcurve_table = $('#lightcurvetable').DataTable({
         dom: 'l<"toolbar">frtip',
         autoWidth: false,
         serverSide: true,
-        ajax: {
-            url: '/api/observations/lightcurves/?format=datatables&keep=telescope,href',
-            data: get_filter_keywords,
-        },
+        ajax: ajax_kw,
         searching: false,
         orderMulti: false, //Can only order on one column at a time
         order: [1],
@@ -370,4 +382,20 @@ function download_lightcurves() {
                 });
         });
     });
+}
+
+
+function carryover(d) {
+    if (sessionStorage.getItem("selectedpks") === null) {
+        return get_filter_keywords(d)
+    }
+    let pks = sessionStorage.getItem('selectedpks');
+    sessionStorage.removeItem("selectedpks");
+
+    d = $.extend({}, d, {
+        "project": $('#project-pk').attr('project'),
+        "pk": pks
+    });
+
+    return d;
 }

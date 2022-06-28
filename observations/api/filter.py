@@ -271,7 +271,10 @@ class LightCurveFilter(filters.FilterSet):
     pk = filters.Filter(field_name="pk", method="star_pk_in")
 
     def star_pk_in(self, queryset, name, value):
+        logging.info("Stuff!")
+        logging.info(value)
         pks = value.split(",")
+        logging.info(pks)
         return queryset.filter(star__pk__in=pks)
 
     def star_name_icontains(self, queryset, name, value):

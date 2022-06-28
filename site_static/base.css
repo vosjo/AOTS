@@ -413,6 +413,7 @@ div.project-container {
     margin: 5px;
     border: solid 2px rgba(64, 117, 144, 0.3);
     align-items: center;
+    transition: box-shadow .3s;
 }
 
 div.project-container div {
@@ -1463,4 +1464,26 @@ a.disabled {
 
 .headerdiv {
     overflow: visible;
+}
+
+.dropdownbtn {
+    margin-right: 5px;
+}
+
+.projectlink {
+    position:absolute;
+    cursor: pointer;
+    width:100%;
+    height:100%;
+    top:0;
+    left: 0;
+    z-index: 1;
+}
+
+div.project-container:hover {
+  box-shadow: 0 0 11px rgba(33,33,33,.2);
+}
+
+h3.titlelink {
+    color: #5B7FB1FF;
 }

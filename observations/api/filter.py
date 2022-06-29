@@ -30,6 +30,12 @@ class SpectrumFilter(filters.FilterSet):
 
     fluxcal = filters.BooleanFilter(field_name='fluxcal')
 
+    pk = filters.Filter(field_name="pk", method="star_pk_in")
+
+    def star_pk_in(self, queryset, name, value):
+        pks = value.split(",")
+        return queryset.filter(star__pk__in=pks)
+
     def star_name_icontains(self, queryset, name, value):
         return queryset.filter(star__name__icontains=value)
 
@@ -259,6 +265,12 @@ class LightCurveFilter(filters.FilterSet):
     hjd_max = filters.NumberFilter(field_name="hjd", lookup_expr='lte')
 
     instrument = filters.CharFilter(field_name="instrument", lookup_expr='icontains')
+
+    pk = filters.Filter(field_name="pk", method="star_pk_in")
+
+    def star_pk_in(self, queryset, name, value):
+        pks = value.split(",")
+        return queryset.filter(star__pk__in=pks)
 
     def star_name_icontains(self, queryset, name, value):
         return queryset.filter(spectrum__star__name__icontains=value)

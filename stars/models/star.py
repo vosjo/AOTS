@@ -128,6 +128,27 @@ class Star(models.Model):
 
         return pars
 
+    # Generate .csv snippet of all parameters for specific source
+    def parameter_csv(self):
+        from analysis.models import COMPONENT_CHOICES, DataSource
+
+        all_csv_dict = {}
+
+        for source in DataSource.objects.all():
+            params_from_source = self.parameter_set.filter(data_source__name__iexact=source.name)
+
+            csv_dict = {}
+            for p in params_from_source:
+                choices_dict = {}
+                for key, val in COMPONENT_CHOICES:
+                    choices_dict[key] = val
+                comp = choices_dict[p.component]
+                csv_dict[f"{comp}_{p.name}"] = str(p.value)
+                csv_dict[f"{comp}_{p.name}_err"] = str(p.error)
+
+            all_csv_dict[source.name.replace(" ", "_")] = ",".join([*(csv_dict.keys())]) + "\n" + ",".join([*(csv_dict.values())])
+        return all_csv_dict
+
     # -- hms and dms representation for ra and dec
     def ra_hms(self):
         try:

@@ -96,6 +96,10 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
     #    Spectrum normalized?
     spectrum.normalized = data.get('normalized', False)
 
+    #    Master spectrum or decomposed spectrum?
+    spectrum.master = data.get('master', False)
+    spectrum.decomposed = data.get('decomposed', False)
+
     #   Observing conditions
     if isfloat(data.get('wind_speed', -1)):
         spectrum.wind_speed = data.get('wind_speed', -1)

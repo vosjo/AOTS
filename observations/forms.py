@@ -86,6 +86,10 @@ class UploadSpectraDetailForm(forms.Form):
     fluxcal = forms.BooleanField(required=False)
     flux_units = forms.CharField(max_length=50, required=False)
 
+    #   Master and/or decomposed spectrum
+    master = forms.BooleanField(required=False)
+    decomposed = forms.BooleanField(required=False)
+
     #   Note
     note = forms.CharField(
         widget=forms.Textarea(attrs={'cols': 70, 'rows': 10}),

@@ -107,6 +107,7 @@ function openSpectrumEditBox() {
 function statusNorm() {
     //  Check if plot is already normalized (dirty hack)
     let checkNorm = $("script")[7].text.search('normalized');
+
     //  Set normalization option to True accordingly
     if (checkNorm != -1) {
         $("#id_normalize").attr('checked', true);

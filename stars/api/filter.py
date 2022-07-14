@@ -41,8 +41,18 @@ class StarFilter(filters.FilterSet):
     )
 
     #   RA & DEC filter
-    ra = filters.RangeFilter(field_name="ra", )
-    dec = filters.RangeFilter(field_name="dec", )
+    #ra = filters.RangeFilter(field_name="ra", )
+    #dec = filters.RangeFilter(field_name="dec", )
+    ra = filters.CharFilter(
+        field_name="ra",
+        method='filter_ra',
+        lookup_expr='icontains',
+    )
+    dec = filters.CharFilter(
+        field_name="dec",
+        method='filter_dec',
+        lookup_expr='icontains',
+    )
 
     #   Classification filters
     classification = filters.CharFilter(
@@ -121,7 +131,7 @@ class StarFilter(filters.FilterSet):
             return queryset.filter(name__icontains=value)
 
     def filter_coordinates(self, queryset, name, value):
-        ra, dec = value.split()
+        ra, dec = value.split('--')
 
         if ':' in ra:
             ra = Angle(ra, unit='hour').degree
@@ -132,6 +142,45 @@ class StarFilter(filters.FilterSet):
 
         return queryset.filter(ra__range=[ra - 15. / 3600., ra + 15. / 3600.]).filter(
             dec__range=[dec - 5. / 3600., dec + 5. / 3600.])
+
+    def filter_ra(self, queryset, name, value):
+        ra_min, ra_max = value.split('--')
+
+        try:
+            if ':' in ra_min:
+                ra_min = Angle(ra_min, unit='hour').degree
+            else:
+                ra_min = Angle(ra_min, unit='degree').degree
+        except:
+            ra_min = Angle(0., unit='degree').degree
+
+        try:
+            if ':' in ra_max:
+                ra_max = Angle(ra_max, unit='hour').degree
+            else:
+                ra_max = Angle(ra_max, unit='degree').degree
+        except:
+            ra_max = Angle(360., unit='degree').degree
+
+        return queryset.filter(ra__range=[ra_min, ra_max])
+
+    def filter_dec(self, queryset, name, value):
+        dec_min, dec_max = value.split('--')
+
+        try:
+            dec_min = float(dec_min)
+        except:
+            dec_min = -90.
+
+        try:
+            dec_max = float(dec_max)
+        except:
+            dec_max = 90.
+
+        dec_min = Angle(dec_min, unit='degree').degree
+        dec_max = Angle(dec_max, unit='degree').degree
+
+        return queryset.filter(dec__range=[dec_min, dec_max])
 
     def filter_magnitude_gt(self, queryset, name, value):
         return queryset.filter(

@@ -39,9 +39,6 @@ class Spectrum(models.Model):
     az = models.FloatField(default=-1)  # average azimut angle of observation
     airmass = models.FloatField(default=-1)  # average airmass
 
-    #    Spectrum normalized
-    normalized = models.BooleanField(default=False)
-
     # -- telescope and instrument info
     exptime = models.FloatField(default=-1)  # s
     barycor = models.FloatField(default=0)  # km/s
@@ -69,9 +66,21 @@ class Spectrum(models.Model):
         null=True,
     )
 
-    # -- flag if the spectrum is flux calibrated, defaults to False. And the flux unit.
+
+    # -- Processing status
+    #   Flag if the spectrum is flux calibrated, defaults to False. And the flux unit.
     fluxcal = models.BooleanField(default=False)
     flux_units = models.CharField(max_length=50, default='ergs/cm/cm/s/A')
+
+    #   Flag if the spectrum is normalized
+    normalized = models.BooleanField(default=False)
+
+    #   Flag if the spectrum is a master spectrum
+    master = models.BooleanField(default=False)
+
+    #   Flag if the spectrum is a decomposed spectrum
+    decomposed = models.BooleanField(default=False)
+
 
     # -- flag to indicate that the spectrum is of good quality
     valid = models.BooleanField(default=True)

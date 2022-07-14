@@ -115,20 +115,13 @@
                                 <td class="mono">{{ spectrum.instrument }} @ {{ spectrum.telescope }}</td>
                             </tr>
                             <tr>
-                                <th>Resolution:</th>
-                                <td class="mono">{{ spectrum.resolution|format_float_negative_na:'0|' }}</td>
-                            </tr>
-                            <tr>
                                 <th>Observer:</th>
                                 <td class="mono">{{ spectrum.observer }}</td>
                             </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="block">
-                        <table class='datatable'>
-                            <tbody>
+                            <tr>
+                                <th>Resolution:</th>
+                                <td class="mono">{{ spectrum.resolution|format_float_negative_na:'0|' }}</td>
+                            </tr>
                             <tr>
                                 <th>Exposure:</th>
                                 <td class="mono">{{ spectrum.exptime|format_float_negative_na:'1|s' }}</td>
@@ -137,6 +130,13 @@
                                 <th>SNR:</th>
                                 <td class="mono">{{ spectrum.snr|format_float_negative_na:'0|' }}</td>
                             </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="block">
+                        <table class='datatable'>
+                            <tbody>
                             <tr>
                                 <th>Seeing:</th>
                                 <td class="mono">{{ spectrum.seeing|format_float_negative_na:'1|"' }}</td>
@@ -170,6 +170,22 @@
                                     <td class="mono">NA</td>
                                 </tr>
                             {% endif %}
+                            <tr>
+                                <th>Normalized:</th>
+                                <td class="mono">{{ spectrum.normalized|yesno:"Yes,No" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Flux calibrated:</th>
+                                <td class="mono">{{ spectrum.fluxcal|yesno:"Yes,No" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Decomposed spectrum:</th>
+                                <td class="mono">{{ spectrum.decomposed|yesno:"Yes,No" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Master spectrum:</th>
+                                <td class="mono">{{ spectrum.master|yesno:"Yes,No" }}</td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>

@@ -1,8 +1,6 @@
 $(document).ready(function () {
     disabled_all();
 
-    $('#id_flux_units').attr('disabled', 'disabled');
-
     $('#id_fluxcal').change(
         function () {
             if ($(this).is(':checked')) {
@@ -22,7 +20,6 @@ $(document).ready(function () {
                 $('#id_flux_units').attr('disabled', 'disabled');
             } else {
                 $('#id_fluxcal').removeAttr('disabled');
-                $('#id_flux_units').removeAttr('disabled');
             }
         }
     );
@@ -111,9 +108,10 @@ $(document).ready(function () {
                 $('#id_normalized').removeAttr('disabled');
                 $('#id_barycor_bool').removeAttr('disabled');
                 $('#id_fluxcal').removeAttr('disabled');
-                $('#id_flux_units').removeAttr('disabled');
+                $('#id_master').removeAttr('disabled');
+                $('#id_master').removeAttr('disabled');
                 $('#id_note').removeAttr('disabled');
-                $('#id_filetype').removeAttr('disabled');
+                $('#id_decomposed').removeAttr('disabled');
                 $('#user_info').removeClass('gray');
                 $('h3').removeClass('gray');
             } else {
@@ -153,6 +151,8 @@ function disabled_all() {
     $('#id_flux_units').attr('disabled', 'disabled');
     $('#id_note').attr('disabled', 'disabled');
     $('#id_filetype').attr('disabled', 'disabled');
+    $('#id_master').attr('disabled', 'disabled');
+    $('#id_decomposed').attr('disabled', 'disabled');
     $('#user_info').addClass('gray');
     $('h3').addClass('gray');
 }

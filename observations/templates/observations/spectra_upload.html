@@ -138,7 +138,7 @@
 
 
                     <div class="tag-container">
-                        <h3>Instrument and setup </h3>
+                        <h3>Instrument setup </h3>
 
                         <table class='datatable'>
                             <tbody>
@@ -178,24 +178,10 @@
                                     {{ upload_form.snr.errors }}
                                 </td>
                             </tr>
-                            <tr>
-                                <th>Flux calibrated:</th>
-                                <td>{{ upload_form.fluxcal }}
-                                    {{ upload_form.fluxcal.errors }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Flux units:</th>
-                                <td>{{ upload_form.flux_units }}
-                                    {{ upload_form.flux_units.errors }}
-                                </td>
-                            </tr>
                             </tbody>
                         </table>
-                    </div>
 
-                    <div class="tag-container">
-                        <h3>Weather and conditions</h3>
+                        <h3>Wind conditions</h3>
 
                         <table class='datatable'>
                             <tbody>
@@ -211,6 +197,16 @@
                                     {{ upload_form.wind_speed.errors }}
                                 </td>
                             </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="tag-container">
+
+                        <h3>Seeing and airmass</h3>
+
+                        <table class='datatable'>
+                            <tbody>
                             <tr>
                                 <th>Seeing ("):</th>
                                 <td>{{ upload_form.seeing }}
@@ -226,7 +222,7 @@
                             </tbody>
                         </table>
 
-                        <h3>Spectrum infos</h3>
+                        <h3>Spectrum processing</h3>
 
                         <table class='datatable'>
                             <tbody>
@@ -240,6 +236,30 @@
                                 <th> Normalized:</th>
                                 <td>{{ upload_form.normalized }}
                                     {{ upload_form.normalized.errors }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Flux calibrated:</th>
+                                <td>{{ upload_form.fluxcal }}
+                                    {{ upload_form.fluxcal.errors }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Flux units:</th>
+                                <td>{{ upload_form.flux_units }}
+                                    {{ upload_form.flux_units.errors }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th> Master spectrum:</th>
+                                <td>{{ upload_form.master }}
+                                    {{ upload_form.master.errors }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th> Master decomposed:</th>
+                                <td>{{ upload_form.decomposed }}
+                                    {{ upload_form.decomposed.errors }}
                                 </td>
                             </tr>
                             <tr>

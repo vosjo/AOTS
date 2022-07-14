@@ -365,8 +365,6 @@ $(document).ready(function () {
 
 function get_filter_keywords(d) {
 
-    console.log(d)
-
     var selected_class = $("#classification_options input:checked").map(function () {
         return this.value;
     }).get();
@@ -382,34 +380,36 @@ function get_filter_keywords(d) {
         "name": $('#filter_name').val(),
         "coordinates": $('#filter_co').val(),
         "classification": $('#filter_class').val(),
+        "ra": $('#filter_ra').val(),
+        "dec": $('#filter_dec').val(),
         "status": selected_status[0],
         "tags": selected_tags[0],
 
     });
 
-    if ($('#filter_ra').val() != '') {
-        d = $.extend({}, d, {
-            "ra_min": parseFloat($('#filter_ra').val().split(':')[0]) / 24 * 360 || 0,
-            "ra_max": parseFloat($('#filter_ra').val().split(':')[1]) / 24 * 360 || 360,
-        });
-    }
+//     if ($('#filter_ra').val() != '') {
+//         d = $.extend({}, d, {
+//             "ra_min": parseFloat($('#filter_ra').val().split(':')[0]) / 24 * 360 || 0,
+//             "ra_max": parseFloat($('#filter_ra').val().split(':')[1]) / 24 * 360 || 360,
+//         });
+//     }
 
-    if ($('#filter_dec').val() != '') {
-        var min = parseFloat($('#filter_dec').val().split(':')[0]);
-        var max = parseFloat($('#filter_dec').val().split(':')[1]);
-
-        if (min == NaN) {
-            min = -90
-        }
-        if (max == NaN) {
-            max = 90
-        }
-
-        d = $.extend({}, d, {
-            "dec_min": min,
-            "dec_max": max,
-        });
-    }
+//     if ($('#filter_dec').val() != '') {
+//         var min = parseFloat($('#filter_dec').val().split(':')[0]);
+//         var max = parseFloat($('#filter_dec').val().split(':')[1]);
+//
+//         if (min == NaN) {
+//             min = -90
+//         }
+//         if (max == NaN) {
+//             max = 90
+//         }
+//
+//         d = $.extend({}, d, {
+//             "dec_min": min,
+//             "dec_max": max,
+//         });
+//     }
 
     if ($('#filter_mag').val() != '') {
         d = $.extend({}, d, {

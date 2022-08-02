@@ -517,11 +517,11 @@ function select_row(row) {
     } else {
         $('#select-all').text('check_box');
     }
-    $('#tag-button').removeClass("disabled")
-    $('#status-button').removeClass("disabled")
-    $('#delete-button').removeClass("disabled")
-    $('#tospectra-button').removeClass("disabled")
-    $('#tolightcurve-button').removeClass("disabled")
+    $('#tag-button').removeClass("disabled");
+    $('#status-button').removeClass("disabled");
+    $('#delete-button').removeClass("disabled");
+    $('#tospectra-button').removeClass("disabled");
+    $('#tolightcurve-button').removeClass("disabled");
 }
 
 function deselect_row(row) {
@@ -529,11 +529,11 @@ function deselect_row(row) {
     $(row.node()).removeClass('selected');
     if (star_table.rows('.selected').data().length === 0) {
         $('#select-all').text('check_box_outline_blank');
-        $('#tag-button').addClass("disabled")
-        $('#status-button').addClass("disabled")
-        $('#delete-button').addClass("disabled")
-        $('#tospectra-button').addClass("disabled")
-        $('#tolightcurve-button').addClass("disabled")
+        $('#tag-button').addClass("disabled");
+        $('#status-button').addClass("disabled");
+        $('#delete-button').addClass("disabled");
+        $('#tospectra-button').addClass("disabled");
+        $('#tolightcurve-button').addClass("disabled");
     } else {
         $('#select-all').text('indeterminate_check_box');
     }

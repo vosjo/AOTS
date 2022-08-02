@@ -112,12 +112,21 @@ $(document).ready(function () {
     //Add toolbar to table
     if (user_authenticated) {
         $("div.toolbar").html(
-            "<input id='dl-button'  class='tb-button' value='Download Spectra' type='button' disabled>" +
-            '<progress id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
-            "<input id='dl-raw-button'  class='tb-button' value='Download Raw Data' type='button' disabled>" +
-            '<progress id="progress-bar-raw" value="0" max="100" class="progress-bar"></progress>' +
-            "<input id='delete-button'  class='tb-button' value='Delete Spectra' type='button' disabled>" +
-            "<p class='hide' id='result'></p>"
+            "<div class='dropdown-container'>" +
+            "<button onclick='Toggleeditdropdown()' class='dropbtn' id='editselected'><i class='material-icons button' title='Edit selected'>edit_note</i>Edit selected</button>"+
+            "<div id='editdropdown' class='dropdown-content'>" +
+            "<a id='delete-button' class='tb-button disabled'><i class='material-icons button dropdownbtn'>delete</i>Delete Spectra</a>" +
+            "</div>" +
+            "</div>" +
+            "<div class='dropdown-container'>" +
+            "<button onclick='Toggledownloaddropdown()' class='dropbtn' id='download'><i class='material-icons button' title='Carry over selection'>download</i>Download Files</button>"+
+            "<div id='downloaddropdown' class='dropdown-content'>" +
+            "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i>Download Spectra</a>" +
+            "<a id='dl-button-raw' class='tb-button disabled'><i class='material-icons button dropdownbtn'>raw_on</i>Download Raw Data</a>" +
+            "</div>" +
+            "</div>" +
+            '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
+            '<progress hidden id="progress-bar-raw" value="0" max="100" class="progress-bar"></progress>'
         );
         $("#dl-button").click(download_specfiles);
         $("#delete-button").click(delete_all_selected_specfiles);
@@ -241,10 +250,10 @@ function select_row(row) {
     } else {
         $('#select-all').text('check_box');
     }
-    $('#dl-button').prop('disabled', false);
-    $('#dl-raw-button').prop('disabled', false);
-    $('#rm-button').prop('disabled', false);
-    $('#delete-button').prop('disabled', false);
+    $('#dl-button').removeClass("disabled");
+    $('#dl-raw-button').removeClass("disabled");
+    $('#rm-button').removeClass("disabled");
+    $('#delete-button').removeClass("disabled");
 }
 
 function deselect_row(row) {
@@ -252,10 +261,10 @@ function deselect_row(row) {
     $(row.node()).removeClass('selected');
     if (spectra_table.rows('.selected').data().length === 0) {
         $('#select-all').text('check_box_outline_blank');
-        $('#dl-button').prop('disabled', true);
-        $('#dl-raw-button').prop('disabled', true);
-        $('#rm-button').prop('disabled', true);
-        $('#delete-button').prop('disabled', true);
+        $('#dl-button').addClass("disabled");
+        $('#dl-raw-button').addClass("disabled");
+        $('#rm-button').addClass("disabled");
+        $('#delete-button').addClass("disabled");
     } else {
         $('#select-all').text('indeterminate_check_box');
     }
@@ -328,11 +337,13 @@ function updatePercent_raw(percent) {
 
 //  Change download button text
 function showProgress(text) {
+    $("#progress-bar").show()
     $("#dl-button")
         .val(text);
 }
 
 function showProgress_raw(text) {
+    $("#progress-bar-raw").show()
     $("#dl-raw-button")
         .val(text);
 }
@@ -356,7 +367,7 @@ function showError_raw(text) {
 function download_specfiles() {
     //   Prevent impatient users from clicking again.
     $('#dl-button').prop('disabled', true);
-    showProgress($("#dl-button"), "Be Patient...");
+    showProgress("Be Patient...");
     //   Prepare file list
     let spfilelist = [];
     //   Get list of selected spectra
@@ -427,6 +438,7 @@ function download_specfiles() {
                     //  Reset download button
                     $('#dl-button').prop('disabled', false);
                     showProgress("Download Spectra");
+                    $("#progress-bar").hide();
                 }, function (e) {
                     showError(e);
                 });
@@ -439,7 +451,7 @@ function download_specfiles() {
 function download_rawfiles() {
     //   Prevent impatient users from clicking again.
     $('#dl-raw-button').prop('disabled', true);
-    showProgress($("#dl-raw-button"), "Be Patient...");
+    showProgress_raw("Be Patient...");
 
     //   Prepare file list
     let rawfileList = [];
@@ -526,6 +538,7 @@ function download_rawfiles() {
                     //  Reset download button
                     $('#dl-raw-button').prop('disabled', false);
                     showProgress_raw("Download Raw Data");
+                    $("#progress-bar-raw").hide();
                 }, function (e) {
                     showError_raw(e);
                 });
@@ -548,4 +561,34 @@ function carryover(d) {
     });
 
     return d;
+}
+
+
+// Close the dropdown menu if the user clicks outside of it
+$(window).click(function (e) {
+    if (!e.target.matches('.dropbtn')) {
+        $(".dropdown-content").each(function (i) {
+            if ($(this).hasClass('show')) {
+                $(this).removeClass('show');
+            }
+        })
+    }
+})
+
+
+function Toggleeditdropdown() {
+    $("#editdropdown").toggleClass("show");
+    let otherdd = $("#downloaddropdown");
+    if (otherdd.hasClass("show")) {
+        otherdd.toggleClass("show");
+    }
+}
+
+
+function Toggledownloaddropdown() {
+    $("#downloaddropdown").toggleClass("show");
+    let otherdd = $("#editdropdown")
+    if (otherdd.hasClass("show")) {
+        otherdd.toggleClass("show");
+    }
 }

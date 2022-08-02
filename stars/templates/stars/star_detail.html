@@ -661,17 +661,21 @@
     </div>
 
     <div id="copyParameters" title="Copy Parameters">
-{# This formatting needs to stay this way!! #}
-        <textarea disabled autocomplete="off" type="text" id="parameterTextBox">
-        {% for comp in allParameters %}{% for source in parameterSources %}{% if source.name == "AVG" %}{% for pline in comp.params %}{{ comp.component }}-{{ pline.pinfo.name }},{{ comp.component }}-{{ pline.pinfo.name }}-err{% if forloop.last %}{% else %},{% endif %}{% endfor %}{% endif %}{% endfor %}{% endfor %}
-{% for comp in allParameters %}{% for pline in comp.params %}{% for p in pline.values %}{% if forloop.first %}{{ p|safe }}{% if forloop.parentloop.last %}{% else %},{% endif %}{% endif %}{% endfor %}{% endfor %}{% endfor %}
-        </textarea>
+        <label for="param_csv_choices">Copy parameters from </label>
+        <select name="param_csv_choices" id="param_csv_choices">
+            {% for source in parameterSources %}
+                <option value="{{ source.name }}">{{ source.name }}</option>
+            {% endfor %}
+        </select><br>
+        {% for source, csvtext in star.parameter_csv.items %}
+            <textarea disabled hidden autocomplete="off" type="text" id="parameterTextBox-{{ source }}" class="copyarea">{{ csvtext }}</textarea>
+        {% endfor %}<br>
         <button id="copyParametersBtn">Copy text</button>
     </div>
 
     <div id="copyPhotometry" title="Copy Photometry">
 {# This formatting needs to stay this way!! #}
-        <textarea disabled autocomplete="off" type="text" id="photometryTextBox">
+        <textarea disabled autocomplete="off" type="text" id="photometryTextBox" class="copyarea">
 band_name, wavelength, mag, err
 {% for phot in star.photometry_set.all %}{{ phot.band }},{{ phot.wavelength }},{{ phot.get_value }},{{ phot.get_error }}
 {% endfor %}

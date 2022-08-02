@@ -170,12 +170,28 @@ $(document).ready(function () {
         }
     });
 
-    // Strip Whitespace artifacts caused by HTML from csv copytext
-    let ptextbox = $("#parameterTextBox")
-    ptextbox.val($.trim(ptextbox.val()).replace(/ ± /g, ","))
+    $("#param_csv_choices option").each(function () {
+        $(this).val($(this).val().replace(/ /g, "_"))
+    });
 
-    let phottextbox = $("#photometryTextBox")
-    phottextbox.val($.trim(phottextbox.val()))
+    let initial = $('#param_csv_choices').val()
+    $("#parameterTextBox-" + initial).show()
+
+    $('#param_csv_choices').on('change', function (e) {
+        let choice = $('#param_csv_choices').val()
+
+        $("#param_csv_choices option").each(function () {
+            if ($(this).val() == choice) {
+                $("#parameterTextBox-" + $(this).val()).show()
+            } else {
+                $("#parameterTextBox-" + $(this).val()).hide()
+            }
+        });
+    })
+
+    $(".copyarea").each(function () {
+        $(this).val($.trim($(this).val()));
+    })
 });
 
 // Create the page dynamically

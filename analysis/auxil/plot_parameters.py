@@ -35,11 +35,8 @@ def get_data(parameters):
     pnames = set(parameters.values())
     pnames.discard('')
 
-    print(pnames)
     params = Parameter.objects.filter(cname__in=pnames, average=True)
-    print(params)
     stars = params.values_list('star', flat=True).distinct()
-    print(stars)
     stars = Star.objects.filter(pk__in=stars)
 
     # -- get the parameter values
@@ -60,8 +57,6 @@ def get_data(parameters):
 
     # dtypes = [('system', 'a50')] + [(str(p), 'f8') for p in pnames]
     # parameter_table = np.core.records.fromarrays(parameter_table, dtype=dtypes)
-
-    print(parameter_table)
 
     return parameter_table, list(pnames)
 

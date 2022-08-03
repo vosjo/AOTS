@@ -40,7 +40,7 @@ header {
     background: #fff;
     box-shadow: 0 3px 10px -2px rgba(64, 117, 144, 0.3);
     border-bottom: 3px solid rgba(64, 117, 144, 0.3); /*rgba(0,0,0,.1);*/
-    margin-bottom: 40px;
+    margin-bottom: 15px;
 }
 
 header h1 {
@@ -70,6 +70,7 @@ div#titlebar {
     display: inline-block;
     width: 40%;
     margin-left: 2.5%;
+    margin-bottom: 1%;
 }
 
 nav {
@@ -79,9 +80,8 @@ nav {
     width: 50%;
 }
 
-div#toolbar {
-    display: flex-block;
-    align-items: right;
+div.toolbar {
+    align-items: end;
     float: right;
     z-index: 10;
 }
@@ -255,8 +255,8 @@ nav a.active{
 nav strong{
    font-size: 20px;
    font-weight: 900;
-   margin: auto;*/
-}
+   margin: auto;
+}*/
 
 section {
     margin-top: 10px;
@@ -345,7 +345,6 @@ div.upload {
 
 
 div.center {
-    padding: auto;
     margin: auto;
 }
 
@@ -369,22 +368,6 @@ div.circle {
 
 .w1100 {
     width: 1100px;
-}
-
-.whalf {
-    display: inline-block;
-    width: 48%;
-    border: 1px solid gray;
-    float: center;
-}
-
-.wfull {
-    display: inline-block;
-    width: 96%;
-    margin-left: 2%;
-    margin-right: 2%;
-    border: 1px solid gray;
-    float: center;
 }
 
 hr {
@@ -1301,23 +1284,21 @@ html, body {
 .page-wrap {
     min-height: 100%;
     /* equal to footer height */
-    margin-bottom: -40px;
+    /*margin-bottom: -40px;*/
 }
 
 .page-wrap-base {
-    min-height: 100%;
+    height: 95vh;
+    overflow: scroll;
 }
 
-.page-wrap:after {
-    content: "";
-    display: block;
-}
-
-.site-footer, .page-wrap:after {
-    height: 40px;
-}
+/*.page-wrap:after {*/
+/*    content: "";*/
+/*    display: block;*/
+/*}*/
 
 .site-footer {
+    height: 5vh;
     background-image: linear-gradient(rgba(64, 117, 144, 0.1), rgba(64, 117, 144, 0.4));
 }
 
@@ -1329,7 +1310,6 @@ footer div {
     margin-right: 2%;
     margin-top: 2px;
     margin-bottom: 2px;
-    float: center;
     text-align: center;
 }
 
@@ -1486,4 +1466,44 @@ div.project-container:hover {
 
 h3.titlelink {
     color: #5B7FB1FF;
+}
+
+div.dashboard-wrapper {
+    width: 100%;
+    height: 80%;
+    margin: 0 auto;
+    overflow: scroll;
+    display: flex;
+}
+
+div.dash-square {
+    margin:4px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid rgba(64, 117, 144, 0.3);
+    width: 90%;
+}
+
+div.rect {
+    height: 20%;
+}
+
+div.square {
+    height: 70%;
+}
+
+.stats {
+    font-size: large;
+}
+
+div.dash-half {
+    width: 49%;
+}
+
+div.dash-square.righthalf {
+    float: left;
+}
+
+div.dash-square.lefthalf {
+    float: right;
 }

@@ -115,7 +115,7 @@ $(document).ready(function () {
         } else {
             $('#filter-dashboard-button').text("filter_list");
         }
-    };
+    }
 
     // check and uncheck tables rows
     $('#datatable tbody').on('click', 'td.select-control', function () {

@@ -5,6 +5,7 @@
 {% block head %}
     {% include "datatables.html" %}
     <script type="text/javascript" src="{% static 'js/tags_list.js' %}"></script>
+    <title>Projects</title>
 {% endblock %}
 
 {% block headertitle %} Projects {% endblock %}
@@ -28,7 +29,7 @@
                 {% for project in private_projects %}
 
                     <div class='project-container' id="project-{{ project.pk }}">
-                        <a href= {% url 'systems:star_list' project.slug %}>
+                        <a href= {% url 'analysis:dashboard' project.slug %}>
                             <h3 class="titlelink">{{ project.name }}</h3>
                             <span class="projectlink"></span></a>
                         <div>
@@ -63,7 +64,7 @@
                 <div class='project-container' id="project-{{ project.pk }}">
 
 
-                    <a href= {% url 'systems:star_list' project.slug %}><h3 class="titlelink">{{ project.name }}</h3>
+                    <a href= {% url 'analysis:dashboard' project.slug %}><h3 class="titlelink">{{ project.name }}</h3>
                         <span class="projectlink"></span></a>
 
 

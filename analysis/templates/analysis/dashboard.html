@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+
+    <script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
+    <title>Project dashboard</title>
+
+{% endblock %}
+
+{% block headertitle %} Project dashboard {% endblock %}
+
+{% block content %}
+    <div class="dashboard-wrapper">
+        <div class="dash-half">
+            <div class="dash-square rect lefthalf"><h1>Project Statistics</h1>
+                <br>
+                <p class="stats">Number of Stars: <b>{{ stats.nstars }}</b> {% if stats.nstarslw != 0 %}<span style="color: #228B22">+ <b>{{ stats.nstarslw }}</b> last week</span>{% endif %}</p>
+                <p class="stats">Of which with Spectra: <b>{{ stats.nspec }}</b> with <b>{{ stats.nspecfile }}</b> associated unique files.{% if stats.nspecfilelw != 0 %}<span style="color: #228B22">+<b>{{ stats.nspeclw }}</b> spectra, <b>{{ stats.nspecfilelw }}</b> files last week</span>{% endif %}</p>
+                <p class="stats">Number of Lightcurves: <b>{{ stats.nlc }}</b>{% if stats.nlclw != 0 %}<span style="color: #228B22">+ <b>{{ stats.nlclw }}</b> last week</span>{% endif %}</p>
+            </div>
+            <div class="dash-square square lefthalf"><h1>Project Overview</h1></div>
+        </div>
+        <div class="dash-half">
+            <div class="dash-square rect righthalf">Buttons</div>
+            <div class="dash-square square righthalf"><h1>Planned Observations</h1></div>
+        </div>
+    </div>
+{% endblock %}

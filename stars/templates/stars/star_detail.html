@@ -8,6 +8,11 @@
     <script type="text/javascript" src="{% static 'js/stars_detail.js' %}"></script>
     <link rel="stylesheet" href="//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css"/>
 
+    <title>Systems: {{ star.name }}
+    {% if star.classification != '' %}
+        - {{ star.classification }}
+    {% endif %}</title>
+
 {% endblock %}
 
 {% block headertitle %}

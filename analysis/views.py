@@ -5,11 +5,14 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, reverse
 
 from AOTS.custom_permissions import check_user_can_view_project
-from stars.models import Project
+from stars.models import Project, Star
+from observations.models import Spectrum, SpecFile, LightCurve
 from .auxil import process_datasets, plot_parameters
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm
 from .models import DataSet
 
+from datetime import datetime, timedelta
+from django.utils.timezone import make_aware
 
 @check_user_can_view_project
 def dataset_list(request, project=None, **kwargs):
@@ -123,3 +126,40 @@ def parameter_plotter(request, project=None, **kwargs):
     }
 
     return render(request, 'analysis/parameter_plotter.html', context)
+
+
+@check_user_can_view_project
+def dashboard(request, project=None, **kwargs):
+    stats = {}
+    project = get_object_or_404(Project, slug=project)
+
+    all_stars = Star.objects.filter(project=project)
+    all_specs = Spectrum.objects.filter(project=project)
+    all_lcs = LightCurve.objects.filter(project=project)
+    all_files = SpecFile.objects.filter(project=project)
+
+    stats["nstars"] = all_stars.count()
+    stats["nspec"] = all_specs.count()
+    stats["nlc"] = all_lcs.count()
+    stats["nspecfile"] = all_files.count()
+
+    dtime_naive = datetime.now()-timedelta(days=7)
+
+    aware_datetime = make_aware(dtime_naive)
+
+    all_stars_lw = Star.objects.filter(project=project, added_on__gte=aware_datetime)
+    all_specs_lw = Spectrum.objects.filter(project=project, added_on__gte=aware_datetime)
+    all_lcs_lw = LightCurve.objects.filter(project=project, added_on__gte=aware_datetime)
+    all_files_lw = SpecFile.objects.filter(project=project, added_on__gte=aware_datetime)
+
+    stats["nstarslw"] = all_stars_lw.count()
+    stats["nspeclw"] = all_specs_lw.count()
+    stats["nlclw"] = all_lcs_lw.count()
+    stats["nspecfilelw"] = all_files_lw.count()
+
+    context = {
+        'project': project,
+        'stats': stats,
+    }
+
+    return render(request, 'analysis/dashboard.html', context)

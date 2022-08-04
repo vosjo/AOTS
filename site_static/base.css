@@ -80,7 +80,7 @@ nav {
     width: 50%;
 }
 
-div.toolbar {
+div#toolbar {
     align-items: end;
     float: right;
     z-index: 10;
@@ -1482,6 +1482,16 @@ div.dash-square {
     border-radius: 10px;
     border: 2px solid rgba(64, 117, 144, 0.3);
     width: 90%;
+    overflow: hidden;
+}
+
+div.dash-square-invis {
+    margin: 6px 4px;
+    padding: 10px;
+    width: 90%;
+    overflow: hidden;
+    align-items: center;
+    text-align: center;
 }
 
 div.rect {
@@ -1506,4 +1516,55 @@ div.dash-square.righthalf {
 
 div.dash-square.lefthalf {
     float: right;
+}
+
+button.dash-button {
+    width: 48%;
+    height: 48%;
+    text-align: left;
+    font-size: 32px;
+    display: inline-flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+    background-color: rgba(173, 215, 246, 0.2);
+    border: 2px solid rgba(64, 117, 144, 0.3);
+    border-radius: 10px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 1);
+}
+
+button.dash-button:hover {
+    background-color: rgba(173, 215, 246, 0.4);
+}
+
+button.dash-button:disabled {
+    background-color: rgba(233, 240, 245, 0.2);
+    border: 2px solid rgba(121, 136, 143, 0.3);
+    color: rgba(160, 162, 163, 1);
+}
+
+
+button.dash-button.top-button {
+    margin-bottom: 3px;
+}
+
+button.dash-button.bottom-button {
+    margin-top: 3px;
+}
+
+button.dash-button.left-button {
+    margin-right: 3px;
+}
+
+button.dash-button.right-button {
+    margin-left: 3px;
+}
+
+i.dash-icon {
+    font-size: 30px;
+    margin-right: 10px;
+    margin-left: 5px;
+    color: rgba(23, 43, 54, 1);
 }

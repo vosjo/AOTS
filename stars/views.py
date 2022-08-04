@@ -20,7 +20,6 @@ from .forms import (
 )
 from .models import Star, Tag, Project
 
-
 # from .plotting import plot_photometry
 
 

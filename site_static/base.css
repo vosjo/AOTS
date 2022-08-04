@@ -1500,6 +1500,7 @@ div.rect {
 
 div.square {
     height: 70%;
+    overflow: scroll;
 }
 
 .stats {
@@ -1543,6 +1544,7 @@ button.dash-button:disabled {
     background-color: rgba(233, 240, 245, 0.2);
     border: 2px solid rgba(121, 136, 143, 0.3);
     color: rgba(160, 162, 163, 1);
+    cursor: default;
 }
 
 

@@ -8,8 +8,9 @@ from AOTS.custom_permissions import check_user_can_view_project
 from stars.models import Project, Star
 from observations.models import Spectrum, SpecFile, LightCurve
 from .auxil import process_datasets, plot_parameters
-from .forms import UploadAnalysisFileForm, ParameterPlotterForm
+from .forms import UploadAnalysisFileForm, ParameterPlotterForm, HRDPlotterForm
 from .models import DataSet
+from .plotting import plot_hrd
 
 from datetime import datetime, timedelta
 from django.utils.timezone import make_aware
@@ -130,6 +131,15 @@ def parameter_plotter(request, project=None, **kwargs):
 
 @check_user_can_view_project
 def dashboard(request, project=None, **kwargs):
+    parameters = {}
+
+    if request.method == 'GET':
+        form = HRDPlotterForm(request.GET)
+        if form.is_valid():
+            parameters = form.get_parameters()
+    else:
+        form = HRDPlotterForm(initial={'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': "mag", "size":"", "color":""})
+
     stats = {}
     project = get_object_or_404(Project, slug=project)
 
@@ -157,9 +167,20 @@ def dashboard(request, project=None, **kwargs):
     stats["nlclw"] = all_lcs_lw.count()
     stats["nspecfilelw"] = all_files_lw.count()
 
+    # Possible axes teff, logg, mag, bp_rp
+    if len(parameters.keys()) != 0:
+        figure = plot_hrd(project.pk, parameters["xaxis"], parameters["yaxis"], parameters["size"], parameters["color"], parameters["nsys"])
+        script, div = components(figure, CDN)
+    else:
+        figure = plot_hrd(project.pk)
+        script, div = components(figure, CDN)
+
     context = {
         'project': project,
         'stats': stats,
+        'hrd_plot': div,
+        'script': script,
+        'form': form
     }
 
     return render(request, 'analysis/dashboard.html', context)

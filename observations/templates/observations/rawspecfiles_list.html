@@ -4,7 +4,7 @@
 {% block head %}  <!--Add necessary javascript and css files for this page-->
 
     {% include "datatables.html" %}
-    <script type="text/javascript" src="{% static 'js/rawspecfiles_list.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/rawspecfiles_list.js' %}?20220906"></script>
 
 {% endblock %}
 
@@ -260,7 +260,7 @@
                     </fieldset>
 
                     <fieldset>
-                        <legend>Select the system(s) and the reduced spectra to which the raw data are to be assigned
+                        <legend>Select the system(s) or the reduced spectra to which the raw data are to be assigned
                         </legend>
 
                         <div class="cg-block">

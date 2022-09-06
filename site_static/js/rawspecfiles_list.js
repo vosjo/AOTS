@@ -21,7 +21,7 @@ $(document).ready(function () {
             {data: 'filename', orderable: false},
             {data: 'added_on'},
             {data: 'specfile', render: reduced_render},
-            {data: 'stars', orderable: false, render: stars_render},
+            {data: 'systems', orderable: false, render: systems_render},
 //          { data: 'specfiles', orderable: false, render: processed_render },
         ];
     } else {
@@ -34,7 +34,7 @@ $(document).ready(function () {
             {data: 'filename'},
             {data: 'added_on'},
             {data: 'specfile', render: reduced_render},
-            {data: 'stars', orderable: false, render: stars_render},
+            {data: 'systems', orderable: false, render: systems_render},
 //          { data: 'specfiles', orderable: false, render: processed_render },
         ];
     }
@@ -516,7 +516,7 @@ function selection_render(data, type, full, meta) {
     }
 }
 
-function stars_render(data, type, full, meta) {
+function systems_render(data, type, full, meta) {
     let systems = [];
     for (let key in data) {
         if (data.hasOwnProperty(key)) {
@@ -628,14 +628,38 @@ function openLinkageEditWindow() {
 }
 
 function updateLinkage() {
-    //  Bind to selected spectra
-    let spectra = $("#id_specfile_patch");
-    let specfiles = spectra.children().filter(':checked')
+    //  Bind to selected specfiles
+    let specfile_bind = $("#id_specfile_patch");
+    let specfiles = specfile_bind.children().filter(':checked')
 
-    //  Check that spectra are selected
-    if (specfiles.length == 0) {
-        $('#linkage-error').text('You need to select a spectrum file!');
-    } else {
+    //  Bind to selected systems
+    let systems_bind = $("#id_system_patch");
+    let systems = systems_bind.children().filter(':checked')
+
+    //  Check if specfiles or systems are selected
+    if (systems.length != 0) {
+        //  Loop over Stars, get 'pk'
+        let pk_list_systems = [];
+        systems.map(function (index) {
+            //  Get system 'pk's
+            let pd_system = $(this).val();
+            pk_list_systems.push(pd_system);
+        });
+
+        //   Get list of selected RawSpecfiles
+        rawspecfile_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+            //  Determine ID/PK
+            let pk_raw = this.data()['pk'];
+
+            //  Modify the specfile association
+            change_rawspecfiles_system_linkage(this, pk_raw, pk_list_systems);
+        });
+
+        //   Reset check boxes
+        rawspecfile_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+        });
+    } else if (specfiles.length != 0) {
         //  Loop over SpecFiles, get 'pk'
         let pk_list_spf = [];
         specfiles.map(function (index) {
@@ -649,25 +673,50 @@ function updateLinkage() {
             //  Determine ID/PK
             let pk_raw = this.data()['pk'];
 
-            //  Modify the linkage
-            change_rawspecfiles_linkage(this, pk_raw, pk_list_spf);
+            //  Modify the specfile association
+            change_rawspecfiles_specfile_linkage(this, pk_raw, pk_list_spf);
         });
 
         //   Reset check boxes
         rawspecfile_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
             deselect_row(this);
         });
+    } else {
+        $('#linkage-error').text('You need to select a spectrum file or a system!');
     }
 }
 
-//  Delete raw data
-function change_rawspecfiles_linkage(row, pk_raw, pk_spf) {
+//  Modify raw data association
+function change_rawspecfiles_specfile_linkage(row, pk_raw, pk_spf) {
     //  Ajax call to patch SpecFile <-> RawFile association
     $.ajax({
         url: "/api/observations/rawspecfiles/" + pk_raw + '/',
         type: "PATCH",
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify({'specfile': pk_spf}),
+        success: function (json) {
+            //  Close edit window
+            edit_linkage_window.dialog("close");
+            //  Redraw table row
+            row.data(json).draw('page');
+        },
+        error: function (xhr, errmsg, err) {
+            if (xhr.status === 403) {
+                alert('You have to be logged in to delete this spectrum.');
+            } else {
+                alert(xhr.status + ": " + xhr.responseText);
+            }
+            console.log(xhr.status + ": " + xhr.responseText);
+        }
+    });
+}
+function change_rawspecfiles_system_linkage(row, pk_raw, pk_system) {
+    //  Ajax call to patch SpecFile <-> RawFile association
+    $.ajax({
+        url: "/api/observations/rawspecfiles/" + pk_raw + '/',
+        type: "PATCH",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({'star': pk_system}),
         success: function (json) {
             //  Close edit window
             edit_linkage_window.dialog("close");

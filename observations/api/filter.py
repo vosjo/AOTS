@@ -183,7 +183,7 @@ class SpecFileFilter(filters.FilterSet):
 class RawSpecFileFilter(filters.FilterSet):
     #   System filter
     systems = filters.CharFilter(
-        field_name="stars",
+        field_name="star",
         method="system_name_icontains",
         lookup_expr='icontains',
     )
@@ -226,7 +226,8 @@ class RawSpecFileFilter(filters.FilterSet):
 
     #   System method
     def system_name_icontains(self, queryset, name, value):
-        return queryset.filter(specfile__spectrum__star__name__icontains=value)
+        return queryset.filter(star__name__icontains=value) \
+               | queryset.filter(specfile__spectrum__star__name__icontains=value)
 
     #   File name method
     def file_name_regex(self, queryset, name, value):

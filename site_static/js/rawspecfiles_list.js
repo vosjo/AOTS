@@ -129,9 +129,10 @@ $(document).ready(function () {
     }
 
     //  Save content of system and specfile form fields to allow their reset
+    // if (user_authenticated) {
     let saved_system = $("#id_system")[0]['innerHTML'];
     let saved_specfile = $("#id_specfile")[0]['innerHTML'];
-
+    // }
 
     //  Add spectra form:
     //  Adjust form drop dropdown content I: read system name
@@ -529,7 +530,6 @@ function systems_render(data, type, full, meta) {
 
 function reduced_render(data, type, full, meta) {
     let nspecfiles = data.length;
-//     console.log(nspecfiles);
     if (nspecfiles === 0) {
         return '<i class="material-icons status-icon invalid" title="Not allocated to a reduced Spectrum."></i>'
     } else {
@@ -652,7 +652,7 @@ function updateLinkage() {
             let pk_raw = this.data()['pk'];
 
             //  Modify the specfile association
-            change_rawspecfiles_system_linkage(this, pk_raw, pk_list_systems);
+            change_rawspecfiles_linkage(this, pk_raw, pk_list_systems, []);
         });
 
         //   Reset check boxes
@@ -674,7 +674,7 @@ function updateLinkage() {
             let pk_raw = this.data()['pk'];
 
             //  Modify the specfile association
-            change_rawspecfiles_specfile_linkage(this, pk_raw, pk_list_spf);
+            change_rawspecfiles_linkage(this, pk_raw, [], pk_list_spf);
         });
 
         //   Reset check boxes
@@ -687,13 +687,13 @@ function updateLinkage() {
 }
 
 //  Modify raw data association
-function change_rawspecfiles_specfile_linkage(row, pk_raw, pk_spf) {
-    //  Ajax call to patch SpecFile <-> RawFile association
+function change_rawspecfiles_linkage(row, pk_raw, pk_system, pk_spf) {
+    //  Ajax call to patch SpecFile & System <-> RawFile association
     $.ajax({
         url: "/api/observations/rawspecfiles/" + pk_raw + '/',
         type: "PATCH",
         contentType: "application/json; charset=utf-8",
-        data: JSON.stringify({'specfile': pk_spf}),
+        data: JSON.stringify({'specfile': pk_spf, 'star': pk_system}),
         success: function (json) {
             //  Close edit window
             edit_linkage_window.dialog("close");
@@ -702,30 +702,7 @@ function change_rawspecfiles_specfile_linkage(row, pk_raw, pk_spf) {
         },
         error: function (xhr, errmsg, err) {
             if (xhr.status === 403) {
-                alert('You have to be logged in to delete this spectrum.');
-            } else {
-                alert(xhr.status + ": " + xhr.responseText);
-            }
-            console.log(xhr.status + ": " + xhr.responseText);
-        }
-    });
-}
-function change_rawspecfiles_system_linkage(row, pk_raw, pk_system) {
-    //  Ajax call to patch SpecFile <-> RawFile association
-    $.ajax({
-        url: "/api/observations/rawspecfiles/" + pk_raw + '/',
-        type: "PATCH",
-        contentType: "application/json; charset=utf-8",
-        data: JSON.stringify({'star': pk_system}),
-        success: function (json) {
-            //  Close edit window
-            edit_linkage_window.dialog("close");
-            //  Redraw table row
-            row.data(json).draw('page');
-        },
-        error: function (xhr, errmsg, err) {
-            if (xhr.status === 403) {
-                alert('You have to be logged in to delete this spectrum.');
+                alert('You have to be logged in to update file allocations.');
             } else {
                 alert(xhr.status + ": " + xhr.responseText);
             }

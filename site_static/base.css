@@ -329,8 +329,11 @@ h4.not_bold {
 div.block {
     display: inline-block;
     float: left;
-    margin-left: 10px;
-    margin-right: 10px;
+/*     margin-left: 10px; */
+/*     margin-right: 10px; */
+    margin-left: 3rem;
+    margin-right: 3rem;
+    margin-bottom: 1.5rem;
 }
 
 div.upload {
@@ -736,7 +739,7 @@ div.flex-data-container {
     display: flex;
     flex-flow: row wrap;
     margin-top: 5px;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     /*    justify-content: space-around; */
     /*    justify-content: center; */
 }

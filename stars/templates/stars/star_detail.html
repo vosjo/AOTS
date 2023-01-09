@@ -451,7 +451,9 @@
                     </div>
                 {% endif %}
             </div>
-            <h4 class='indent'>Spectroscopic observations</h4>
+            {% if star.spectrum_set.all or star.rawspecfile_set.all or star.spectrum_set.all %}
+                <h4 class='indent'>Spectroscopic observations</h4>
+            {% endif %}
             <div class="flex-data-container j-center">
                 {% if star.spectrum_set.all %}
                     <div class="block">

@@ -451,7 +451,7 @@
                     </div>
                 {% endif %}
             </div>
-            {% if star.spectrum_set.all or star.rawspecfile_set.all %}
+            {% if star.spectrum_set.all or n_raw > 0 %}
                 <h4 class='indent'>Spectroscopic observations</h4>
             {% endif %}
             <div class="flex-data-container j-center">

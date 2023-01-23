@@ -508,7 +508,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for rawspec in star.rawspecfile_set.all|order_by:"hjd" %}
+                            {% for rawspec in star.rawspecfile_set.all|filter_filetype:'Science'|order_by:"hjd" %}
                                 <tr>
                                     <td>{{ rawspec.hjd|floatformat:3 }}</td>
                                     <td>{{ rawspec.hjd|hjd2date }}</td>
@@ -522,7 +522,7 @@
                             {% endfor %}
                             {% for spectrum in star.spectrum_set.all|order_by:"hjd" %}
                                 {% for spec in spectrum.specfile_set.all|order_by:"hjd" %}
-                                    {% for rawspec in spec.rawspecfile_set.all|order_by:"hjd" %}
+                                    {% for rawspec in spec.rawspecfile_set.all|filter_filetype:'Science'|order_by:"hjd" %}
                                         <tr>
                                             <td>{{ rawspec.hjd|floatformat:3 }}</td>
                                             <td>{{ rawspec.hjd|hjd2date }}</td>

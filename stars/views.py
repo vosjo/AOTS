@@ -249,10 +249,12 @@ def star_detail(request, star_id, project=None, **kwargs):
     context['parameterSources'] = pSource
 
     #   Get number of raw data files
-    n_raw = len(star.rawspecfile_set.all())
+    n_raw = len(star.rawspecfile_set.all().filter(filetype__exact='Science'))
     for spectrum in star.spectrum_set.all():
         for spec in spectrum.specfile_set.all():
-            n_raw += len(spec.rawspecfile_set.all())
+            n_raw += len(
+                spec.rawspecfile_set.all().filter(filetype__exact='Science')
+                )
     context['n_raw'] = n_raw
 
     if request.method == 'POST' and request.user.is_authenticated:

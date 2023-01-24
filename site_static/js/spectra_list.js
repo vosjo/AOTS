@@ -285,17 +285,16 @@ function delete_all_selected_specfiles() {
 
         // Loop over selected spectra
         $.each(rows, function (index, row) {
-            //  Loop over all spec files
-            $.each(row.data()["specfiles"], function (ind) {
-                let pk = row.data()["specfiles"][ind]['pk'];
-
+            //  Delete each individual specfile or the spectrum if it is not associated
+            //  with any specfile, although the latter should never happen
+            if (row.data()["specfiles"].length === 0) {
+                let pk = row.data()["href"].split('/')[5];
                 //    Promise chaining using .then() + async function definition
                 //    to allow the use of await
                 p = p.then(async function () {
-
                     //  Ajax call to remove spec files
                     await $.ajax({
-                        url: "/api/observations/specfiles/" + pk + '/',
+                        url: "/api/observations/spectra/" + pk + '/',
                         type: "DELETE",
                         success: function (json) {
                             //  Remove the whole spectrum from table
@@ -311,7 +310,34 @@ function delete_all_selected_specfiles() {
                         }
                     });
                 });
-            })
+            } else {
+                //  Loop over all spec files
+                $.each(row.data()["specfiles"], function (ind) {
+                    let pk = row.data()["specfiles"][ind]['pk'];
+                    //    Promise chaining using .then() + async function definition
+                    //    to allow the use of await
+                    p = p.then(async function () {
+
+                        //  Ajax call to remove spec files
+                        await $.ajax({
+                            url: "/api/observations/specfiles/" + pk + '/',
+                            type: "DELETE",
+                            success: function (json) {
+                                //  Remove the whole spectrum from table
+                                spectra_table.row(row).remove().draw('full-hold');
+                            },
+                            error: function (xhr, errmsg, err) {
+                                if (xhr.status === 403) {
+                                    alert('You have to be logged in to delete this spectrum.');
+                                } else {
+                                    alert(xhr.status + ": " + xhr.responseText);
+                                }
+                                console.log(xhr.status + ": " + xhr.responseText);
+                            }
+                        });
+                    });
+                })
+            }
         })
 
         //   Reset check boxes

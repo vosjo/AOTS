@@ -77,10 +77,15 @@ def process_analysis_file(file_id):
         return False, 'Not added, basic info unreadable'
 
     try:
-        analfile.method = Method.objects.get(slug__iexact=atype)
+        d_method = Method.objects.get(slug__iexact=atype)
+        if d_method.project == DataSet.project:
+            analfile.method = d_method
+        else:
+            raise Exception('')
+
     except Exception as e:
-        print(type(atype), atype)
-        return False, 'Not added, analysis method ({}) not known'.format(atype)
+        # print(type(atype), atype)
+        return False, f'Not added, analysis method ({atype}) not known'
 
     analfile.name = name
     analfile.note = note

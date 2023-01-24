@@ -77,13 +77,16 @@ def process_analysis_file(file_id):
         return False, 'Not added, basic info unreadable'
 
     try:
-        d_method = Method.objects.get(slug__iexact=atype)
-        if d_method.project == DataSet.project:
-            analfile.method = d_method
+        #   Filter Method for project and slug
+        d_method = Method.objects.filter(slug__exact=atype)
+        d_method = d_method.filter(project__exact=analfile.project)
+        if d_method:
+            analfile.method = d_method[0]
         else:
             raise Exception('')
 
     except Exception as e:
+        print(e)
         # print(type(atype), atype)
         return False, f'Not added, analysis method ({atype}) not known'
 

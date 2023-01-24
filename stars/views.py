@@ -219,7 +219,7 @@ def star_detail(request, star_id, project=None, **kwargs):
     context['related_stars'] = related_stars
 
     #   Add analysis methods
-    methods = Method.objects.all()
+    methods = Method.objects.filter(project__exact=project)
 
     datasets, figures = [], []
 

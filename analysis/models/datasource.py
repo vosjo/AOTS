@@ -28,7 +28,8 @@ class Method(models.Model):
 
     # -- short name for the method without spaces. To be used in determining
     #   the method used in uploaded files
-    slug = models.SlugField(max_length=10, default='', unique=True)
+    # slug = models.SlugField(max_length=10, default='', unique=True)
+    slug = models.SlugField(max_length=10, default='')
 
     color = models.CharField(max_length=7, default='#8B0000')  # color as hex color value
 

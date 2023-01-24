@@ -55,13 +55,13 @@ def plot_generic(datafile):
 
             if get_attr(dataset, 'datatype', None) == 'continuous':
                 line_dash = 'dashed' if mode == 'DATA' else 'solid'
-                fig.line(dataset[xpar][s], dataset[ypar][s], color=colors[i], line_dash=line_dash, legend=name)
+                fig.line(dataset[xpar][s], dataset[ypar][s], color=colors[i], line_dash=line_dash, legend_label=name)
 
             elif get_attr(dataset, 'datatype', None) == 'discrete' and mode == 'DATA':
-                fig.circle(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
+                fig.circle(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend_label=name)
 
             elif get_attr(dataset, 'datatype', None) == 'discrete' and mode == 'MODEL':
-                fig.x(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend=name)
+                fig.x(dataset[xpar][s], dataset[ypar][s], color=colors[i], legend_label=name)
 
             if ypar + '_err' in dataset.dtype.names:
                 plot_errorbars(fig, dataset[xpar], dataset[ypar], dataset[ypar + '_err'], color=colors[i])
@@ -117,7 +117,7 @@ def plot_generic_large(datafile):
             # datatable = astropy.io.misc.hdf5.read_table_hdf5(dataset, path=None, character_as_bytes=False)
 
             if get_attr(dataset, 'datatype', None) == 'continuous':
-                fig.line(dataset[xpar], dataset[ypar], color=colors[i], line_dash='dashed', legend=name)
+                fig.line(dataset[xpar], dataset[ypar], color=colors[i], line_dash='dashed', legend_label=name)
 
             elif get_attr(dataset, 'datatype', None) == 'discrete':
 
@@ -125,7 +125,7 @@ def plot_generic_large(datafile):
                 bokehsource.add(dataset[ypar], name=name + '_y')
 
                 rend = fig.circle(name + '_x', name + '_y', color=colors[i], source=bokehsource,
-                                  size=7, legend=name)
+                                  size=7, legend_label=name)
 
                 tooltips = [(get_attr(data, 'xlabel', 'x'), "@" + name + "_x")]
                 if ypar + '_err' in dataset.dtype.names:
@@ -148,9 +148,9 @@ def plot_generic_large(datafile):
             ypar = get_attr(dataset, 'ypar', 'y')
 
             if get_attr(dataset, 'datatype', None) == 'continuous':
-                fig.line(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
+                fig.line(dataset[xpar], dataset[ypar], color=colors[i], legend_label=name)
             elif get_attr(dataset, 'datatype', None) == 'discrete':
-                fig.x(dataset[xpar], dataset[ypar], color=colors[i], legend=name, size=10)
+                fig.x(dataset[xpar], dataset[ypar], color=colors[i], legend_label=name, size=10)
 
     fig.toolbar.logo = None
     fig.yaxis.axis_label = get_attr(data, 'ylabel', 'y')
@@ -195,9 +195,9 @@ def plot_generic_OC(datafile):
             ypar = get_attr(dataset, 'ypar', 'y')
 
             if get_attr(dataset, 'datatype', None) == 'continuous':
-                fig.line(dataset[xpar], dataset[ypar], color=colors[i], legend=name)
+                fig.line(dataset[xpar], dataset[ypar], color=colors[i], legend_label=name)
             elif get_attr(dataset, 'datatype', None) == 'discrete':
-                fig.circle(dataset[xpar], dataset[ypar], color=colors[i], legend=name, size=7)
+                fig.circle(dataset[xpar], dataset[ypar], color=colors[i], legend_label=name, size=7)
 
                 plot_errorbars(fig, dataset[xpar], dataset[ypar], dataset[ypar + '_err'],
                                line_width=1, color=colors[i])

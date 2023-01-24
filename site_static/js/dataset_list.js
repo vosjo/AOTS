@@ -17,8 +17,10 @@ $(document).ready(function () {
             {data: 'method', render: method_render},
             {data: 'added_on'},
             {data: 'pk', render: action_render, width: '30', visible: user_authenticated},
+            {data: 'href', visible:false},   // this is a workaround to get `href` into `full` used by `name_render`
         ],
         scrollY: $(window).height() - $('header').outerHeight(true) - $('.upload').outerHeight(true) - $('#messages').outerHeight(true) - 186,
+        searching: false,
     });
 
     // Delete a dataset

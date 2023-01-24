@@ -66,15 +66,20 @@ def dataset_detail(request, dataset_id, project=None, **kwargs):
 
     oc = dataset.make_OC_figure()
 
-    # make the CI figures if they are available
+    #   Make the CI figures if they are available
     hist = dataset.make_parameter_hist_figures()
 
-    # create necessary javascript
+    #   Create necessary javascript
     histnames = hist.keys()
-    hist.update({'fit': fit, 'oc': oc})
-    script, figures = components(hist, CDN)
+    all_figs = dict(hist, **{'fit': fit, 'oc': oc})
+    script, figures = components(all_figs, CDN)
 
-    print(histnames)
+    #   Get only histogram plots
+    if not hist:
+        hists = []
+    else:
+        hists = [figures[name] for name in histnames]
+
 
     context = {
         'project': project,
@@ -83,7 +88,7 @@ def dataset_detail(request, dataset_id, project=None, **kwargs):
         'related_stars': related_stars,
         'fit': figures['fit'],
         'oc': figures['oc'],
-        'hist': [figures[name] for name in histnames],
+        'hist': hists,
         'script': script,
     }
 

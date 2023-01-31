@@ -29,6 +29,30 @@ for pro in projects:
 
     #   Loop over spectra
     for spec in spectra:
+	#   Get spectrum pk
+        spec_pk = spec.pk
+
+        #   Get user provided data
+        user_info = spec.userinfo_set.all()
+
+        #   Check that only one set of user data exists
+        if len(user_info) != 1:
+            user_info = {}
+        else:
+            #   Extract data from UserInfo instance
+            user_info = user_info.values()[0]
+
+            #   Clean user data -  remove defaults
+            __dict = {}
+            for key, value in user_info.items():
+                if value != -1. and value != '':
+                    __dict[key] = value
+            user_info = __dict
+
+        print()
+        print('    ', spec)
+
+
         #   Load specfiles
         specfiles = spec.specfile_set.all()
 

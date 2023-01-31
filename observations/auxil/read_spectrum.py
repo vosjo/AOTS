@@ -215,6 +215,9 @@ def derive_specfile_info(specfile_id, user_info={}):
     specfile.ra = data.get('ra', -1)
     specfile.dec = data.get('dec', -1)
     specfile.obs_date = Time(data['hjd'], format='jd', precision=0).iso
+    specfile.exptime = data.get('exptime', -1)
+    specfile.resolution = data.get('resolution', -1)
+    specfile.snr = data.get('snr', -1)
 
     #   Save file
     specfile.save()

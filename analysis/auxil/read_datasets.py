@@ -146,7 +146,7 @@ def parameter_homogenisation(data):
                     parameter_name = default_name
                     break
             else:
-                return results
+                continue
 
         #   Add to results
         results[parameter_name] = parameter

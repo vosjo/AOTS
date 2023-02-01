@@ -62,6 +62,8 @@ DEFAULT_PARAMETERS = {
 #   Parameter aliases
 PARAMETER_ALIASES = {
     # 'L': ['L*', 'Lstar'],         #   Example
+    'v01': ['v', 'v0'],
+    'k1': ['k'],
     }
 
 #   Unit aliases

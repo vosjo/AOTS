@@ -41,6 +41,34 @@ PARAMETER_DECIMALS = {
     'v0': 2,
 }
 
+#   Default parameters and corresponding default units
+DEFAULT_PARAMETERS = {
+    'e': '',
+    'k1': 'km/s',
+    'k2': 'km/s',
+    'omega': '',
+    'p': 'd',
+    't0': 'd',
+    'v01': 'km/s',
+    'v02': 'km/s',
+    'L': 'solLum',
+    'd': 'pc',
+    'ebv': 'mag',
+    'rad': 'solRad',
+    'teff': 'K',
+    'logg': 'dex',
+    }
+
+#   Parameter aliases
+PARAMETER_ALIASES = {
+    # 'L': ['L*', 'Lstar'],         #   Example
+    }
+
+#   Unit aliases
+UNIT_ALIASES = {
+    'solRad' : ['Rsol'],
+    'solLum' : ['Lsol'],
+    }
 
 def split_parameter_name(name):
     if name[-1] in ['0', '1', '2']:

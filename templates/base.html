@@ -127,6 +127,11 @@
 
 </div>
 
+<!--   Hidden field with user name  -->
+<textarea id="user-name" hidden>
+    {{ user.first_name }} {{ user.last_name }}
+</textarea>
+
 <script type="text/javascript">
     // Save in this variable if there is an authenticated user
     // This variable is accessible on every other place in the code.

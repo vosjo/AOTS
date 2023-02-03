@@ -44,6 +44,7 @@ class DataSetListSerializer(ModelSerializer):
             'added_on',
             'project',
             'href',
+            'modified_by',
         ]
         read_only_fields = ('pk',)
 

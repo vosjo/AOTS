@@ -1,7 +1,6 @@
 var fullscreen_figure_window = null;
 
 $(document).ready(function () {
-
     // Initialize dialog windows
     var edit_note_window = $("#noteEdit").dialog({
         autoOpen: false,
@@ -18,6 +17,7 @@ $(document).ready(function () {
     // Add event listeners
     $("#noteEditButton").click(openNoteEditBox);
     $("#nameEditButton").click(openNameEditBox);
+
 });
 
 function openNoteEditBox() {
@@ -34,15 +34,20 @@ function openNoteEditBox() {
 };
 
 function updateNote() {
+    let user_name = $("#user-name").val();
     var dataset_id = $('#noteEditButton').attr('dataset_id');
     $.ajax({
         url: "/api/analysis/datasets/" + dataset_id + '/',
         type: "PATCH",
-        data: {note: $("#edit-note").val().trim()},
+        data: {
+            note: $("#edit-note").val().trim(),
+            modified_by: user_name
+        },
 
         success: function (json) {
             edit_note_window.dialog("close");
             $("#noteField").text(json.note);
+            $("#modified_by").text(json.modified_by);
         },
 
         error: function (xhr, errmsg, err) {
@@ -69,7 +74,10 @@ function updateName() {
     $.ajax({
         url: "/api/analysis/datasets/" + dataset_id + '/',
         type: "PATCH",
-        data: {name: $("#edit-name").val().trim()},
+        data: {
+            name: $("#edit-name").val().trim(),
+            modified_by: user_name
+        },
 
         success: function (json) {
             edit_name_window.dialog("close");
@@ -93,7 +101,10 @@ function updateParameterValid(parameter_id, valid) {
     $.ajax({
         url: "/api/analysis/parameters/" + parameter_id + '/',
         type: "PATCH",
-        data: {valid: valid},
+        data: {
+            valid: valid,
+            modified_by: user_name
+        },
 
         success: function (json) {
         },
@@ -116,7 +127,10 @@ function updateDatasetValid(dataset_id, valid) {
     $.ajax({
         url: "/api/analysis/datasets/" + dataset_id + '/',
         type: "PATCH",
-        data: {valid: valid},
+        data: {
+            valid: valid,
+            modified_by: user_name
+        },
 
         success: function (json) {
             console.log(json);
@@ -128,3 +142,4 @@ function updateDatasetValid(dataset_id, valid) {
         }
     });
 };
+

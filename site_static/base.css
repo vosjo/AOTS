@@ -936,12 +936,41 @@ table.datatable tbody th {
 
 /* --------------------------------------- */
 
+table.metatable {
+    border-collapse: collapse;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
+}
+
+table.metatable td {
+    padding-top: 4px;
+    padding-bottom: 1px;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+table.metatable th {
+    padding-top: 4px;
+    padding-bottom: 1px;
+    padding-left: 2px;
+    padding-right: 2px;
+    font-weight: bold;
+    text-align: left;
+    padding-right: 10px;
+}
+
+/* --------------------------------------- */
+
 table.paramtable {
     border-collapse: collapse;
     border-top: 3px double black;
     border-bottom: 1px solid black;
     margin-left: auto;
     margin-right: auto;
+    margin-bottom: 10px;
 }
 
 table.paramtable th,

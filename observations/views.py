@@ -29,7 +29,7 @@ from .plotting import plot_visibility, plot_spectrum, plot_lightcurve
 @check_user_can_view_project
 def spectra_list(request, project=None, **kwargs):
     """
-        Spectra index page using datatables and restframework api
+        Spectra index page using datatables and restframework api via js
     """
 
     project = get_object_or_404(Project, slug=project)

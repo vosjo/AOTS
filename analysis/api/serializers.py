@@ -31,6 +31,7 @@ class DataSetListSerializer(ModelSerializer):
     star = SerializerMethodField()
     method = SerializerMethodField()
     href = SerializerMethodField()
+    file_url = SerializerMethodField()
 
     class Meta:
         model = DataSet
@@ -45,8 +46,9 @@ class DataSetListSerializer(ModelSerializer):
             'project',
             'href',
             'modified_by',
+            'file_url',
         ]
-        read_only_fields = ('pk',)
+        read_only_fields = ('pk', 'file_url',)
 
     def get_star(self, obj):
         if obj.star:
@@ -61,7 +63,13 @@ class DataSetListSerializer(ModelSerializer):
             return {}
 
     def get_href(self, obj):
-        return reverse('analysis:dataset_detail', kwargs={'project': obj.project.slug, 'dataset_id': obj.pk})
+        return reverse(
+            'analysis:dataset_detail',
+            kwargs={'project': obj.project.slug, 'dataset_id': obj.pk},
+            )
+
+    def get_file_url(self, obj):
+        return obj.datafile.url
 
 
 class ParameterListSerializer(ModelSerializer):

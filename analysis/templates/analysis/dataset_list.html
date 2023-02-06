@@ -14,30 +14,39 @@
 
     <i display="none" id="project-pk" project={{ project.pk }}></i>
 
-    <div class='upload_old'>
+    <i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
 
+    <div id="filter-dashboard">
 
-        <form action="{% url "analysis:dataset_list" project.slug %}" method="post" enctype="multipart/form-data"
-              class="upload">
-            <h3> Upload new Dataset </h3>
+        <form method="get" action="/analysis/" class="table-filter" id="filter-form">
+            <h3 class="center"> Filter Datasets</h3>
 
-            {% if user.is_authenticated %}
-                {% csrf_token %}
-                {% if upload_form.non_field_errors %}
-                    <p>{{ upload_form.non_field_errors }}</p>
-                {% endif %}
+            <div class="table-filter-item">
+                <p class="filter-label">System:</p>
+                <input class="filter-input" id="filter_system" type="text" placeholder="identifier">
+            </div>
 
-                <p>
-                    {{ upload_form.datafile.errors }}
-                    {{ upload_form.datafile }}
-                </p>
+            <hr>
 
-                <input type="submit" class="material-icons button" value="file_upload"/>
-            {% else %}
-                <p> Log in to upload files! </p>
-            {% endif %}
+            <div class="table-filter-item">
+                <p class="filter-label">Name:</p>
+                <input class="filter-input" id="filter_name" type="text" placeholder="name">
+            </div>
+
+            <div class="table-filter-item">
+                <p class="filter-label">Method:</p>
+                <input class="filter-input" id="filter_method" type="text" placeholder="method">
+            </div>
+
+            <hr>
+
+<!--            <div class="table-filter-item">
+                <p class="filter-label">Upload date:</p>
+                <input class="filter-input" id="filter_instrument" type="text" placeholder="min:max">
+            </div>-->
+
+            <input type="submit" class="button filter" id="submit-search" value="Apply">
         </form>
-
 
     </div>
 
@@ -47,27 +56,62 @@
         <table id="datasettable" class="fullwidth">
             <thead>
             <tr>
+                {% if user.is_authenticated %}
+                    <th><i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i>
+                    </th>
+                {% endif %}
                 <th>System</th>
                 <th>Name</th>
                 <th>Note</th>
                 <th>Method</th>
                 <th>Creation date</th>
-                <th>Action</th>
             </tr>
             </thead>
             <tfoot>
             <tr>
+                {% if user.is_authenticated %}
+                    <th></th>
+                {% endif %}
                 <th>System</th>
                 <th>Name</th>
                 <th>Note</th>
                 <th>Method</th>
                 <th>Creation date</th>
-                <th>Action</th>
             </tr>
             </tfoot>
         </table>
 
     </section>
 
+    <div id="addDataset">
+        <div id='bulk-add' class='bulk-system-upload'>
+            <fieldset>
+                <legend>Add Dataset(s)</legend>
+                <div class="ui-controlgroup-horizontal">
 
+                    <form action="{% url "analysis:dataset_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload" id="dataset-upload-form">
+                        <h3> Upload new Dataset </h3>
+                        {% if user.is_authenticated %}
+                            {% csrf_token %}
+                            {% if upload_form.non_field_errors %}
+                                <p>{{ upload_form.non_field_errors }}</p>
+                            {% endif %}
+
+                            <p>
+                                {{ upload_form.datafile.errors }}
+                                {{ upload_form.datafile }}
+                            </p>
+
+                            <input type="submit" class="upload-button" value="Upload..."/>
+                        {% else %}
+                            <p> Log in to upload files! </p>
+                        {% endif %}
+                    </form>
+
+                </div>
+<!--                <a href="/media/docs/Bulk_system_example.csv"><p class="add-system-csv-example">Example .csv file</p>
+                </a>-->
+            </fieldset>
+        </div>
+    </div>
 {% endblock %}

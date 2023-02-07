@@ -228,6 +228,9 @@ class SpecFile(models.Model):
     ra = models.FloatField(default=-1)
     dec = models.FloatField(default=-1)
     hjd = models.FloatField(default=-1)
+    exptime = models.FloatField(default=-1)
+    resolution = models.FloatField(default=-1)
+    snr = models.FloatField(default=-1)
     instrument = models.CharField(max_length=200, default='')
     filetype = models.CharField(max_length=200, default='')
 

@@ -152,6 +152,8 @@ class SpecFileSerializer(ModelSerializer):
             'instrument',
             'filetype',
             'added_on',
+            'exptime',
+            'resolution',
             'filename',
         ]
         read_only_fields = ('pk', 'star', 'star_pk')
@@ -202,7 +204,7 @@ class SimpleSpecFileSerializer(ModelSerializer):
 # ===============================================================
 
 class RawSpecFileSerializer(ModelSerializer):
-    stars = SerializerMethodField()
+    systems = SerializerMethodField()
     added_on = SerializerMethodField()
     filename = SerializerMethodField()
     added_by = SerializerMethodField()
@@ -212,7 +214,8 @@ class RawSpecFileSerializer(ModelSerializer):
         fields = [
             'pk',
             'specfile',
-            'stars',
+            'star',
+            'systems',
             'hjd',
             'obs_date',
             'instrument',
@@ -222,9 +225,9 @@ class RawSpecFileSerializer(ModelSerializer):
             'exptime',
             'added_by',
         ]
-        read_only_fields = ('pk', 'stars',)
+        read_only_fields = ('pk', 'systems',)
 
-    def get_stars(self, obj):
+    def get_systems(self, obj):
         SystemDict = {}
 
         #   Process specfile allocations

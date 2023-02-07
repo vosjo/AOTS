@@ -67,3 +67,7 @@ LOGGING = {
         },
     },
 }
+
+# Email settings
+
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")

@@ -11,6 +11,10 @@ def order_by(queryset, args):
     return queryset.order_by(*args)
 
 
+@register.filter_function
+def filter_filetype(queryset, argument):
+    return queryset.filter(filetype__exact=argument)
+
 @register.filter
 def lower(value):
     return value.lower()

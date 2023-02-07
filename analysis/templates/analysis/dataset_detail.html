@@ -173,17 +173,19 @@
 
     <section class='data-section'>
 
-        <h3> Parameter distribution </h3>
+        {% if hist.len > 0 %}
+            <h3> Parameter distribution </h3>
 
-        <div class="flex-data-container j-center">
-            {% for fig in hist %}
+            <div class="flex-data-container j-center">
+                {% for fig in hist %}
 
-                <div class="block">
-                    {{ fig|safe }}
-                </div>
+                    <div class="block">
+                        {{ fig|safe }}
+                    </div>
 
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
     </section>
 

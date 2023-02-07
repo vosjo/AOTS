@@ -215,6 +215,9 @@ def derive_specfile_info(specfile_id, user_info={}):
     specfile.ra = data.get('ra', -1)
     specfile.dec = data.get('dec', -1)
     specfile.obs_date = Time(data['hjd'], format='jd', precision=0).iso
+    specfile.exptime = data.get('exptime', -1)
+    specfile.resolution = data.get('resolution', -1)
+    specfile.snr = data.get('snr', -1)
 
     #   Save file
     specfile.save()
@@ -399,6 +402,7 @@ def process_raw_spec(rawfile_id, specfiles, stars):
     rawfile = RawSpecFile.objects.get(pk=rawfile_id)
     rawfilename = rawfile.rawfile.name.split('/')[-1]
 
+
     ###
     #   Check for specfile duplicates
     #
@@ -429,6 +433,7 @@ def process_raw_spec(rawfile_id, specfiles, stars):
             message = rawfilename + " (raw file) is a duplicate and was not added"
 
             return False, message
+
 
     ###
     #   Check for star duplicates
@@ -476,8 +481,15 @@ def process_raw_spec(rawfile_id, specfiles, stars):
     if len(otherRawSpecFiles) > 0:
         #   Use the first entry
         otherRawSpecFile = otherRawSpecFiles[0]
-        otherRawSpecFileName = otherRawSpecFile.specfile.all()[0] \
-            .specfile.name.split('/')[-1]
+        otherRawSpecFileName = otherRawSpecFile.rawfile.name.split('/')[-1]
+
+        #   Check if the existing raw spec file is already associated with a
+        #   specfile
+        if len(otherRawSpecFile.specfile.all()) > 0:
+            SpecFileName = otherRawSpecFile.specfile.all()[0] \
+                .specfile.name.split('/')[-1]
+        else:
+            SpecFileName = None
 
         #   Loop over all spec files
         for spfile in specfiles:
@@ -492,10 +504,15 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         #   Remove the uploaded raw file
         rawfile.delete()
 
-        message += rawfilename + " (raw file) is a duplicate and already " \
-                   + "associated with the reduced file " + otherRawSpecFileName \
-                   + ". Used the already uploaded file."
+        if SpecFileName == None:
+            message += rawfilename + " (raw file) is a duplicate. Used the "\
+                    + "already uploaded file {}.".format(otherRawSpecFileName)
+        else:
+            message += rawfilename + " (raw file) is a duplicate and already " \
+                    + "associated with the reduced file " + SpecFileName \
+                    + ". Used the already uploaded file."
         return True, message
+
 
     ###
     #   Add raw file to existing specfile

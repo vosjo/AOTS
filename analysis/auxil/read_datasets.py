@@ -1,5 +1,7 @@
 from astropy.coordinates.angles import Angle
-
+from astropy import units as u
+from analysis.models import DEFAULT_PARAMETERS, PARAMETER_ALIASES, \
+                            UNIT_ALIASES
 
 # ==============================================================================================
 # BASIC  INFORMATION extraction
@@ -37,7 +39,7 @@ def basic_info_generic(data):
     return systemname, ra, dec, name, note, reference, atype
 
 
-def basic_info_sedfit(data):
+def basic_info_special_sedfit(data):
     """
     returns info necessary to match the SED fit analysis dataset with the correct star
 
@@ -81,7 +83,7 @@ def get_basic_info(data):
 
     if ('results' in data and ('igrid_search' in data['results'] or 'iminimize' in data['results'])) or (
             'master' in data):
-        return basic_info_sedfit(data)
+        return basic_info_special_sedfit(data)
 
     else:
         return basic_info_generic(data)
@@ -91,7 +93,99 @@ def get_basic_info(data):
 # PARAMETER extraction
 # ==============================================================================================
 
-def get_parameters_sedfit(data):
+def unit_homogenisation(unit, parameter_name):
+    '''
+        This function ensures that the provided unit is compatible with
+        the astropy unit modules.
+
+        Parameters
+        ----------
+        unit                : `string`
+            Input unit
+
+        parameter_name      : `string`
+            Parameter name. Used to handle special cases, such as no unit given.
+
+        Returns
+        -------
+                            : `string`
+            Default unit
+    '''
+    if parameter_name == 'ebv' and unit == '':
+        return 'mag'
+    for default_unit, aliases in UNIT_ALIASES.items():
+        if unit in aliases:
+            return default_unit
+    else:
+        return unit
+
+
+def parameter_homogenisation(data):
+    '''
+        This function ensures that parameters are save with default names
+        and units. Non default units or names will be converted, if possible.
+
+        Parameters
+        ----------
+            data            : dictionary`
+                Dictionary with input parameters
+
+        Returns
+        -------
+            results         : dictionary`
+                Dictionary with default parameter names and units
+    '''
+    results = {}
+    for pname, parameter in data.items():
+        #   Check if parameter name is a default one or not
+        if pname in DEFAULT_PARAMETERS.keys():
+            parameter_name = pname
+        else:
+            for default_name, aliases in PARAMETER_ALIASES.items():
+                if pname in aliases:
+                    parameter_name = default_name
+                    break
+            else:
+                continue
+
+        #   Add to results
+        results[parameter_name] = parameter
+
+        #   Find units
+        default_unit = DEFAULT_PARAMETERS[parameter_name]
+        parameter_unit = unit_homogenisation(parameter['unit'], parameter_name)
+        results[parameter_name]['unit'] = parameter_unit
+
+        if default_unit != parameter_unit:
+            #   Convert value and error if unit mismatch
+            try:
+                value = parameter['value'] * u.Unit(parameter_unit)
+                if 'err_l' in parameter:
+                    err_l = parameter['err_l'] * u.Unit(parameter_unit)
+                else:
+                    err_l = parameter['err'] * u.Unit(parameter_unit)
+                if 'err_u' in parameter:
+                    err_u = parameter['err_u'] * u.Unit(parameter_unit)
+                else:
+                    err_u = parameter['err'] * u.Unit(parameter_unit)
+                    results[parameter_name].pop('err')
+
+                #   Actual conversion
+                converted_value = value.to_value(u.Unit(default_unit))
+                results[parameter_name]['value'] = converted_value
+                converted_err_l = err_l.to_value(u.Unit(default_unit))
+                results[parameter_name]['err_l'] = converted_err_l
+                converted_err_u = err_u.to_value(u.Unit(default_unit))
+                results[parameter_name]['err_u'] = converted_err_u
+
+                results[parameter_name]['unit'] = default_unit
+            except:
+                results.pop(parameter_name)
+
+    return results
+
+
+def get_parameters_special_sedfit(data):
     """
     Returns a dictionary with all parameters containing the value, error (upper and lower) and unit,
     based on the confidence intervals included in the igrid_search or iminimize results.
@@ -118,6 +212,9 @@ def get_parameters_sedfit(data):
         p = p + '2'
         results[p] = [ci[p], ci[p + upper] - ci[p], ci[p] - ci[p + lower], u]
 
+    #   Check parameter names and units
+    results = parameter_homogenisation(results)
+
     return results
 
 
@@ -133,6 +230,9 @@ def get_parameters_generic(data):
         return {}
 
     pars = data['PARAMETERS']
+
+    #   Check parameter names and units
+    pars = parameter_homogenisation(pars)
 
     results = {}
     for pname, parameter in pars.items():
@@ -154,7 +254,7 @@ def get_parameters(data):
     """
 
     if 'results' in data and ('igrid_search' in data['results'] or 'iminimize' in data['results']):
-        return get_parameters_sedfit(data)
+        return get_parameters_special_sedfit(data)
 
     else:
         return get_parameters_generic(data)

@@ -4,8 +4,8 @@
 {% block head %}  <!--Add necessary javascript and css files for this page-->
 
     {% include "datatables.html" %}
-    <script type="text/javascript" src="{% static 'js/rawspecfiles_list.js' %}"></script>
-    <title>Spectrum Raw Files</title>
+    <title>Raw Spectrum Files</title>
+    <script type="text/javascript" src="{% static 'js/rawspecfiles_list.js' %}?20230109"></script>
 
 {% endblock %}
 
@@ -111,13 +111,13 @@
 
     <!-- Div ect necessary for editing on page stuff with ajax -->
     <div id="addRawSpec">
-        <fieldset>
-            <div class="ui-controlgroup-horizontal">
+        {% if user.is_authenticated %}
+            <fieldset>
+                <div class="ui-controlgroup-horizontal">
 
-                <form action="{% url "observations:rawspecfile_list" project.slug %}" method="post"
-                      enctype="multipart/form-data" class="" id="raw-upload-form">
+                    <form action="{% url "observations:rawspecfile_list" project.slug %}" method="post"
+                        enctype="multipart/form-data" class="" id="raw-upload-form">
 
-                    {% if user.is_authenticated %}
                         {% csrf_token %}
                         {% if raw_upload_form.non_field_errors %}
                             <p>{{ raw_upload_form.non_field_errors }}</p>
@@ -170,8 +170,8 @@
                                             <br>
                                             <i class="small">(Reset field by double click)</i>
                                             <span class="error">
-                                    {{ raw_upload_form.system.errors.as_text }}
-                                </span>
+                                                {{ raw_upload_form.system.errors.as_text }}
+                                            </span>
                                         </td>
                                         <td id='label'>
                                             <label for="{{ raw_upload_form.specfile.id_for_label }}">Reduced
@@ -184,8 +184,8 @@
                                             <br>
                                             <i class="small">(Reset field by double click)</i>
                                             <span class="error">
-                                    {{ raw_upload_form.specfile.errors.as_text }}
-                                </span>
+                                                {{ raw_upload_form.specfile.errors.as_text }}
+                                            </span>
                                         </td>
                                     </tr>
                                 </table>
@@ -198,14 +198,9 @@
                                 {{ raw_upload_form.rawfile }}
                                 <span class="error">
                         {{ raw_upload_form.rawfile.errors.as_text }}
-                    </span>
+                            </span>
                             </div>
                         </fieldset>
-
-
-                    {% else %}
-                        <p> Log in to upload files! </p>
-                    {% endif %}
 
                     <div class="system-form-submit">
                         <input type="submit" class="upload-button" value="Upload raw data"/>
@@ -213,99 +208,95 @@
 
                 </form>
             </div>
-
         </fieldset>
+    {% endif %}
+
     </div>
 
     <div id="editLinkage">
-        <fieldset>
-            <div class="ui-controlgroup-horizontal">
+        {% if user.is_authenticated %}
+            <fieldset>
+                <div class="ui-controlgroup-horizontal">
 
-                <div id='linkage-error' class='error-message'></div>
+                    <div id='linkage-error' class='error-message'></div>
 
-                {% if user.is_authenticated %}
-                    {% csrf_token %}
-                    {% if raw_patch_form.non_field_errors %}
-                        <p>{{ raw_patch_form.non_field_errors }}</p>
-                    {% endif %}
+                        {% csrf_token %}
+                        {% if raw_patch_form.non_field_errors %}
+                            <p>{{ raw_patch_form.non_field_errors }}</p>
+                        {% endif %}
 
-                    <fieldset>
-                        <legend>Filter systems and spectra</legend>
+                        <fieldset>
+                            <legend>Filter systems and spectra</legend>
 
-                        <div class="cg-block">
-                            <table class="system-form-table">
-                                <tr>
-                                    <td>
-                                        <label for="{{ raw_patch_form.system_name_patch.id_for_label }}">System name
-                                            (main id):</label>
-                                    </td>
-                                    <td>
-                                        {{ raw_patch_form.system_name_patch }}
-                                        <span class="error">
-                                {{ raw_patch_form.system_name_patch.errors.as_text }}
-                                </span>
-                                    </td>
-                                    <td id='label'>
-                                        <label for="{{ raw_patch_form.specfile_date_patch.id_for_label }}">Observation
-                                            date:</label>
-                                    </td>
-                                    <td>
-                                        {{ raw_patch_form.specfile_date_patch }}
-                                        <span class="error">
-                                {{ raw_patch_form.specfile_date_patch.errors.as_text }}
-                                </span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </fieldset>
+                            <div class="cg-block">
+                                <table class="system-form-table">
+                                    <tr>
+                                        <td>
+                                            <label for="{{ raw_patch_form.system_name_patch.id_for_label }}">System name
+                                                (main id):</label>
+                                        </td>
+                                        <td>
+                                            {{ raw_patch_form.system_name_patch }}
+                                            <span class="error">
+                                                {{ raw_patch_form.system_name_patch.errors.as_text }}
+                                            </span>
+                                        </td>
+                                        <td id='label'>
+                                            <label for="{{ raw_patch_form.specfile_date_patch.id_for_label }}">Observation
+                                                date:</label>
+                                        </td>
+                                        <td>
+                                            {{ raw_patch_form.specfile_date_patch }}
+                                            <span class="error">
+                                                {{ raw_patch_form.specfile_date_patch.errors.as_text }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </fieldset>
 
-                    <fieldset>
-                        <legend>Select the system(s) and the reduced spectra to which the raw data are to be assigned
-                        </legend>
+                        <fieldset>
+                            <legend>Select the system(s) or the reduced spectra to which the raw data are to be assigned
+                            </legend>
 
-                        <div class="cg-block">
-                            <table class="system-form-table">
-                                <tr>
-                                    <td>
-                                        <label for="{{ raw_patch_form.system_patch.id_for_label }}">Systems:</label>
-                                    </td>
-                                    <td class='left'>
-                                        {{ raw_patch_form.system_patch }}
-                                        <br>
-                                        <i class="small">(Reset field by double click)</i>
-                                        <span class="error">
-                                    {{ raw_patch_form.system_patch.errors.as_text }}
-                                </span>
-                                    </td>
-                                    <td id='label'>
-                                        <label for="{{ raw_patch_form.specfile_patch.id_for_label }}">Reduced
-                                            spectra:</label>
-                                        <br>
-                                        <i class="small">(Obs. date - Instrument)</i>
-                                    </td>
-                                    <td>
-                                        {{ raw_patch_form.specfile_patch }}
-                                        <br>
-                                        <i class="small">(Reset field by double click)</i>
-                                        <span class="error">
-                                    {{ raw_patch_form.specfile_patch.errors.as_text }}
-                                </span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </fieldset>
+                            <div class="cg-block">
+                                <table class="system-form-table">
+                                    <tr>
+                                        <td>
+                                            <label for="{{ raw_patch_form.system_patch.id_for_label }}">Systems:</label>
+                                        </td>
+                                        <td class='left'>
+                                            {{ raw_patch_form.system_patch }}
+                                            <br>
+                                            <i class="small">(Reset field by double click)</i>
+                                            <span class="error">
+                                                {{ raw_patch_form.system_patch.errors.as_text }}
+                                            </span>
+                                        </td>
+                                        <td id='label'>
+                                            <label for="{{ raw_patch_form.specfile_patch.id_for_label }}">Reduced
+                                                spectra:</label>
+                                            <br>
+                                            <i class="small">(Obs. date - Instrument)</i>
+                                        </td>
+                                        <td>
+                                            {{ raw_patch_form.specfile_patch }}
+                                            <br>
+                                            <i class="small">(Reset field by double click)</i>
+                                            <span class="error">
+                                                {{ raw_patch_form.specfile_patch.errors.as_text }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </fieldset>
 
-
-                {% else %}
-                    <p> Log in to upload files! </p>
-                {% endif %}
-
-            </div>
-
-        </fieldset>
-
+                    </div>
+                </div>
+            </fieldset>
+        {% endif %}
     </div>
 
 {% endblock %}

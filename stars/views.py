@@ -218,7 +218,7 @@ def star_detail(request, star_id, project=None, **kwargs):
     context['related_stars'] = related_stars
 
     #   Add analysis methods
-    methods = Method.objects.all()
+    methods = Method.objects.filter(project__exact=project)
 
     datasets, figures = [], []
 
@@ -244,6 +244,17 @@ def star_detail(request, star_id, project=None, **kwargs):
         context['script'] = script
 
     parameters, pSource = get_params(star_id)
+    context['allParameters'] = parameters
+    context['parameterSources'] = pSource
+
+    #   Get number of raw data files
+    n_raw = len(star.rawspecfile_set.all().filter(filetype__exact='Science'))
+    for spectrum in star.spectrum_set.all():
+        for spec in spectrum.specfile_set.all():
+            n_raw += len(
+                spec.rawspecfile_set.all().filter(filetype__exact='Science')
+                )
+    context['n_raw'] = n_raw
 
     if request.method == 'POST' and request.user.is_authenticated:
         # Differentiate between Vizier and Edit form submit buttons
@@ -332,8 +343,6 @@ def star_detail(request, star_id, project=None, **kwargs):
                 kwargs={'project': project.slug,
                         "star_id": star_id},
             ))
-    context['allParameters'] = parameters
-    context['parameterSources'] = pSource
 
     return render(request, 'stars/star_detail.html', context)
 

@@ -166,6 +166,6 @@ MEDIA_URL = '/media/'
 
 # Load specific settings for developement of production
 if env("DEVICE") in platform.node():
-    from .settings_production import DEBUG, ALLOWED_HOSTS, DATABASES, LOGGING
+    from .settings_production import DEBUG, ALLOWED_HOSTS, DATABASES, LOGGING, DEFAULT_FROM_EMAIL
 else:
     from .settings_development import DEBUG, ALLOWED_HOSTS, DATABASES, LOGGING

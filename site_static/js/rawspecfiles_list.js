@@ -21,7 +21,7 @@ $(document).ready(function () {
             {data: 'filename', orderable: false},
             {data: 'added_on'},
             {data: 'specfile', render: reduced_render},
-            {data: 'stars', orderable: false, render: stars_render},
+            {data: 'systems', orderable: false, render: systems_render},
 //          { data: 'specfiles', orderable: false, render: processed_render },
         ];
     } else {
@@ -34,7 +34,7 @@ $(document).ready(function () {
             {data: 'filename'},
             {data: 'added_on'},
             {data: 'specfile', render: reduced_render},
-            {data: 'stars', orderable: false, render: stars_render},
+            {data: 'systems', orderable: false, render: systems_render},
 //          { data: 'specfiles', orderable: false, render: processed_render },
         ];
     }
@@ -129,9 +129,10 @@ $(document).ready(function () {
     }
 
     //  Save content of system and specfile form fields to allow their reset
+    // if (user_authenticated) {
     let saved_system = $("#id_system")[0]['innerHTML'];
     let saved_specfile = $("#id_specfile")[0]['innerHTML'];
-
+    // }
 
     //  Add spectra form:
     //  Adjust form drop dropdown content I: read system name
@@ -516,7 +517,7 @@ function selection_render(data, type, full, meta) {
     }
 }
 
-function stars_render(data, type, full, meta) {
+function systems_render(data, type, full, meta) {
     let systems = [];
     for (let key in data) {
         if (data.hasOwnProperty(key)) {
@@ -529,7 +530,6 @@ function stars_render(data, type, full, meta) {
 
 function reduced_render(data, type, full, meta) {
     let nspecfiles = data.length;
-//     console.log(nspecfiles);
     if (nspecfiles === 0) {
         return '<i class="material-icons status-icon invalid" title="Not allocated to a reduced Spectrum."></i>'
     } else {
@@ -628,14 +628,38 @@ function openLinkageEditWindow() {
 }
 
 function updateLinkage() {
-    //  Bind to selected spectra
-    let spectra = $("#id_specfile_patch");
-    let specfiles = spectra.children().filter(':checked')
+    //  Bind to selected specfiles
+    let specfile_bind = $("#id_specfile_patch");
+    let specfiles = specfile_bind.children().filter(':checked')
 
-    //  Check that spectra are selected
-    if (specfiles.length == 0) {
-        $('#linkage-error').text('You need to select a spectrum file!');
-    } else {
+    //  Bind to selected systems
+    let systems_bind = $("#id_system_patch");
+    let systems = systems_bind.children().filter(':checked')
+
+    //  Check if specfiles or systems are selected
+    if (systems.length != 0) {
+        //  Loop over Stars, get 'pk'
+        let pk_list_systems = [];
+        systems.map(function (index) {
+            //  Get system 'pk's
+            let pd_system = $(this).val();
+            pk_list_systems.push(pd_system);
+        });
+
+        //   Get list of selected RawSpecfiles
+        rawspecfile_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+            //  Determine ID/PK
+            let pk_raw = this.data()['pk'];
+
+            //  Modify the specfile association
+            change_rawspecfiles_linkage(this, pk_raw, pk_list_systems, []);
+        });
+
+        //   Reset check boxes
+        rawspecfile_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+        });
+    } else if (specfiles.length != 0) {
         //  Loop over SpecFiles, get 'pk'
         let pk_list_spf = [];
         specfiles.map(function (index) {
@@ -649,25 +673,27 @@ function updateLinkage() {
             //  Determine ID/PK
             let pk_raw = this.data()['pk'];
 
-            //  Modify the linkage
-            change_rawspecfiles_linkage(this, pk_raw, pk_list_spf);
+            //  Modify the specfile association
+            change_rawspecfiles_linkage(this, pk_raw, [], pk_list_spf);
         });
 
         //   Reset check boxes
         rawspecfile_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
             deselect_row(this);
         });
+    } else {
+        $('#linkage-error').text('You need to select a spectrum file or a system!');
     }
 }
 
-//  Delete raw data
-function change_rawspecfiles_linkage(row, pk_raw, pk_spf) {
-    //  Ajax call to patch SpecFile <-> RawFile association
+//  Modify raw data association
+function change_rawspecfiles_linkage(row, pk_raw, pk_system, pk_spf) {
+    //  Ajax call to patch SpecFile & System <-> RawFile association
     $.ajax({
         url: "/api/observations/rawspecfiles/" + pk_raw + '/',
         type: "PATCH",
         contentType: "application/json; charset=utf-8",
-        data: JSON.stringify({'specfile': pk_spf}),
+        data: JSON.stringify({'specfile': pk_spf, 'star': pk_system}),
         success: function (json) {
             //  Close edit window
             edit_linkage_window.dialog("close");
@@ -676,7 +702,7 @@ function change_rawspecfiles_linkage(row, pk_raw, pk_spf) {
         },
         error: function (xhr, errmsg, err) {
             if (xhr.status === 403) {
-                alert('You have to be logged in to delete this spectrum.');
+                alert('You have to be logged in to update file allocations.');
             } else {
                 alert(xhr.status + ": " + xhr.responseText);
             }
@@ -728,6 +754,7 @@ function download_rawfiles() {
     //   Load Filesaver and jszip libs to facilitate download
     $.getScript("/static/js/JsZip/FileSaver.js").done(function () {
         $.getScript("/static/js/JsZip/jszip.js").done(async function () {
+            $.getScript("/static/js/JsZip/jszip-utils.js").done(async function () {
 
             //  Create zip file
             let zip = new JSZip();
@@ -741,20 +768,21 @@ function download_rawfiles() {
             const getPromises = rawlist.map(async path => {
                 let file = path.split('/').slice(-1);
                 return new Promise(function (resolve, reject) {
-                    $.get(path)
-                        .done(function (data) {
-                            resolve([file, data]);
-                        })
-                        .fail(function () {
+                    JSZipUtils.getBinaryContent(path, function(err, data) {
+                        if (err) {
                             reject("ERROR: File not found");
-                        })
+                        } else {
+                            resolve([file, data]);
+                        }
+                    })
                 });
             });
 
             //  Fill zip file
-            for (const getPromise of getPromises) {
+            for (const promise of getPromises) {
                 try {
-                    const content = await getPromise;
+                    const content = await promise;
+                    console.log(content[1]);
                     zip.file(content[0], content[1]);
                 } catch (err) {
                     showError(err);
@@ -779,6 +807,7 @@ function download_rawfiles() {
                 });
 
 
+            });
         });
     });
 }

@@ -1,19 +1,20 @@
+from datetime import datetime, timedelta
+
 from bokeh.embed import components
 from bokeh.resources import CDN
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, reverse
+from django.utils.timezone import make_aware
 
 from AOTS.custom_permissions import check_user_can_view_project
+from observations.models import Spectrum, LightCurve
 from stars.models import Project, Star
-from observations.models import Spectrum, SpecFile, LightCurve
 from .auxil import process_datasets, plot_parameters
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm, HRDPlotterForm
 from .models import DataSet
 from .plotting import plot_hrd
 
-from datetime import datetime, timedelta
-from django.utils.timezone import make_aware
 
 @check_user_can_view_project
 def dataset_list(request, project=None, **kwargs):
@@ -137,8 +138,10 @@ def dashboard(request, project=None, **kwargs):
         form = HRDPlotterForm(request.GET)
         if form.is_valid():
             parameters = form.get_parameters()
+        else:
+            form = HRDPlotterForm(initial={'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': "mag", "size": "", "color": ""})
     else:
-        form = HRDPlotterForm(initial={'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': "mag", "size":"", "color":""})
+        form = HRDPlotterForm(initial={'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': "mag", "size": "", "color": ""})
 
     stats = {}
     project = get_object_or_404(Project, slug=project)
@@ -146,26 +149,22 @@ def dashboard(request, project=None, **kwargs):
     all_stars = Star.objects.filter(project=project)
     all_specs = Spectrum.objects.filter(project=project)
     all_lcs = LightCurve.objects.filter(project=project)
-    all_files = SpecFile.objects.filter(project=project)
 
     stats["nstars"] = all_stars.count()
     stats["nspec"] = all_specs.count()
     stats["nlc"] = all_lcs.count()
-    stats["nspecfile"] = all_files.count()
 
-    dtime_naive = datetime.now()-timedelta(days=7)
+    dtime_naive = datetime.now() - timedelta(days=7)
 
     aware_datetime = make_aware(dtime_naive)
 
     all_stars_lw = Star.objects.filter(project=project, added_on__gte=aware_datetime)
     all_specs_lw = Spectrum.objects.filter(project=project, added_on__gte=aware_datetime)
     all_lcs_lw = LightCurve.objects.filter(project=project, added_on__gte=aware_datetime)
-    all_files_lw = SpecFile.objects.filter(project=project, added_on__gte=aware_datetime)
 
     stats["nstarslw"] = all_stars_lw.count()
     stats["nspeclw"] = all_specs_lw.count()
     stats["nlclw"] = all_lcs_lw.count()
-    stats["nspecfilelw"] = all_files_lw.count()
 
     # Possible axes teff, logg, mag, bp_rp
     if len(parameters.keys()) != 0:

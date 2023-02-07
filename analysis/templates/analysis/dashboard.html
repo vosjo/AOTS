@@ -15,47 +15,58 @@
         <div class="dash-half">
             <div class="dash-square rect lefthalf"><h1>Project Statistics</h1>
                 <br>
-                <p class="stats">Number of Stars: <b>{{ stats.nstars }}</b>{% if stats.nstarslw != 0 %}<span style="color: #228B22"> + <b>{{ stats.nstarslw }}</b> last week</span>{% endif %}</p>
-                <p class="stats">Of which with Spectra: <b>{{ stats.nspec }}</b> with <b>{{ stats.nspecfile }}</b> associated unique files.{% if stats.nspecfilelw != 0 %}<span style="color: #228B22"> +<b>{{ stats.nspeclw }}</b> spectra, <b>{{ stats.nspecfilelw }}</b> files last week</span>{% endif %}</p>
-                <p class="stats">Number of Lightcurves: <b>{{ stats.nlc }}</b>{% if stats.nlclw != 0 %}<span style="color: #228B22"> + <b>{{ stats.nlclw }}</b> last week</span>{% endif %}</p>
+                <p class="stats">Number of Stars: <b>{{ stats.nstars }}</b>{% if stats.nstarslw != 0 %}
+                    <span style="color: #228B22"> + <b>{{ stats.nstarslw }}</b> last week</span>{% endif %}</p>
+                <p class="stats">Of which with Spectra: <b>{{ stats.nspec }}</b> {% if stats.nspeclw != 0 %}
+                    <span style="color: #228B22"> +<b>{{ stats.nspeclw }}</b> spectra last week</span>{% endif %}</p>
+                <p class="stats">Number of Lightcurves: <b>{{ stats.nlc }}</b>{% if stats.nlclw != 0 %}
+                    <span style="color: #228B22"> + <b>{{ stats.nlclw }}</b> last week</span>{% endif %}</p>
             </div>
             <div class="dash-square square lefthalf">
                 <div class="dash-overview-plot">
-                <h1>Project Overview</h1>
-                {{ hrd_plot|safe }}
+                    <h1>Project Overview</h1>
+                    {{ hrd_plot|safe }}
                 </div>
                 <div class="dash-overview-params">
                     <form action="{% url "analysis:dashboard" project.slug %}" method="get">
-                    {% csrf_token %}
+                        {% csrf_token %}
                         <table>
                             <tbody>
                             {% for field in form %}
                                 <tr>
                                     <th>{{ field.label_tag }}</th>
                                     <td>
-                                    {{ field }}
+                                        {{ field }}
                                     <td>
                                     <td style="color:red;">
-                                    {{ field.errors }}
+                                        {{ field.errors }}
                                     <td>
                                 </tr>
                             {% endfor %}
                             </tbody>
                         </table>
-                    <input type="submit" value="Update Figure"/>
+                        <input type="submit" value="Update Figure"/>
                     </form>
                 </div>
             </div>
         </div>
         <div class="dash-half">
             <div class="dash-square-invis rect righthalf">
-                <button class="dash-button top-button left-button" onclick="location.href='../../systems/stars'" type="button"><i class="icon material-icons dash-icon">auto_awesome</i> Go to Systems Page</button>
-                <button class="dash-button top-button right-button" onclick="location.href='../../observations/spectra'" type="button"><i class="icon material-icons dash-icon">insights</i> Go to Spectra Page</button>
-                <button class="dash-button bottom-button left-button" onclick="location.href='../../observations/lightcurves'" type="button"><i class="icon material-icons dash-icon">flare</i> Go to Lightcurve Page</button>
-                <button class="dash-button bottom-button right-button" onclick="location.href='../../analysis/plotter'" type="button" disabled><i class="icon material-icons dash-icon">bar_chart</i> Go to Analysis Page</button>
+                <button class="dash-button top-button left-button" onclick="location.href='../../systems/stars'" type="button">
+                    <i class="icon material-icons dash-icon">auto_awesome</i> Go to Systems Page
+                </button>
+                <button class="dash-button top-button right-button" onclick="location.href='../../observations/spectra'" type="button">
+                    <i class="icon material-icons dash-icon">insights</i> Go to Spectra Page
+                </button>
+                <button class="dash-button bottom-button left-button" onclick="location.href='../../observations/lightcurves'" type="button">
+                    <i class="icon material-icons dash-icon">flare</i> Go to Lightcurve Page
+                </button>
+                <button class="dash-button bottom-button right-button" onclick="location.href='../../analysis/datasets'" type="button">
+                    <i class="icon material-icons dash-icon">bar_chart</i> Go to Analysis Page
+                </button>
             </div>
             <div class="dash-square square righthalf"><h1>Planned Observations</h1>
-            <p style="font-size: xx-large">This section is <b>Under Construction!</b></p></div>
+                <p style="font-size: xx-large">This section is <b>Under Construction!</b></p></div>
         </div>
     </div>
     {{ script|safe }}

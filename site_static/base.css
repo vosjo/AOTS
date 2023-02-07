@@ -40,7 +40,7 @@ header {
     background: #fff;
     box-shadow: 0 3px 10px -2px rgba(64, 117, 144, 0.3);
     border-bottom: 3px solid rgba(64, 117, 144, 0.3); /*rgba(0,0,0,.1);*/
-    margin-bottom: 40px;
+    margin-bottom: 15px;
 }
 
 header h1 {
@@ -70,6 +70,7 @@ div#titlebar {
     display: inline-block;
     width: 40%;
     margin-left: 2.5%;
+    margin-bottom: 1%;
 }
 
 nav {
@@ -80,8 +81,7 @@ nav {
 }
 
 div#toolbar {
-    display: flex-block;
-    align-items: right;
+    align-items: end;
     float: right;
     z-index: 10;
 }
@@ -255,8 +255,8 @@ nav a.active{
 nav strong{
    font-size: 20px;
    font-weight: 900;
-   margin: auto;*/
-}
+   margin: auto;
+}*/
 
 section {
     margin-top: 10px;
@@ -348,7 +348,6 @@ div.upload {
 
 
 div.center {
-    padding: auto;
     margin: auto;
 }
 
@@ -372,22 +371,6 @@ div.circle {
 
 .w1100 {
     width: 1100px;
-}
-
-.whalf {
-    display: inline-block;
-    width: 48%;
-    border: 1px solid gray;
-    float: center;
-}
-
-.wfull {
-    display: inline-block;
-    width: 96%;
-    margin-left: 2%;
-    margin-right: 2%;
-    border: 1px solid gray;
-    float: center;
 }
 
 hr {
@@ -1304,23 +1287,21 @@ html, body {
 .page-wrap {
     min-height: 100%;
     /* equal to footer height */
-    margin-bottom: -40px;
+    /*margin-bottom: -40px;*/
 }
 
 .page-wrap-base {
-    min-height: 100%;
+    height: 95vh;
+    overflow: scroll;
 }
 
-.page-wrap:after {
-    content: "";
-    display: block;
-}
-
-.site-footer, .page-wrap:after {
-    height: 40px;
-}
+/*.page-wrap:after {*/
+/*    content: "";*/
+/*    display: block;*/
+/*}*/
 
 .site-footer {
+    height: 5vh;
     background-image: linear-gradient(rgba(64, 117, 144, 0.1), rgba(64, 117, 144, 0.4));
 }
 
@@ -1332,7 +1313,6 @@ footer div {
     margin-right: 2%;
     margin-top: 2px;
     margin-bottom: 2px;
-    float: center;
     text-align: center;
 }
 
@@ -1459,8 +1439,8 @@ a.disabled {
     color: gray;
 }
 
-.dropdown-container{
-    float:left;
+.dropdown-container {
+    float: left;
     margin-left: 2px;
     margin-right: 2px;
 }
@@ -1474,19 +1454,122 @@ a.disabled {
 }
 
 .projectlink {
-    position:absolute;
+    position: absolute;
     cursor: pointer;
-    width:100%;
-    height:100%;
-    top:0;
+    width: 100%;
+    height: 100%;
+    top: 0;
     left: 0;
     z-index: 1;
 }
 
 div.project-container:hover {
-  box-shadow: 0 0 11px rgba(33,33,33,.2);
+    box-shadow: 0 0 11px rgba(33, 33, 33, .2);
 }
 
 h3.titlelink {
     color: #5B7FB1FF;
+}
+
+div.dashboard-wrapper {
+    width: 100%;
+    height: 80%;
+    margin: 0 auto;
+    overflow: scroll;
+    display: flex;
+}
+
+div.dash-square {
+    margin: 4px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid rgba(64, 117, 144, 0.3);
+    width: 90%;
+    overflow: scroll;
+}
+
+div.dash-square-invis {
+    margin: 6px 4px;
+    padding: 10px;
+    width: 90%;
+    overflow: hidden;
+    align-items: center;
+    text-align: center;
+}
+
+div.rect {
+    height: 20%;
+}
+
+div.square {
+    height: 70%;
+    overflow: scroll;
+}
+
+.stats {
+    font-size: large;
+}
+
+div.dash-half {
+    width: 49%;
+}
+
+div.dash-square.righthalf {
+    float: left;
+}
+
+div.dash-square.lefthalf {
+    float: right;
+}
+
+button.dash-button {
+    width: 48%;
+    height: 48%;
+    text-align: left;
+    font-size: 32px;
+    display: inline-flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+    background-color: rgba(173, 215, 246, 0.2);
+    border: 2px solid rgba(64, 117, 144, 0.3);
+    border-radius: 10px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 1);
+}
+
+button.dash-button:hover {
+    background-color: rgba(173, 215, 246, 0.4);
+}
+
+button.dash-button:disabled {
+    background-color: rgba(233, 240, 245, 0.2);
+    border: 2px solid rgba(121, 136, 143, 0.3);
+    color: rgba(160, 162, 163, 1);
+    cursor: default;
+}
+
+
+button.dash-button.top-button {
+    margin-bottom: 3px;
+}
+
+button.dash-button.bottom-button {
+    margin-top: 3px;
+}
+
+button.dash-button.left-button {
+    margin-right: 3px;
+}
+
+button.dash-button.right-button {
+    margin-left: 3px;
+}
+
+i.dash-icon {
+    font-size: 30px;
+    margin-right: 10px;
+    margin-left: 5px;
+    color: rgba(23, 43, 54, 1);
 }

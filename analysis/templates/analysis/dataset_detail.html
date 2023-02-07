@@ -6,6 +6,8 @@
 
     {% include "bokeh.html" %}
     <script type="text/javascript" src="{% static 'js/dataset_detail.js' %}"></script>
+    <title>Dataset: {{ dataset.star.name }} - {{ dataset.method.name }}</title>
+
 {% endblock %}
 
 

@@ -46,3 +46,4 @@ venv/
 !media/docs/Bulk_system_example.csv
 /hotSD_gaia_edr3_catalogue.fits
 redo_*
+pwgen.py

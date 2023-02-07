@@ -1,14 +1,19 @@
+from datetime import datetime, timedelta
+
 from bokeh.embed import components
 from bokeh.resources import CDN
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, reverse
+from django.utils.timezone import make_aware
 
 from AOTS.custom_permissions import check_user_can_view_project
-from stars.models import Project
+from observations.models import Spectrum, LightCurve
+from stars.models import Project, Star
 from .auxil import process_datasets, plot_parameters
-from .forms import UploadAnalysisFileForm, ParameterPlotterForm
+from .forms import UploadAnalysisFileForm, ParameterPlotterForm, HRDPlotterForm
 from .models import DataSet
+from .plotting import plot_hrd
 
 
 @check_user_can_view_project
@@ -128,3 +133,58 @@ def parameter_plotter(request, project=None, **kwargs):
     }
 
     return render(request, 'analysis/parameter_plotter.html', context)
+
+
+@check_user_can_view_project
+def dashboard(request, project=None, **kwargs):
+    parameters = {}
+
+    if request.method == 'GET':
+        form = HRDPlotterForm(request.GET)
+        if form.is_valid():
+            parameters = form.get_parameters()
+        else:
+            form = HRDPlotterForm(initial={'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': "mag", "size": "", "color": ""})
+    else:
+        form = HRDPlotterForm(initial={'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': "mag", "size": "", "color": ""})
+
+    stats = {}
+    project = get_object_or_404(Project, slug=project)
+
+    all_stars = Star.objects.filter(project=project)
+    all_specs = Spectrum.objects.filter(project=project)
+    all_lcs = LightCurve.objects.filter(project=project)
+
+    stats["nstars"] = all_stars.count()
+    stats["nspec"] = all_specs.count()
+    stats["nlc"] = all_lcs.count()
+
+    dtime_naive = datetime.now() - timedelta(days=7)
+
+    aware_datetime = make_aware(dtime_naive)
+
+    all_stars_lw = Star.objects.filter(project=project, added_on__gte=aware_datetime)
+    all_specs_lw = Spectrum.objects.filter(project=project, added_on__gte=aware_datetime)
+    all_lcs_lw = LightCurve.objects.filter(project=project, added_on__gte=aware_datetime)
+
+    stats["nstarslw"] = all_stars_lw.count()
+    stats["nspeclw"] = all_specs_lw.count()
+    stats["nlclw"] = all_lcs_lw.count()
+
+    # Possible axes teff, logg, mag, bp_rp
+    if len(parameters.keys()) != 0:
+        figure = plot_hrd(project.pk, parameters["xaxis"], parameters["yaxis"], parameters["size"], parameters["color"], parameters["nsys"])
+        script, div = components(figure, CDN)
+    else:
+        figure = plot_hrd(project.pk)
+        script, div = components(figure, CDN)
+
+    context = {
+        'project': project,
+        'stats': stats,
+        'hrd_plot': div,
+        'script': script,
+        'form': form
+    }
+
+    return render(request, 'analysis/dashboard.html', context)

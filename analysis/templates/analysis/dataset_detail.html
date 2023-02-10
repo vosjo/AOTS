@@ -135,17 +135,23 @@
                         </tr>
                         </thead>
                         <tbody class='mono'>
-                        {% for p in dataset.parameter_set.order %}
-                            <tr>
-                                <th>{{ p.cname }} ({{ p.unit }})</th>
-                                <td>{{ p.rvalue }}</td>
-                                <td>{{ p.rerror }}</td>
-                                <td><input type="checkbox" id="cb-parameter-valid-{{ p.pk }}" {% if p.valid %}
-                                        checked="checked" {% endif %} onchange='toggleParameterValid(this);'
-                                        parameter_id="{{ p.pk }}"
-                                        {% if not user.is_authenticated %} disabled {% endif %}></td>
+                        {% if dataset.parameter_set.all %}
+                            {% for p in dataset.parameter_set.order %}
+                                <tr>
+                                    <th>{{ p.cname }} ({{ p.unit }})</th>
+                                    <td>{{ p.rvalue }}</td>
+                                    <td>{{ p.rerror }}</td>
+                                    <td><input type="checkbox" id="cb-parameter-valid-{{ p.pk }}" {% if p.valid %}
+                                            checked="checked" {% endif %} onchange='toggleParameterValid(this);'
+                                            parameter_id="{{ p.pk }}"
+                                            {% if not user.is_authenticated %} disabled {% endif %}></td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr id="tr-novaluesyet">
+                                <td colspan="4">No data available</td>
                             </tr>
-                        {% endfor %}
+                        {% endif %}
                         </tbody>
                     </table>
                 </div>

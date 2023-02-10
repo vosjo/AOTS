@@ -47,6 +47,7 @@ class DataSetListSerializer(ModelSerializer):
             'href',
             'modified_by',
             'file_url',
+            'datafile',
         ]
         read_only_fields = ('pk', 'file_url',)
 

@@ -70,7 +70,7 @@ class DataSource(models.Model):
     reference = models.TextField(default='')
 
     # -- A datasource belongs to a specific project. If the project is
-    #   deleted, the method should go to.
+    #   deleted, the DataSource should go to.
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False)
 
     # -- bookkeeping

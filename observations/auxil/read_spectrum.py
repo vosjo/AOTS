@@ -238,7 +238,6 @@ def process_specfile(specfile_id, create_new_star=True,
         If user_info is provided, this will overwrite the data extracted from
         the header, if a header is present.
     """
-
     message = ""
 
     derive_specfile_info(specfile_id, user_info=user_info)

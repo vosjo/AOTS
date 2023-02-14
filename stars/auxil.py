@@ -19,11 +19,11 @@ from .models import Star
 #   'photnames':    external names (e.g., in .csv files) for the filters
 #   'errs':         external names (e.g., in .csv files) for the errors
 catalogs = {
-    'GAIA2': {
-        'simbad_id': 'I/345/gaia2',
+    'GAIA3': {
+        'simbad_id': 'I/355/gaiadr3',
         'columns': ['Gmag', 'BPmag', 'RPmag'],
         'err_columns': ['e_Gmag', 'e_BPmag', 'e_RPmag'],
-        'passbands': ['GAIA2.G', 'GAIA2.BP', 'GAIA2.RP'],
+        'passbands': ['GAIA3.G', 'GAIA3.BP', 'GAIA3.RP'],
         'photnames': [
             'phot_g_mean_mag',
             'phot_bp_mean_mag',
@@ -124,9 +124,9 @@ catalogs = {
 }
 
 passbands = [
-    'GAIA2.G',
-    'GAIA2.BP',
-    'GAIA2.RP',
+    'GAIA3.G',
+    'GAIA3.BP',
+    'GAIA3.RP',
     '2MASS.J',
     '2MASS.H',
     '2MASS.K',
@@ -411,9 +411,9 @@ def populate_system(star, star_pk):
                                 )
 
     if check_vizier:
-        #   Download GAIA EDR3 data
+        #   Download GAIA DR3 data
         gaia_data = Vizier(
-            catalog='I/350/gaiaedr3',
+            catalog='I/355/gaiadr3',
             columns=['Plx', 'e_Plx', 'pmRA', 'e_pmRA', 'pmDE', 'e_pmDE'],
         ).query_region(star["main_id"], radius=1 * u.arcsec)
 
@@ -422,14 +422,14 @@ def populate_system(star, star_pk):
             #   Set data source
             try:
                 dsgaia = DataSource.objects.get(
-                    name__exact='Gaia EDR3',
+                    name__exact='Gaia DR3',
                     project=project,
                 )
             except DataSource.DoesNotExist:
                 dsgaia = DataSource.objects.create(
-                    name='Gaia EDR3',
-                    note='Early 3nd Gaia data release',
-                    reference='https://doi.org/10.1051/0004-6361/202141135',
+                    name='Gaia DR3',
+                    note='3nd Gaia data release',
+                    reference='https://doi.org/10.1051/0004-6361/202243940',
                     project=project,
                 )
 
@@ -475,14 +475,14 @@ def populate_system(star, star_pk):
 
             try:
                 dsgaia = DataSource.objects.get(
-                    name__exact='Gaia DR2',
+                    name__exact='Gaia DR3',
                     project=project,
                 )
             except DataSource.DoesNotExist:
                 dsgaia = DataSource.objects.create(
-                    name='Gaia DR2',
-                    note='2nd Gaia data release',
-                    reference='https://doi.org/10.1051/0004-6361/201833051',
+                    name='Gaia DR3',
+                    note='3nd Gaia data release',
+                    reference='https://doi.org/10.1051/0004-6361/202243940',
                     project=project,
                 )
 

@@ -383,12 +383,12 @@ class UploadSystemDetailForm(forms.Form):
 
 class UpdatePhotometryForm(forms.Form):
     #   Gaia photometry and Errors
-    phot_g_mean_mag = forms.FloatField(required=False, label='GAIA2.G', show_hidden_initial=True)
-    phot_bp_mean_mag = forms.FloatField(required=False, label='GAIA2.BP', show_hidden_initial=True)
-    phot_rp_mean_mag = forms.FloatField(required=False, label='GAIA2.RP', show_hidden_initial=True)
-    phot_g_mean_magerr = forms.FloatField(required=False, label='GAIA2.Gerr', show_hidden_initial=True)
-    phot_bp_mean_magerr = forms.FloatField(required=False, label='GAIA2.BPerr', show_hidden_initial=True)
-    phot_rp_mean_magerr = forms.FloatField(required=False, label='GAIA2.RPerr', show_hidden_initial=True)
+    phot_g_mean_mag = forms.FloatField(required=False, label='GAIA3.G', show_hidden_initial=True)
+    phot_bp_mean_mag = forms.FloatField(required=False, label='GAIA3.BP', show_hidden_initial=True)
+    phot_rp_mean_mag = forms.FloatField(required=False, label='GAIA3.RP', show_hidden_initial=True)
+    phot_g_mean_magerr = forms.FloatField(required=False, label='GAIA3.Gerr', show_hidden_initial=True)
+    phot_bp_mean_magerr = forms.FloatField(required=False, label='GAIA3.BPerr', show_hidden_initial=True)
+    phot_rp_mean_magerr = forms.FloatField(required=False, label='GAIA3.RPerr', show_hidden_initial=True)
 
     #   JHK photometry and Errors
     Jmag = forms.FloatField(required=False, label='2MASS.J', show_hidden_initial=True)

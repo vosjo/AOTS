@@ -28,25 +28,40 @@ def dataset_list(request, project=None, **kwargs):
             files = request.FILES.getlist('datafile')
             for f in files:
                 # -- save the new specfile
-                new_dataset = DataSet(datafile=f, project=project, added_by=request.user)
+                new_dataset = DataSet(
+                    datafile=f,
+                    project=project,
+                    added_by=request.user,
+                    )
                 new_dataset.save()
 
                 # -- now process it and add it to a system.
-                success, message = process_datasets.process_analysis_file(new_dataset.id)
-                message = str(f) + ': ' + message  # add name of the file before message
+                success, message = process_datasets.process_analysis_file(
+                    new_dataset.id,
+                    )
+                #   Add name of the file before message
+                message = str(f) + ': ' + message
 
                 if success:
                     level = messages.SUCCESS
                 else:
                     level = messages.ERROR
-                    new_dataset.delete()  # delete the dataset if it can't be successfully processed
+                    #   Delete the dataset if it can't be successfully processed
+                    new_dataset.delete()
 
                 messages.add_message(request, level, message)
 
-            return HttpResponseRedirect(reverse('analysis:dataset_list', kwargs={'project': project.slug}))
+            return HttpResponseRedirect(reverse(
+                'analysis:dataset_list',
+                kwargs={'project': project.slug}
+                ))
 
     elif request.method != 'GET' and not request.user.is_authenticated:
-        messages.add_message(request, messages.ERROR, "You need to login for that action!")
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "You need to login for that action!",
+            )
 
     context = {'upload_form': upload_form,
                'project': project, }
@@ -84,7 +99,6 @@ def dataset_detail(request, dataset_id, project=None, **kwargs):
         hists = []
     else:
         hists = [figures[name] for name in histnames]
-
 
     context = {
         'project': project,

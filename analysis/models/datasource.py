@@ -31,7 +31,8 @@ class Method(models.Model):
     # slug = models.SlugField(max_length=10, default='', unique=True)
     slug = models.SlugField(max_length=10, default='')
 
-    color = models.CharField(max_length=7, default='#8B0000')  # color as hex color value
+    #   Color as hex color value
+    color = models.CharField(max_length=7, default='#8B0000')
 
     # -- plot type defines what the structure of the hdf5 file is
     data_type = models.CharField(max_length=7, choices=PLOT_CHOISES, default=GENERIC)
@@ -42,7 +43,11 @@ class Method(models.Model):
     # -- bookkeeping
     added_on = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        )
 
     # -- representation of self
     def __str__(self):
@@ -65,13 +70,18 @@ class DataSource(models.Model):
     reference = models.TextField(default='')
 
     # -- A datasource belongs to a specific project. If the project is
-    #   deleted, the method should go to.
+    #   deleted, the DataSource should go to.
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False)
 
     # -- bookkeeping
     added_on = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        )
+    modified_by = models.TextField(default='')
 
     def source(self):
         """
@@ -122,7 +132,7 @@ class DataTable(DataSource):
     #   with a recognizable parameter name.
     columnnames = models.TextField(default='')
 
-    # -- table dimentions
+    # -- table dimensions
     xdim = models.IntegerField(default=0)
     ydim = models.IntegerField(default=0)
 
@@ -199,10 +209,15 @@ class DataSet(DataSource):
         The list contains a tupple of (parameter name, unit, v1+-e1, v2+-e2)
         for each parameter
         """
-        parameters = set(self.parameter_set.filter(component__in=STELLAR_PARAMETERS).values_list('name', flat=True))
+        parameters = set(
+            self.parameter_set.filter(
+                component__in=STELLAR_PARAMETERS
+                ).values_list('name', flat=True)
+            )
         pars = []
         for pname in parameters:
-            qset = self.parameter_set.filter(name__exact=pname)  # need to use filter here not get!
+            # need to use filter here not get!
+            qset = self.parameter_set.filter(name__exact=pname)
 
             line = [pname, qset[0].unit]
             for comp in STELLAR_PARAMETERS:
@@ -210,8 +225,9 @@ class DataSet(DataSource):
 
                 if p:
                     prec = PARAMETER_DECIMALS.get(p[0].name, 3)
-                    line.append("{: > 5.{prec}f} &pm; {: > 5.{prec}f}".format(p[0].rvalue(),
-                                                                              p[0].rerror(), prec=prec))
+                    line.append(
+                        "{: > 5.{prec}f} &pm; {: > 5.{prec}f}".format(p[0].rvalue(), p[0].rerror(), prec=prec)
+                        )
                 else:
                     line.append(r" / ")
 
@@ -222,5 +238,10 @@ class DataSet(DataSource):
 @receiver(post_delete, sender=DataSet)
 def dataSet_post_delete_handler(sender, **kwargs):
     analmethod = kwargs['instance']
-    storage, path = analmethod.datafile.storage, analmethod.datafile.path
-    storage.delete(path)
+    #   Check if the datafile is associated with another dataset. This might
+    #   be the case after dataset updates. Remove datafile if that is not the
+    #   case.
+    same_datafile = DataSet.objects.all().filter(datafile=analmethod.datafile)
+    if not same_datafile:
+        storage, path = analmethod.datafile.storage, analmethod.datafile.path
+        storage.delete(path)

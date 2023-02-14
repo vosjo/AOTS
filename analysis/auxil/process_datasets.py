@@ -64,6 +64,7 @@ def create_derived_parameters(analmethod):
 
 
 def process_analysis_file(file_id):
+    #   analfile == dataset
     analfile = DataSet.objects.get(pk=file_id)
 
     try:
@@ -164,12 +165,31 @@ def process_analysis_file(file_id):
     # npars = create_derived_parameters(analfile)
     # if npars > 0: message += ", ({} derived parameters)".format(npars)
 
-    # -- check if star already has this type of dataset, if so, replace
+    # -- Check if star already has this type of dataset, if so, replace
     #   only do so at the end so only valid datasets can replace an old one.
-    similar = DataSet.objects.filter(method__exact=analfile.method,
-                                     star__exact=star).order_by('added_on')
+    similar = DataSet.objects.filter(
+        method__exact=analfile.method,
+        star__exact=star,
+        project__exact=analfile.project.pk,
+        ).order_by('added_on')
+
     if len(similar) > 1:
-        similar[0].delete()
+        #   Update old dataset entry
+        similar[0].name = analfile.name
+        similar[0].note = analfile.note
+        similar[0].reference = analfile.reference
+        similar[0].method = analfile.method
+        similar[0].datafile = analfile.datafile
+        similar[0].valid = analfile.valid
+        similar[0].modified_by = '{} {}'.format(
+            analfile.added_by.first_name,
+            analfile.added_by.last_name,
+            )
+        similar[0].save()
+
+        #   Remove new dataset since it is not needed
+        analfile.delete()
+
         message += ", replaced older analysis method"
 
     return True, message

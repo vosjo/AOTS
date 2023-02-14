@@ -119,7 +119,7 @@
 
             <div class="main-container maxw50 stretch">
 
-                <div class="main-container border">
+                <div class="main-container border ">
                     <h3>Parameters</h3>
 
                     {% if user.is_authenticated %}
@@ -137,16 +137,23 @@
                         </tr>
                         </thead>
                         <tbody class='mono'>
-                        {% for p in dataset.parameter_set.order %}
-                            <tr>
-                            <th>{{ p.cname }} ({{ p.unit }})</th>
-                            <td>{{ p.rvalue }}</td>
-                            <td>{{ p.rerror }}</td>
-                            <td><input type="checkbox" id="cb-parameter-valid-{{ p.pk }}" {% if p.valid %}
-                                       checked="checked" {% endif %} onchange='toggleParameterValid(this);'
-                                       parameter_id="{{ p.pk }}"
-                                    {% if not user.is_authenticated %} disabled {% endif %}></td>
-                        {% endfor %}
+                        {% if dataset.parameter_set.all %}
+                            {% for p in dataset.parameter_set.order %}
+                                <tr>
+                                    <th>{{ p.cname }} ({{ p.unit }})</th>
+                                    <td>{{ p.rvalue }}</td>
+                                    <td>{{ p.rerror }}</td>
+                                    <td><input type="checkbox" id="cb-parameter-valid-{{ p.pk }}" {% if p.valid %}
+                                            checked="checked" {% endif %} onchange='toggleParameterValid(this);'
+                                            parameter_id="{{ p.pk }}"
+                                            {% if not user.is_authenticated %} disabled {% endif %}></td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr id="tr-novaluesyet">
+                                <td colspan="4">No data available</td>
+                            </tr>
+                        {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -160,6 +167,28 @@
                     <div id="noteField">
                         {{ dataset.note|linebreaks }}
                     </div>
+                </div>
+
+                <div class="main-container border">
+                    <h3>Meta data</h3>
+                    <table class="metatable">
+                        <tr>
+                            <th>Added by</th>
+                            <td>{{ dataset.added_by.first_name }} {{ dataset.added_by.last_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Added on</th>
+                            <td>{{ dataset.added_on }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last modified</th>
+                            <td>{{ dataset.last_modified }}</td>
+                        </tr>
+                        <tr>
+                            <th>Modified by</th>
+                            <td id=modified_by>{{ dataset.modified_by }}</td>
+                        </tr>
+                    </table>
                 </div>
 
             </div>

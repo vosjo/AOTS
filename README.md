@@ -49,9 +49,9 @@ cd AOTS
 pip install -r requirements.txt
 ```
 
-## Running AOTS localy
+## Running AOTS locally
 
-To run AOTS localy, using the simple sqlite database and the included server:
+To run AOTS locally, using the simple sqlite database and the included server:
 
 ### 1. Setup the database
 
@@ -123,7 +123,7 @@ Connect to our database and list all tables:
 \dt
 ```
 
-To drop the database and recreate it when you want to completely reset everything (the user does not get deteled in this
+To drop the database and recreate it when you want to completely reset everything (the user does not get deleted in this
 process):
 
 ```
@@ -285,7 +285,7 @@ sudo journalctl -u gunicorn_aots.socket
 Check that a gunicorn.sock file is created:
 
 ```
-ls /home/aots/www/aots/AOTS/AOTS/run/
+ls /home/aots/www/aots/run/
 >>> gunicorn.sock
 ```
 

@@ -7,7 +7,7 @@
 *.pot
 *.py[co]
 .tox/
-*.sqlite3
+*.sqlite3*
 db_clean
 db_reset
 populate_db.py
@@ -18,6 +18,8 @@ media/lightcurves
 media/datasets
 media/projects
 media/raw_spectra
+media/aitoff_projections
+media_master
 ext_data/
 TestData/
 dist/
@@ -47,3 +49,4 @@ venv/
 /hotSD_gaia_edr3_catalogue.fits
 redo_*
 pwgen.py
+update_stars_parallax.py

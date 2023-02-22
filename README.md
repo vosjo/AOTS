@@ -6,6 +6,15 @@ This will install AOTS using a python virtualenv to avoid conflicts with other p
 
 ### 1. Prerequisites
 
+Create a directory where all files and the required Python modules can be placed:
+
+```
+mkdir www
+mkdir aots
+cd www/aots
+```
+For the rest of this guide, we will assume that these directories are located in the user's home directory.
+
 You need the python-dev package and virtualenv. Moreover you should update pip:
 
 ```
@@ -93,6 +102,11 @@ python manage.py runserver
 
 This is only necessary if you want to run in production.
 
+Install the postgres database:
+
+```
+sudo apt install postgresql
+```
 Start postgres command line:
 
 ```
@@ -145,9 +159,7 @@ from: https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with
 
 ### 1. Create an .env file
 
-To protect secrets like the postgres database password or the Django security key they are embedded in AOTS via
-environment variables. The environment variables are defined in the .env file in the AOTS directory. As an example we
-provide .env.example.
+To protect secrets like the postgres database password or the Django security key they are embedded in AOTS via environment variables. The environment variables are defined in the .env file in the AOTS directory. As an example we provide .env.example.
 
 ```
 cp AOTS/.env.example  AOTS/.env
@@ -155,9 +167,7 @@ cp AOTS/.env.example  AOTS/.env
 
 ### 2. Adjust the .env file
 
-In .env the secret Django security key, the postgres database password, the server IP and URL, as well as the name of
-the computer used in production needs to be specified. If a special log directory is required or a different database
-user was defined during setup, this has to be specified here as well.
+In .env the secret Django security key, the postgres database password, the server IP and URL, as well as the name of the computer used in production needs to be specified. If a special log directory is required or a different database user was defined during setup, this has to be specified here as well.
 
 ```
 SECRET_KEY=generate_and_add_your_secret_security_key_here
@@ -304,10 +314,10 @@ sudo systemctl status gunicorn_aots
 
 ## Setup logroate
 
-To enable log rotation the following file should be added to /etc/logrotate.d:
+To enable log rotation create a file with the following content /etc/logrotate.d:
 
 ```
-/home/aots/www/aots/AOTS/logs/django.log {
+/home/aots/www/aots/AOTS/logs/*.log {
   rotate 14
   daily
   compress
@@ -317,17 +327,6 @@ To enable log rotation the following file should be added to /etc/logrotate.d:
   missingok
   su aots www-data
 }
-/home/aots/www/aots/AOTS/logs/not_django.log {
-  rotate 14
-  daily
-  compress
-  delaycompress
-  nocreate
-  notifempty
-  missingok
-  su aots www-data
-}
-
 ```
 
 Change user name, group, and the log directory as needed.

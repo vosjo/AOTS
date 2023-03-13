@@ -154,6 +154,59 @@ def read_echelle(filename, starthdu=0):
     return wave_list, flux_list
 
 
+def read_iraf_multispec(filename):
+    '''
+        Read echelle spectra reduced by IRAF and saved in the multispec format
+
+        Parameter
+        ---------
+        filename        : `string`
+            Name of the file/Path to the file to read
+
+        Returns
+        -------
+        wave_list       : `list` of `numpy.ndarray`
+            Wavelength data for each order
+
+        flux            : `numpy.ndarray`
+            Flux data for each order
+    '''
+    #   Get HDUs
+    hdu_list = fits.open(filename, mode='readonly')
+
+    #   Get Header
+    header = hdu_list[0].header
+
+    #   Get wavelength infos from WAT2_* keywords
+    content = ''
+    for WAT in header['WAT2_0*'].values():
+        if len(WAT) >= 68:
+            content += WAT
+        else:
+            content += WAT + ' '
+
+    #   Extract start wavelength and wavelength increment for each order
+    split_content = content.split('wtype=multispec')[1].split('spec')
+    wave_list = []
+    for content in split_content:
+        if content != ' ':
+            inner_content = content.split('=')[1].split(' ')
+            len_inner_content = len(inner_content)
+            wave_start = float(inner_content[4])
+            wave_incre = float(inner_content[5])
+            wave_points = int(inner_content[6])
+
+            #   Calculate wavelength scale
+            w = wave_start + (wave_points - 1) * wave_incre
+            wave_list.append(np.linspace(wave_start, w, wave_points))
+
+
+    #   Extract flux data
+    flux = hdu_list[0].data
+
+    return wave_list, flux
+
+
 def read_spectrum(filename, return_header=False):
     """
         Read a standard 1D spectrum from the primary HDU of a FITS file or from
@@ -222,10 +275,19 @@ def read_spectrum(filename, return_header=False):
         #   Read instrument
         instrument = header.get('INSTRUME', 'UK')
 
+        #   Check for multispec entry in FITS Header
+        iraf_multispec = header.get('WAT2_001', 'UK')
+
         ###
         #   Try instrument specific extractions
         #
-        if instrument in ['FEROS', 'UVES'] and not "CRVAL1" in header:
+        if iraf_multispec != 'UK':
+            '''
+            IRAF multispec echelle data
+            '''
+            wave, flux = read_iraf_multispec(filename)
+
+        elif instrument in ['FEROS', 'UVES'] and not "CRVAL1" in header:
             """
             FEROS or UVES (phase 3 data product)
             """

@@ -94,7 +94,7 @@ def plot_parameters(parameters, **kwargs):
     TOOLS = [mpl.PanTool(), mpl.WheelZoomTool(),
              mpl.BoxZoomTool(), mpl.ResetTool(), hover]
 
-    fig = bpl.figure(plot_width=800, plot_height=600, toolbar_location='right',
+    fig = bpl.figure(width=800, height=600, toolbar_location='right',
                      tools=TOOLS)
 
     fig.circle(xpar, ypar, source=datasource, size=5)

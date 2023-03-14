@@ -60,7 +60,7 @@ def plot_visibility(observation):
     Plot airmass and moondistance on the night of observations
     """
 
-    fig = bpl.figure(plot_width=400, plot_height=240, toolbar_location=None,
+    fig = bpl.figure(width=400, height=240, toolbar_location=None,
                      y_range=(0, 90), x_axis_type="datetime")
 
     fig.toolbar.logo = None
@@ -292,7 +292,7 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
 
         #   Initialize figure
         # , sizing_mode='scale_width'
-        fig = bpl.figure(plot_width=1550, plot_height=400, y_range=[minf, maxf])
+        fig = bpl.figure(width=1550, height=400, y_range=[minf, maxf])
 
         #   Plot spectrum
         fig.line(wave, flux, line_width=1, color="blue")
@@ -375,7 +375,7 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
 
     time, flux, header = lightcurve.get_lightcurve()
 
-    fig1 = bpl.figure(plot_width=1600, plot_height=400)  # , sizing_mode='scale_width'
+    fig1 = bpl.figure(width=1600, height=400)  # , sizing_mode='scale_width'
     fig1.line(time, flux, line_width=1, color="blue")
 
     fig1.toolbar.logo = None
@@ -385,7 +385,7 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
     fig1.xaxis.axis_label_text_font_size = '10pt'
     fig1.min_border = 5
 
-    fig2 = bpl.figure(plot_width=1600, plot_height=400)  # , sizing_mode='scale_width'
+    fig2 = bpl.figure(width=1600, height=400)  # , sizing_mode='scale_width'
 
     if not period is None:
         # calculate phase and sort on phase
@@ -447,15 +447,14 @@ def plot_sed(star_id):
                  mag=meas,
                  err=err, )
     photsource = bpl.ColumnDataSource(data=photd)
-    hover = mpl.HoverTool(tooltips=[("band", "@band"), ("magnitude", "@mag +- @err")],
-                          names=['hover'])
+
 
     tools = [mpl.PanTool(), mpl.WheelZoomTool(),
-             mpl.BoxZoomTool(), mpl.ResetTool(), hover]
-    fig = bpl.figure(plot_width=600, plot_height=400, x_axis_type="log", y_axis_type="log", tools=tools)
+             mpl.BoxZoomTool(), mpl.ResetTool()]
+    fig = bpl.figure(width=600, height=400, x_axis_type="log", y_axis_type="log", tools=tools)
 
     # fig.circle(wave, meas)
-    fig.circle('wave', 'flux', size=8, color='white', alpha=0.1, name='hover', source=photsource)
+    main_plot = fig.circle('wave', 'flux', size=8, color='white', alpha=0.1, name='hover', source=photsource)
 
     colors = {'2MASS': 'black',
               'WISE': 'gray',
@@ -480,5 +479,9 @@ def plot_sed(star_id):
     fig.yaxis.axis_label_text_font_size = '10pt'
     fig.xaxis.axis_label_text_font_size = '10pt'
     fig.min_border = 5
+
+    hover = mpl.HoverTool(tooltips=[("band", "@band"), ("magnitude", "@mag +- @err")],
+                          renderers=[main_plot])
+    fig.add_tools(hover)
 
     return fig

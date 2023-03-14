@@ -42,7 +42,7 @@ def plot_generic(datafile):
     xscale = get_attr(hdf['DATA'], 'xscale', default='linear') if 'DATA' in hdf else 'linear'
     yscale = get_attr(hdf['DATA'], 'yscale', default='linear') if 'DATA' in hdf else 'linear'
 
-    fig = bpl.figure(plot_width=600, plot_height=400, toolbar_location=None, x_axis_type=xscale, y_axis_type=yscale)
+    fig = bpl.figure(width=600, height=400, toolbar_location=None, x_axis_type=xscale, y_axis_type=yscale)
     colors = ['red', 'blue', 'green']
 
     def plot(data, mode='DATA'):
@@ -100,7 +100,7 @@ def plot_generic_large(datafile):
     xscale = get_attr(hdf['DATA'], 'xscale', default='linear') if 'DATA' in hdf else 'linear'
     yscale = get_attr(hdf['DATA'], 'yscale', default='linear') if 'DATA' in hdf else 'linear'
 
-    fig = bpl.figure(plot_width=800, plot_height=500, toolbar_location='right',
+    fig = bpl.figure(width=800, height=500, toolbar_location='right',
                      tools=TOOLS, x_axis_type=xscale, y_axis_type=yscale)
     colors = ['red', 'blue', 'green']
 
@@ -182,7 +182,7 @@ def plot_generic_OC(datafile):
     xscale = get_attr(hdf['O-C'], 'xscale', default='linear') if 'O-C' in hdf else 'linear'
     yscale = get_attr(hdf['O-C'], 'yscale', default='linear') if 'O-C' in hdf else 'linear'
 
-    fig = bpl.figure(plot_width=800, plot_height=200, toolbar_location='right',
+    fig = bpl.figure(width=800, height=200, toolbar_location='right',
                      tools=TOOLS, x_axis_type=xscale, y_axis_type=yscale)
     colors = ['red', 'blue', 'green']
 
@@ -245,7 +245,7 @@ def plot_generic_hist(datafile):
 
             title = "{} = {:.2f} + {:.2f} - {:.2f}".format(name, value, emax, emin)
 
-            fig = bpl.figure(plot_width=280, plot_height=280, tools=[], title=title)
+            fig = bpl.figure(width=280, height=280, tools=[], title=title)
 
             xpar = get_attr(dataset, 'xpar', 'x')
             ypar = get_attr(dataset, 'ypar', 'y')
@@ -294,7 +294,7 @@ def plot_generic_ci(datafile):
 
             title = "{} = {:.2f} + {:.2f} - {:.2f}".format(name, value, emax, emin)
 
-            fig = bpl.figure(plot_width=280, plot_height=280, tools=[], title=title)
+            fig = bpl.figure(width=280, height=280, tools=[], title=title)
 
             fig.ray(x=dataset['Chi2Val']['x'], y=dataset['Chi2Val']['y'], length=0,
                     angle=np.pi / 2., line_width=3)
@@ -322,7 +322,7 @@ def plot_generic_ci(datafile):
 # ============================================================================================
 
 def plot_error(width, height):
-    fig = bpl.figure(plot_width=width, plot_height=height,
+    fig = bpl.figure(width=width, height=height,
                      toolbar_location=None)
 
     error_text = mpl.Label(x=width / 2., y=height / 2., x_units='screen', y_units='screen',
@@ -335,7 +335,7 @@ def plot_error(width, height):
 
 
 def plot_error_large():
-    fig = bpl.figure(plot_width=800, plot_height=500,
+    fig = bpl.figure(width=800, height=500,
                      toolbar_location=None)
 
     error_text = mpl.Label(x=400, y=250, x_units='screen', y_units='screen',

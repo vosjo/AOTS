@@ -46,7 +46,7 @@ def plot_photometry(star_id):
     tools = [mpl.PanTool(), mpl.WheelZoomTool(),
              mpl.BoxZoomTool(), mpl.ResizeTool(), mpl.ResetTool()]
 
-    fig = bpl.figure(plot_width=600, plot_height=400, responsive=False, toolbar_location="right",
+    fig = bpl.figure(width=600, height=400, responsive=False, toolbar_location="right",
                      y_axis_type="log", y_range=(ymin, ymax),
                      x_axis_type="log", x_range=(1200, 26000),
                      tools=tools)

@@ -121,15 +121,11 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
             star_props["norm_" + rstr] = normrstr
 
     starsource = bpl.ColumnDataSource(data=star_props)
-    hover = mpl.HoverTool(tooltips=[("System", "@idents"),
-                                    ("T_eff", "@teff"),
-                                    ("log(g)", "@logg"),
-                                    ("magnitude", "@mag")],
-                          names=["main"])
+
 
     tools = [mpl.PanTool(), mpl.WheelZoomTool(),
-             mpl.BoxZoomTool(), mpl.ResetTool(), hover]
-    fig = bpl.figure(plot_width=700, plot_height=400, tools=tools)
+             mpl.BoxZoomTool(), mpl.ResetTool()]
+    fig = bpl.figure(width=700, height=400, tools=tools)
 
     # fig.circle(wave, meas)
     # fig.circle('bp_rp', 'mag', size=8, color='white', alpha=0.1, name='hover', source=starsource)
@@ -143,15 +139,15 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
 
-        fig.scatter(source=starsource,
-                    name="main",
-                    x=xstr,
-                    y=ystr,
-                    radius="norm_" + rstr,
-                    marker="circle",
-                    alpha=.7,
-                    fill_color=colors,
-                    line_color=colors)
+        main_plot = fig.scatter(source=starsource,
+                                name="main",
+                                x=xstr,
+                                y=ystr,
+                                radius="norm_" + rstr,
+                                marker="circle",
+                                alpha=.7,
+                                fill_color=colors,
+                                line_color=colors)
 
         color_bar = ColorBar(color_mapper=colors['transform'], width=8, location=(0, 0), title=labeldict[cstr])
 
@@ -163,13 +159,13 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
 
-        fig.scatter(source=starsource,
-                    name="main",
-                    x=xstr,
-                    y=ystr,
-                    radius="norm_" + rstr,
-                    marker="circle",
-                    alpha=.7)
+        main_plot = fig.scatter(source=starsource,
+                                name="main",
+                                x=xstr,
+                                y=ystr,
+                                radius="norm_" + rstr,
+                                marker="circle",
+                                alpha=.7)
 
 
     elif cstr is not None:
@@ -181,15 +177,15 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
 
-        fig.scatter(source=starsource,
-                    name="main",
-                    x=xstr,
-                    y=ystr,
-                    marker="circle",
-                    radius=.015,
-                    alpha=.7,
-                    fill_color=colors,
-                    line_color=colors)
+        main_plot = fig.scatter(source=starsource,
+                                name="main",
+                                x=xstr,
+                                y=ystr,
+                                marker="circle",
+                                radius=.015,
+                                alpha=.7,
+                                fill_color=colors,
+                                line_color=colors)
 
         color_bar = ColorBar(color_mapper=colors['transform'], width=8, location=(0, 0), title=labeldict[cstr])
 
@@ -201,15 +197,23 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
 
-        fig.scatter(source=starsource,
-                    name="main",
-                    x=xstr,
-                    y=ystr,
-                    radius=.015,
-                    marker="circle",
-                    alpha=.7, )
+        main_plot = fig.scatter(source=starsource,
+                                name="main",
+                                x=xstr,
+                                y=ystr,
+                                radius=.015,
+                                marker="circle",
+                                alpha=.7, )
 
     # fig.circle(x=xstr, y=ystr, source=starsource, size=5)
+
+    hover = mpl.HoverTool(tooltips=[("System", "@idents"),
+                                    ("T_eff", "@teff"),
+                                    ("log(g)", "@logg"),
+                                    ("magnitude", "@mag")],
+                          renderers=[main_plot])
+
+    fig.add_tools(hover)
 
     x = star_props[xstr][np.where(star_props[xstr] != -1000)]
     y = star_props[ystr][np.where(star_props[ystr] != -1000)]

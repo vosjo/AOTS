@@ -22,56 +22,52 @@
 
     <header>
 
-        <!--<div class="block">
-   <img width="50px" height="75px"  src="{% static 'bimot_logo.svg' %}"/>
-   </div>-->
-
-        <div id='titlebar'>
-            <h1>AOTS</h1>
-            <h2>{% block headertitle %}{% endblock %}</h2>
-        </div>
-
-        <nav>
-
-
-            <div id="toolbar" role='navigation'>
-                <ul>
-                    <li>
-                        <i class="icon material-icons">help</i>
-                        <a href="/w/documentation/"> <u>docs</u> </a>
-                    </li>
-                    <li>
-                        <i class="icon material-icons">assignment</i>
-                        <a href="/w/projects/"> Projects</a>
-                    </li>
-                    {% if user.is_authenticated %}
-                        <li>
-                            <i class="icon material-icons">account_circle</i>
-                            <a href="#">{{ user }}</a>
-                            <ul>
-                                <li><a href="/accounts/logout">Log Out</a></li>
-                                <li><a href="/accounts/password_change">Change password</a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li>
-                            <i class="icon material-icons">lock</i>
-                            <a href="/accounts/login/?next={{ request.path }}">Log In</a>
-                            <ul>
-                                <li><a href="/accounts/login/?next={{ request.path }}">Log In</a></li>
-                                <li><a href="/accounts/password_reset">Reset password</a></li>
-                            </ul>
-                        </li>
-                    {% endif %}
-                </ul>
-
+        <div class="headerdiv">
+            <div id='titlebar'>
+                <a href="/w/projects">
+                    <img class="homeicon" src={% static "images/aotslogo.png" %}>
+                </a>
             </div>
 
-            <!--       <div id="subtoolbar" role='navigation'> -->
-            <!--       </div> -->
+            <nav>
+                <div id="toolbar" role='navigation'>
+                    <ul>
+                        <li>
+                            <i class="icon material-icons">help</i>
+                            <a href="/w/documentation/"> <u>docs</u> </a>
+                        </li>
+                        <li>
+                            <i class="icon material-icons">assignment</i>
+                            <a href="/w/projects/"> Projects</a>
+                        </li>
+                        {% if user.is_authenticated %}
+                            <li>
+                                <i class="icon material-icons">account_circle</i>
+                                <a href="#">{{ user }}</a>
+                                <ul>
+                                    <li><a href="/accounts/logout">Log Out</a></li>
+                                    <li><a href="/accounts/password_change">Change password</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li>
+                                <i class="icon material-icons">lock</i>
+                                <a href="/accounts/login/?next={{ request.path }}">Log In</a>
+                                <ul>
+                                    <li><a href="/accounts/login/?next={{ request.path }}">Log In</a></li>
+                                    <li><a href="/accounts/password_reset">Reset password</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                    </ul>
 
-        </nav>
+                </div>
 
+                <!--       <div id="subtoolbar" role='navigation'> -->
+                <!--       </div> -->
+
+            </nav>
+        </div>
         {% block header %}{% endblock %}
     </header>
 

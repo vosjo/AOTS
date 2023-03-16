@@ -14,6 +14,7 @@ from .auxil import process_datasets, plot_parameters
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm, HRDPlotterForm
 from .models import DataSet
 from .plotting import plot_hrd
+from itertools import chain
 
 
 @check_user_can_view_project
@@ -32,13 +33,13 @@ def dataset_list(request, project=None, **kwargs):
                     datafile=f,
                     project=project,
                     added_by=request.user,
-                    )
+                )
                 new_dataset.save()
 
                 # -- now process it and add it to a system.
                 success, message = process_datasets.process_analysis_file(
                     new_dataset.id,
-                    )
+                )
                 #   Add name of the file before message
                 message = str(f) + ': ' + message
 
@@ -54,14 +55,14 @@ def dataset_list(request, project=None, **kwargs):
             return HttpResponseRedirect(reverse(
                 'analysis:dataset_list',
                 kwargs={'project': project.slug}
-                ))
+            ))
 
     elif request.method != 'GET' and not request.user.is_authenticated:
         messages.add_message(
             request,
             messages.ERROR,
             "You need to login for that action!",
-            )
+        )
 
     context = {'upload_form': upload_form,
                'project': project, }
@@ -149,6 +150,19 @@ def parameter_plotter(request, project=None, **kwargs):
     return render(request, 'analysis/parameter_plotter.html', context)
 
 
+def sort_modified_created(model):
+    if model.added_on >= model.last_modified:
+        return model.added_on
+    else:
+        return model.last_modified
+
+
+def get_modeltype(instance):
+    for model, modelname in zip([Star, Spectrum, LightCurve, DataSet], ["Star", "Spectrum", "LightCurve", "DataSet"]):
+        if isinstance(instance, model):
+            return modelname
+
+
 @check_user_can_view_project
 def dashboard(request, project=None, **kwargs):
     parameters = {}
@@ -165,25 +179,25 @@ def dashboard(request, project=None, **kwargs):
     stats = {}
     project = get_object_or_404(Project, slug=project)
 
-    all_stars = Star.objects.filter(project=project)
-    all_specs = Spectrum.objects.filter(project=project)
-    all_lcs = LightCurve.objects.filter(project=project)
-
-    stats["nstars"] = all_stars.count()
-    stats["nspec"] = all_specs.count()
-    stats["nlc"] = all_lcs.count()
-
     dtime_naive = datetime.now() - timedelta(days=7)
-
     aware_datetime = make_aware(dtime_naive)
 
-    all_stars_lw = Star.objects.filter(project=project, added_on__gte=aware_datetime)
-    all_specs_lw = Spectrum.objects.filter(project=project, added_on__gte=aware_datetime)
-    all_lcs_lw = LightCurve.objects.filter(project=project, added_on__gte=aware_datetime)
+    all_models = []
 
-    stats["nstarslw"] = all_stars_lw.count()
-    stats["nspeclw"] = all_specs_lw.count()
-    stats["nlclw"] = all_lcs_lw.count()
+    for mod, modname in zip([Star, Spectrum, LightCurve, DataSet], ["nstars", "nspec", "nlc", "naly"]):
+        all_mod_objs = mod.objects.filter(project=project)
+        all_models.append(all_mod_objs)
+        stats[modname] = all_mod_objs.count()
+
+        all_mod_objs_lw = all_mod_objs.filter(added_on__gte=aware_datetime)
+        stats[modname + "lw"] = all_mod_objs_lw.count()
+
+    # TODO: Add history records to all relevant models
+
+    recent_changes = sorted(chain(*all_models), key=sort_modified_created, reverse=True)
+    recent_changes = recent_changes[:25]
+
+    recent_changes = [{"modeltype": get_modeltype(r), "entry": r} for r in recent_changes]
 
     # Possible axes teff, logg, mag, bp_rp
     if len(parameters.keys()) != 0:
@@ -196,6 +210,7 @@ def dashboard(request, project=None, **kwargs):
     context = {
         'project': project,
         'stats': stats,
+        'recent_changes': recent_changes,
         'hrd_plot': div,
         'script': script,
         'form': form

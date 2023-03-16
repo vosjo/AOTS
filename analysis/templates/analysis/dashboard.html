@@ -12,17 +12,65 @@
 
 {% block content %}
     <div class="dashboard-wrapper">
-        <div class="dash-half">
-            <div class="dash-square rect lefthalf"><h1>Project Statistics</h1>
-                <br>
-                <p class="stats">Number of Stars: <b>{{ stats.nstars }}</b>{% if stats.nstarslw != 0 %}
-                    <span style="color: #228B22"> + <b>{{ stats.nstarslw }}</b> last week</span>{% endif %}</p>
-                <p class="stats">Of which with Spectra: <b>{{ stats.nspec }}</b> {% if stats.nspeclw != 0 %}
-                    <span style="color: #228B22"> +<b>{{ stats.nspeclw }}</b> spectra last week</span>{% endif %}</p>
-                <p class="stats">Number of Lightcurves: <b>{{ stats.nlc }}</b>{% if stats.nlclw != 0 %}
-                    <span style="color: #228B22"> + <b>{{ stats.nlclw }}</b> last week</span>{% endif %}</p>
+        <div class="dash-upperrow">
+{#            <div class="dash-square dash-upper-left "><h1>Project Statistics</h1>#}
+{#                <br>#}
+{#                <p class="stats">Number of Stars: <b>{{ stats.nstars }}</b>{% if stats.nstarslw != 0 %}#}
+{#                    <span style="color: #228B22"> + <b>{{ stats.nstarslw }}</b> last week</span>{% endif %}</p>#}
+{#                <p class="stats">Of which with Spectra: <b>{{ stats.nspec }}</b> {% if stats.nspeclw != 0 %}#}
+{#                    <span style="color: #228B22"> +<b>{{ stats.nspeclw }}</b> spectra last week</span>{% endif %}</p>#}
+{#                <p class="stats">Number of Lightcurves: <b>{{ stats.nlc }}</b>{% if stats.nlclw != 0 %}#}
+{#                    <span style="color: #228B22"> + <b>{{ stats.nlclw }}</b> last week</span>{% endif %}</p>#}
+{#            </div>#}
+            <div class="dash-square dash-upper-left dash-systems">
+                <span class="dash-stats-title">Systems</span>
+                <b class="counter">{{ stats.nstars }}</b>
+                {% if stats.nstarslw != 0 %}
+                    <span style="color: #228B22"> + <b>{{ stats.nstarslw }}</b> last week</span>
+                {% endif %}
             </div>
-            <div class="dash-square square lefthalf">
+            <div class="dash-square dash-upper-left dash-spec">
+                <span class="dash-stats-title">Spectra</span>
+                <b class="counter">{{ stats.nspec }}</b>
+                {% if stats.nspeclw != 0 %}
+                    <span style="color: #228B22"> + <b>{{ stats.nspeclw }}</b> last week</span>
+                {% endif %}
+            </div>
+            <div class="dash-square dash-upper-left dash-lc">
+                <span class="dash-stats-title">Lightcurves</span>
+                <b class="counter">{{ stats.nlc }} </b>
+                {% if stats.nlclw != 0 %}
+                    <span style="color: #228B22"> + <b>{{ stats.nlclw }}</b> last week</span>
+                {% endif %}
+            </div>
+            <div class="dash-square dash-upper-left dash-aly">
+                <span class="dash-stats-title">Datasets</span>
+                <b class="counter">{{ stats.naly }}</b>
+                {% if stats.nlclw != 0 %}
+                    <span style="color: #228B22"> + <b>{{ stats.nalylw }}</b> last week</span>
+                {% endif %}
+            </div>
+            <div class="dash-project-sky-preview-wrapper">
+                {#  TODO: replace this with the actual skyplot path              #}
+                <img class="dash-project-sky-preview" src={% static "images/example_skyplot.png" %} >
+            </div>
+            <div class="dash-upper-right">
+                <button class="dash-button top-button left-button" onclick="location.href='../../systems/stars'" type="button">
+                    <i class="icon material-icons dash-icon">auto_awesome</i> Systems
+                </button>
+                <button class="dash-button top-button right-button" onclick="location.href='../../observations/spectra'" type="button">
+                    <i class="icon material-icons dash-icon">insights</i> Spectra
+                </button>
+                <button class="dash-button bottom-button left-button" onclick="location.href='../../observations/lightcurves'" type="button">
+                    <i class="icon material-icons dash-icon">flare</i> Lightcurves
+                </button>
+                <button class="dash-button bottom-button right-button" onclick="location.href='../../analysis/datasets'" type="button">
+                    <i class="icon material-icons dash-icon">bar_chart</i> Analysis
+                </button>
+            </div>
+        </div>
+        <div class="dash-lowerrow">
+            <div class="dash-square dash-lower-left">
                 <div class="dash-overview-plot">
                     <h1>Project Overview</h1>
                     {{ hrd_plot|safe }}
@@ -49,29 +97,32 @@
                     </form>
                 </div>
             </div>
-            <div class="dash-square square lefthalf">
-                <h1>Distribution of the systems in the sky</h1>
-                <img src="/media/aitoff_projections/{{ project.slug }}_galactic.png" alt="Galactic frame">
+            <div class="dash-square dash-lower-center"><h1>Planned Observations</h1>
+                <p style="font-size: xx-large">This section is <b>Under Construction!</b></p>
             </div>
-        </div>
-        <div class="dash-half">
-            <div class="dash-square-invis rect righthalf">
-                <button class="dash-button top-button left-button" onclick="location.href='../../systems/stars'" type="button">
-                    <i class="icon material-icons dash-icon">auto_awesome</i> Go to Systems Page
-                </button>
-                <button class="dash-button top-button right-button" onclick="location.href='../../observations/spectra'" type="button">
-                    <i class="icon material-icons dash-icon">insights</i> Go to Spectra Page
-                </button>
-                <button class="dash-button bottom-button left-button" onclick="location.href='../../observations/lightcurves'" type="button">
-                    <i class="icon material-icons dash-icon">flare</i> Go to Lightcurve Page
-                </button>
-                <button class="dash-button bottom-button right-button" onclick="location.href='../../analysis/datasets'" type="button">
-                    <i class="icon material-icons dash-icon">bar_chart</i> Go to Analysis Page
-                </button>
+            <div class="dash-square dash-lower-right"><h1>Latest changes</h1>
+                <div class="dash-changelog-container">
+                    {% for event in recent_changes %}
+                    <div class="dash-changelog-field">
+                        {% if event.modeltype == "Star" %}
+                            <b class="dash-changelog-field-title"> {{event.entry.name}} was {% if event.entry.added_on >= event.entry.last_modified%} created{% else %} modified {% endif %}</b><br>
+                            by <b class="dash-changelog-field-name"> {% if event.entry.added_by is not None %}{{event.entry.added_by}}{% else %}unknown{% endif %}</b>, {% if event.entry.added_on >= event.entry.last_modified%} {{ event.entry.added_on }}{% else %} {{ event.entry.last_modified }}{% endif %}
+                        {% elif event.modeltype == "Spectrum" %}
+                            <b class="dash-changelog-field-title"> A spectrum for {{event.entry.star.name}} was {% if event.entry.added_on >= event.entry.last_modified%} created{% else %} modified {% endif %}</b><br>
+                            by <b class="dash-changelog-field-name"> {% if event.entry.added_by is not None %}{{event.entry.added_by}}{% else %}unknown{% endif %}</b>, {% if event.entry.added_on >= event.entry.last_modified%} {{ event.entry.added_on }}{% else %} {{ event.entry.last_modified }}{% endif %}
+                        {% elif event.modeltype == "LightCurve" %}
+                            <b class="dash-changelog-field-title"> A lightcurve for {{event.entry.star.name}} was {% if event.entry.added_on >= event.entry.last_modified%} created{% else %} modified {% endif %}</b><br>
+                            by <b class="dash-changelog-field-name"> {% if event.entry.added_by is not None %}{{event.entry.added_by}}{% else %}unknown{% endif %}</b>, {% if event.entry.added_on >= event.entry.last_modified%} {{ event.entry.added_on }}{% else %} {{ event.entry.last_modified }}{% endif %}
+                        {% elif event.modeltype == "DataSet" %}
+                            <b class="dash-changelog-field-title"> A dataset for {{event.entry.star.name}} was {% if event.entry.added_on >= event.entry.last_modified%} created{% else %} modified {% endif %}</b><br>
+                            by <b class="dash-changelog-field-name"> {% if event.entry.added_by is not None %}{{event.entry.added_by}}{% else %}unknown{% endif %}</b>, {% if event.entry.added_on >= event.entry.last_modified%} {{ event.entry.added_on }}{% else %} {{ event.entry.last_modified }}{% endif %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-            <div class="dash-square square righthalf"><h1>Planned Observations</h1>
-                <p style="font-size: xx-large">This section is <b>Under Construction!</b></p></div>
         </div>
     </div>
+
     {{ script|safe }}
 {% endblock %}

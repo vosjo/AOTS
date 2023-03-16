@@ -22,19 +22,14 @@
 <div class="page-wrap-base">
 
     <header>
-
-        <!--<div class="block">
-   <img width="50px" height="75px"  src="{% static 'bimot_logo.svg' %}"/>
-   </div>-->
         <div class="headerdiv">
             <div id='titlebar'>
-                <h1>AOTS: {{ project.name }}</h1>
-                <h2>{% block headertitle %}{% endblock %}</h2>
+                <a href="/w/projects">
+                    <img class="homeicon" src={% static "images/aotslogo.png" %}>
+                </a>
             </div>
 
             <nav>
-
-
                 <div id="toolbar" role='navigation'>
                     <ul>
                         <li>

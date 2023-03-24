@@ -155,6 +155,8 @@ class SpecFileSerializer(ModelSerializer):
             'exptime',
             'resolution',
             'filename',
+            'specfile',
+            'project',
         ]
         read_only_fields = ('pk', 'star', 'star_pk')
 

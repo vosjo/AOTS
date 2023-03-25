@@ -208,7 +208,7 @@ def add_spectra(request, project=None, **kwargs):
                         #   Process specfile
                         success, message = read_spectrum.process_specfile(
                             newspec.pk,
-                            create_new_star=new,
+                            create_new_star=True,
                             user_info=user_info,
                         )
                         #   Set success/error message

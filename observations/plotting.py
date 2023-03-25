@@ -7,7 +7,7 @@ from astropy.coordinates import SkyCoord, AltAz, get_moon
 from astropy.time import Time
 from bokeh import models as mpl
 from bokeh import plotting as bpl
-from bokeh.models import widgets
+from bokeh.models import TabPanel, Tabs
 from specutils import Spectrum1D
 
 from observations.auxil import tools as spectools
@@ -363,11 +363,10 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
         fig.min_border = 5
 
         #   Fill tabs list
-        tabs.append(widgets.Panel(child=fig, title=specfile.filetype))
+        tabs.append(TabPanel(child=fig, title=specfile.filetype))
 
     #   Make figure from tabs list
-    tabs = widgets.Tabs(tabs=tabs)
-    return tabs
+    return Tabs(tabs=tabs)
 
 
 def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):

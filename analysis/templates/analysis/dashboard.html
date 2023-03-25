@@ -23,6 +23,10 @@
 {#                    <span style="color: #228B22"> + <b>{{ stats.nlclw }}</b> last week</span>{% endif %}</p>#}
 {#            </div>#}
             <div class="dash-square dash-upper-left dash-systems">
+                <a onclick="location.href='../../systems/stars'">
+                    <span class="divlink">
+                    </span>
+                </a>
                 <span class="dash-stats-title">Systems</span>
                 <b class="counter">{{ stats.nstars }}</b>
                 {% if stats.nstarslw != 0 %}
@@ -30,6 +34,10 @@
                 {% endif %}
             </div>
             <div class="dash-square dash-upper-left dash-spec">
+                <a onclick="location.href='../../observations/spectra'">
+                    <span class="divlink">
+                    </span>
+                </a>
                 <span class="dash-stats-title">Spectra</span>
                 <b class="counter">{{ stats.nspec }}</b>
                 {% if stats.nspeclw != 0 %}
@@ -37,6 +45,10 @@
                 {% endif %}
             </div>
             <div class="dash-square dash-upper-left dash-lc">
+                <a onclick="location.href='../../observations/lightcurves'">
+                    <span class="divlink">
+                    </span>
+                </a>
                 <span class="dash-stats-title">Lightcurves</span>
                 <b class="counter">{{ stats.nlc }} </b>
                 {% if stats.nlclw != 0 %}
@@ -44,6 +56,10 @@
                 {% endif %}
             </div>
             <div class="dash-square dash-upper-left dash-aly">
+                <a onclick="location.href='../../analysis/datasets'">
+                    <span class="divlink">
+                    </span>
+                </a>
                 <span class="dash-stats-title">Datasets</span>
                 <b class="counter">{{ stats.naly }}</b>
                 {% if stats.nlclw != 0 %}

@@ -24,9 +24,12 @@
     <header>
         <div class="headerdiv">
             <div id='titlebar'>
-                <a href="/w/projects">
-                    <img class="homeicon" src={% static "images/aotslogo.png" %}>
-                </a>
+                <div class="icon-container">
+                    <a href="/w/projects">
+                        <img class="homeicon" src={% static "images/aotslogo.png" %}>
+                    </a>
+                </div>
+                <span class="projname">{{ project.name }}</span>
             </div>
 
             <nav>

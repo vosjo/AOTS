@@ -27,7 +27,6 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
         rstr = None
     if cstr == "":
         cstr = None
-
     proj = Project.objects.get(pk=project_id)
     star_list = Star.objects.filter(project=proj)
     if nstars != "all":
@@ -122,7 +121,6 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
 
     starsource = bpl.ColumnDataSource(data=star_props)
 
-
     tools = [mpl.PanTool(), mpl.WheelZoomTool(),
              mpl.BoxZoomTool(), mpl.ResetTool()]
     fig = bpl.figure(width=700, height=400, tools=tools)
@@ -166,7 +164,6 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
                                 radius="norm_" + rstr,
                                 marker="circle",
                                 alpha=.7)
-
 
     elif cstr is not None:
         colors = linear_cmap("norm_" + cstr, palette=Viridis9, low=np.amin(star_props["norm_" + cstr]),

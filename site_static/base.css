@@ -67,8 +67,8 @@ header h2 {
 }
 
 div#titlebar {
-    display: inline-block;
-    width: 10%;
+    display: flex;
+    width: 30%;
     height: 5vh;
     margin-left: calc(2.5% + 10px);
     margin-bottom: 1%;
@@ -78,7 +78,7 @@ nav {
     display: inline-block;
     float: right;
     margin-right: 2.5%;
-    width: 75%;
+    width: 60%;
 }
 
 div#toolbar {
@@ -232,51 +232,9 @@ ul#messages .error {
     color: #8B0000;
 }
 
-/*nav {
-   padding-left: 10px;
-   clear: left;
-}*/
-
-/*nav a{
-   display: inline-block;
-   color: #036;
-   font-size: 14px;
-   font-weight: bold;
-   background: rgba(255,255,255,0.3);
-   border-radius: 10px;
-   padding: 5px 20px 5px 20px;
-   margin: 0px 3px 3px 3px;
-}
-
-nav a.active{
-   color: #036;
-   background: rgba(255,255,255,0.8);
-}
-
-nav strong{
-   font-size: 20px;
-   font-weight: 900;
-   margin: auto;
-}*/
-
 section {
     margin-top: 10px;
 }
-
-/*h1 {
-   font-size: 35px;
-   color: #ffc;
-   margin: 0.1em 0.1em 0.1em 0.1em;
-   clear: both;
-}
-
-h2 {
-   font-size: 24px;
-   color: #ffc;
-   margin: 0.1em 0.1em 0.3em 1em;
-   clear: both;
-}
-*/
 
 h2 {
     font-size: 23px;
@@ -332,9 +290,6 @@ div.block {
     float: left;
     margin-left: 10px;
     margin-right: 10px;
-/*     margin-left: 3rem; */
-/*     margin-right: 3rem; */
-/*     margin-bottom: 1.5rem; */
 }
 
 div.upload {
@@ -342,7 +297,6 @@ div.upload {
     margin: 5px;
     margin-top: 10px;
     font-weight: bold;
-    /*    border: solid 1px rgba(64, 117, 144, 0.3); */
     border-style: solid;
     border-color: rgba(64, 117, 144, 0.4);
 }
@@ -445,7 +399,6 @@ div.docs-container div {
 
 
 div.docs-container h3 {
-    /*    position: absolute; */
     top: 20px;
     font-weight: bold;
     font-size: 20px;
@@ -565,7 +518,6 @@ div.tag {
     margin: 5px;
     padding-left: 15px;
     padding-right: 15px;
-    /*    vertical-align: middle; */
     border-radius: 25px;
     border: solid 3px;
 }
@@ -655,7 +607,6 @@ div#sidenav h3 {
 }
 
 div#sidenav .legend {
-    /*    padding-top: 10px; */
     padding-bottom: 10px;
 }
 
@@ -724,8 +675,6 @@ div.flex-data-container {
     flex-flow: row wrap;
     margin-top: 5px;
     margin-bottom: 10px;
-    /*    justify-content: space-around; */
-    /*    justify-content: center; */
 }
 
 .j-center {
@@ -1476,6 +1425,9 @@ a.disabled {
 }
 
 .headerdiv {
+    display: flex;
+    /*align-items: center;*/
+    justify-content: space-between;
     height: 5vh;
     overflow: visible;
 }
@@ -1702,9 +1654,34 @@ i.dash-icon {
     color: rgba(23, 43, 54, 1);
 }
 
-
 .homeicon {
     display: flex;
-    margin-top: 3.5%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto;
     max-height: 70%;
+}
+
+span.projname {
+    font-size: 20px;
+    display: inline-flex;
+    align-items: center;
+    white-space:nowrap;
+    overflow: scroll;
+}
+
+div.icon-container {
+    width: 7.5%;
+    position: relative;
+}
+
+.divlink {
+    position: absolute;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }

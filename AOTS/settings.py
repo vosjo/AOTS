@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'observations.apps.ObservationsConfig',
     'analysis.apps.AnalysisConfig',
     'users.apps.UsersConfig',
+    'dash.apps.DashConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -92,7 +92,7 @@
                     {{ hrd_plot|safe }}
                 </div>
                 <div class="dash-overview-params">
-                    <form action="{% url "analysis:dashboard" project.slug %}" method="get">
+                    <form action="{% url "dash:dashboard" project.slug %}" method="get">
                         {% csrf_token %}
                         <table>
                             <tbody>

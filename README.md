@@ -69,6 +69,7 @@ python manage.py makemigrations users
 python manage.py makemigrations stars
 python manage.py makemigrations observations
 python manage.py makemigrations analysis
+python manage.py makemigrations dash
 python manage.py migrate
 ```
 

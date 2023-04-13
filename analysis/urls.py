@@ -12,5 +12,4 @@ urlpatterns = [
         ),
     path('methods', views.method_list, name='method_list'),
     path('plotter', views.parameter_plotter, name='parameter_plotter'),
-    path('dashboard/', views.dashboard, name='dashboard'),
 ]

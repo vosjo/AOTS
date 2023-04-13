@@ -50,7 +50,7 @@ urlpatterns = [
                      ),
                   path(
                      'w/<slug:project>/',
-                     RedirectView.as_view(pattern_name='analysis:dashboard')
+                     RedirectView.as_view(pattern_name='dash:dashboard')
                      ),
                   path(
                      'w/<slug:project>/systems/',
@@ -64,6 +64,10 @@ urlpatterns = [
                         )
                      ),
                   path(
+                     'w/<slug:project>/dash/',
+                     include('dash.urls', namespace='dash')
+                     ),
+                  path(
                      'w/<slug:project>/observations/',
                      RedirectView.as_view(
                         pattern_name='observations:observatory_list'
@@ -75,7 +79,7 @@ urlpatterns = [
                      ),
                   path(
                      'w/<slug:project>/dashboard/',
-                     RedirectView.as_view(pattern_name='analysis:dashboard')
+                     RedirectView.as_view(pattern_name='dash:dashboard')
                      ),
 
                   path('api/', include(router.urls), name='project-api'),

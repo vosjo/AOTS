@@ -1,7 +1,5 @@
 from django.db.models import F, ExpressionWrapper, FloatField
-
 import random
-
 from analysis.models import DataSource, DataSet, Method, DerivedParameter
 from stars.models import Star
 from . import read_datasets
@@ -61,6 +59,13 @@ def create_derived_parameters(analmethod):
         print(p)
 
     return len(params)
+
+
+def sort_modified_created(model):
+    try:
+        return model.history.latest().history_date
+    except AttributeError:
+        return datetime.fromisoformat("19700101")
 
 
 def process_analysis_file(file_id):
@@ -167,11 +172,11 @@ def process_analysis_file(file_id):
 
     # -- Check if star already has this type of dataset, if so, replace
     #   only do so at the end so only valid datasets can replace an old one.
-    similar = DataSet.objects.filter(
+    similar = sorted(DataSet.objects.filter(
         method__exact=analfile.method,
         star__exact=star,
         project__exact=analfile.project.pk,
-        ).order_by('added_on')
+        ), key=sort_modified_created, reverse=True)
 
     if len(similar) > 1:
         #   Update old dataset entry
@@ -181,10 +186,7 @@ def process_analysis_file(file_id):
         similar[0].method = analfile.method
         similar[0].datafile = analfile.datafile
         similar[0].valid = analfile.valid
-        similar[0].modified_by = '{} {}'.format(
-            analfile.added_by.first_name,
-            analfile.added_by.last_name,
-            )
+        similar[0].history.latest().history_user.username = analfile.history.earliest().history_user.username
         similar[0].save()
 
         #   Remove new dataset since it is not needed

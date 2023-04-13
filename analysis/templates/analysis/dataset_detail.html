@@ -174,19 +174,19 @@
                     <table class="metatable">
                         <tr>
                             <th>Added by</th>
-                            <td>{{ dataset.added_by.first_name }} {{ dataset.added_by.last_name }}</td>
+                            <td>{{ dataset.history.earliest.history_user.first_name }} {{ dataset.history.earliest.history_user.last_name }}</td>
                         </tr>
                         <tr>
                             <th>Added on</th>
-                            <td>{{ dataset.added_on }}</td>
+                            <td>{{ dataset.history.earliest.history_date }}</td>
                         </tr>
                         <tr>
                             <th>Last modified</th>
-                            <td>{{ dataset.last_modified }}</td>
+                            <td>{{ dataset.history.latest.history_date }}</td>
                         </tr>
                         <tr>
                             <th>Modified by</th>
-                            <td id=modified_by>{{ dataset.modified_by }}</td>
+                            <td id=modified_by>{{ dataset.last.history_user.username }}</td>
                         </tr>
                     </table>
                 </div>

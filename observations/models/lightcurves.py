@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from simple_history.models import HistoricalRecords
 from six import python_2_unicode_compatible
 
 from observations.auxil import fileio
@@ -68,9 +69,7 @@ class LightCurve(models.Model):
     lcfile = models.FileField(upload_to='lightcurves/')
 
     # -- bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
+    history = HistoricalRecords()
 
     # -- function to get the lightcurve
     def get_lightcurve(self):

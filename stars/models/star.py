@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from six import python_2_unicode_compatible
+from simple_history.models import HistoricalRecords
 
 from users.models import get_sentinel_user
 from .project import Project
@@ -87,9 +88,7 @@ class Star(models.Model):
     tags = models.ManyToManyField(Tag, related_name='stars', blank=True)
 
     # -- bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
+    history = HistoricalRecords()
 
     def get_system_summary_parameter(self):
         """

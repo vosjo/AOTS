@@ -19,7 +19,7 @@ def user_login_required_for_edit(function):
             raise PermissionDenied
 
         elif project in request.user.readwriteown_projects.objects.all():
-            if Star.objects.get(pk=kwargs['star_id']).added_by == request.user:
+            if Star.objects.get(pk=kwargs['star_id']).history.earliest().history_user == request.user:
                 return function(request, *args, **kwargs)
             else:
                 raise PermissionDenied

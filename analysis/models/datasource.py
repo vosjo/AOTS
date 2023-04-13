@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from simple_history.models import HistoricalRecords
 
 from analysis.auxil import fileio
 from analysis.auxil import plot_datasets
@@ -74,14 +75,7 @@ class DataSource(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False)
 
     # -- bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET(get_sentinel_user),
-        null=True,
-        )
-    modified_by = models.TextField(default='')
+    history = HistoricalRecords()
 
     def source(self):
         """
@@ -150,6 +144,9 @@ class DataSet(DataSource):
 
     # -- valid setting to indicate wether or not this dataset is trustworthy
     valid = models.BooleanField(default=True)
+
+    # bookkeeping
+    history = HistoricalRecords()
 
     def get_data(self):
         return fileio.read2dict(self.datafile.path)

@@ -183,7 +183,7 @@ class SpecFileSerializer(ModelSerializer):
         )
 
     def get_added_on(self, obj):
-        return Time(obj.added_on, precision=0).iso
+        return Time(obj.first().history_date, precision=0).iso
 
     def get_filename(self, obj):
         return obj.specfile.name.split('/')[-1]
@@ -256,13 +256,13 @@ class RawSpecFileSerializer(ModelSerializer):
         return SystemDict
 
     def get_added_on(self, obj):
-        return Time(obj.added_on, precision=0).iso
+        return Time(obj.history.earliest().history_date, precision=0).iso
 
     def get_filename(self, obj):
         return obj.rawfile.name.split('/')[-1]
 
     def get_added_by(self, obj):
-        return obj.added_by.username
+        return obj.history.earliest().history_user.username
 
 
 # ===============================================================

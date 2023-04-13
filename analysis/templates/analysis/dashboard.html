@@ -121,17 +121,17 @@
                     {% for event in recent_changes %}
                     <div class="dash-changelog-field">
                         {% if event.modeltype == "Star" %}
-                            <b class="dash-changelog-field-title"> {{event.entry.name}} was {% if event.entry.added_on >= event.entry.last_modified%} created{% else %} modified {% endif %}</b><br>
-                            by <b class="dash-changelog-field-name"> {% if event.entry.added_by is not None %}{{event.entry.added_by}}{% else %}unknown{% endif %}</b>, {% if event.entry.added_on >= event.entry.last_modified%} {{ event.entry.added_on }}{% else %} {{ event.entry.last_modified }}{% endif %}
+                            <b class="dash-changelog-field-title"> <a href={% url 'systems:star_detail' project.slug event.instance.pk %}>{{event.instance.name}}</a> was {% if event.created %} created{% else %} modified{% endif %}</b><br>
+                            by <b class="dash-changelog-field-name"> {% if event.user is not None %}{{event.user}}{% else %}unknown{% endif %}</b>, {{ event.date }}
                         {% elif event.modeltype == "Spectrum" %}
-                            <b class="dash-changelog-field-title"> A spectrum for {{event.entry.star.name}} was {% if event.entry.added_on >= event.entry.last_modified%} created{% else %} modified {% endif %}</b><br>
-                            by <b class="dash-changelog-field-name"> {% if event.entry.added_by is not None %}{{event.entry.added_by}}{% else %}unknown{% endif %}</b>, {% if event.entry.added_on >= event.entry.last_modified%} {{ event.entry.added_on }}{% else %} {{ event.entry.last_modified }}{% endif %}
+                            <b class="dash-changelog-field-title"> A spectrum for <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{event.instance.star.name}}</a> was {% if event.created %} created{% else %} modified {% endif %}</b><br>
+                            by <b class="dash-changelog-field-name"> {% if event.user is not None %}{{event.user}}{% else %}unknown{% endif %}</b>, {{ event.date }}
                         {% elif event.modeltype == "LightCurve" %}
-                            <b class="dash-changelog-field-title"> A lightcurve for {{event.entry.star.name}} was {% if event.entry.added_on >= event.entry.last_modified%} created{% else %} modified {% endif %}</b><br>
-                            by <b class="dash-changelog-field-name"> {% if event.entry.added_by is not None %}{{event.entry.added_by}}{% else %}unknown{% endif %}</b>, {% if event.entry.added_on >= event.entry.last_modified%} {{ event.entry.added_on }}{% else %} {{ event.entry.last_modified }}{% endif %}
+                            <b class="dash-changelog-field-title"> A lightcurve for <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{event.instance.star.name}}</a> was {% if event.created %} created{% else %} modified {% endif %}</b><br>
+                            by <b class="dash-changelog-field-name"> {% if event.user is not None %}{{event.user}}{% else %}unknown{% endif %}</b>, {{ event.date }}
                         {% elif event.modeltype == "DataSet" %}
-                            <b class="dash-changelog-field-title"> A dataset for {{event.entry.star.name}} was {% if event.entry.added_on >= event.entry.last_modified%} created{% else %} modified {% endif %}</b><br>
-                            by <b class="dash-changelog-field-name"> {% if event.entry.added_by is not None %}{{event.entry.added_by}}{% else %}unknown{% endif %}</b>, {% if event.entry.added_on >= event.entry.last_modified%} {{ event.entry.added_on }}{% else %} {{ event.entry.last_modified }}{% endif %}
+                            <b class="dash-changelog-field-title"> A dataset for <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{event.instance.star.name}}</a> was {% if event.created %} created{% else %} modified {% endif %}</b><br>
+                            by <b class="dash-changelog-field-name"> {% if event.user is not None %}{{event.user}}{% else %}unknown{% endif %}</b>, {{ event.date }}
                         {% endif %}
                     </div>
                     {% endfor %}

@@ -68,7 +68,7 @@ class User(AbstractUser):
         elif obj.project in self.readwrite_projects.all():
             return True
         elif obj.project in self.readwriteown_projects.all() and \
-                obj.added_by == self:
+                obj.history.earliest().history_user == self:
             return True
         else:
             return False
@@ -80,10 +80,10 @@ class User(AbstractUser):
         if self.is_superuser:
             return True
         elif obj.project in self.readwrite_projects.all() and \
-                obj.added_by == self:
+                obj.history.earliest().history_user == self:
             return True
         elif obj.project in self.readwriteown_projects.all() and \
-                obj.added_by == self:
+                obj.history.earliest().history_user == self:
             return True
         elif obj.project in self.managed_projects.all():
             return True

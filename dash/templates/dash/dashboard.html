@@ -13,15 +13,15 @@
 {% block content %}
     <div class="dashboard-wrapper">
         <div class="dash-upperrow">
-{#            <div class="dash-square dash-upper-left "><h1>Project Statistics</h1>#}
-{#                <br>#}
-{#                <p class="stats">Number of Stars: <b>{{ stats.nstars }}</b>{% if stats.nstarslw != 0 %}#}
-{#                    <span style="color: #228B22"> + <b>{{ stats.nstarslw }}</b> last week</span>{% endif %}</p>#}
-{#                <p class="stats">Of which with Spectra: <b>{{ stats.nspec }}</b> {% if stats.nspeclw != 0 %}#}
-{#                    <span style="color: #228B22"> +<b>{{ stats.nspeclw }}</b> spectra last week</span>{% endif %}</p>#}
-{#                <p class="stats">Number of Lightcurves: <b>{{ stats.nlc }}</b>{% if stats.nlclw != 0 %}#}
-{#                    <span style="color: #228B22"> + <b>{{ stats.nlclw }}</b> last week</span>{% endif %}</p>#}
-{#            </div>#}
+            {#            <div class="dash-square dash-upper-left "><h1>Project Statistics</h1>#}
+            {#                <br>#}
+            {#                <p class="stats">Number of Stars: <b>{{ stats.nstars }}</b>{% if stats.nstarslw != 0 %}#}
+            {#                    <span style="color: #228B22"> + <b>{{ stats.nstarslw }}</b> last week</span>{% endif %}</p>#}
+            {#                <p class="stats">Of which with Spectra: <b>{{ stats.nspec }}</b> {% if stats.nspeclw != 0 %}#}
+            {#                    <span style="color: #228B22"> +<b>{{ stats.nspeclw }}</b> spectra last week</span>{% endif %}</p>#}
+            {#                <p class="stats">Number of Lightcurves: <b>{{ stats.nlc }}</b>{% if stats.nlclw != 0 %}#}
+            {#                    <span style="color: #228B22"> + <b>{{ stats.nlclw }}</b> last week</span>{% endif %}</p>#}
+            {#            </div>#}
             <div class="dash-square dash-upper-left dash-systems">
                 <a onclick="location.href='../../systems/stars'">
                     <span class="divlink">
@@ -68,7 +68,7 @@
             </div>
             <div class="dash-project-sky-preview-wrapper">
                 {#  TODO: replace this with the actual skyplot path              #}
-                <img class="dash-project-sky-preview" src={% static "images/example_skyplot.png" %} >
+                <img class="dash-project-sky-preview" src={% static "images/example_skyplot.png" %}>
             </div>
             <div class="dash-upper-right">
                 <button class="dash-button top-button left-button" onclick="location.href='../../systems/stars'" type="button">
@@ -119,21 +119,33 @@
             <div class="dash-square dash-lower-right"><h1>Latest changes</h1>
                 <div class="dash-changelog-container">
                     {% for event in recent_changes %}
-                    <div class="dash-changelog-field">
-                        {% if event.modeltype == "Star" %}
-                            <b class="dash-changelog-field-title"> <a href={% url 'systems:star_detail' project.slug event.instance.pk %}>{{event.instance.name}}</a> was {% if event.created %} created{% else %} modified{% endif %}</b><br>
-                            by <b class="dash-changelog-field-name"> {% if event.user is not None %}{{event.user}}{% else %}unknown{% endif %}</b>, {{ event.date }}
-                        {% elif event.modeltype == "Spectrum" %}
-                            <b class="dash-changelog-field-title"> A spectrum for <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{event.instance.star.name}}</a> was {% if event.created %} created{% else %} modified {% endif %}</b><br>
-                            by <b class="dash-changelog-field-name"> {% if event.user is not None %}{{event.user}}{% else %}unknown{% endif %}</b>, {{ event.date }}
-                        {% elif event.modeltype == "LightCurve" %}
-                            <b class="dash-changelog-field-title"> A lightcurve for <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{event.instance.star.name}}</a> was {% if event.created %} created{% else %} modified {% endif %}</b><br>
-                            by <b class="dash-changelog-field-name"> {% if event.user is not None %}{{event.user}}{% else %}unknown{% endif %}</b>, {{ event.date }}
-                        {% elif event.modeltype == "DataSet" %}
-                            <b class="dash-changelog-field-title"> A dataset for <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{event.instance.star.name}}</a> was {% if event.created %} created{% else %} modified {% endif %}</b><br>
-                            by <b class="dash-changelog-field-name"> {% if event.user is not None %}{{event.user}}{% else %}unknown{% endif %}</b>, {{ event.date }}
-                        {% endif %}
-                    </div>
+                        <div class="dash-changelog-field">
+                            {% if event.modeltype == "Star" %}
+                                <b class="dash-changelog-field-title">
+                                    <a href={% url 'systems:star_detail' project.slug event.instance.pk %}>{{ event.instance.name }}</a> was
+                                    {% if event.created %} created{% else %} modified{% endif %}</b><br>
+                                by<b class="dash-changelog-field-name">
+                                {% if event.user is not None %}{{ event.user }}{% else %}unknown{% endif %}</b>, {{ event.date }}
+                            {% elif event.modeltype == "Spectrum" %}
+                                <b class="dash-changelog-field-title"> A spectrum for
+                                    <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{ event.instance.star.name }}</a> was
+                                    {% if event.created %} created{% else %} modified {% endif %}</b><br>
+                                by<b class="dash-changelog-field-name">
+                                {% if event.user is not None %}{{ event.user }}{% else %}unknown{% endif %}</b>, {{ event.date }}
+                            {% elif event.modeltype == "LightCurve" %}
+                                <b class="dash-changelog-field-title"> A lightcurve for
+                                    <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{ event.instance.star.name }}</a> was
+                                    {% if event.created %} created{% else %} modified {% endif %}</b><br>
+                                by<b class="dash-changelog-field-name">
+                                {% if event.user is not None %}{{ event.user }}{% else %}unknown{% endif %}</b>, {{ event.date }}
+                            {% elif event.modeltype == "DataSet" %}
+                                <b class="dash-changelog-field-title"> A dataset for
+                                    <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{ event.instance.star.name }}</a> was
+                                    {% if event.created %} created{% else %} modified {% endif %}</b><br>
+                                by<b class="dash-changelog-field-name">
+                                {% if event.user is not None %}{{ event.user }}{% else %}unknown{% endif %}</b>, {{ event.date }}
+                            {% endif %}
+                        </div>
                     {% endfor %}
                 </div>
             </div>

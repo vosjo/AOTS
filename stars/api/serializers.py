@@ -1,6 +1,6 @@
 import numpy as np
 from django.urls import reverse
-from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField, ReadOnlyField
+from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField
 
 from stars.models import Project, Star, Tag, Identifier
 
@@ -174,7 +174,6 @@ class StarSerializer(ModelSerializer):
     href = SerializerMethodField()
     classification_type_display = SerializerMethodField()
     observing_status_display = SerializerMethodField()
-
 
     class Meta:
         model = Star

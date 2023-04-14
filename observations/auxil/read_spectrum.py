@@ -401,7 +401,6 @@ def process_raw_spec(rawfile_id, specfiles, stars):
     rawfile = RawSpecFile.objects.get(pk=rawfile_id)
     rawfilename = rawfile.rawfile.name.split('/')[-1]
 
-
     ###
     #   Check for specfile duplicates
     #
@@ -432,7 +431,6 @@ def process_raw_spec(rawfile_id, specfiles, stars):
             message = rawfilename + " (raw file) is a duplicate and was not added"
 
             return False, message
-
 
     ###
     #   Check for star duplicates
@@ -504,14 +502,13 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         rawfile.delete()
 
         if SpecFileName == None:
-            message += rawfilename + " (raw file) is a duplicate. Used the "\
-                    + "already uploaded file {}.".format(otherRawSpecFileName)
+            message += rawfilename + " (raw file) is a duplicate. Used the " \
+                       + "already uploaded file {}.".format(otherRawSpecFileName)
         else:
             message += rawfilename + " (raw file) is a duplicate and already " \
-                    + "associated with the reduced file " + SpecFileName \
-                    + ". Used the already uploaded file."
+                       + "associated with the reduced file " + SpecFileName \
+                       + ". Used the already uploaded file."
         return True, message
-
 
     ###
     #   Add raw file to existing specfile

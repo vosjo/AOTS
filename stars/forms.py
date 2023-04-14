@@ -506,7 +506,7 @@ class UpdateParamsForm(forms.Form):
                     delimiter = "_Secondary_"
 
                 errname = field_name.split(delimiter)
-                errname[0] += "-err"+delimiter
+                errname[0] += "-err" + delimiter
                 errname = "".join(errname)
 
                 name, source = field_name.split(delimiter)

@@ -48,7 +48,7 @@ class Method(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET(get_sentinel_user),
         null=True,
-        )
+    )
 
     # -- representation of self
     def __str__(self):
@@ -209,8 +209,8 @@ class DataSet(DataSource):
         parameters = set(
             self.parameter_set.filter(
                 component__in=STELLAR_PARAMETERS
-                ).values_list('name', flat=True)
-            )
+            ).values_list('name', flat=True)
+        )
         pars = []
         for pname in parameters:
             # need to use filter here not get!
@@ -224,7 +224,7 @@ class DataSet(DataSource):
                     prec = PARAMETER_DECIMALS.get(p[0].name, 3)
                     line.append(
                         "{: > 5.{prec}f} &pm; {: > 5.{prec}f}".format(p[0].rvalue(), p[0].rerror(), prec=prec)
-                        )
+                    )
                 else:
                     line.append(r" / ")
 

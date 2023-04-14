@@ -1,6 +1,5 @@
 from django import forms
 
-from analysis.models import Parameter
 
 class HRDPlotterForm(forms.Form):
     from .labels import labeldict
@@ -32,15 +31,15 @@ class HRDPlotterForm(forms.Form):
                              required=False,
                              widget=forms.Select(),
                              choices=[
-                                  (a, b) for a, b in labeldict.items()
-                              ]+[(None, "None")])
+                                         (a, b) for a, b in labeldict.items()
+                                     ] + [(None, "None")])
 
     color = forms.ChoiceField(label="Color ",
                               required=False,
                               widget=forms.Select(),
                               choices=[
-                                  (a, b) for a, b in labeldict.items()
-                              ]+[(None, "None")])
+                                          (a, b) for a, b in labeldict.items()
+                                      ] + [(None, "None")])
 
     def get_parameters(self):
         return {'xaxis': self.cleaned_data['xaxis'],
@@ -48,4 +47,3 @@ class HRDPlotterForm(forms.Form):
                 'size': self.cleaned_data['size'],
                 'color': self.cleaned_data['color'],
                 'nsys': self.cleaned_data["nsys"]}
-

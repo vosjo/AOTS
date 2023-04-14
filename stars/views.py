@@ -20,6 +20,7 @@ from .forms import (
 )
 from .models import Star, Tag, Project
 
+
 # from .plotting import plot_photometry
 
 
@@ -253,7 +254,7 @@ def star_detail(request, star_id, project=None, **kwargs):
         for spec in spectrum.specfile_set.all():
             n_raw += len(
                 spec.rawspecfile_set.all().filter(filetype__exact='Science')
-                )
+            )
     context['n_raw'] = n_raw
 
     if request.method == 'POST' and request.user.is_authenticated:

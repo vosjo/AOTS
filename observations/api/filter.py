@@ -227,7 +227,7 @@ class RawSpecFileFilter(filters.FilterSet):
     #   System method
     def system_name_icontains(self, queryset, name, value):
         return queryset.filter(star__name__icontains=value) \
-               | queryset.filter(specfile__spectrum__star__name__icontains=value)
+            | queryset.filter(specfile__spectrum__star__name__icontains=value)
 
     #   File name method
     def file_name_regex(self, queryset, name, value):

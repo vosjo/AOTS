@@ -41,10 +41,10 @@
 
             <hr>
 
-<!--            <div class="table-filter-item">
-                <p class="filter-label">Upload date:</p>
-                <input class="filter-input" id="filter_instrument" type="text" placeholder="min:max">
-            </div>-->
+            <!--            <div class="table-filter-item">
+                            <p class="filter-label">Upload date:</p>
+                            <input class="filter-input" id="filter_instrument" type="text" placeholder="min:max">
+                        </div>-->
 
             <input type="submit" class="button filter" id="submit-search" value="Apply">
         </form>
@@ -58,7 +58,8 @@
             <thead>
             <tr>
                 {% if user.is_authenticated %}
-                    <th><i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i>
+                    <th>
+                        <i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i>
                     </th>
                 {% endif %}
                 <th>System</th>
@@ -110,8 +111,8 @@
                     </form>
 
                 </div>
-<!--                <a href="/media/docs/Bulk_system_example.csv"><p class="add-system-csv-example">Example .csv file</p>
-                </a>-->
+                <!--                <a href="/media/docs/Bulk_system_example.csv"><p class="add-system-csv-example">Example .csv file</p>
+                                </a>-->
             </fieldset>
         </div>
     </div>

@@ -200,7 +200,6 @@ def read_iraf_multispec(filename):
             w = wave_start + (wave_points - 1) * wave_incre
             wave_list.append(np.linspace(wave_start, w, wave_points))
 
-
     #   Extract flux data
     flux = hdu_list[0].data
 

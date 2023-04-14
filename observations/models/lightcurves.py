@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 
 from astropy.io import fits
-from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -12,7 +11,6 @@ from six import python_2_unicode_compatible
 
 from observations.auxil import fileio
 from stars.models import Star, Project
-from users.models import get_sentinel_user
 from .observatory import Observatory
 
 

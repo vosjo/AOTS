@@ -319,8 +319,8 @@ def set_convention(units='SI', values='standard', frequency='rad'):
     @rtype: str
     """
     to_return = constants._current_convention, \
-                constants._current_values, \
-                constants._current_frequency
+        constants._current_values, \
+        constants._current_frequency
     values = values.lower()
     if to_return == (units, values, frequency):
         # logger.info('No need to change convention or values')

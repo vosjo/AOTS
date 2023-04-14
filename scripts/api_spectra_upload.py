@@ -7,11 +7,11 @@ URL = 'https://a15.astro.physik.uni-potsdam.de/api/observations/specfiles/'
 URL = 'http://127.0.0.1:8000/api/observations/specfiles/'
 
 #   Credentials
-username='?????'
-password='?????'
+username = '?????'
+password = '?????'
 
 #   Get Project ID, e.g., from: http://127.0.0.1:8000/api/projects/
-data = {'project':2}
+data = {'project': 2}
 
 #   Path to file that should be uploaded
 file_path = 'Brankica_spectra_20230110/HD48491_20200918.fit'
@@ -34,5 +34,3 @@ response = requests.post(process_URL, auth=(username, password))
 
 #   Process response code
 print('Process response code: ', response.status_code)
-
-

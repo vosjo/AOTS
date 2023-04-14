@@ -1496,7 +1496,7 @@ div.dash-lowerrow {
 
 
 div.dash-project-sky-preview-wrapper {
-    width:30%;
+    width: 30%;
     display: inline-flex;
     justify-content: center;
     margin: 6px 4px;
@@ -1523,7 +1523,7 @@ div.dash-upper-left {
     align-items: center;
 }
 
-div.dash-upper-left .counter{
+div.dash-upper-left .counter {
     font-size: 40px;
 }
 
@@ -1667,7 +1667,7 @@ span.projname {
     font-size: 20px;
     display: inline-flex;
     align-items: center;
-    white-space:nowrap;
+    white-space: nowrap;
     overflow: scroll;
 }
 

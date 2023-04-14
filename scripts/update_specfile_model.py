@@ -8,7 +8,6 @@ django.setup()
 
 from stars.models import Project
 from observations.auxil.read_spectrum import (
-    derive_spectrum_info,
     derive_specfile_info,
 )
 
@@ -29,7 +28,7 @@ for pro in projects:
 
     #   Loop over spectra
     for spec in spectra:
-	#   Get spectrum pk
+        #   Get spectrum pk
         spec_pk = spec.pk
 
         #   Get user provided data
@@ -51,7 +50,6 @@ for pro in projects:
 
         print()
         print('    ', spec)
-
 
         #   Load specfiles
         specfiles = spec.specfile_set.all()

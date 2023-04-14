@@ -7,6 +7,7 @@ import os
 os.environ["DJANGO_SETTINGS_MODULE"] = "AOTS.settings"
 
 import django
+
 django.setup()
 
 import numpy as np
@@ -14,8 +15,6 @@ import numpy as np
 from astropy import units as u
 import astropy.coordinates as coord
 from astropy.coordinates import SkyCoord, Galactic
-
-from astroquery.gaia import Gaia
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -43,22 +42,22 @@ def coordinates_aitoff_plot(coords):
     fig, ax = plt.subplots(
         figsize=(10, 5),
         subplot_kw=dict(projection="aitoff"),
-        )
+    )
 
     #   Convert coordinates
     sph = coords.spherical
 
     #   Scatter plot
     cs = ax.scatter(
-        -sph.lon.wrap_at(180*u.deg).radian,
+        -sph.lon.wrap_at(180 * u.deg).radian,
         sph.lat.radian,
         c=sph.distance.value,
         s=10.,
-        )
+    )
 
     #   Define ticks
     def fmt_func(x, pos):
-        val = coord.Angle(-x*u.radian).wrap_at(360*u.deg).degree
+        val = coord.Angle(-x * u.radian).wrap_at(360 * u.deg).degree
         return f'${val:.0f}' + r'^{\circ}$'
 
     ticker = mpl.ticker.FuncFormatter(fmt_func)
@@ -116,7 +115,7 @@ if __name__ == '__main__':
         #   Add units
         ra = ra * u.deg
         dec = dec * u.deg
-        para = para/1000*u.arcsec
+        para = para / 1000 * u.arcsec
 
         #   Calculate distance
         distance = para.to_value(u.kpc, equivalencies=u.parallax()) * u.kpc
@@ -131,7 +130,7 @@ if __name__ == '__main__':
             dec=dec,
             distance=distance,
             frame='icrs',
-            )
+        )
 
         #   Plot figures
         # fig, ax = coordinates_aitoff_plot(sky_coordinates)
@@ -149,6 +148,5 @@ if __name__ == '__main__':
             f'media/aitoff_projections/{pro.slug}_galactic.png',
             bbox_inches='tight',
             format='png',
-            )
+        )
         # plt.show()
-

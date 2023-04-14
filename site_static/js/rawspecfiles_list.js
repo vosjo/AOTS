@@ -756,55 +756,55 @@ function download_rawfiles() {
         $.getScript("/static/js/JsZip/jszip.js").done(async function () {
             $.getScript("/static/js/JsZip/jszip-utils.js").done(async function () {
 
-            //  Create zip file
-            let zip = new JSZip();
+                //  Create zip file
+                let zip = new JSZip();
 
-            //  Set time string for zip file name
-            let dt = new Date();
-            let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
+                //  Set time string for zip file name
+                let dt = new Date();
+                let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
 
-            //  Get file using promises so that file assembly can wait until
-            //  download has finished
-            const getPromises = rawlist.map(async path => {
-                let file = path.split('/').slice(-1);
-                return new Promise(function (resolve, reject) {
-                    JSZipUtils.getBinaryContent(path, function(err, data) {
-                        if (err) {
-                            reject("ERROR: File not found");
-                        } else {
-                            resolve([file, data]);
-                        }
-                    })
+                //  Get file using promises so that file assembly can wait until
+                //  download has finished
+                const getPromises = rawlist.map(async path => {
+                    let file = path.split('/').slice(-1);
+                    return new Promise(function (resolve, reject) {
+                        JSZipUtils.getBinaryContent(path, function (err, data) {
+                            if (err) {
+                                reject("ERROR: File not found");
+                            } else {
+                                resolve([file, data]);
+                            }
+                        })
+                    });
                 });
-            });
 
-            //  Fill zip file
-            for (const promise of getPromises) {
-                try {
-                    const content = await promise;
-                    console.log(content[1]);
-                    zip.file(content[0], content[1]);
-                } catch (err) {
-                    showError(err);
-                    return
+                //  Fill zip file
+                for (const promise of getPromises) {
+                    try {
+                        const content = await promise;
+                        console.log(content[1]);
+                        zip.file(content[0], content[1]);
+                    } catch (err) {
+                        showError(err);
+                        return
+                    }
                 }
-            }
 
-            //  Generate zip file
-            zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
-                //  Update download progress
-                let msg = "            " + metadata.percent.toFixed(2) + " %           ";
-                showProgress(msg);
-                updatePercent(metadata.percent | 0);
-            })
-                .then(function callback(blob) {
-                    //  Save zip file
-                    saveAs(blob, "Raw_data_" + timecode + ".zip");
-                    //  Reset download button
-                    showProgress("Download raw data");
-                }, function (e) {
-                    showError(e);
-                });
+                //  Generate zip file
+                zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
+                    //  Update download progress
+                    let msg = "            " + metadata.percent.toFixed(2) + " %           ";
+                    showProgress(msg);
+                    updatePercent(metadata.percent | 0);
+                })
+                    .then(function callback(blob) {
+                        //  Save zip file
+                        saveAs(blob, "Raw_data_" + timecode + ".zip");
+                        //  Reset download button
+                        showProgress("Download raw data");
+                    }, function (e) {
+                        showError(e);
+                    });
 
 
             });

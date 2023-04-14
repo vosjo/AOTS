@@ -41,8 +41,8 @@ class StarFilter(filters.FilterSet):
     )
 
     #   RA & DEC filter
-    #ra = filters.RangeFilter(field_name="ra", )
-    #dec = filters.RangeFilter(field_name="dec", )
+    # ra = filters.RangeFilter(field_name="ra", )
+    # dec = filters.RangeFilter(field_name="dec", )
     ra = filters.CharFilter(
         field_name="ra",
         method='filter_ra',

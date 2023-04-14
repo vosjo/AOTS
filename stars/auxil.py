@@ -328,7 +328,7 @@ def populate_system(star, star_pk):
                 name=simbad_tbl[0]['MAIN_ID'],
                 href="https://simbad.u-strasbg.fr/simbad/"
                      + "sim-id?Ident=" + simbad_tbl[0]['MAIN_ID']
-                         .replace(" ", "").replace('+', "%2B"),
+                     .replace(" ", "").replace('+', "%2B"),
             )
 
     # -- Add Tags

@@ -3,12 +3,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 from analysis.auxil import process_datasets
 from analysis.models import Method, DataSet, Parameter
+from .filter import DataSetFilter, MethodFilter, ParameterFilter
 from .serializers import MethodSerializer, DataSetListSerializer, ParameterListSerializer
 
-from .filter import DataSetFilter, MethodFilter, ParameterFilter
 
 # ===============================================================
 # DataSet

@@ -59,13 +59,13 @@ $(document).ready(function () {
     if (user_authenticated) {
         $("div.toolbar").html(
             "<div class='dropdown-container'>" +
-            "<button onclick='Toggleeditdropdown()' class='dropbtn' id='editselected'><i class='material-icons button' title='Edit selected'>edit_note</i>Edit selected</button>"+
+            "<button onclick='Toggleeditdropdown()' class='dropbtn' id='editselected'><i class='material-icons button' title='Edit selected'>edit_note</i>Edit selected</button>" +
             "<div id='editdropdown' class='dropdown-content'>" +
             "<a id='delete-button' class='tb-button disabled'><i class='material-icons button dropdownbtn'>delete</i>Delete Dataset</a>" +
             "</div>" +
             "</div>" +
             "<div class='dropdown-container'>" +
-            "<button onclick='Toggledownloaddropdown()' class='dropbtn' id='download'><i class='material-icons button' title='Carry over selection'>download</i>Download Files</button>"+
+            "<button onclick='Toggledownloaddropdown()' class='dropbtn' id='download'><i class='material-icons button' title='Carry over selection'>download</i>Download Files</button>" +
             "<div id='downloaddropdown' class='dropdown-content'>" +
             "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i>Download Dataset</a>" +
             "</div>" +
@@ -278,7 +278,6 @@ function delete_dataset(row, data) {
 }
 
 
-
 //  Update progress bar
 function updatePercent(percent) {
     $("#progress-bar")
@@ -321,56 +320,56 @@ function download_dataset() {
         $.getScript("/static/js/JsZip/jszip.js").done(async function () {
             $.getScript("/static/js/JsZip/jszip-utils.js").done(async function () {
 
-            //  Create zip file
-            let zip = new JSZip();
+                //  Create zip file
+                let zip = new JSZip();
 
-            //  Set time string for zip file name
-            let dt = new Date();
-            let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
+                //  Set time string for zip file name
+                let dt = new Date();
+                let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
 
-            //  Get file using promises so that file assembly can wait until
-            //  download has finished
-            const getPromises = url_list.map(async url => {
-                let file = url.split('/').slice(-1);
-                return new Promise(function (resolve, reject) {
-                    JSZipUtils.getBinaryContent(url, function(err, data) {
-                        if (err) {
-                            reject("ERROR: File not found");
-                        } else {
-                            resolve([file, data]);
-                        }
-                    })
+                //  Get file using promises so that file assembly can wait until
+                //  download has finished
+                const getPromises = url_list.map(async url => {
+                    let file = url.split('/').slice(-1);
+                    return new Promise(function (resolve, reject) {
+                        JSZipUtils.getBinaryContent(url, function (err, data) {
+                            if (err) {
+                                reject("ERROR: File not found");
+                            } else {
+                                resolve([file, data]);
+                            }
+                        })
+                    });
                 });
-            });
 
-            //  Fill zip file
-            for (const promise of getPromises) {
-                try {
-                    const content = await promise;
-                    zip.file(content[0], content[1]);
-                } catch (err) {
-                    showError(err);
-                    return
+                //  Fill zip file
+                for (const promise of getPromises) {
+                    try {
+                        const content = await promise;
+                        zip.file(content[0], content[1]);
+                    } catch (err) {
+                        showError(err);
+                        return
+                    }
                 }
-            }
 
-            //  Generate zip file
-            zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
-                //  Update download progress
-                let msg = "            " + metadata.percent.toFixed(2) + " %           ";
-                showProgress(msg);
-                updatePercent(metadata.percent | 0);
-            })
-                .then(function callback(blob) {
-                    //  Save zip file
-                    saveAs(blob, "Dataset_" + timecode + ".zip");
-                    //  Reset download button
-                    $('#dl-button').prop('disabled', false);
-                    showProgress("Download Dataset");
-                    $("#progress-bar").hide();
-                }, function (e) {
-                    showError(e);
-                });
+                //  Generate zip file
+                zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
+                    //  Update download progress
+                    let msg = "            " + metadata.percent.toFixed(2) + " %           ";
+                    showProgress(msg);
+                    updatePercent(metadata.percent | 0);
+                })
+                    .then(function callback(blob) {
+                        //  Save zip file
+                        saveAs(blob, "Dataset_" + timecode + ".zip");
+                        //  Reset download button
+                        $('#dl-button').prop('disabled', false);
+                        showProgress("Download Dataset");
+                        $("#progress-bar").hide();
+                    }, function (e) {
+                        showError(e);
+                    });
             });
         });
     });

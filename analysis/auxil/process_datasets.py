@@ -1,5 +1,7 @@
-from django.db.models import F, ExpressionWrapper, FloatField
 import random
+
+from django.db.models import F, ExpressionWrapper, FloatField
+
 from analysis.models import DataSource, DataSet, Method, DerivedParameter
 from stars.models import Star
 from . import read_datasets
@@ -94,15 +96,15 @@ def process_analysis_file(file_id):
         analfile.method = d_method[0]
     else:
         #   Random number function for color
-        r = lambda: random.randint(0,255)
+        r = lambda: random.randint(0, 255)
 
         #   Create a new method
         method = Method(
-            name = name,
+            name=name,
             project=analfile.project,
-            slug = atype,
+            slug=atype,
             color=f'#{r():02x}{r():02x}{r():02x}',
-            )
+        )
         method.save()
         analfile.method = method
         message += f"Created new Method {method},"
@@ -122,7 +124,7 @@ def process_analysis_file(file_id):
         star = Star.objects.filter(
             name__iexact=systemname,
             project__exact=analfile.project.pk,
-            )
+        )
         if not star:
             #   There is no way to add this star, cause no coordinates are
             #   known.
@@ -132,11 +134,11 @@ def process_analysis_file(file_id):
     if star:
         #   There is an existing star, pick the closest star
         star = star.annotate(
-            distance = ExpressionWrapper(
+            distance=ExpressionWrapper(
                 ((F('ra') - ra) ** 2 + (F('dec') - dec) ** 2) ** (1. / 2.),
                 output_field=FloatField()
-                )
-            ).order_by('distance')[0]
+            )
+        ).order_by('distance')[0]
         star.dataset_set.add(analfile)
         message += f", added to existing System {star} "
         message += f"(_r = {star.distance})"
@@ -148,7 +150,7 @@ def process_analysis_file(file_id):
             ra=ra,
             dec=dec,
             classification='',
-            )
+        )
         star.save()
         star.dataset_set.add(analfile)
         message += ", created new System {}".format(star)
@@ -176,7 +178,7 @@ def process_analysis_file(file_id):
         method__exact=analfile.method,
         star__exact=star,
         project__exact=analfile.project.pk,
-        ), key=sort_modified_created, reverse=True)
+    ), key=sort_modified_created, reverse=True)
 
     if len(similar) > 1:
         #   Update old dataset entry

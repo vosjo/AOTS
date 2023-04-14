@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css"/>
 
     <title>Systems: {{ star.name }}
-    {% if star.classification != '' %}
-        - {{ star.classification }}
-    {% endif %}</title>
+        {% if star.classification != '' %}
+            - {{ star.classification }}
+        {% endif %}</title>
 
 {% endblock %}
 
@@ -265,11 +265,11 @@
             <div class="flex-data-container j-center">
 
                 <div class="block w600">
-<!--                     <h3 class="center"> Photometry </h3> -->
+                    <!--                     <h3 class="center"> Photometry </h3> -->
                     {{ sed_plot|safe }}
                     <i style="display:block;text-align:center">
                         <a target="_blank"
-                        href="https://stilism.obspm.fr/reddening?frame=icrs&vlong={{ star.ra }}&ulong=deg&vlat={{ star.dec }}&ulat=deg">
+                           href="https://stilism.obspm.fr/reddening?frame=icrs&vlong={{ star.ra }}&ulong=deg&vlat={{ star.dec }}&ulat=deg">
                             Stilism Reddening Map (Lallement+2018)
                         </a>
                     </i>
@@ -304,7 +304,7 @@
                             </div>
                         {% else %}
                             <h3 class="center"> Photometry
-                            <i id="copyPhotometryWindowButton" class="material-icons button edit" title="Copy Photometry">content_copy</i>
+                                <i id="copyPhotometryWindowButton" class="material-icons button edit" title="Copy Photometry">content_copy</i>
                             </h3>
                         {% endif %}
                         <form action="{% url "systems:star_detail" project.slug star.pk %}" method="post"
@@ -736,7 +736,7 @@
     </div>
 
     <div id="copyPhotometry" title="Copy Photometry">
-{# This formatting needs to stay this way!! #}
+        {# This formatting needs to stay this way!! #}
         <textarea disabled autocomplete="off" type="text" id="photometryTextBox" class="copyarea">
 band_name, wavelength, mag, err
 {% for phot in star.photometry_set.all %}{{ phot.band }},{{ phot.wavelength }},{{ phot.get_value }},{{ phot.get_error }}

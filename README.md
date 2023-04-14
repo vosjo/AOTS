@@ -13,6 +13,7 @@ mkdir www
 mkdir aots
 cd www/aots
 ```
+
 For the rest of this guide, we will assume that these directories are located in the user's home directory.
 
 You need the python-dev package and virtualenv. Moreover you should update pip:
@@ -108,6 +109,7 @@ Install the postgres database:
 ```
 sudo apt install postgresql
 ```
+
 Start postgres command line:
 
 ```
@@ -160,7 +162,9 @@ from: https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with
 
 ### 1. Create an .env file
 
-To protect secrets like the postgres database password or the Django security key they are embedded in AOTS via environment variables. The environment variables are defined in the .env file in the AOTS directory. As an example we provide .env.example.
+To protect secrets like the postgres database password or the Django security key they are embedded in AOTS via
+environment variables. The environment variables are defined in the .env file in the AOTS directory. As an example we
+provide .env.example.
 
 ```
 cp AOTS/.env.example  AOTS/.env
@@ -168,7 +172,9 @@ cp AOTS/.env.example  AOTS/.env
 
 ### 2. Adjust the .env file
 
-In .env the secret Django security key, the postgres database password, the server IP and URL, as well as the name of the computer used in production needs to be specified. If a special log directory is required or a different database user was defined during setup, this has to be specified here as well.
+In .env the secret Django security key, the postgres database password, the server IP and URL, as well as the name of
+the computer used in production needs to be specified. If a special log directory is required or a different database
+user was defined during setup, this has to be specified here as well.
 
 ```
 SECRET_KEY=generate_and_add_your_secret_security_key_here

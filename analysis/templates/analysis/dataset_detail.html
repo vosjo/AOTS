@@ -144,8 +144,8 @@
                                     <td>{{ p.rvalue }}</td>
                                     <td>{{ p.rerror }}</td>
                                     <td><input type="checkbox" id="cb-parameter-valid-{{ p.pk }}" {% if p.valid %}
-                                            checked="checked" {% endif %} onchange='toggleParameterValid(this);'
-                                            parameter_id="{{ p.pk }}"
+                                               checked="checked" {% endif %} onchange='toggleParameterValid(this);'
+                                               parameter_id="{{ p.pk }}"
                                             {% if not user.is_authenticated %} disabled {% endif %}></td>
                                 </tr>
                             {% endfor %}

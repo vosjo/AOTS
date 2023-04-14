@@ -57,20 +57,21 @@ DEFAULT_PARAMETERS = {
     'rad': 'solRad',
     'teff': 'K',
     'logg': 'dex',
-    }
+}
 
 #   Parameter aliases
 PARAMETER_ALIASES = {
     # 'L': ['L*', 'Lstar'],         #   Example
     'v01': ['v', 'v0'],
     'k1': ['k'],
-    }
+}
 
 #   Unit aliases
 UNIT_ALIASES = {
-    'solRad' : ['Rsol'],
-    'solLum' : ['Lsol'],
-    }
+    'solRad': ['Rsol'],
+    'solLum': ['Lsol'],
+}
+
 
 def split_parameter_name(name):
     if name[-1] in ['0', '1', '2']:

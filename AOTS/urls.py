@@ -38,69 +38,69 @@ urlpatterns = [
                   ),
 
                   path(
-                     'w/documentation/',
-                     TemplateView.as_view(
-                        template_name='documentation.html'
-                        )
-                     ),
+                      'w/documentation/',
+                      TemplateView.as_view(
+                          template_name='documentation.html'
+                      )
+                  ),
                   path(
-                     'w/projects/',
-                     star_views.project_list,
-                     name='projects',
-                     ),
+                      'w/projects/',
+                      star_views.project_list,
+                      name='projects',
+                  ),
                   path(
-                     'w/<slug:project>/',
-                     RedirectView.as_view(pattern_name='dash:dashboard')
-                     ),
+                      'w/<slug:project>/',
+                      RedirectView.as_view(pattern_name='dash:dashboard')
+                  ),
                   path(
-                     'w/<slug:project>/systems/',
-                     include('stars.urls', namespace='systems')
-                     ),
+                      'w/<slug:project>/systems/',
+                      include('stars.urls', namespace='systems')
+                  ),
                   path(
-                     'w/<slug:project>/observations/',
-                     include(
-                        'observations.urls',
-                        namespace='observations'
-                        )
-                     ),
+                      'w/<slug:project>/observations/',
+                      include(
+                          'observations.urls',
+                          namespace='observations'
+                      )
+                  ),
                   path(
-                     'w/<slug:project>/dash/',
-                     include('dash.urls', namespace='dash')
-                     ),
+                      'w/<slug:project>/dash/',
+                      include('dash.urls', namespace='dash')
+                  ),
                   path(
-                     'w/<slug:project>/observations/',
-                     RedirectView.as_view(
-                        pattern_name='observations:observatory_list'
-                        )
-                     ),
+                      'w/<slug:project>/observations/',
+                      RedirectView.as_view(
+                          pattern_name='observations:observatory_list'
+                      )
+                  ),
                   path(
-                     'w/<slug:project>/analysis/',
-                     include('analysis.urls', namespace='analysis')
-                     ),
+                      'w/<slug:project>/analysis/',
+                      include('analysis.urls', namespace='analysis')
+                  ),
                   path(
-                     'w/<slug:project>/dashboard/',
-                     RedirectView.as_view(pattern_name='dash:dashboard')
-                     ),
+                      'w/<slug:project>/dashboard/',
+                      RedirectView.as_view(pattern_name='dash:dashboard')
+                  ),
 
                   path('api/', include(router.urls), name='project-api'),
                   path(
-                     'api/systems/',
-                     include("stars.api.urls", namespace='systems-api')
-                     ),
+                      'api/systems/',
+                      include("stars.api.urls", namespace='systems-api')
+                  ),
                   path(
-                     'api/observations/',
-                     include(
-                        "observations.api.urls",
-                        namespace='observations-api'
-                        )
-                     ),
+                      'api/observations/',
+                      include(
+                          "observations.api.urls",
+                          namespace='observations-api'
+                      )
+                  ),
                   path(
-                     'api/analysis/',
-                     include(
-                        "analysis.api.urls",
-                        namespace='analysis-api'
-                        )
-                     ),
+                      'api/analysis/',
+                      include(
+                          "analysis.api.urls",
+                          namespace='analysis-api'
+                      )
+                  ),
 
                   path(r'admin/', admin.site.urls),
 

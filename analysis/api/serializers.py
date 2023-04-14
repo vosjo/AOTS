@@ -67,7 +67,7 @@ class DataSetListSerializer(ModelSerializer):
         return reverse(
             'analysis:dataset_detail',
             kwargs={'project': obj.project.slug, 'dataset_id': obj.pk},
-            )
+        )
 
     def get_file_url(self, obj):
         return obj.datafile.url

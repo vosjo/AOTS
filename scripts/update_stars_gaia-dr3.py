@@ -3,7 +3,6 @@
 ############################################################################
 
 import os
-import sys
 
 import time
 
@@ -29,7 +28,6 @@ from astroquery.vizier import Vizier
 
 #   Delete old parameter entries
 rm_old_para = False
-
 
 ############################################################################
 ####                               Main                                 ####
@@ -91,7 +89,7 @@ if __name__ == '__main__':
                         measurement=gaia_data[0][mag],
                         error=gaia_data[0][err],
                         unit='mag',
-                        )
+                    )
 
                 print('\tUpdate/Add parallax and proper motion')
                 try:

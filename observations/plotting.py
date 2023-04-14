@@ -447,7 +447,6 @@ def plot_sed(star_id):
                  err=err, )
     photsource = bpl.ColumnDataSource(data=photd)
 
-
     tools = [mpl.PanTool(), mpl.WheelZoomTool(),
              mpl.BoxZoomTool(), mpl.ResetTool()]
     fig = bpl.figure(width=600, height=400, x_axis_type="log", y_axis_type="log", tools=tools)

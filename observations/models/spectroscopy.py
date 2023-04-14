@@ -67,7 +67,6 @@ class Spectrum(models.Model):
         null=True,
     )
 
-
     # -- Processing status
     #   Flag if the spectrum is flux calibrated, defaults to False. And the flux unit.
     fluxcal = models.BooleanField(default=False)
@@ -81,7 +80,6 @@ class Spectrum(models.Model):
 
     #   Flag if the spectrum is a decomposed spectrum
     decomposed = models.BooleanField(default=False)
-
 
     # -- flag to indicate that the spectrum is of good quality
     valid = models.BooleanField(default=True)

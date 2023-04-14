@@ -1,17 +1,17 @@
 from datetime import datetime, timedelta
+from itertools import chain
+
 from bokeh.embed import components
 from bokeh.resources import CDN
-from django.shortcuts import get_object_or_404, render, reverse
+from django.shortcuts import get_object_or_404, render
 from django.utils.timezone import make_aware
 
 from AOTS.custom_permissions import check_user_can_view_project
+from analysis.models import DataSet
 from observations.models import Spectrum, LightCurve
 from stars.models import Project, Star
-from analysis.models import DataSet
-
 from .forms import HRDPlotterForm
 from .plotting import plot_hrd
-from itertools import chain
 
 
 def sort_modified_created(model):
@@ -73,7 +73,8 @@ def dashboard(request, project=None, **kwargs):
     recent_changes = sorted(chain(*all_models), key=sort_modified_created, reverse=True)
     recent_changes = recent_changes[:25]
 
-    recent_changes = [{"modeltype": get_modeltype(r), "date": r.history.latest().history_date, "user": r.history.latest().history_user.username if r.history.latest().history_user is not None else "unknown", "instance": r, "created": wascreated(r)} for r in recent_changes]
+    recent_changes = [{"modeltype": get_modeltype(r), "date": r.history.latest().history_date, "user": r.history.latest().history_user.username if r.history.latest().history_user is not None else "unknown", "instance": r, "created": wascreated(r)} for r in
+                      recent_changes]
     # Possible axes teff, logg, mag, bp_rp
     if len(parameters.keys()) != 0:
         figure = plot_hrd(project.pk, parameters["xaxis"], parameters["yaxis"], parameters["size"], parameters["color"], parameters["nsys"])
@@ -81,7 +82,6 @@ def dashboard(request, project=None, **kwargs):
     else:
         figure = plot_hrd(project.pk)
         script, div = components(figure, CDN)
-
 
     context = {
         'project': project,

@@ -1,20 +1,14 @@
-import sys
-from datetime import datetime, timedelta
-
 from bokeh.embed import components
 from bokeh.resources import CDN
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, reverse
-from django.utils.timezone import make_aware
 
 from AOTS.custom_permissions import check_user_can_view_project
-from observations.models import Spectrum, LightCurve
-from stars.models import Project, Star
+from stars.models import Project
 from .auxil import process_datasets, plot_parameters
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm
 from .models import DataSet
-from itertools import chain
 
 
 @check_user_can_view_project

@@ -84,7 +84,7 @@ def parameters_for_q(dpar, **kwargs):
     Mass ratio is calculated from the two amplitudes K1 and K2
     """
     return ['K', 'K'], \
-           [1, 2]
+        [1, 2]
 
 
 def calculate_q(dpar, *args, **kwargs):
@@ -121,7 +121,7 @@ def parameters_for_msini(dpar, **kwargs):
     Msini is calculated from the two amplitudes K1 and K2 and period
     """
     return ['K', 'K', 'p', 'e'], \
-           [1, 2, 0, 0]
+        [1, 2, 0, 0]
 
 
 def calculate_msini(dpar, *args, **kwargs):
@@ -161,7 +161,7 @@ def parameters_for_asini(dpar, **kwargs):
     """
     c = dpar.component
     return ['K', 'p', 'e'], \
-           [c, 0, 0]
+        [c, 0, 0]
 
 
 def calculate_asini(dpar, *args, **kwargs):
@@ -190,7 +190,7 @@ def parameters_for_r(dpar, **kwargs):
     """
     c = dpar.component
     return ['m', 'logg'], \
-           [c, c]
+        [c, c]
 
 
 def calculate_r(dpar, *args, **kwargs):

@@ -1,14 +1,12 @@
 # from __future__ import unicode_literals
 
 from astropy.coordinates.angles import Angle
-from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from six import python_2_unicode_compatible
 from simple_history.models import HistoricalRecords
+from six import python_2_unicode_compatible
 
-from users.models import get_sentinel_user
 from .project import Project
 
 

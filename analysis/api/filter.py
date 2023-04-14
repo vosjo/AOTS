@@ -1,9 +1,9 @@
 from django_filters import rest_framework as filters
 
 from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
-
 from analysis.models import Method, DataSet, Parameter
 from stars.models import Project
+
 
 # ===============================================================
 # DataSet
@@ -14,7 +14,7 @@ class DataSetFilter(filters.FilterSet):
         field_name="star",
         method="star_name_icontains",
         lookup_expr='icontains',
-        )
+    )
 
     name = filters.CharFilter(field_name="name", lookup_expr='icontains')
 
@@ -22,7 +22,7 @@ class DataSetFilter(filters.FilterSet):
         field_name="method",
         method="method_name_icontains",
         lookup_expr='icontains',
-        )
+    )
 
     def star_name_icontains(self, queryset, name, value):
         return queryset.filter(star__name__icontains=value)
@@ -41,7 +41,7 @@ class DataSetFilter(filters.FilterSet):
         parent = get_allowed_objects_to_view_for_user(
             parent,
             self.request.user,
-            )
+        )
 
         # get the column order from the GET dictionary
         getter = self.request.query_params.get
@@ -53,6 +53,7 @@ class DataSetFilter(filters.FilterSet):
             return parent.order_by(order_name)
         else:
             return parent
+
 
 # ===============================================================
 # Methods
@@ -69,7 +70,8 @@ class MethodFilter(filters.FilterSet):
         return get_allowed_objects_to_view_for_user(
             parent,
             self.request.user,
-            )
+        )
+
 
 # ===============================================================
 # Parameter
@@ -80,7 +82,7 @@ class ParameterFilter(filters.FilterSet):
         queryset=Project.objects.all(),
         field_name="star__project",
         lookup_expr='exact',
-        )
+    )
 
     class Meta:
         model = Parameter
@@ -93,4 +95,4 @@ class ParameterFilter(filters.FilterSet):
         parent = get_allowed_objects_to_view_for_user(
             parent,
             self.request.user,
-            )
+        )

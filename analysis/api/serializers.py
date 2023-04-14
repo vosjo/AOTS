@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from astropy.time import Time
 from django.urls import reverse
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
@@ -32,6 +35,7 @@ class DataSetListSerializer(ModelSerializer):
     method = SerializerMethodField()
     href = SerializerMethodField()
     file_url = SerializerMethodField()
+    added_on = SerializerMethodField()
 
     class Meta:
         model = DataSet
@@ -42,14 +46,17 @@ class DataSetListSerializer(ModelSerializer):
             'note',
             'method',
             'valid',
-            'added_on',
             'project',
             'href',
-            'modified_by',
             'file_url',
             'datafile',
+            'added_on',
         ]
         read_only_fields = ('pk', 'file_url',)
+
+
+    def get_added_on(self, obj):
+        return Time(obj.history.earliest().history_date, precision=0).iso
 
     def get_star(self, obj):
         if obj.star:

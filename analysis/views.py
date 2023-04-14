@@ -26,7 +26,6 @@ def dataset_list(request, project=None, **kwargs):
                 new_dataset = DataSet(
                     datafile=f,
                     project=project,
-                    added_by=request.user,
                 )
                 new_dataset.save()
 

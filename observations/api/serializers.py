@@ -183,7 +183,7 @@ class SpecFileSerializer(ModelSerializer):
         )
 
     def get_added_on(self, obj):
-        return Time(obj.first().history_date, precision=0).iso
+        return Time(obj.history.earliest().history_date, precision=0).iso
 
     def get_filename(self, obj):
         return obj.specfile.name.split('/')[-1]

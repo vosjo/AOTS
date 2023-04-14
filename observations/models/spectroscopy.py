@@ -233,14 +233,7 @@ class SpecFile(models.Model):
     obs_date = models.CharField(max_length=50, default='')
 
     #   Bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-
-    added_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET(get_sentinel_user),
-        null=True,
-    )
+    history = HistoricalRecords()
 
     def get_spectrum(self):
         return fileio.read_spectrum(self.specfile.path, return_header=True)
@@ -315,13 +308,7 @@ class RawSpecFile(models.Model):
     obs_date = models.CharField(max_length=50, default='')
 
     #   Bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET(get_sentinel_user),
-        null=True,
-    )
+    history = HistoricalRecords()
 
     #   Get header
     def get_header(self, hdu=0):

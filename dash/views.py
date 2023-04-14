@@ -18,7 +18,7 @@ def sort_modified_created(model):
     try:
         return model.history.latest().history_date
     except AttributeError:
-        return datetime.fromisoformat("19700101")
+        return datetime.fromisoformat("1970-01-01")
 
 
 def get_modeltype(instance):

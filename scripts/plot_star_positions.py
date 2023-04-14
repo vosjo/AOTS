@@ -46,6 +46,7 @@ def coordinates_aitoff_plot(coords):
 
     #   Convert coordinates
     sph = coords.spherical
+    sph.distance.value[~np.isfinite(sph.distance.value)] = 0
 
     #   Scatter plot
     cs = ax.scatter(
@@ -53,6 +54,7 @@ def coordinates_aitoff_plot(coords):
         sph.lat.radian,
         c=sph.distance.value,
         s=10.,
+        norm=mpl.colors.LogNorm()
     )
 
     #   Define ticks
@@ -70,7 +72,7 @@ def coordinates_aitoff_plot(coords):
     cb = fig.colorbar(cs)
     cb.set_label(f'Distance [{sph.distance.unit.to_string()}]')
 
-    return fig, ax
+    return fig, ax, cb
 
 
 ############################################################################
@@ -83,8 +85,8 @@ if __name__ == '__main__':
 
     #   Make a plots for each project
     for pro in projects:
-        print()
-        print(pro)
+        # print()
+        # print(pro)
 
         #   Get stars
         stars = pro.star_set.all()
@@ -109,6 +111,9 @@ if __name__ == '__main__':
                 if source_name == 'Gaia DR3':
                     para[i] = p.value
 
+        if np.ptp(para) == 0:
+            continue
+
         # #   Get coordinates
         # coordinates = pro.star_set.values_list('ra', 'dec')
 
@@ -121,7 +126,7 @@ if __name__ == '__main__':
         distance = para.to_value(u.kpc, equivalencies=u.parallax()) * u.kpc
 
         #   Remove bad entries/clear distance array
-        mask = np.isinf(distance)
+        mask = np.logical_or(np.isinf(distance), distance < 0)
         distance[mask] = 0.
 
         #   Set up SkyCoord object
@@ -139,14 +144,58 @@ if __name__ == '__main__':
         # plt.show()
 
         sky_coordinates_gal = sky_coordinates.transform_to(Galactic())
-        fig, ax = coordinates_aitoff_plot(sky_coordinates_gal);
+        fig, ax, cb = coordinates_aitoff_plot(sky_coordinates_gal)
         # ax.set_xlabel(r'Galactic longitude, $l$ [deg]')
         # ax.set_ylabel(r'Galactic latitude, $b$ [deg]')
         ax.set_xlabel('Galactic longitude [deg]')
         ax.set_ylabel('Galactic latitude [deg]')
+
+        full_path = f'../site_static/images/project_previews/{pro.slug}_full.png'
+        preview_path = f'../site_static/images/project_previews/{pro.slug}_preview.png'
+
         plt.savefig(
-            f'media/aitoff_projections/{pro.slug}_galactic.png',
+            full_path,
             bbox_inches='tight',
             format='png',
+            dpi=300,
         )
+
+        ### Code for small preview plot
+
+        # Hide X and Y axes label marks
+        ax.xaxis.set_tick_params(labelbottom=False)
+        ax.yaxis.set_tick_params(labelleft=False)
+
+        # Hide X and Y axes tick marks
+        ax.grid(True)
+        for tick in ax.xaxis.get_major_ticks():
+            tick.tick1line.set_visible(False)
+            tick.tick2line.set_visible(False)
+            tick.label1.set_visible(False)
+            tick.label2.set_visible(False)
+
+        for tick in ax.yaxis.get_major_ticks():
+            tick.tick1line.set_visible(False)
+            tick.tick2line.set_visible(False)
+            tick.label1.set_visible(False)
+            tick.label2.set_visible(False)
+
+        # Hide labels
+        ax.xaxis.label.set_visible(False)
+        ax.yaxis.label.set_visible(False)
+
+        # remove colorbar
+        cb.remove()
+
+        plt.savefig(
+            preview_path,
+            bbox_inches='tight',
+            format='png',
+            dpi=100,
+        )
+
+        pro.preview_starmap.name = preview_path.replace("site_static", "static")
+        pro.full_starmap.name = full_path.replace("site_static", "static")
+        pro.save()
+
         # plt.show()

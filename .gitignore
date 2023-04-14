@@ -50,3 +50,5 @@ venv/
 redo_*
 pwgen.py
 update_stars_parallax.py
+site_static/images/project_previews/*
+!site_static/images/project_previews/.gitkeep

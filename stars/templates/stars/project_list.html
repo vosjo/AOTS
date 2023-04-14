@@ -35,6 +35,8 @@
                         <div>
                             {% if project.logo %}
                                 <img class="project-logo" src="{{ project.logo.url }}" alt="{{ project.name }} logo">
+                            {% elif project.preview_starmap%}
+                                <img class="project-logo" src="{{ project.preview_starmap.url }}" alt="{{ project.name }} logo">
                             {% else %}
                                 <img class="project-logo" src="{% static "images/default_logo.png" %}"
                                      alt="{{ project.name }} logo">

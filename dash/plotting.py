@@ -123,7 +123,7 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
 
     tools = [mpl.PanTool(), mpl.WheelZoomTool(),
              mpl.BoxZoomTool(), mpl.ResetTool()]
-    fig = bpl.figure(width=700, height=400, tools=tools)
+    fig = bpl.figure(width=850, height=475, tools=tools)
 
     # fig.circle(wave, meas)
     # fig.circle('bp_rp', 'mag', size=8, color='white', alpha=0.1, name='hover', source=starsource)

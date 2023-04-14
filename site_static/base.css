@@ -1688,3 +1688,77 @@ div.icon-container {
     max-width: 90vw;
     max-height: 90vh;
 }
+
+#id_nsys {
+    cursor: pointer;
+    background-color: rgba(173, 215, 246, 0.2);
+    border: 1px solid rgba(64, 117, 144, 0.3);
+    border-radius: 5px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 1);
+}
+#id_nsys:hover {
+    background-color: rgba(173, 215, 246, 0.4);
+}
+
+#id_xaxis {
+    cursor: pointer;
+    background-color: rgba(173, 215, 246, 0.2);
+    border: 1px solid rgba(64, 117, 144, 0.3);
+    border-radius: 5px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 1);
+}
+#id_xaxis:hover {
+    background-color: rgba(173, 215, 246, 0.4);
+}
+
+#id_yaxis {
+    cursor: pointer;
+    background-color: rgba(173, 215, 246, 0.2);
+    border: 1px solid rgba(64, 117, 144, 0.3);
+    border-radius: 5px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 1);
+}
+#id_yaxis:hover {
+    background-color: rgba(173, 215, 246, 0.4);
+}
+
+#id_size {
+    cursor: pointer;
+    background-color: rgba(173, 215, 246, 0.2);
+    border: 1px solid rgba(64, 117, 144, 0.3);
+    border-radius: 5px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 1);
+}
+#id_size:hover {
+    background-color: rgba(173, 215, 246, 0.4);
+}
+
+#id_color {
+    cursor: pointer;
+    background-color: rgba(173, 215, 246, 0.2);
+    border: 1px solid rgba(64, 117, 144, 0.3);
+    border-radius: 5px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 1);
+}
+
+#id_color:hover {
+    background-color: rgba(173, 215, 246, 0.4);
+}
+
+#submitbtn {
+    cursor: pointer;
+    background-color: rgba(173, 215, 246, 0.2);
+    border: 1px solid rgba(64, 117, 144, 0.3);
+    border-radius: 5px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 1);
+}
+
+#submitbtn:hover {
+    background-color: rgba(173, 215, 246, 0.4);
+}

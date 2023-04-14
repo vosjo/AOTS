@@ -89,7 +89,7 @@ def dashboard(request, project=None, **kwargs):
         'recent_changes': recent_changes,
         'hrd_plot': div,
         'script': script,
-        'form': form
+        'form': enumerate(form)
     }
 
     return render(request, 'dash/dashboard.html', context)

@@ -96,8 +96,8 @@
                         {% csrf_token %}
                         <table>
                             <tbody>
-                            {% for field in form %}
-                                <tr>
+                            {% for ind, field in form %}
+                                <tr id="tr_{{ ind }}">
                                     <th>{{ field.label_tag }}</th>
                                     <td>
                                         {{ field }}
@@ -109,7 +109,7 @@
                             {% endfor %}
                             </tbody>
                         </table>
-                        <input type="submit" value="Update Figure"/>
+                        <input id="submitbtn" type="submit" value="Update Figure"/>
                     </form>
                 </div>
             </div>

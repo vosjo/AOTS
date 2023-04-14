@@ -1,6 +1,5 @@
 $(document).ready(function () {
-
-    var detailed_starmap_window = $("#detailedStarmap").dialog({
+    const detailed_starmap_window = $("#detailedStarmap").dialog({
         autoOpen: false,
         title: 'Full Overview of Sky Positions',
         width: 'auto',
@@ -8,11 +7,22 @@ $(document).ready(function () {
         modal: true
     });
 
+    const tr1 = document.getElementById('tr_1');
+    const tr2 = document.getElementById('tr_2');
+    const tr3 = document.getElementById('tr_3');
+    const tr4 = document.getElementById('tr_4');
+
+    tr1.innerHTML += tr3.innerHTML;
+    tr2.innerHTML += tr4.innerHTML;
+
+    tr3.parentNode.removeChild(tr3);
+    tr4.parentNode.removeChild(tr4);
+
 });
 
 
 function openDetailedStarmap() {
-    detailed_starmap_window = $("#detailedStarmap").dialog({
+    let detailed_starmap_window = $("#detailedStarmap").dialog({
         close: function () {
             detailed_starmap_window.dialog("close");
         }

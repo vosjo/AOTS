@@ -28,8 +28,7 @@ class Tag(models.Model):
     color = models.CharField(max_length=7, default='#8B0000')  # color as hex color value
 
     # -- bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ['name']
@@ -183,8 +182,7 @@ class Identifier(models.Model):
     href = models.CharField(max_length=400, blank=True)
 
     # -- bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords()
 
     # -- representation of self
     def __str__(self):

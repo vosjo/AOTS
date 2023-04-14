@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.text import slugify
+from simple_history.models import HistoricalRecords
 from six import python_2_unicode_compatible
 
 from users.models import get_sentinel_user
@@ -35,10 +36,7 @@ class Project(models.Model):
     project_managers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='managed_projects', blank=True)
 
     # -- bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True,
-                                 related_name='added_projects')
+    history = HistoricalRecords()
 
     # -- representation of self
     def __str__(self):

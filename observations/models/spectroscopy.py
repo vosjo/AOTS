@@ -178,13 +178,7 @@ class UserInfo(models.Model):
     note = models.TextField(default='')
 
     #   Bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET(get_sentinel_user),
-        null=True,
-    )
+    history = HistoricalRecords()
 
 
 ###     SpecFile    ###

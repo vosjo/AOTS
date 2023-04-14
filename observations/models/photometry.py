@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from simple_history.models import HistoricalRecords
 from six import python_2_unicode_compatible
 
 from stars.models import Star
@@ -76,9 +77,7 @@ class Photometry(models.Model):
     source = models.TextField(default='')
 
     # -- bookkeeping
-    added_on = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET(get_sentinel_user), null=True)
+    history = HistoricalRecords()
 
     def get_value(self):
         if self.upper_limit:

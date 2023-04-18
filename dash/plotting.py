@@ -4,6 +4,7 @@ from bokeh import plotting as bpl
 from bokeh.models import ColorBar, Range1d
 from bokeh.palettes import Viridis9
 from bokeh.transform import linear_cmap
+from django.contrib import messages
 
 from stars.models import Project, Star
 from .labels import labeldict
@@ -22,7 +23,7 @@ def errors_from_coords(x, y, x_err, y_err):
     return list(zip(x_upper, x_lower)), list(zip(y_upper, y_lower)), list(zip(x, x)), list(zip(y, y))
 
 
-def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=100):
+def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=100):
     if rstr == "":
         rstr = None
     if cstr == "":
@@ -215,13 +216,20 @@ def plot_hrd(project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=
     x = star_props[xstr][np.where(star_props[xstr] != -1000)]
     y = star_props[ystr][np.where(star_props[ystr] != -1000)]
 
-    fig.x_range = Range1d(np.amin(x) - np.ptp(x) * 0.05, np.amax(x) + np.ptp(x) * 0.05)
-    fig.y_range = Range1d(np.amin(y) - np.ptp(y) * 0.05, np.amax(y) + np.ptp(y) * 0.05)
+    try:
+        fig.x_range = Range1d(np.amin(x) - np.ptp(x) * 0.05, np.amax(x) + np.ptp(x) * 0.05)
+        fig.y_range = Range1d(np.amin(y) - np.ptp(y) * 0.05, np.amax(y) + np.ptp(y) * 0.05)
 
-    if ystr == "mag":
-        fig.y_range = Range1d(np.amax(y) + np.ptp(y) * 0.05, np.amin(y) - np.ptp(y) * 0.05)
-    if xstr == "mag":
-        fig.x_range = Range1d(np.amax(x) + np.ptp(x) * 0.05, np.amin(x) - np.ptp(x) * 0.05)
+        if ystr == "mag":
+            fig.y_range = Range1d(np.amax(y) + np.ptp(y) * 0.05, np.amin(y) - np.ptp(y) * 0.05)
+        if xstr == "mag":
+            fig.x_range = Range1d(np.amax(x) + np.ptp(x) * 0.05, np.amin(x) - np.ptp(x) * 0.05)
+    except ValueError:
+        # If no datapoints exist for x or y for some reason
+        fig.x_range = Range1d(0, 1)
+        fig.y_range = Range1d(0, 1)
+
+        messages.error(request, "Plotting failed. Check if the stars in your project have the parameters you want to plot.")
 
     fig.toolbar.logo = None
 

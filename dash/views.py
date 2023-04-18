@@ -77,10 +77,10 @@ def dashboard(request, project=None, **kwargs):
                       recent_changes]
     # Possible axes teff, logg, mag, bp_rp
     if len(parameters.keys()) != 0:
-        figure = plot_hrd(project.pk, parameters["xaxis"], parameters["yaxis"], parameters["size"], parameters["color"], parameters["nsys"])
+        figure = plot_hrd(request, project.pk, parameters["xaxis"], parameters["yaxis"], parameters["size"], parameters["color"], parameters["nsys"])
         script, div = components(figure, CDN)
     else:
-        figure = plot_hrd(project.pk)
+        figure = plot_hrd(request, project.pk)
         script, div = components(figure, CDN)
 
     context = {

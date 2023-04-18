@@ -222,14 +222,26 @@ ul#messages {
 
 ul#messages .info {
     color: #00008B;
+    background-color: rgb(237, 245, 251, 0.85);
+    border-width: 2px;
+    border-color: rgb(184, 205, 217, 0.7);
+    border-style: solid;
 }
 
 ul#messages .success {
     color: #006400;
+    background-color: rgba(193, 225, 193, 0.85);
+    border-width: 2px;
+    border-color: rgb(164, 191, 164);
+    border-style: solid;
 }
 
 ul#messages .error {
+    background-color: rgba(250, 160, 160, 0.85);
     color: #8B0000;
+    border-width: 2px;
+    border-color: rgb(191, 122, 122);
+    border-style: solid;
 }
 
 section {
@@ -1761,4 +1773,40 @@ div.icon-container {
 
 #submitbtn:hover {
     background-color: rgba(173, 215, 246, 0.4);
+}
+
+.msg-container{
+    position: absolute;
+    top: 5.5vh;
+    margin-left: calc(2.5% + 4px);
+    z-index: 10; /* This is probably high enough? */
+    width: 50%;
+    max-width: 50%;
+    max-height: 75%;
+    text-align: left;
+    display: inline-flex;
+    align-items: center;
+    overflow: scroll;
+}
+
+.msg-list {
+    padding: 0;
+}
+
+.single-msg {
+    background-color: rgb(237, 245, 251, 0.7);
+    border: 2px solid rgb(184, 205, 217, 0.7);
+    padding: 5px;
+    border-radius: 5px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 0.7);
+    margin-bottom: 5px;
+}
+
+.remove-msg-btn {
+    border-color: inherit;
+    border-style: solid;
+    margin-right: 5px;
+    border-radius: 5px;
+    background-color: inherit;
 }

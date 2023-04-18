@@ -2,6 +2,8 @@
  Code part to take care of the csrf token 
 */
 
+let opacityInterval = null;
+
 $(function () {
 
 
@@ -60,6 +62,25 @@ $(function () {
 
 });
 
+
+function msg_fade_out(messages){
+    setTimeout(function() {
+        opacityInterval = setInterval(function () {
+            let currentOpacity = parseFloat(messages.style.opacity);
+
+            let newOpacity = currentOpacity - 0.01;
+
+            // Set the new opacity of the list
+            messages.style.opacity = newOpacity;
+
+            // Stop the interval when the opacity reaches 0
+            if (newOpacity <= 0.1) {
+                clearInterval(opacityInterval);
+            }
+        }, 100);
+    }, 5000);
+}
+
 $(document).ready(function () {
     // Get the 1st and 2nd level pathnames
     var firstLevel = window.location.pathname.split('/')[1]
@@ -72,5 +93,43 @@ $(document).ready(function () {
     $('#toolbar a[href*="/' + secondLevel + '"]').parent('li').toggleClass('active');
 //    $('#subtoolbar a[href*="'+secondLevel+'"]').parent('li').toggleClass('active');
 
+    console.log("here")
+    const messages = document.getElementById("messages");
+
+    if ( messages ){
+        const listItems = messages.getElementsByTagName("li");
+
+    for (let i = listItems.length - 1; i >= 0; i--) {
+        const btn = document.createElement("button");
+
+        btn.appendChild(document.createTextNode("\u{00d7}"));
+
+        btn.classList.add("remove-msg-btn");
+
+        listItems[i].insertBefore(btn, listItems[i].childNodes[0]);
+
+        btn.addEventListener("click", function() {
+            const listItem = this.parentNode;
+            listItem.parentNode.removeChild(listItem);
+        });
+        }
+    }
+    messages.style.opacity = 1;
+
+    msg_fade_out(messages);
+
+    // Add a mouseenter event listener to the list
+    messages.addEventListener("mouseenter", function() {
+      // Set the opacity of the list to 1
+      messages.style.opacity = 1;
+
+      // Stop the opacity interval
+      clearInterval(opacityInterval);
+    });
+
+    // Add a mouseleave event listener to the list
+    messages.addEventListener("mouseleave", function() {
+      msg_fade_out(messages)
+    });
 
 });

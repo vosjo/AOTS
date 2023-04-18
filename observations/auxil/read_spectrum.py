@@ -545,7 +545,7 @@ def check_form(data_dict):
     return user_info
 
 
-def add_userinfo(user_info_dict, spectrum_pk, added_by=None):
+def add_userinfo(user_info_dict, spectrum_pk):
     '''
         Add user infos to UserInfo model
     '''
@@ -553,7 +553,7 @@ def add_userinfo(user_info_dict, spectrum_pk, added_by=None):
     spectrum = Spectrum.objects.get(pk=spectrum_pk)
 
     #   Get new UserInfo model
-    info_model = UserInfo(added_by=added_by, project=spectrum.project)
+    info_model = UserInfo(project=spectrum.project)
 
     #   Fill model
     for key, value in user_info_dict.items():

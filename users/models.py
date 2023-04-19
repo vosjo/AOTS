@@ -11,6 +11,7 @@ def get_sentinel_user():
     return User().objects.get_or_create(username='deleted')[0]
 
 
+# deprecated??
 def get_unknown_user():
     """
     Gets the unknown user to be used as a default for the added_by field

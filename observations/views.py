@@ -199,7 +199,6 @@ def add_spectra(request, project=None, **kwargs):
                     newspec = SpecFile(
                         specfile=f,
                         project=project,
-                        added_by=request.user,
                     )
                     newspec.save()
 
@@ -226,7 +225,6 @@ def add_spectra(request, project=None, **kwargs):
                             success, message = read_spectrum.add_userinfo(
                                 user_info,
                                 newspec.spectrum.pk,
-                                added_by=request.user,
                             )
 
                             #   Set success/error message
@@ -348,7 +346,6 @@ def rawspecfile_list(request, project=None, **kwargs):
                     #    Save the new raw file
                     newrawspec = RawSpecFile(
                         project=project,
-                        added_by=request.user,
                     )
                     newrawspec.save()
                     newrawspec.rawfile.save(f.name, f)
@@ -412,7 +409,7 @@ def lightcurve_list(request, project=None, **kwargs):
                 files = request.FILES.getlist('lcfile')
                 for f in files:
                     # -- save the new specfile
-                    newlc = LightCurve(lcfile=f, project=project, added_by=request.user)
+                    newlc = LightCurve(lcfile=f, project=project)
                     newlc.save()
 
                     # -- now process it and add it to a Spectrum and Object

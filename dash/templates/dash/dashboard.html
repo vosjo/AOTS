@@ -67,8 +67,11 @@
                 {% endif %}
             </div>
             <div class="dash-project-sky-preview-wrapper">
-                {#  TODO: replace this with the actual skyplot path              #}
-                <img class="project-logo" src="{{ project.logo.url }}" alt="{{ project.name }} logo" onclick="openDetailedStarmap()">
+                {% if project.preview_starmap %}
+                    <img class="project-logo" src="{{ project.preview_starmap.url }}" alt="{{ project.name }} Starmap" onclick="openDetailedStarmap()">
+                {% else %}
+                    <img class="project-logo" src="{% static "images/default_logo.png" %}" alt="{{ project.name }} Starmap">
+                {% endif %}
             </div>
             <div class="dash-upper-right">
                 <button class="dash-button top-button left-button" onclick="location.href='../../systems/stars'" type="button">
@@ -153,7 +156,9 @@
     </div>
 
     <div id="detailedStarmap" title="Copy Photometry">
-        <img class="full-starmap" src="{{ project.full_starmap.url }}" alt="{{ project.name }} logo">
+        {% if project.full_starmap %}
+            <img class="full-starmap" src="{{ project.full_starmap.url }}" alt="{{ project.name }} logo">
+        {% endif %}
     </div>
     {{ script|safe }}
 {% endblock %}

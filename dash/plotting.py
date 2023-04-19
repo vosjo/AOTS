@@ -46,7 +46,11 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
     mags_errs = []
     idents = []
 
+    count = 0
     for star in star_list:
+        if nstars != "all":
+            if count >= nstars:
+                break
         name = star.name
         idents.append(name)
         pset = star.parameter_set.all()
@@ -55,17 +59,23 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
             magset = photset.filter(band__icontains='.G')
             mag = sum([m.measurement for m in magset]) / len(magset)
             magerr = np.sqrt(sum([m.error ** 2 for m in magset]) / len(magset))
+            if xstr == "mag" or ystr == "mag":
+                count += 1
         except ZeroDivisionError:
             mag = magerr = -1000.
         try:
             t = pset.filter(name__icontains='teff', data_source__name="AVG")[0]
             teff = t.value
             tefferr = t.error
+            if xstr == "teff" or ystr == "teff":
+                count += 1
         except:
             teff = tefferr = -1000.
         try:
             l = pset.filter(name__icontains='log_g', data_source__name="AVG")[0]
             logg, loggerr = [l.value, l.error]
+            if xstr == "log_g" or ystr == "log_g":
+                count += 1
         except:
             logg = loggerr = -1000.
         try:
@@ -73,6 +83,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
             assert len(b) > 0
             bp_rp = b.value
             bp_rp_err = b.error
+            if xstr == "bp_rp" or ystr == "bp_rp":
+                count += 1
         except:
             try:
                 bp = photset.filter(band__icontains=".BP")
@@ -80,6 +92,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
 
                 bp_rp = bp[0].measurement - rp[0].measurement
                 bp_rp_err = np.sqrt(bp[0].error ** 2 + rp[0].error ** 2)
+                if xstr == "bp_rp" or ystr == "bp_rp":
+                    count += 1
             except IndexError:
                 bp_rp = bp_rp_err = -1000.
 

@@ -129,19 +129,19 @@
                                     {% if event.created %} created{% else %} modified{% endif %}</b><br>
                                 by<b class="dash-changelog-field-name">
                                 {% if event.user is not None %}{{ event.user }}{% else %}unknown{% endif %}</b>, {{ event.date }}
-                            {% elif event.modeltype == "Spectrum" %}
+                            {% elif event.modeltype == "Spectrum" and event.instance.star is not None %}
                                 <b class="dash-changelog-field-title"> A spectrum for
                                     <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{ event.instance.star.name }}</a> was
                                     {% if event.created %} created{% else %} modified {% endif %}</b><br>
                                 by<b class="dash-changelog-field-name">
                                 {% if event.user is not None %}{{ event.user }}{% else %}unknown{% endif %}</b>, {{ event.date }}
-                            {% elif event.modeltype == "LightCurve" %}
+                            {% elif event.modeltype == "LightCurve" and event.instance.star is not None %}
                                 <b class="dash-changelog-field-title"> A lightcurve for
                                     <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{ event.instance.star.name }}</a> was
                                     {% if event.created %} created{% else %} modified {% endif %}</b><br>
                                 by<b class="dash-changelog-field-name">
                                 {% if event.user is not None %}{{ event.user }}{% else %}unknown{% endif %}</b>, {{ event.date }}
-                            {% elif event.modeltype == "DataSet" %}
+                            {% elif event.modeltype == "DataSet" and event.instance.star is not None %}
                                 <b class="dash-changelog-field-title"> A dataset for
                                     <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{ event.instance.star.name }}</a> was
                                     {% if event.created %} created{% else %} modified {% endif %}</b><br>

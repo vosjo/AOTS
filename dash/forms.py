@@ -10,7 +10,9 @@ class HRDPlotterForm(forms.Form):
                                  (50, "50"),
                                  (100, "100"),
                                  (500, "500"),
-                                 ("all", "All")
+                                 (1000, "1000"),
+                                 (2500, "2500"),
+                                 # ("all", "All")
                              ))
 
     xaxis = forms.ChoiceField(label="X-axis ",

@@ -61,17 +61,24 @@ def dashboard(request, project=None, **kwargs):
 
     all_models = []
 
+    # A warning for those who come after me: Do not try to optimize this further, it can only bring you despair.
     for mod, modname in zip([Star, Spectrum, LightCurve, DataSet], ["nstars", "nspec", "nlc", "naly"]):
         all_mod_objs = mod.objects.filter(project=project)
-        all_models.append(all_mod_objs)
+        all_mod_hists = mod.history.filter(project=project)
+
+        most_recent = all_mod_hists.order_by("-history_date")[:25]
+        most_recent_ids = [m.id for m in most_recent]
+        most_recent_models = [m for m in all_mod_objs if m.id in most_recent_ids]
+
+        all_models.append(most_recent_models)
+
         stats[modname] = all_mod_objs.count()
 
         # First history entry must be more recent than seven days ago
-        all_mod_objs_lw = mod.history.filter(history_date__gte=aware_datetime, project=project)
+        all_mod_objs_lw = all_mod_hists.filter(history_date__gte=aware_datetime)
         stats[modname + "lw"] = all_mod_objs_lw.count()
 
-    recent_changes = sorted(chain(*all_models), key=sort_modified_created, reverse=True)
-    recent_changes = recent_changes[:25]
+    recent_changes = sorted(chain(*all_models), key=sort_modified_created, reverse=True)[:25]
 
     recent_changes = [{"modeltype": get_modeltype(r), "date": r.history.latest().history_date, "user": r.history.latest().history_user.username if r.history.latest().history_user is not None else "unknown", "instance": r, "created": wascreated(r)} for r in
                       recent_changes]

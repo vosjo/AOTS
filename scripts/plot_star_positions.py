@@ -85,8 +85,8 @@ if __name__ == '__main__':
 
     #   Make a plots for each project
     for pro in projects:
-        # print()
-        # print(pro)
+        print()
+        print(pro)
 
         #   Get stars
         stars = pro.star_set.all()
@@ -111,8 +111,18 @@ if __name__ == '__main__':
                 if source_name == 'Gaia DR3':
                     para[i] = p.value
 
-        if np.ptp(para) == 0:
+        if np.sum(para) == 0:
+            print("Gaia DR3 parallaxes not found. Retrying with worse parallaxes...")
+            for i, star in enumerate(stars):
+                parallaxes = star.parameter_set.filter(name__exact='parallax')
+                for p in parallaxes:
+                    source_name = p.data_source.name
+                    if source_name == 'AVG':
+                        para[i] = p.value
+
+        if np.sum(para) == 0:
             continue
+
 
         # #   Get coordinates
         # coordinates = pro.star_set.values_list('ra', 'dec')

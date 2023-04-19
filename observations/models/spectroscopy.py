@@ -87,7 +87,7 @@ class Spectrum(models.Model):
     note = models.TextField(default='', blank=True)
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     # -- function to get the spectrum
     def get_spectrum(self):
@@ -178,7 +178,7 @@ class UserInfo(models.Model):
     note = models.TextField(default='')
 
     #   Bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
 
 ###     SpecFile    ###
@@ -227,7 +227,7 @@ class SpecFile(models.Model):
     obs_date = models.CharField(max_length=50, default='')
 
     #   Bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     def get_spectrum(self):
         return fileio.read_spectrum(self.specfile.path, return_header=True)
@@ -302,7 +302,7 @@ class RawSpecFile(models.Model):
     obs_date = models.CharField(max_length=50, default='')
 
     #   Bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     #   Get header
     def get_header(self, hdu=0):

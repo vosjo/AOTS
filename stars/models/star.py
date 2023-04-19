@@ -28,7 +28,7 @@ class Tag(models.Model):
     color = models.CharField(max_length=7, default='#8B0000')  # color as hex color value
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     class Meta:
         ordering = ['name']
@@ -85,7 +85,7 @@ class Star(models.Model):
     tags = models.ManyToManyField(Tag, related_name='stars', blank=True)
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     def get_system_summary_parameter(self):
         """
@@ -182,7 +182,7 @@ class Identifier(models.Model):
     href = models.CharField(max_length=400, blank=True)
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     # -- representation of self
     def __str__(self):

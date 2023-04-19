@@ -46,7 +46,7 @@ class Observatory(models.Model):
     note = models.TextField(default='', blank=True)
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     def get_EarthLocation(self):
         """

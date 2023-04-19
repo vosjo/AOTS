@@ -42,7 +42,7 @@ class Method(models.Model):
     derived_parameters = models.TextField(default='')
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     # -- representation of self
     def __str__(self):
@@ -69,7 +69,7 @@ class DataSource(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False)
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     def source(self):
         """
@@ -140,7 +140,7 @@ class DataSet(DataSource):
     valid = models.BooleanField(default=True)
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     def get_data(self):
         return fileio.read2dict(self.datafile.path)

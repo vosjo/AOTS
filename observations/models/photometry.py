@@ -77,7 +77,7 @@ class Photometry(models.Model):
     source = models.TextField(default='')
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     def get_value(self):
         if self.upper_limit:

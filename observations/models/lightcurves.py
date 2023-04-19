@@ -67,7 +67,7 @@ class LightCurve(models.Model):
     lcfile = models.FileField(upload_to='lightcurves/')
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     # -- function to get the lightcurve
     def get_lightcurve(self):

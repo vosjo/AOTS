@@ -36,7 +36,7 @@ class Project(models.Model):
     project_managers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='managed_projects', blank=True)
 
     # -- bookkeeping
-    history = HistoricalRecords()
+    history = HistoricalRecords(cascade_delete_history=True)
 
     # -- representation of self
     def __str__(self):

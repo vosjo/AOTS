@@ -262,6 +262,9 @@ class RawSpecFileSerializer(ModelSerializer):
         return obj.rawfile.name.split('/')[-1]
 
     def get_added_by(self, obj):
+        if obj.history.earliest().history_user is None:
+            return '-'
+
         return obj.history.earliest().history_user.username
 
 

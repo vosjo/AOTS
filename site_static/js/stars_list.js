@@ -556,7 +556,7 @@ function load_tags() {
                 tag = all_tags[i];
 
                 $('#tagOptions').append("<li title='" + tag['description'] +
-                    "'><input class='tristate' name='tags' type='checkbox' value='"
+                    "'><input name='tags' type='checkbox' value='"
                     + tag['pk'] + "' /> " + tag['name'] + "</li>");
 
                 $('#tag_filter_options').append(
@@ -567,10 +567,10 @@ function load_tags() {
                 $('#id_tags').append('<li><label for="id_tags_' + i + '"><input id="id_tags_' + i + '" type="checkbox" name="tags" value="' + tag['pk'] + '"> ' + tag['name'].replace(/\_/g, ' ') + '</label></li>')
 
             }
-
+/*
             $('#tagOptions').on('change', ':checkbox', function (event) {
                 cylceTristate(event, this);
-            });
+            });*/
 
             $('input[type=radio]').click(allow_unselect);
 
@@ -643,7 +643,7 @@ function openTagEditWindow() {
             edit_tags_window.dialog("close");
         }
     });
-
+/*
     // Reset the counts per tag
     var all_tag_counts = {}
     for (tag in all_tags) {
@@ -674,11 +674,17 @@ function openTagEditWindow() {
             $(".tristate[value='" + tag + "']").prop("indeterminate", true);
             $(".tristate[value='" + tag + "']").addClass("indeterminate");
         }
-    }
+    }*/
     edit_tags_window.dialog("open");
 }
 
 function updateTags() {
+    // Get the checked tags
+    let new_tags = $("input[name='tags']").filter(':checked');
+    new_tags = new_tags.map(
+        function () { return parseInt(this.value); }
+        ).get()
+/*
     // Get the checked and indeterminate tags
     var checked_tags = $(".tristate:checked:not(.indeterminate)").map(
         function () {
@@ -687,20 +693,20 @@ function updateTags() {
     var indeterminate_tags = $(".tristate.indeterminate").map(
         function () {
             return parseInt(this.value);
-        }).get();
+        }).get();*/
 
     // Update the tags for each selected star
     star_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-        var new_tags = checked_tags;
-        var current_tags = this.data()['tags'].map(function (x) {
-            return x.pk;
-        });
-
-        for (tag in indeterminate_tags) {
-            if (current_tags.indexOf(indeterminate_tags[tag]) > -1) {
-                new_tags.push(indeterminate_tags[tag])
-            }
-        }
+        // var new_tags = checked_tags;
+        // var current_tags = this.data()['tags'].map(function (x) {
+        //     return x.pk;
+        // });
+        //
+        // for (tag in indeterminate_tags) {
+        //     if (current_tags.indexOf(indeterminate_tags[tag]) > -1) {
+        //         new_tags.push(indeterminate_tags[tag])
+        //     }
+        // }
         update_star_tags(this, new_tags);
     });
 
@@ -804,7 +810,7 @@ function openAddSystemsWindow() {
 
 
 // ----------------------------------------------------------------------
-
+/*
 // Tristate checkbox functionality
 function cylceTristate(event, checkbox) {
     checkbox = $(checkbox);
@@ -817,7 +823,7 @@ function cylceTristate(event, checkbox) {
         checkbox.prop("indeterminate", false);
         checkbox.removeClass("indeterminate");
     }
-}
+}*/
 
 
 // Allow unchecking of radio buttons in the filter window

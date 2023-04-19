@@ -52,7 +52,7 @@ class DataSetFilter(filters.FilterSet):
 
             return parent.order_by(order_name)
         else:
-            return parent
+            return parent.order_by('name')
 
 
 # ===============================================================

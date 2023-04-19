@@ -18,6 +18,7 @@ from astropy.coordinates import SkyCoord, Galactic
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import multiprocessing as mp
 
 from stars.models import Project
 
@@ -25,6 +26,15 @@ from stars.models import Project
 ############################################################################
 ####                            Functions                               ####
 ############################################################################
+
+def marker_size_function(nstars):
+    if nstars < 100:
+        return 10.
+    elif 50000 > nstars > 100:
+        return -0.00018*nstars + 10.018
+    elif nstars > 50000:
+        return 1.
+
 
 def coordinates_aitoff_plot(coords):
     '''
@@ -53,8 +63,8 @@ def coordinates_aitoff_plot(coords):
         -sph.lon.wrap_at(180 * u.deg).radian,
         sph.lat.radian,
         c=sph.distance.value,
-        s=10.,
-        norm=mpl.colors.LogNorm()
+        s=marker_size_function(len(coords)),
+        norm=mpl.colors.LogNorm(),
     )
 
     #   Define ticks
@@ -75,6 +85,36 @@ def coordinates_aitoff_plot(coords):
     return fig, ax, cb
 
 
+def get_star_data(star):
+    # Get RA and DEC values
+    ra = star.ra
+    dec = star.dec
+    para = 0
+
+    # Get parallax entries
+    parallaxes = star.parameter_set.filter(name__exact='parallax')
+
+    # Restrict to DR3
+    for p in parallaxes:
+        source_name = p.data_source.name
+        if source_name == 'Gaia DR3':
+            para = p.value
+            break
+        elif source_name == 'AVG':
+            para = p.value
+
+    return ra, dec, para
+
+
+def process_stars(stars):
+    with mp.Pool() as pool:
+        results = pool.map(get_star_data, stars)
+
+    ra, dec, para = zip(*results)
+
+    return np.array(ra), np.array(dec), np.array(para)
+
+
 ############################################################################
 ####                               Main                                 ####
 ############################################################################
@@ -93,32 +133,7 @@ if __name__ == '__main__':
         nstars = len(stars)
 
         #   Get coordinates and GAIA DR3 parallax from each system
-        ra = np.zeros(nstars)
-        dec = np.zeros(nstars)
-        # para = np.ones(nstars) * 0.0001
-        para = np.zeros(nstars)
-        for i, star in enumerate(stars):
-            #   Get coordinates
-            ra[i] = star.ra
-            dec[i] = star.dec
-
-            #   Get parallax entries
-            parallaxes = star.parameter_set.filter(name__exact='parallax')
-
-            #   Restrict to DR3
-            for p in parallaxes:
-                source_name = p.data_source.name
-                if source_name == 'Gaia DR3':
-                    para[i] = p.value
-
-        if np.sum(para) == 0:
-            print("Gaia DR3 parallaxes not found. Retrying with worse parallaxes...")
-            for i, star in enumerate(stars):
-                parallaxes = star.parameter_set.filter(name__exact='parallax')
-                for p in parallaxes:
-                    source_name = p.data_source.name
-                    if source_name == 'AVG':
-                        para[i] = p.value
+        ra, dec, para = process_stars(stars)
 
         if np.sum(para) == 0:
             continue

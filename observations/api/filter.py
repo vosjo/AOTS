@@ -58,7 +58,7 @@ class SpectrumFilter(filters.FilterSet):
 
             return parent.order_by(order_name)
         else:
-            return parent
+            return parent.order_by('hjd')
 
 
 class UserInfoFilter(filters.FilterSet):
@@ -108,7 +108,7 @@ class UserInfoFilter(filters.FilterSet):
 
             return parent.order_by(order_name)
         else:
-            return parent
+            return parent.order_by('hjd')
 
 
 # ===============================================================
@@ -173,7 +173,7 @@ class SpecFileFilter(filters.FilterSet):
 
             return parent.order_by(order_name)
         else:
-            return parent
+            return parent.order_by('hjd')
 
 
 # ===============================================================
@@ -252,7 +252,7 @@ class RawSpecFileFilter(filters.FilterSet):
 
             return parent.order_by(order_name)
         else:
-            return parent
+            return parent.order_by('hjd')
 
 
 # ===============================================================
@@ -295,7 +295,7 @@ class LightCurveFilter(filters.FilterSet):
 
             return parent.order_by(order_name)
         else:
-            return parent
+            return parent.order_by('hjd')
 
 
 # ===============================================================

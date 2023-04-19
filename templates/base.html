@@ -84,8 +84,8 @@
                             <ul>
                                 <li><a href={% url 'analysis:dataset_list' project.slug %}>Datasets</a></li>
                                 <li><a href={% url 'analysis:method_list' project.slug %}>Methods</a></li>
-                                <li><a href={% url 'analysis:parameter_plotter' project.slug %}>Parameter plotter</a>
-                                </li>
+<!--                                <li><a href={% url 'analysis:parameter_plotter' project.slug %}>Parameter plotter</a>
+                                </li>-->
                             </ul>
                         </li>
                         {% if user.is_authenticated %}

@@ -101,6 +101,13 @@ urlpatterns = [
                           namespace='analysis-api'
                       )
                   ),
+                  path(
+                      'users/',
+                      include(
+                          "users.urls",
+                          namespace='users'
+                      )
+                  ),
 
                   path(r'admin/', admin.site.urls),
 

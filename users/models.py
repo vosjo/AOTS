@@ -21,6 +21,9 @@ def get_unknown_user():
 
 class User(AbstractUser):
     is_student = models.BooleanField(default=False)
+    api_key = models.CharField(max_length=120, blank=True, null=True)
+    api_secret = models.CharField(max_length=140, blank=True, null=True)
+    profile_picture = models.FileField(upload_to='profile_pictures/', null=True, blank=True)
 
     note = models.TextField(default='')
 

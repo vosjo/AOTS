@@ -80,7 +80,7 @@ def dashboard(request, project=None, **kwargs):
 
     recent_changes = sorted(chain(*all_models), key=sort_modified_created, reverse=True)[:25]
 
-    recent_changes = [{"modeltype": get_modeltype(r), "date": r.history.latest().history_date, "user": r.history.latest().history_user.username if r.history.latest().history_user is not None else "unknown", "instance": r, "created": wascreated(r)} for r in
+    recent_changes = [{"modeltype": get_modeltype(r), "date": r.history.latest().history_date, "user": r.history.latest().history_user if r.history.latest().history_user is not None else "unknown", "instance": r, "created": wascreated(r)} for r in
                       recent_changes]
     # Possible axes teff, logg, mag, bp_rp
     if len(parameters.keys()) != 0:

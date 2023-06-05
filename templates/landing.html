@@ -12,7 +12,7 @@
             crossorigin="anonymous"></script>
     <script type="text/javascript" src="{% static 'js/base_js.js' %}"></script>
     <script type="text/javascript" src="{% static 'jquery-ui.min.js' %}"></script>
-
+    <link rel="icon" href="{% static 'favicon.ico' %}">
     {% block head %}{% endblock %}
 </head>
 
@@ -45,8 +45,9 @@
                         {% if user.is_authenticated %}
                             <li>
                                 <i class="icon material-icons">account_circle</i>
-                                <a href="#">{{ user }}</a>
+                                <a href="/users/you">{{ user }}</a>
                                 <ul>
+                                    <li><a href="/users/you">View Profile</a></li>
                                     <li><a href="/accounts/logout">Log Out</a></li>
                                     <li><a href="/accounts/password_change">Change password</a></li>
                                 </ul>

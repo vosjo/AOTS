@@ -1,0 +1,35 @@
+{% extends "landing.html" %}
+
+{% load static %}
+
+{% block head %}
+    {% include "datatables.html" %}
+    <script type="text/javascript" src="{% static 'js/tags_list.js' %}"></script>
+    <title>User: {{ viewed_user.username }}</title>
+    <link href="{% static 'userpage.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block headertitle %} User: {{ viewed_user.username }} {% endblock %}
+
+{% block navigation %}
+    <a href="/stars/stars"> INDEX </a>
+    <strong>|</strong>
+    <a href="/stars/tags" class="active"> Tags </a>
+{% endblock %}
+{% block content %}
+<div class="infocontainer">
+    <div class="userbox">
+        {% if viewed_user.profile_picture %}
+            <img class="profilepic" src="{{ viewed_user.profile_picture }}" alt="Profile pic">
+        {% else %}
+            <img class="profilepic" src="{% static 'images/default_user.png' %}" alt="Profile pic">
+        {% endif %}
+        <div class="userinfo">
+            <h2 class="username">{{ viewed_user.username }}</h2>
+            <h3 class="fullname">{{ viewed_user.first_name }} {{ viewed_user.last_name }}</h3>
+            <h4 class="affiliation">{{ viewed_user.note }}</h4>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,74 @@
+.infocontainer {
+  margin-top: 2.5%;
+  margin-left: 5%;
+}
+
+.userbox {
+  margin: 20px;
+  display: flex;
+  align-items: center;
+  max-width: 90%;
+}
+
+.profilepic {
+  width: 150px; /* Adjust the size as needed */
+  height: 150px; /* Adjust the size as needed */
+  border-radius: 50%;
+  margin-right: 20px;
+}
+
+.userinfo {
+  flex: 1;
+}
+
+.username, .fullname {
+  margin: 0;
+}
+
+.username {
+  font-size: 24px;
+  color: #333;
+}
+
+.fullname {
+  font-size: 18px;
+  color: #666;
+}
+
+.keylocker_headline{
+  font-size: 20px;
+  color: #555;
+}
+
+.api_key_container {
+  background-color: rgba(173, 215, 246, 0.2);
+  border: 2px solid rgba(64, 117, 144, 0.3);
+  border-radius: 10px;
+  border-collapse: separate;
+  color: rgba(23, 43, 54, 1);
+  max-width: 90%;
+  padding: 10px;
+}
+
+.profilepic-container {
+  position: relative;
+  display: inline-block;
+}
+
+.edit-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: none;
+  border-radius: 4px;
+  background-color: lightgrey;
+  text-decoration: none;
+  opacity: 0;
+  margin-left: -9px;
+  transition: opacity 0.3s ease; /* Add a transition effect */
+}
+
+.profilepic-container:hover .edit-button {
+  opacity: 1; /* Show the button on hover */
+}

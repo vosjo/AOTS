@@ -1,0 +1,59 @@
+{% extends "landing.html" %}
+
+{% load static %}
+
+{% block head %}
+    <script type="text/javascript" src="{% static 'js/profile_page.js' %}"></script>
+    <title>Your Profile</title>
+    <link href="{% static 'userpage.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block headertitle %} Your Profile {% endblock %}
+
+{% block navigation %}
+    <a href="/stars/stars"> INDEX </a>
+    <strong>|</strong>
+    <a href="/stars/tags" class="active"> Tags </a>
+{% endblock %}
+{% block content %}
+<div class="infocontainer">
+    <div class="userbox">
+        {% if this_user.profile_picture %}
+            <div class="profilepic-container">
+                <img class="profilepic" src="{{ this_user.profile_picture.url }}" alt="Profile pic">
+                <a onclick="return openChangeProfilePicWindow()" class="edit-button"><i class="material-icons button edit" title="Edit">edit</i></a>
+            </div>
+        {% else %}
+            <div class="profilepic-container">
+                <img class="profilepic" src="{% static 'images/default_user.png' %}" alt="Profile pic">
+                <a onclick="return openChangeProfilePicWindow()" class="edit-button"><i class="material-icons button edit" title="Edit">edit</i></a>
+            </div>
+        {% endif %}
+        <div class="userinfo">
+            <h2 class="username">{{ this_user.username }}</h2>
+            <h3 class="fullname">{{ this_user.first_name }} {{ this_user.last_name }}</h3>
+            <h4 class="affiliation">{{ this_user.note }}</h4>
+        </div>
+    </div>
+    <div class="api_key_container">
+        <h3 class="keylocker_headline">API key locker</h3>
+    </div>
+</div>
+<div id="changepropic" title="Change Profile Pic" hidden>
+    <form action="{% url "users:personal_page" %}" method="post"
+                                  enctype="multipart/form-data" class="" id="change-propic-form">
+                                {% csrf_token %}
+        {% if form.non_field_errors %}
+            <p>{{ form.non_field_errors }}</p>
+        {% endif %}
+
+        <p>
+            {{ form.newpic.errors }}
+            {{ form.newpic }}
+        </p>
+
+        <input type="submit" class="upload-button" value="Change Profile Picture"/>
+    </form>
+</div>
+{{ script|safe }}
+{% endblock %}

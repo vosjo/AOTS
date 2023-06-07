@@ -37,6 +37,19 @@
     </div>
     <div class="api_key_container">
         <h3 class="keylocker_headline">API key locker</h3>
+        <p class="api-key-text"> Your API key is shown below, if you have just generated one. Please note that you can not see your API key again after leaving this page, for security reasons. Should you have forgotten your key, please generate a new one with the button below.</p>
+        {% if secret_key %}
+            <p class="api-key">Your API key: {{ secret_key }} Save this in a safe space, you will not be able to display this key again.</p>
+        {% elif this_user.api_secret %}
+            <p class="api-key">You can not display your API key anymore. In case you have lost it, please generate a new one.</p>
+        {% else %}
+            <p class="api-key">You have not generated an API key yet! If you need one, please generate it using the button.</p>
+        {% endif %}
+        <form action="{% url "users:personal_page" %}" method="post"
+                                      enctype="multipart/form-data" class="" id="gen-api-key-form">
+                                    {% csrf_token %}
+            <input type="submit" class="generate-api-key-button" name="apikeygen" value="Generate new API key"/>
+        </form>
     </div>
 </div>
 <div id="changepropic" title="Change Profile Pic" hidden>
@@ -52,7 +65,7 @@
             {{ form.newpic }}
         </p>
 
-        <input type="submit" class="upload-button" value="Change Profile Picture"/>
+        <input type="submit" class="upload-button" name="chngpic" value="Change Profile Picture"/>
     </form>
 </div>
 {{ script|safe }}

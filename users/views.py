@@ -56,17 +56,28 @@ class ValidateAPIKeysView(APIView):
 @login_required
 def thisUsersPage(request, **kwargs):
     if request.method == 'POST':
-        form = ChangeProPicForm(request.POST, request.FILES)
-        if form.is_valid():
-            newpic = request.FILES.getlist('newpic')
-            request.user.profile_picture = newpic[0]
+        if "apikeygen" in request.POST:
+            api_key = get_random_string(
+                32, allowed_chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+            api_secret = get_random_string(
+                64, allowed_chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+            request.user.api_key = api_key
+            request.user.api_secret = make_password(api_secret)
             request.user.save()
-            return HttpResponseRedirect(reverse(
-                'users:personal_page',
-                kwargs={},
-            ))
+            form = ChangeProPicForm()
+            return render(request, 'users/personal_page.html', {'this_user': request.user, "form": form, "secret_key": api_secret})
+        else:
+            form = ChangeProPicForm(request.POST, request.FILES)
+            if form.is_valid():
+                newpic = request.FILES.getlist('newpic')
+                request.user.profile_picture = newpic[0]
+                request.user.save()
+                return HttpResponseRedirect(reverse(
+                    'users:personal_page',
+                    kwargs={},
+                ))
     form = ChangeProPicForm()
-    return render(request, 'users/personal_page.html', {'this_user': request.user, "form": form})
+    return render(request, 'users/personal_page.html', {'this_user': request.user, "form": form, "secret_key": None})
 
 
 @login_required

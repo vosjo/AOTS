@@ -15,28 +15,6 @@ from .forms import ChangeProPicForm
 from .models import User
 
 
-class APIKeysView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = User.objects.get(id=request.user.id)
-        if user:
-            return Response(data={"api_key": user.api_key}, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        user = User.objects.get(id=request.user.id)
-        if user:
-            api_key = get_random_string(
-                32, allowed_chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-            api_secret = get_random_string(
-                64, allowed_chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-            user.api_key = api_key
-            user.api_secret = make_password(api_secret)
-            user.save()
-            return Response(data={"api_key": api_key, "api_secret": api_secret}, status=status.HTTP_200_OK)
-
-
 class ValidateAPIKeysView(APIView):
     def post(self, request):
         api_key = request.headers.get("api-key")
@@ -65,7 +43,7 @@ def thisUsersPage(request, **kwargs):
             request.user.api_secret = make_password(api_secret)
             request.user.save()
             form = ChangeProPicForm()
-            return render(request, 'users/personal_page.html', {'this_user': request.user, "form": form, "secret_key": api_secret})
+            return render(request, 'users/personal_page.html', {'this_user': request.user, "form": form, "public_key": api_key, "secret_key": api_secret})
         else:
             form = ChangeProPicForm(request.POST, request.FILES)
             if form.is_valid():
@@ -77,7 +55,7 @@ def thisUsersPage(request, **kwargs):
                     kwargs={},
                 ))
     form = ChangeProPicForm()
-    return render(request, 'users/personal_page.html', {'this_user': request.user, "form": form, "secret_key": None})
+    return render(request, 'users/personal_page.html', {'this_user': request.user, "form": form, "public_key": request.user.api_key, "secret_key": None})
 
 
 @login_required

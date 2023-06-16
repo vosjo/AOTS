@@ -3,7 +3,7 @@
 import requests
 
 #   Set upload URL
-URL = 'https://a15.astro.physik.uni-potsdam.de/api/observations/specfiles/'
+# URL = 'https://a15.astro.physik.uni-potsdam.de/api/observations/specfiles/'
 URL = 'http://127.0.0.1:8000/api/observations/specfiles/'
 
 #   Credentials
@@ -14,7 +14,7 @@ password = '?????'
 data = {'project': 2}
 
 #   Path to file that should be uploaded
-file_path = 'Brankica_spectra_20230110/HD48491_20200918.fit'
+file_path = r'C:\Users\fabia\PycharmProjects\AOTS\media\spectra\the-edr3-hot-subd\spec-0300-51666-0081_5vIxZhb.fits'
 
 #   Read file
 files = {'specfile': open(file_path, 'rb')}

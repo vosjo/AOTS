@@ -17,7 +17,8 @@ from .views import (
     getSpecfilePath,
     getRawSpecfilePath,
     getSpecfileRawPath,
-    getLightCurvePath
+    getLightCurvePath,
+    bulkUploadSpectra
 )
 
 app_name = 'observations-api'
@@ -85,5 +86,10 @@ urlpatterns = [
         'lightcurves/<int:lightcurve_pk>/path/',
         getLightCurvePath,
         name='lightcurve_path',
+    ),
+    path(
+        'api-spec-upload/',
+        bulkUploadSpectra,
+        name='api-spec-upload',
     ),
 ]

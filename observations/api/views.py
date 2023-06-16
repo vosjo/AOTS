@@ -9,8 +9,9 @@
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
+from django.core.exceptions import ObjectDoesNotExist
 
 from observations.auxil import read_spectrum, read_lightcurve
 from observations.models import (
@@ -21,6 +22,7 @@ from observations.models import (
     LightCurve,
     Observatory,
 )
+from stars.models import Project
 from .filter import (
     SpectrumFilter,
     UserInfoFilter,
@@ -37,6 +39,8 @@ from .serializers import (
     LightCurveSerializer,
     ObservatorySerializer,
 )
+from users.api_auth import authenticate_API_key
+from rest_framework import status
 
 
 # from django_filters import rest_framework as filters
@@ -135,7 +139,7 @@ class RawSpecFileViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 def processRawSpecfile(request, rawspecfile_pk):
     success, message = read_spectrum.process_raw_spec(rawspecfile_pk)
-    specfile = RawSpecFile.objects.get(pk=rawspecfile_pk)
+    rawspecfile = RawSpecFile.objects.get(pk=rawspecfile_pk)
 
     return Response(RawSpecFileSerializer(rawspecfile).data)
 
@@ -194,3 +198,75 @@ class ObservatoryViewSet(viewsets.ModelViewSet):
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ObservatoryFilter
+
+
+# API Upload/Download handling
+
+
+@api_view(('POST',))
+@authentication_classes([])
+@permission_classes([])
+@authenticate_API_key
+def bulkUploadSpectra(request):
+    # TODO: add proper responses
+    # TODO: add possible userinfo
+    if request.method == "POST":
+        #   Get files
+        files = request.FILES.getlist('spectrumfile')
+        project_pk = request.META.get("HTTP_PROJECTID")
+
+        if project_pk is None:
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+        try:
+            project = Project.objects.get(pk=int(project_pk))
+        except ValueError:
+            project = Project.objects.get(name__exact=project_pk)
+        except ObjectDoesNotExist:
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+        user_info = {}
+
+        returned_messages = []
+        n_exceptions = 0
+
+        for f in files:
+            #   Save the new specfile
+            newspec = SpecFile(
+                specfile=f,
+                project=project,
+            )
+            newspec.save()
+
+            #   Now process it and add it to a Spectrum and Object
+            try:
+                #   Process specfile
+                success, message = read_spectrum.process_specfile(
+                    newspec.pk,
+                    create_new_star=True,
+                    user_info=user_info,
+                )
+
+                #   Refresh SpecFile from database
+                newspec.refresh_from_db()
+                
+                returned_messages.append(message)
+                
+                if not success:
+                    n_exceptions += 1
+
+            except Exception as e:
+                #   Handle error
+                print(e)
+                newspec.delete()
+                n_exceptions += 1
+
+        if n_exceptions != 0:
+            if n_exceptions == len(files):
+                return Response(status=status.HTTP_400_BAD_REQUEST, data=returned_messages)
+            else:
+                return Response(status=status.HTTP_207_MULTI_STATUS, data=returned_messages)
+
+        return Response(status=status.HTTP_200_OK, data=returned_messages)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)

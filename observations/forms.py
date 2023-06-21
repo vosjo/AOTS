@@ -16,7 +16,9 @@ class UploadSpectraDetailForm(forms.Form):
     #   File
     spectrumfile = forms.FileField(
         label='Select a spectrum',
-        widget=forms.ClearableFileInput(attrs={'multiple': True}),
+        widget=forms.ClearableFileInput(
+            attrs={'allow_multiple_selected': True}
+            ),
     )
     # merge_spectra_if_possible = forms.BooleanField(required=False)
 
@@ -100,7 +102,9 @@ class UploadSpectraDetailForm(forms.Form):
 class UploadSpecFileForm(forms.Form):
     specfile_field = forms.FileField(
         label='Select a spectrum',
-        widget=forms.ClearableFileInput(attrs={'multiple': True})
+        widget=forms.ClearableFileInput(
+            attrs={'allow_multiple_selected': True}
+            )
     )
 
 
@@ -139,7 +143,7 @@ class UploadRawSpecFileForm(forms.Form):
     #   Raw file upload field
     rawfile = forms.FileField(
         label='Raw files',
-        widget=forms.ClearableFileInput(attrs={'multiple': True})
+        widget=forms.ClearableFileInput(attrs={'allow_multiple_selected': True})
     )
 
 
@@ -222,7 +226,10 @@ class SpectrumModForm(forms.Form):
 
 class UploadLightCurveForm(forms.Form):
     lcfile = forms.FileField(label='Select a light curve',
-                             widget=forms.ClearableFileInput(attrs={'multiple': True}))
+                             widget=forms.ClearableFileInput(
+                                 attrs={'allow_multiple_selected': True}
+                                 )
+                             )
 
 
 # ===========================================================================================

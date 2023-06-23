@@ -6,12 +6,17 @@ import os
 
 import sys
 
-sys.path.append('../')
+script_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(script_path, '../'))
 os.environ["DJANGO_SETTINGS_MODULE"] = "AOTS.settings"
 
 import django
 
 django.setup()
+
+from django.conf import settings
+
+import shutil
 
 import numpy as np
 
@@ -139,6 +144,7 @@ if __name__ == '__main__':
         ra = np.zeros(nstars)
         dec = np.zeros(nstars)
         para = np.zeros(nstars)
+
         for i, star in enumerate(stars):
             #   Get coordinates
             ra[i] = star.ra
@@ -154,7 +160,7 @@ if __name__ == '__main__':
                     para[i] = p.value
                     break
                 elif source_name == 'AVG':
-                    para = p.value
+                    para[i] = p.value
 
         if np.sum(para) == 0:
             continue
@@ -196,8 +202,8 @@ if __name__ == '__main__':
         ax.set_xlabel('Galactic longitude [deg]')
         ax.set_ylabel('Galactic latitude [deg]')
 
-        full_path = f'../site_static/images/project_previews/{pro.slug}_full.png'
-        preview_path = f'../site_static/images/project_previews/{pro.slug}_preview.png'
+        full_path = os.path.join(script_path, f'../site_static/images/project_previews/{pro.slug}_full.png')
+        preview_path = os.path.join(script_path, f'../site_static/images/project_previews/{pro.slug}_preview.png')
 
         plt.savefig(
             full_path,
@@ -245,3 +251,15 @@ if __name__ == '__main__':
         pro.save()
 
         # plt.show()
+
+
+        # Copy figures to production static directory
+        if not settings.DEBUG:
+            shutil.copyfile(
+                os.path.join(script_path, f'../site_static/images/project_previews/{pro.slug}_full.png'),
+                os.path.join(script_path, f'../static/images/project_previews/{pro.slug}_full.png')
+                )
+            shutil.copyfile(
+                os.path.join(script_path, f'../site_static/images/project_previews/{pro.slug}_preview.png'),
+                os.path.join(script_path, f'../static/images/project_previews/{pro.slug}_preview.png')
+                )

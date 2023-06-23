@@ -6,6 +6,9 @@ import os
 
 import time
 
+import sys
+
+sys.path.append('/home/wedge/Uni/aots/src/AOTS/')
 os.environ["DJANGO_SETTINGS_MODULE"] = "AOTS.settings"
 
 import numpy as np

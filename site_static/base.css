@@ -1475,6 +1475,10 @@ div.dashboard-wrapper {
     flex-direction: column;
 }
 
+div.dashboard-wrapper h2 {
+    font-size: 1.8em;
+}
+
 div.dash-square {
     margin: 4px;
     padding: 10px;
@@ -1554,6 +1558,10 @@ div.dash-upper-right {
 div.dash-lower-left {
     width: 50%;
     float: left;
+}
+
+div.dash-overview-plot{
+    margin-top: 1em;
 }
 
 div.dash-lower-center {
@@ -1675,11 +1683,13 @@ i.dash-icon {
 }
 
 span.projname {
-    font-size: 20px;
+    font-size: 22px;
     display: inline-flex;
     align-items: center;
     white-space: nowrap;
     overflow: scroll;
+    font-weight: bold;
+    color: rgba(0, 0, 0, .7);
 }
 
 div.icon-container {

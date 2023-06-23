@@ -1,3 +1,7 @@
+from django.conf import settings
+
+import os
+
 import numpy as np
 from bokeh import models as mpl
 from bokeh import plotting as bpl
@@ -5,6 +9,8 @@ from bokeh.models import ColorBar, Range1d
 from bokeh.palettes import Viridis9
 from bokeh.transform import linear_cmap
 from django.contrib import messages
+
+from astropy.table import QTable
 
 from stars.models import Project, Star
 from .labels import labeldict
@@ -138,10 +144,27 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
 
     tools = [mpl.PanTool(), mpl.WheelZoomTool(),
              mpl.BoxZoomTool(), mpl.ResetTool()]
-    fig = bpl.figure(width=850, height=475, tools=tools)
+    fig = bpl.figure(width=840, height=475, tools=tools)
 
     # fig.circle(wave, meas)
     # fig.circle('bp_rp', 'mag', size=8, color='white', alpha=0.1, name='hover', source=starsource)
+
+    #   Add Gaia data for CMD plots
+    if xstr=="bp_rp" and ystr=="mag":
+        #   Read data from file
+        gaia_data = QTable.read(
+            os.path.join(settings.BASE_DIR, 'media/gaia/gaia_data.fits')
+            )
+        gaia_mag = gaia_data['g_mag_abs'].value
+        gaia_color = gaia_data['bp_rp'].value
+
+        fig.dot(
+            x=gaia_color,
+            y=gaia_mag,
+            size=7,
+            # color="#cccccc",
+            color="#9db3d1",
+            )
 
     if rstr is not None and cstr is not None:
         colors = linear_cmap("norm_" + cstr, palette=Viridis9, low=np.amin(normcstr),
@@ -194,7 +217,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
                                 x=xstr,
                                 y=ystr,
                                 marker="circle",
-                                radius=.015,
+                                radius=.03,
                                 alpha=.7,
                                 fill_color=colors,
                                 line_color=colors)
@@ -213,7 +236,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
                                 name="main",
                                 x=xstr,
                                 y=ystr,
-                                radius=.015,
+                                radius=.03,
                                 marker="circle",
                                 alpha=.7, )
 
@@ -231,13 +254,39 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
     y = star_props[ystr][np.where(star_props[ystr] != -1000)]
 
     try:
-        fig.x_range = Range1d(np.amin(x) - np.ptp(x) * 0.05, np.amax(x) + np.ptp(x) * 0.05)
-        fig.y_range = Range1d(np.amin(y) - np.ptp(y) * 0.05, np.amax(y) + np.ptp(y) * 0.05)
+        fig.x_range = Range1d(
+            np.amin(x) - np.ptp(x) * 0.05,
+            np.amax(x) + np.ptp(x) * 0.05
+            )
+        fig.y_range = Range1d(
+            np.amin(y) - np.ptp(y) * 0.05,
+            np.amax(y) + np.ptp(y) * 0.05
+            )
 
         if ystr == "mag":
-            fig.y_range = Range1d(np.amax(y) + np.ptp(y) * 0.05, np.amin(y) - np.ptp(y) * 0.05)
+            fig.y_range = Range1d(
+                np.amax(y) + np.ptp(y) * 0.05,
+                np.amin(y) - np.ptp(y) * 0.05
+                )
+
         if xstr == "mag":
-            fig.x_range = Range1d(np.amax(x) + np.ptp(x) * 0.05, np.amin(x) - np.ptp(x) * 0.05)
+            fig.x_range = Range1d(
+                np.amax(x) + np.ptp(x) * 0.05,
+                np.amin(x) - np.ptp(x) * 0.05
+                )
+
+        #   Plot limits for CMD with Gaia data
+        if xstr == "bp_rp" and ystr == "mag":
+            fig.y_range = Range1d(
+                max(np.amax(y), np.amax(gaia_mag)) + np.ptp(y) * 0.05,
+                min(np.amin(y), np.amin(gaia_mag)) - np.ptp(y) * 0.05
+                )
+
+            fig.x_range = Range1d(
+            min(np.amin(x), np.amin(gaia_color)) - np.ptp(x) * 0.05,
+            max(np.amax(x), np.amax(gaia_color)) + np.ptp(x) * 0.05
+            )
+
     except ValueError:
         # If no datapoints exist for x or y for some reason
         fig.x_range = Range1d(0, 1)

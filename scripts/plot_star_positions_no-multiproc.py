@@ -202,11 +202,13 @@ if __name__ == '__main__':
         ax.set_xlabel('Galactic longitude [deg]')
         ax.set_ylabel('Galactic latitude [deg]')
 
-        full_path = os.path.join(script_path, f'../site_static/images/project_previews/{pro.slug}_full.png')
-        preview_path = os.path.join(script_path, f'../site_static/images/project_previews/{pro.slug}_preview.png')
+        full_path = f'../site_static/images/project_previews/{pro.slug}_full.png'
+        full_path_abs = os.path.join(script_path, full_path)
+        preview_path = f'../site_static/images/project_previews/{pro.slug}_preview.png'
+        preview_path_abs = os.path.join(script_path, preview_path)
 
         plt.savefig(
-            full_path,
+            full_path_abs,
             bbox_inches='tight',
             format='png',
             dpi=300,
@@ -240,7 +242,7 @@ if __name__ == '__main__':
         cb.remove()
 
         plt.savefig(
-            preview_path,
+            preview_path_abs,
             bbox_inches='tight',
             format='png',
             dpi=100,
@@ -256,10 +258,10 @@ if __name__ == '__main__':
         # Copy figures to production static directory
         if not settings.DEBUG:
             shutil.copyfile(
-                os.path.join(script_path, f'../site_static/images/project_previews/{pro.slug}_full.png'),
+                full_path_abs,
                 os.path.join(script_path, f'../static/images/project_previews/{pro.slug}_full.png')
                 )
             shutil.copyfile(
-                os.path.join(script_path, f'../site_static/images/project_previews/{pro.slug}_preview.png'),
+                preview_path_abs,
                 os.path.join(script_path, f'../static/images/project_previews/{pro.slug}_preview.png')
                 )

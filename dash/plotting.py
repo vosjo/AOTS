@@ -149,22 +149,22 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
     # fig.circle(wave, meas)
     # fig.circle('bp_rp', 'mag', size=8, color='white', alpha=0.1, name='hover', source=starsource)
 
-    #   Add Gaia data for CMD plots
-    if xstr=="bp_rp" and ystr=="mag":
-        #   Read data from file
-        gaia_data = QTable.read(
-            os.path.join(settings.BASE_DIR, 'media/gaia/gaia_data.fits')
-            )
-        gaia_mag = gaia_data['g_mag_abs'].value
-        gaia_color = gaia_data['bp_rp'].value
-
-        fig.dot(
-            x=gaia_color,
-            y=gaia_mag,
-            size=7,
-            # color="#cccccc",
-            color="#9db3d1",
-            )
+    # #   Add Gaia data for CMD plots
+    # if xstr=="bp_rp" and ystr=="mag":
+    #     #   Read data from file
+    #     gaia_data = QTable.read(
+    #         os.path.join(settings.BASE_DIR, 'media/gaia/gaia_data.fits')
+    #         )
+    #     gaia_mag = gaia_data['g_mag_abs'].value
+    #     gaia_color = gaia_data['bp_rp'].value
+    #
+    #     fig.dot(
+    #         x=gaia_color,
+    #         y=gaia_mag,
+    #         size=7,
+    #         # color="#cccccc",
+    #         color="#9db3d1",
+    #         )
 
     if rstr is not None and cstr is not None:
         colors = linear_cmap("norm_" + cstr, palette=Viridis9, low=np.amin(normcstr),
@@ -276,16 +276,16 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
                 )
 
         #   Plot limits for CMD with Gaia data
-        if xstr == "bp_rp" and ystr == "mag":
-            fig.y_range = Range1d(
-                max(np.amax(y), np.amax(gaia_mag)) + np.ptp(y) * 0.05,
-                min(np.amin(y), np.amin(gaia_mag)) - np.ptp(y) * 0.05
-                )
-
-            fig.x_range = Range1d(
-            min(np.amin(x), np.amin(gaia_color)) - np.ptp(x) * 0.05,
-            max(np.amax(x), np.amax(gaia_color)) + np.ptp(x) * 0.05
-            )
+        # if xstr == "bp_rp" and ystr == "mag":
+        #     fig.y_range = Range1d(
+        #         max(np.amax(y), np.amax(gaia_mag)) + np.ptp(y) * 0.05,
+        #         min(np.amin(y), np.amin(gaia_mag)) - np.ptp(y) * 0.05
+        #         )
+        #
+        #     fig.x_range = Range1d(
+        #     min(np.amin(x), np.amin(gaia_color)) - np.ptp(x) * 0.05,
+        #     max(np.amax(x), np.amax(gaia_color)) + np.ptp(x) * 0.05
+        #     )
 
     except ValueError:
         # If no datapoints exist for x or y for some reason

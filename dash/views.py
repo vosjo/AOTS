@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime, timedelta
 from itertools import chain
@@ -60,6 +61,8 @@ def dashboard(request, project=None, **kwargs):
     dtime_naive = datetime.now() - timedelta(days=7)
     aware_datetime = make_aware(dtime_naive)
 
+    start = time.time()
+
     all_models = []
 
     # A warning for those who come after me: Do not try to optimize this further, it can only bring you despair.
@@ -99,5 +102,8 @@ def dashboard(request, project=None, **kwargs):
         'script': script,
         'form': enumerate(form)
     }
+
+    end = time.time()
+    logging.error(f"Time elapsed to generate dash: {end-start}s")
 
     return render(request, 'dash/dashboard.html', context)

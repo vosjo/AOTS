@@ -104,6 +104,7 @@ def dashboard(request, project=None, **kwargs):
     }
 
     end = time.time()
-    logging.error(f"Time elapsed to generate dash: {end-start}s")
+    logger = logging.getLogger("django")
+    logger.error(f"Time elapsed to generate dash: {end-start}s")
 
     return render(request, 'dash/dashboard.html', context)

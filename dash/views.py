@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta
 from itertools import chain
 
@@ -67,8 +68,8 @@ def dashboard(request, project=None, **kwargs):
         all_mod_hists = mod.history.filter(project=project)
 
         most_recent = all_mod_hists.order_by("-history_date")[:25]
-        most_recent_ids = [m.id for m in most_recent]
-        most_recent_models = [m for m in all_mod_objs if m.id in most_recent_ids]
+        most_recent_ids = most_recent.values_list('id', flat=True)
+        most_recent_models = all_mod_objs.filter(pk__in=most_recent_ids)
 
         all_models.append(most_recent_models)
 

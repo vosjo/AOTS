@@ -1,7 +1,6 @@
-from django.conf import settings
+import time
 
-import os
-
+from django.db import reset_queries, connection
 import numpy as np
 from bokeh import models as mpl
 from bokeh import plotting as bpl
@@ -10,8 +9,10 @@ from bokeh.palettes import Viridis9
 from bokeh.transform import linear_cmap
 from django.contrib import messages
 
-from astropy.table import QTable
+from django.db.models import Prefetch
 
+from analysis.models import Parameter
+from observations.models import Photometry
 from stars.models import Project, Star
 from .labels import labeldict
 
@@ -29,19 +30,20 @@ def errors_from_coords(x, y, x_err, y_err):
     return list(zip(x_upper, x_lower)), list(zip(y_upper, y_lower)), list(zip(x, x)), list(zip(y, y))
 
 
-def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=100):
+def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=50):
+    # reset_queries()
     if rstr == "":
         rstr = None
     if cstr == "":
         cstr = None
     proj = Project.objects.get(pk=project_id)
-    star_list = Star.objects.filter(project=proj)
-    if nstars != "all":
+    if nstars == "all":
+        star_list = Star.objects.filter(project=proj).prefetch_related('parameter_set', 'photometry_set')
+    else:
         nstars = int(nstars)
-        star_list = star_list[:nstars]
+        star_list = Star.objects.filter(project=proj).prefetch_related('parameter_set', 'photometry_set')[:nstars]
 
-    # I would rather not use a for loop here, but I don't have a better idea
-
+    idents = list(star_list.values_list('name', flat=True))
     teffs = []
     teffs_errs = []
     loggs = []
@@ -50,58 +52,59 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
     bp_rps_errs = []
     mags = []
     mags_errs = []
-    idents = []
 
-    count = 0
     for star in star_list:
-        if nstars != "all":
-            if count >= nstars:
-                break
-        name = star.name
-        idents.append(name)
-        pset = star.parameter_set.all()
-        photset = star.photometry_set.all()
-        try:
-            magset = photset.filter(band__icontains='.G')
-            mag = sum([m.measurement for m in magset]) / len(magset)
-            magerr = np.sqrt(sum([m.error ** 2 for m in magset]) / len(magset))
-            if xstr == "mag" or ystr == "mag":
-                count += 1
-        except ZeroDivisionError:
-            mag = magerr = -1000.
-        try:
-            t = pset.filter(name__icontains='teff', data_source__name="AVG")[0]
-            teff = t.value
-            tefferr = t.error
-            if xstr == "teff" or ystr == "teff":
-                count += 1
-        except:
-            teff = tefferr = -1000.
-        try:
-            l = pset.filter(name__icontains='log_g', data_source__name="AVG")[0]
-            logg, loggerr = [l.value, l.error]
-            if xstr == "log_g" or ystr == "log_g":
-                count += 1
-        except:
-            logg = loggerr = -1000.
-        try:
-            b = pset.filter(name__icontains='bp_rp', data_source__name="AVG")[0]
-            assert len(b) > 0
-            bp_rp = b.value
-            bp_rp_err = b.error
-            if xstr == "bp_rp" or ystr == "bp_rp":
-                count += 1
-        except:
-            try:
-                bp = photset.filter(band__icontains=".BP")
-                rp = photset.filter(band__icontains=".RP")
+        pset = list(star.parameter_set.values_list("name", "data_source", "value", "error_l", "error_u"))
+        photset = list(star.photometry_set.values_list("band", "measurement", "error"))
 
-                bp_rp = bp[0].measurement - rp[0].measurement
-                bp_rp_err = np.sqrt(bp[0].error ** 2 + rp[0].error ** 2)
-                if xstr == "bp_rp" or ystr == "bp_rp":
-                    count += 1
-            except IndexError:
-                bp_rp = bp_rp_err = -1000.
+        mag = None
+        magerr = None
+        bp_rp = 0
+        bp_rp_err = 0
+        bp_in = False
+        rp_in = False
+
+        for band, val, err in photset:
+            if "GAIA" in band and ".G" in band:
+                mag = val
+                magerr = err
+            if ".BP" in band and not bp_in:
+                bp_rp += val
+                bp_rp_err += err
+                bp_in = True
+            if ".RP" in band and not rp_in:
+                bp_rp -= val
+                bp_rp_err += err
+                rp_in = True
+        if mag is None or magerr is None:
+            mag = magerr = -1000.
+
+        bp_rp_err /= 2
+
+        teff = None
+        tefferr = None
+        logg = None
+        loggerr = None
+
+        for name, data_source, val, err_l, err_u in pset:
+            if data_source != "AVG":
+                continue
+            if name == "teff":
+                teff = val
+                tefferr = (err_l + err_u) / 2
+            if name == "log_g":
+                logg = val
+                loggerr = (err_l + err_u) / 2
+            if name == "bp_rp" and bp_rp == 0:
+                bp_rp = val
+                bp_rp_err = (err_l + err_u) / 2
+
+        if teff is None or tefferr is None:
+            teff = tefferr = -1000.
+        if logg is None or loggerr is None:
+            logg = loggerr = -1000.
+        if bp_rp == 0 or bp_rp_err == 0:
+            bp_rp = bp_rp_err = -1000.
 
         mags.append(mag)
         mags_errs.append(magerr)
@@ -112,6 +115,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
         bp_rps.append(bp_rp)
         bp_rps_errs.append(bp_rp_err)
 
+    # print(len(connection.queries))
     star_props = dict(idents=idents,
                       teff=np.array(teffs),
                       teff_errs=np.array(teffs_errs),
@@ -170,7 +174,9 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
         colors = linear_cmap("norm_" + cstr, palette=Viridis9, low=np.amin(normcstr),
                              high=np.amax(normcstr))
 
-        x_errcoords, y_errcoords, empty_x, empty_y = errors_from_coords(star_props[xstr], star_props[ystr], star_props[xstr + "_errs"], star_props[ystr + "_errs"])
+        x_errcoords, y_errcoords, empty_x, empty_y = errors_from_coords(star_props[xstr], star_props[ystr],
+                                                                        star_props[xstr + "_errs"],
+                                                                        star_props[ystr + "_errs"])
 
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
@@ -190,7 +196,9 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
         fig.add_layout(color_bar, 'right')
 
     elif rstr is not None:
-        x_errcoords, y_errcoords, empty_x, empty_y = errors_from_coords(star_props[xstr], star_props[ystr], star_props[xstr + "_errs"], star_props[ystr + "_errs"])
+        x_errcoords, y_errcoords, empty_x, empty_y = errors_from_coords(star_props[xstr], star_props[ystr],
+                                                                        star_props[xstr + "_errs"],
+                                                                        star_props[ystr + "_errs"])
 
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
@@ -207,7 +215,9 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
         colors = linear_cmap("norm_" + cstr, palette=Viridis9, low=np.amin(star_props["norm_" + cstr]),
                              high=np.amax(star_props["norm_" + cstr]))
 
-        x_errcoords, y_errcoords, empty_x, empty_y = errors_from_coords(star_props[xstr], star_props[ystr], star_props[xstr + "_errs"], star_props[ystr + "_errs"])
+        x_errcoords, y_errcoords, empty_x, empty_y = errors_from_coords(star_props[xstr], star_props[ystr],
+                                                                        star_props[xstr + "_errs"],
+                                                                        star_props[ystr + "_errs"])
 
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
@@ -227,7 +237,9 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
         fig.add_layout(color_bar, 'right')
 
     else:
-        x_errcoords, y_errcoords, empty_x, empty_y = errors_from_coords(star_props[xstr], star_props[ystr], star_props[xstr + "_errs"], star_props[ystr + "_errs"])
+        x_errcoords, y_errcoords, empty_x, empty_y = errors_from_coords(star_props[xstr], star_props[ystr],
+                                                                        star_props[xstr + "_errs"],
+                                                                        star_props[ystr + "_errs"])
 
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
@@ -257,23 +269,23 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
         fig.x_range = Range1d(
             np.amin(x) - np.ptp(x) * 0.05,
             np.amax(x) + np.ptp(x) * 0.05
-            )
+        )
         fig.y_range = Range1d(
             np.amin(y) - np.ptp(y) * 0.05,
             np.amax(y) + np.ptp(y) * 0.05
-            )
+        )
 
         if ystr == "mag":
             fig.y_range = Range1d(
                 np.amax(y) + np.ptp(y) * 0.05,
                 np.amin(y) - np.ptp(y) * 0.05
-                )
+            )
 
         if xstr == "mag":
             fig.x_range = Range1d(
                 np.amax(x) + np.ptp(x) * 0.05,
                 np.amin(x) - np.ptp(x) * 0.05
-                )
+            )
 
         #   Plot limits for CMD with Gaia data
         # if xstr == "bp_rp" and ystr == "mag":
@@ -292,7 +304,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
         fig.x_range = Range1d(0, 1)
         fig.y_range = Range1d(0, 1)
 
-        messages.error(request, "Plotting failed. Check if the stars in your project have the parameters you want to plot.")
+        messages.error(request,
+                       "Plotting failed. Check if the stars in your project have the parameters you want to plot.")
 
     fig.toolbar.logo = None
 

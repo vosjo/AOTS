@@ -29,7 +29,8 @@ def errors_from_coords(x, y, x_err, y_err):
     return list(zip(x_upper, x_lower)), list(zip(y_upper, y_lower)), list(zip(x, x)), list(zip(y, y))
 
 
-def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None, nstars=100):
+def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
+             cstr=None, nstars=100):
     if rstr == "":
         rstr = None
     if cstr == "":
@@ -51,6 +52,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
     mags = []
     mags_errs = []
     idents = []
+    g_mag_abss = []
+    g_mag_abs_errs = []
 
     count = 0
     for star in star_list:
@@ -103,6 +106,18 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
             except IndexError:
                 bp_rp = bp_rp_err = -1000.
 
+        try:
+            g_abs = pset.filter(
+                name__exact='absolute_g_mag',
+                data_source__name="Gaia DR3"
+                )[0]
+            g_mag_abs, g_mag_abs_err = [g_abs.value, g_abs.error]
+            if xstr == "mag_abs" or  ystr == "mag_abs":
+                count += 1
+        except:
+            g_mag_abs = g_mag_abs_err = -1000.
+
+
         mags.append(mag)
         mags_errs.append(magerr)
         teffs.append(teff)
@@ -111,6 +126,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
         loggs_errs.append(loggerr)
         bp_rps.append(bp_rp)
         bp_rps_errs.append(bp_rp_err)
+        g_mag_abss.append(mag)
+        g_mag_abs_errs.append(magerr)
 
     star_props = dict(idents=idents,
                       teff=np.array(teffs),
@@ -120,7 +137,10 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
                       mag=np.array(mags),
                       mag_errs=np.array(mags_errs),
                       bp_rp=np.array(bp_rps),
-                      bp_rp_errs=np.array(bp_rps_errs))
+                      bp_rp_errs=np.array(bp_rps_errs),
+                      mag_abs=np.array(g_mag_abss),
+                      mag_abs_errs=np.array(g_mag_abs_errs),
+                      )
 
     if cstr is not None:
         normcstr = star_props[cstr]
@@ -149,22 +169,22 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
     # fig.circle(wave, meas)
     # fig.circle('bp_rp', 'mag', size=8, color='white', alpha=0.1, name='hover', source=starsource)
 
-    # #   Add Gaia data for CMD plots
-    # if xstr=="bp_rp" and ystr=="mag":
-    #     #   Read data from file
-    #     gaia_data = QTable.read(
-    #         os.path.join(settings.BASE_DIR, 'media/gaia/gaia_data.fits')
-    #         )
-    #     gaia_mag = gaia_data['g_mag_abs'].value
-    #     gaia_color = gaia_data['bp_rp'].value
-    #
-    #     fig.dot(
-    #         x=gaia_color,
-    #         y=gaia_mag,
-    #         size=7,
-    #         # color="#cccccc",
-    #         color="#9db3d1",
-    #         )
+    #   Add Gaia data for CMD plots
+    if xstr=="bp_rp" and ystr=="mag_abs":
+        #   Read data from file
+        gaia_data = QTable.read(
+            os.path.join(settings.BASE_DIR, 'media/gaia/gaia_data.fits')
+            )
+        gaia_mag = gaia_data['g_mag_abs'].value
+        gaia_color = gaia_data['bp_rp'].value
+
+        fig.dot(
+            x=gaia_color,
+            y=gaia_mag,
+            size=7,
+            # color="#cccccc",
+            color="#9db3d1",
+            )
 
     if rstr is not None and cstr is not None:
         colors = linear_cmap("norm_" + cstr, palette=Viridis9, low=np.amin(normcstr),
@@ -276,16 +296,16 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag", rstr=None, cstr=None
                 )
 
         #   Plot limits for CMD with Gaia data
-        # if xstr == "bp_rp" and ystr == "mag":
-        #     fig.y_range = Range1d(
-        #         max(np.amax(y), np.amax(gaia_mag)) + np.ptp(y) * 0.05,
-        #         min(np.amin(y), np.amin(gaia_mag)) - np.ptp(y) * 0.05
-        #         )
-        #
-        #     fig.x_range = Range1d(
-        #     min(np.amin(x), np.amin(gaia_color)) - np.ptp(x) * 0.05,
-        #     max(np.amax(x), np.amax(gaia_color)) + np.ptp(x) * 0.05
-        #     )
+        if xstr == "bp_rp" and ystr == "mag_abs":
+            fig.y_range = Range1d(
+                max(np.amax(y), np.amax(gaia_mag)) + np.ptp(y) * 0.05,
+                min(np.amin(y), np.amin(gaia_mag)) - np.ptp(y) * 0.05
+                )
+
+            fig.x_range = Range1d(
+            min(np.amin(x), np.amin(gaia_color)) - np.ptp(x) * 0.05,
+            max(np.amax(x), np.amax(gaia_color)) + np.ptp(x) * 0.05
+            )
 
     except ValueError:
         # If no datapoints exist for x or y for some reason

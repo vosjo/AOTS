@@ -18,7 +18,7 @@ from .views import (
     getRawSpecfilePath,
     getSpecfileRawPath,
     getLightCurvePath,
-    bulkUploadSpectra
+    bulkUploadSpectra, bulkDownloadSpectra
 )
 
 app_name = 'observations-api'
@@ -91,5 +91,10 @@ urlpatterns = [
         'api-spec-upload/',
         bulkUploadSpectra,
         name='api-spec-upload',
+    ),
+    path(
+        'api-spec-download/',
+        bulkDownloadSpectra,
+        name='api-spec-download',
     ),
 ]

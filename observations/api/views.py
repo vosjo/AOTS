@@ -6,7 +6,13 @@
 # RetrieveAPIView,
 # RetrieveUpdateAPIView
 # )
+import os
+import shutil
+import tempfile
+import zipfile
+import random
 
+from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -211,7 +217,6 @@ class ObservatoryViewSet(viewsets.ModelViewSet):
 @permission_classes([])
 @authenticate_API_key
 def bulkUploadSpectra(request, **kwargs):
-    # TODO: add proper responses
     if request.method == "POST":
         #   Get files
         files = request.FILES.getlist('spectrumfile')
@@ -248,7 +253,7 @@ def bulkUploadSpectra(request, **kwargs):
 
                 newspec.refresh_from_db()
                 returned_messages.append(message)
-                
+
                 if not success:
                     n_exceptions += 1
 
@@ -266,5 +271,83 @@ def bulkUploadSpectra(request, **kwargs):
                 return Response(status=status.HTTP_207_MULTI_STATUS, data=returned_messages)
 
         return Response(status=status.HTTP_200_OK, data=returned_messages)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(('GET',))
+@authentication_classes([])
+@permission_classes([])
+@authenticate_API_key
+def bulkDownloadSpectra(request, **kwargs):
+    if request.method == "GET":
+        project_pk = request.META.get("HTTP_PROJECTID")
+        requested_stars = request.META.get("HTTP_STARIDLIST").split(";")
+
+        if project_pk is None:
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+        try:
+            project = Project.objects.get(pk=int(project_pk))
+        except ValueError:
+            project = Project.objects.get(name__exact=project_pk)
+        except ObjectDoesNotExist:
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+        files_to_return = []
+        preferred_filenames = []
+
+        # Check if identifiers or pks
+        list_contains_names = False
+        try:
+            int(requested_stars[0]) # A star name is not an integer
+        except ValueError:
+            list_contains_names = True
+
+        if list_contains_names:
+            spectra_to_return = Spectrum.objects.filter(project=project,
+                                                        star__name__in=requested_stars).prefetch_related('specfile_set')
+        else:
+            spectra_to_return = Spectrum.objects.filter(project=project, pk__in=requested_stars).prefetch_related(
+                'specfile_set')
+
+        for spec in spectra_to_return:
+            spfiles = list(spec.specfile_set.all())
+            for i, specfile in enumerate(spfiles):
+                files_to_return.append(specfile.specfile.path)
+                preferred_filenames.append("spec_"+spec.star.name+f"_{i}.fits")
+
+        # Create a temporary directory to store the files
+        cwd = os.getcwd()
+        temp_directory = os.path.join(cwd, f'tmp{str(random.random()).replace(".", "")}/')
+        subdir = os.path.join(temp_directory, "spec_dir/")
+
+        # Create the temporary directory and subdirectory
+        os.mkdir(temp_directory)
+        os.mkdir(subdir)
+
+        # Copy the files to the temporary directory
+        temp_file_paths = []
+        for path, name in zip(files_to_return, preferred_filenames):
+            temp_path = os.path.join(subdir, name)
+            shutil.copy2(path, temp_path)
+            temp_file_paths.append(temp_path)
+
+        # Create a zip file containing the files
+        zip_file_path = os.path.join(temp_directory, 'files')
+        shutil.make_archive(zip_file_path, 'zip', subdir)
+
+        with open(zip_file_path+".zip", 'rb') as archive_to_download:
+            tmp = tempfile.TemporaryFile()
+            tmp.write(archive_to_download.read())
+            tmp.seek(0)
+
+        # Create a response with the zip file
+        response = FileResponse(tmp, as_attachment=True, filename='files.zip', status=status.HTTP_200_OK)
+
+        # Clean up the temporary files
+        shutil.rmtree(temp_directory)
+
+        return response
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)

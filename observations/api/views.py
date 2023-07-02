@@ -23,6 +23,7 @@ from observations.models import (
     Observatory,
 )
 from stars.models import Project
+from users.models import User
 from .filter import (
     SpectrumFilter,
     UserInfoFilter,
@@ -200,16 +201,17 @@ class ObservatoryViewSet(viewsets.ModelViewSet):
     filterset_class = ObservatoryFilter
 
 
-# API Upload/Download handling
+# ===============================================================
+# API call handling
+# ===============================================================
 
 
 @api_view(('POST',))
 @authentication_classes([])
 @permission_classes([])
 @authenticate_API_key
-def bulkUploadSpectra(request):
+def bulkUploadSpectra(request, **kwargs):
     # TODO: add proper responses
-    # TODO: add possible userinfo
     if request.method == "POST":
         #   Get files
         files = request.FILES.getlist('spectrumfile')
@@ -231,35 +233,31 @@ def bulkUploadSpectra(request):
         n_exceptions = 0
 
         for f in files:
-            #   Save the new specfile
             newspec = SpecFile(
                 specfile=f,
                 project=project,
             )
             newspec.save()
 
-            #   Now process it and add it to a Spectrum and Object
             try:
-                #   Process specfile
                 success, message = read_spectrum.process_specfile(
                     newspec.pk,
                     create_new_star=True,
                     user_info=user_info,
                 )
 
-                #   Refresh SpecFile from database
                 newspec.refresh_from_db()
-                
                 returned_messages.append(message)
                 
                 if not success:
                     n_exceptions += 1
 
             except Exception as e:
-                #   Handle error
-                print(e)
+                returned_messages.append(str(e))
                 newspec.delete()
                 n_exceptions += 1
+
+        returned_messages = ";".join(returned_messages)
 
         if n_exceptions != 0:
             if n_exceptions == len(files):

@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
             coord = SkyCoord(ra=ra, dec=dec, unit=(u.deg, u.deg), frame='icrs')
 
-            #   Check is parallax entry from GAIA DR3 exists -> skip if yes
+            #   Check if parallax entry from GAIA DR3 exists -> skip if yes
             old_parall = star.parameter_set.filter(name__exact='parallax')
             conti = False
             for old in old_parall:

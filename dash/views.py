@@ -51,9 +51,21 @@ def dashboard(request, project=None, **kwargs):
         if form.is_valid():
             parameters = form.get_parameters()
         else:
-            form = HRDPlotterForm(initial={'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': "mag", "size": "", "color": ""})
+            form = HRDPlotterForm(initial={
+                'nsys': 50,
+                'xaxis': 'bp_rp',
+                'yaxis': "mag_abs",
+                "size": "",
+                "color": "",
+                })
     else:
-        form = HRDPlotterForm(initial={'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': "mag", "size": "", "color": ""})
+        form = HRDPlotterForm(initial={
+            'nsys': 50,
+            'xaxis': 'bp_rp',
+            'yaxis': "mag_abs",
+            "size": "",
+            "color": "",
+            })
 
     stats = {}
     project = get_object_or_404(Project, slug=project)

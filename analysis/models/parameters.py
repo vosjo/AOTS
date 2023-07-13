@@ -64,7 +64,7 @@ class Parameter(models.Model):
         choices=COMPONENT_CHOICES,
         default=SYSTEM)
 
-    # -- add component behind name if component is primary or secondry
+    # -- add component behind name if component is primary or secondary
     cname = models.CharField(max_length=52, default='')
 
     value = models.FloatField(default=0.0)

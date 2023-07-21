@@ -119,7 +119,11 @@ $(document).ready(function () {
             }
             ;
         });
+
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#observation_dropdown")
 });
+
 
 function disabled_all() {
     $('#id_objectname').attr('disabled', 'disabled');

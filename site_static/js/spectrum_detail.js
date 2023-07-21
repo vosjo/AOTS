@@ -62,6 +62,8 @@ $(document).ready(function () {
 
     });
 
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#observation_dropdown")
 });
 
 

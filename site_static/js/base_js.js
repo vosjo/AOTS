@@ -5,8 +5,6 @@
 let opacityInterval = null;
 
 $(function () {
-
-
     // This function gets cookie with a given name
     function getCookie(name) {
         var cookieValue = null;
@@ -81,8 +79,22 @@ function msg_fade_out(messages){
     }, 5000);
 }
 
+
+// Adjust nav bar highlight
+function adjust_nav_bar_active(id_class, drop_down=true) {
+    $(".float_right").find('.active').each(function (i) {
+        $(this).removeClass('active');
+    })
+
+    if (drop_down) {
+        $(id_class).find('.drop_button').addClass('active');
+    } else {
+        $(id_class).addClass('active');
+    }
+}
+
 $(document).ready(function () {
-    // Get the 1st and 2nd level pathnames
+    // Get the 1st and 2nd level path names
     var firstLevel = window.location.pathname.split('/')[1]
     var secondLevel = window.location.pathname
 
@@ -90,7 +102,7 @@ $(document).ready(function () {
 //    $('a[href*="'+secondLevel+'"]').siblings('ul').clone().appendTo("#subtoolbar");
 
     // toggle the active class for the 1st and 2nd level navigation bar
-    $('#toolbar a[href*="/' + secondLevel + '"]').parent('li').toggleClass('active');
+//    $('#toolbar a[href*="/' + secondLevel + '"]').parent('li').toggleClass('active');
 //    $('#subtoolbar a[href*="'+secondLevel+'"]').parent('li').toggleClass('active');
 
     const messages = document.getElementById("messages");
@@ -98,37 +110,91 @@ $(document).ready(function () {
     if ( messages ){
         const listItems = messages.getElementsByTagName("li");
 
-    for (let i = listItems.length - 1; i >= 0; i--) {
-        const btn = document.createElement("button");
+        for (let i = listItems.length - 1; i >= 0; i--) {
+            const btn = document.createElement("button");
 
-        btn.appendChild(document.createTextNode("\u{00d7}"));
+            btn.appendChild(document.createTextNode("\u{00d7}"));
 
-        btn.classList.add("remove-msg-btn");
+            btn.classList.add("remove-msg-btn");
 
-        listItems[i].insertBefore(btn, listItems[i].childNodes[0]);
+            listItems[i].insertBefore(btn, listItems[i].childNodes[0]);
 
-        btn.addEventListener("click", function() {
-            const listItem = this.parentNode;
-            listItem.parentNode.removeChild(listItem);
-        });
+            btn.addEventListener("click", function() {
+                const listItem = this.parentNode;
+                listItem.parentNode.removeChild(listItem);
+            });
         }
+
+        messages.style.opacity = 1;
+
+        msg_fade_out(messages);
+
+        // Add a mouseenter event listener to the list
+        messages.addEventListener("mouseenter", function() {
+          // Set the opacity of the list to 1
+          messages.style.opacity = 1;
+
+          // Stop the opacity interval
+          clearInterval(opacityInterval);
+        });
+
+        // Add a mouseleave event listener to the list
+        messages.addEventListener("mouseleave", function() {
+          msg_fade_out(messages)
+        });
     }
-    messages.style.opacity = 1;
 
-    msg_fade_out(messages);
+    // Open/close the navigation menu in "responsive mode"
+    $("#menu_icon").click(function (e) {
+      var x = document.getElementById("mainNavBar");
+      if (x.className === "nav_bar") {
+        x.className += " responsive";
+      } else {
+        x.className = "nav_bar";
+      }
 
-    // Add a mouseenter event listener to the list
-    messages.addEventListener("mouseenter", function() {
-      // Set the opacity of the list to 1
-      messages.style.opacity = 1;
+      var caret_right = document.getElementById("caretRight");
+      if (caret_right.className === "fa fa-caret-right") {
+        caret_right.className = "fa fa-caret-down";
+      } else {
+        caret_right.className = "fa fa-caret-right";
+      }
+    })
 
-      // Stop the opacity interval
-      clearInterval(opacityInterval);
-    });
+    // Open/close the submenu if the user clicks on it
+    $(".drop_button").click(function (e) {
+        $(this).parent().find(".nav_dropdown-content").each(function (i) {
+            if ($(this).hasClass('show')) {
+                $(this).removeClass('show');
+            } else {
+                $(this).addClass('show');
+            }
+        })
+    })
 
-    // Add a mouseleave event listener to the list
-    messages.addEventListener("mouseleave", function() {
-      msg_fade_out(messages)
-    });
+    // Open/close the subsubmenu if the user clicks on it
+    $(".unfold_button").click(function (e) {
+        if (document.documentElement.clientWidth < 1100) {
+            $(this).parent().find(".unfold-content").each(function (i) {
+                if ($(this).hasClass('show_right')) {
+                    $(this).removeClass('show_right');
+                } else {
+                    $(this).addClass('show_right');
+                }
+            })
+        }
+    })
+
+    // Close the dropdown menu if the user clicks outside of it
+    $(window).click(function (e) {
+        if (!e.target.matches('.drop_button') && !e.target.matches('.unfold_button')) {
+    //       openNavMenu();
+            $(".dropdown-content").each(function (i) {
+                if ($(this).hasClass('show')) {
+                    $(this).removeClass('show');
+                }
+            })
+        }
+    })
 
 });

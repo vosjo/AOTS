@@ -18,6 +18,8 @@ $(document).ready(function () {
     tr3.parentNode.removeChild(tr3);
     tr4.parentNode.removeChild(tr4);
 
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#dashboard_a", drop_down=false)
 });
 
 

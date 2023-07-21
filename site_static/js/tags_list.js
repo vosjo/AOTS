@@ -57,7 +57,10 @@ $(document).ready(function () {
         deleteTag(closestRow, data);
     });
 
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#system_dropdown")
 });
+
 
 // Add new tag
 function openTagAddBox() {

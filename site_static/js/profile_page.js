@@ -6,6 +6,9 @@ $(document).ready(function () {
         height: 'auto',
         modal: true
     });
+
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#user_dropdown")
 });
 
 

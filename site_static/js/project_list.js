@@ -54,6 +54,8 @@ $(document).ready(function () {
         deleteTag(closestRow, data);
     });
 
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#project_a", drop_down=false)
 });
 
 // Add new tag

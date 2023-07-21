@@ -12,11 +12,11 @@ from stars.models import Star, Tag
 # ===============================================================
 
 class StarFilter(filters.FilterSet):
-    '''
+    """
     Filter definitions for table with stars
         - the filter order matters -> Gmag filter needs to come last,
           because it breaks other filter for some reason
-    '''
+    """
     #   Name filter
     name = filters.CharFilter(
         field_name="name",

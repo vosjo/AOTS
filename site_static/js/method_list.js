@@ -60,6 +60,8 @@ $(document).ready(function () {
         deleteMethod(closestRow, data);
     });
 
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#analysis_dropdown")
 });
 
 // Add new method

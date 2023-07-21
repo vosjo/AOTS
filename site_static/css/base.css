@@ -1,10 +1,12 @@
+/* FONTS */
+
 @font-face {
     font-family: 'Material Icons';
     font-style: normal;
     font-weight: 400;
     src: local('Material Icons'),
     local('MaterialIcons-Regular'),
-    url(iconfont/MaterialIcons-Regular.ttf) format('truetype');
+    url(../webfonts/MaterialIcons-Regular.ttf) format('truetype');
 }
 
 .material-icons {
@@ -34,164 +36,22 @@
     font-feature-settings: 'liga';
 }
 
-header {
-    display: block;
-    /*    background: #417690;   */
-    background: #fff;
-    box-shadow: 0 3px 10px -2px rgba(64, 117, 144, 0.3);
-    border-bottom: 3px solid rgba(64, 117, 144, 0.3); /*rgba(0,0,0,.1);*/
-    margin-bottom: 15px;
+.mono {
+    font-family: "Courier New", "Oxygen Mono", Courier, monospace;
+    white-space: pre;
 }
 
-header h1 {
-    font-size: 35px;
-    font-family: 'Montserrat-Thin', sans-serif;
-    color: black;
-    margin: 0.1em 0.1em 0.1em 0.1em;
-    clear: both;
+/* --------------------------------------- */
 
-    letter-spacing: 1px;
-    /*
-       text-decoration: none;
-       text-transform: uppercase;*/
+/* MAIN PAGE ELEMENTS */
+
+:root {
+  --header_font_size: 15px;
+  --highlight_color_03: rgba(64, 117, 144, 0.3);
 }
 
-header h2 {
-    color: black;
-    margin: 0.2em 0.1em 0.4em 1em;
-    clear: both;
-    font-size: 1.4em;
-    letter-spacing: 1px;
-    text-decoration: none;
-    text-transform: uppercase;
-}
-
-div#titlebar {
-    display: flex;
-    width: 30%;
-    height: 5vh;
-    margin-left: calc(2.5% + 10px);
-    margin-bottom: 1%;
-}
-
-nav {
-    display: inline-block;
-    float: right;
-    margin-right: 2.5%;
-    width: 60%;
-}
-
-div#toolbar {
-    align-items: end;
-    float: right;
-    z-index: 10;
-}
-
-div#toolbar ul {
-    list-style: none;
-    margin: 0px;
-    padding-left: 0px;
-    display: inline-table;
-}
-
-div#toolbar ul li {
-    position: relative;
-    float: left;
-    display: flex;
-    align-items: stretch;
-    padding: 6px 14px;
-    -webkit-transition: all .2s ease-in-out;
-    -moz-transition: all .2s ease-in-out;
-    transition: all .2s ease-in-out;
-}
-
-div#toolbar ul li.active {
-    background: rgba(0, 0, 0, .05);
-}
-
-div#toolbar ul li:hover {
-    background: rgba(0, 0, 0, .15);
-}
-
-div#toolbar ul li:hover > ul {
-    display: flex;
-}
-
-div#toolbar ul li a {
-    display: block;
-    padding: 5px;
-    color: #222;
-    font-size: 1.2em;
-    letter-spacing: 1px;
-    text-decoration: none;
-    text-transform: uppercase;
-}
-
-div#toolbar ul li ul {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    flex-direction: column;
-    width: 100%;
-    background: #fff;
-    box-shadow: -3px 3px 10px -2px rgba(0, 0, 0, .1);
-    border: 1px solid rgba(0, 0, 0, .1);
-    z-index: 11;
-}
-
-div#toolbar ul li ul li ul {
-    display: none;
-    top: 0;
-    left: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-}
-
-div#toolbar ul li ul li ul li {
-    white-space: nowrap;
-    width: inherit;
-}
-
-div#subtoolbar {
-    display: block;
-    clear: both;
-    float: left;
-}
-
-div#subtoolbar ul {
-    list-style: none;
-    float: right;
-    margin: 0px 50px 0px 0px;
-    padding-left: 0px;
-    display: inline-table;
-    vertical-align: top;
-}
-
-div#subtoolbar ul li {
-    float: left;
-}
-
-div#subtoolbar ul li.active > a {
-    border-bottom: 2px solid rgba(64, 117, 144, 0.3);
-}
-
-div#subtoolbar ul li:hover {
-    background: rgba(0, 0, 0, .15);
-}
-
-div#subtoolbar ul li a {
-    display: block;
-    margin: 10px 20px;
-    color: #222;
-    font-size: 1.2em;
-    letter-spacing: 1px;
-    text-decoration: none;
-    text-transform: uppercase;
-}
-
-.icon {
-    align-self: center;
+html, body {
+    height: 100%;
 }
 
 body {
@@ -203,17 +63,254 @@ body {
     background: #fff;
 }
 
-.mono {
-    font-family: "Courier New", "Oxygen Mono", Courier, monospace;
-    white-space: pre;
+.page-wrap-base {
+    height: 95vh;
+    overflow: scroll;
 }
 
+section {
+    margin-top: 10px;
+}
 
 a:link, a:visited {
     color: #5b80b2;
     text-decoration: none;
 }
 
+/* --------------------------------------- */
+
+/* NEW HEADER */
+
+.nav_bar {
+  overflow: hidden;
+  display: block;
+  background-color: var(--highlight_color_03);
+  box-shadow: 0 0px 10px 2px var(--highlight_color_03);
+  margin-bottom: 20px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.nav_bar .float_right {
+  float: right;
+}
+
+.nav_bar a {
+  display: block;
+  color: #555;
+  text-align: center;
+  padding: 16px 10px;
+  font-size: var(--header_font_size);
+}
+
+.nav_bar a.title_line {
+  font-weight: bold;
+  padding: 14px 10px;
+  font-size: calc(var(--header_font_size) + 3px);
+}
+
+.nav_bar a.title_line .site_title {
+  font-style: initial;
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+.nav_bar a.logo {
+  font-weight: 900;
+  color: #5b80b2;
+  padding: 10px 16px;
+  font-size: 25px;
+}
+
+.nav_dropdown {
+  float: left;
+  overflow: hidden;
+}
+
+.nav_bar .float_right a {
+  display: none;
+}
+
+.nav_bar .float_right a.menu_icon {
+  display: block;
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: var(--header_font_size);
+}
+
+.nav_dropdown .drop_button{
+  display: none;
+  font-size: var(--header_font_size);
+  border: none;
+  outline: none;
+  color: #555;
+  padding: 16px 10px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.unfold_button{
+  font-size: var(--header_font_size);
+  border: none;
+  outline: none;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+  width: 100%;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.nav_dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 2000;
+}
+
+.nav_dropdown-content a, .unfold_button {
+  float: none;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.float_right a:hover, .nav_dropdown:hover .drop_button {
+  background-color: rgba(64, 117, 144, 0.5);
+  color: white;
+}
+
+.nav_dropdown-content a:hover, .unfold_button:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.nav_dropdown:hover .nav_dropdown-content {
+  display: block;
+}
+
+.unfold-content {
+  display: none;
+  position: absolute;
+  flex-direction: column;
+  top: 0%;
+  left: 100%;
+  width: 100%;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+.unfold:hover .unfold-content {
+  display: flex;
+}
+
+.float_right .active {
+  background-color: rgba(64, 117, 144, 0.7);
+  color: white;
+}
+
+.nav_bar.responsive .float_right {
+  float: none;
+  display: inline-block;
+  width: 100%;
+}
+
+
+.nav_bar.responsive .float_right a {
+  float: none;
+  display: block;
+  text-align: left;
+}
+
+.nav_bar.responsive {position: relative;}
+
+/*
+.nav_bar.responsive .icon {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+*/
+
+.nav_bar.responsive .nav_dropdown {float: none;}
+
+.nav_bar.responsive .nav_dropdown-content {position: relative;}
+
+.nav_bar.responsive .nav_dropdown .drop_button {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.nav_bar.responsive .nav_dropdown-content .unfold .unfold_button {
+  width: 100%;
+}
+
+.nav_bar.responsive .nav_dropdown-content .unfold:hover .unfold-content, .show_right {
+  display: block;
+  position: relative;
+  flex-direction: none;
+  top: 0%;
+  left: 0%;
+  width: 100%;
+}
+
+
+@media screen and (min-width: 1100px) {
+  .nav_bar a {
+    float: left;
+  }
+
+  .nav_bar .float_right a {
+    display: block;
+  }
+
+  #user_dropdown {
+    min-width: 160px;
+  }
+
+  .nav_bar .float_right a.menu_icon {
+    display: none;
+  }
+
+  .nav_dropdown .drop_button {
+    display: block;
+  }
+
+  .nav_dropdown-content a {
+    float: none;
+  }
+
+  .nav_bar a.title_line {
+    max-width: calc(100vw - 926px - 40px - 108px);
+  }
+}
+
+/* --------------------------------------- */
+
+/* GENERAL DEFINITIONS */
+
+.show {
+    display: block;
+}
+
+.icon {
+    align-self: center;
+}
+
+
+/* --------------------------------------- */
+
+/* MESSAGES */
 
 ul#messages {
     list-style-type: none;
@@ -244,9 +341,44 @@ ul#messages .error {
     border-style: solid;
 }
 
-section {
-    margin-top: 10px;
+.msg-container{
+    position: absolute;
+    top: 5.5vh;
+    top: 54px;
+    margin-left: calc(2.5% + 4px);
+    z-index: 10; /* This is probably high enough? */
+    width: 50%;
+    max-width: 50%;
+    max-height: 75%;
+    text-align: left;
+    display: inline-flex;
+    align-items: center;
+    overflow: scroll;
 }
+
+.msg-list {
+    padding: 0;
+}
+
+.single-msg {
+    background-color: rgb(237, 245, 251, 0.7);
+    border: 2px solid rgb(184, 205, 217, 0.7);
+    padding: 5px;
+    border-radius: 5px;
+    border-collapse: separate;
+    color: rgba(23, 43, 54, 0.7);
+    margin-bottom: 5px;
+}
+
+.remove-msg-btn {
+    border-color: inherit;
+    border-style: solid;
+    margin-right: 5px;
+    border-radius: 5px;
+    background-color: inherit;
+}
+
+/* --------------------------------------- */
 
 h2 {
     font-size: 23px;
@@ -349,8 +481,10 @@ hr.box {
     margin-top: 10px;
     margin-bottom: 10px;
     width: 95%;
-    border-top: 1px solid rgba(64, 117, 144, 0.3);
+    border-top: 1px solid var(--highlight_color_03);
 }
+
+/* --------------------------------------- */
 
 /* Project Page */
 
@@ -364,7 +498,7 @@ div.project-container {
     padding-left: 5px;
     padding-right: 5px;
     margin: 5px;
-    border: solid 2px rgba(64, 117, 144, 0.3);
+    border: solid 2px var(--highlight_color_03);
     border-radius: 5px;
     align-items: center;
     transition: box-shadow .3s;
@@ -399,7 +533,7 @@ div.docs-container {
     padding-left: 5px;
     padding-right: 5px;
     margin: 5px;
-    border: solid 2px rgba(64, 117, 144, 0.3);
+    border: solid 2px var(--highlight_color_03);
     align-items: center;
 }
 
@@ -428,6 +562,8 @@ img.project-logo {
     max-width: 100%;
     cursor: pointer;
 }
+
+/* --------------------------------------- */
 
 /* Status icons */
 
@@ -476,6 +612,8 @@ img.project-logo {
     font-weight: bold;
 }
 
+/* --------------------------------------- */
+
 /* Classification div */
 
 .classification-SP {
@@ -485,6 +623,8 @@ img.project-logo {
 .classification-PH {
     color: #666666
 }
+
+/* --------------------------------------- */
 
 /* Note settings */
 
@@ -501,6 +641,8 @@ form#note-form textarea {
     font-size: 14px;
 }
 
+/* --------------------------------------- */
+
 /* Identifier settings */
 
 div.identifier {
@@ -516,6 +658,8 @@ div.identifier {
 div.identifier i {
     cursor: pointer;
 }
+
+/* --------------------------------------- */
 
 /* Tag settings */
 
@@ -545,6 +689,8 @@ div.small-tag {
     border: solid 3px;
 }
 
+/* --------------------------------------- */
+
 /* Dataset settings */
 
 div.dataset {
@@ -565,6 +711,8 @@ div.dataset {
 .dataset a:visited {
     color: white;
 }
+
+/* --------------------------------------- */
 
 /* Hidden Sidenav Bar */
 
@@ -652,6 +800,8 @@ div#sidenav ul li {
     line-height: 17px;
 }
 
+/* --------------------------------------- */
+
 /* Spectrum detail page */
 
 section.data-section {
@@ -709,7 +859,7 @@ div.tag-container {
     margin: 5px;
     padding-left: 5px;
     padding-right: 5px;
-    border: solid 1px rgba(64, 117, 144, 0.3);
+    border: solid 1px var(--highlight_color_03);
     max-width: 98%;
     align-items: center;
     z-index: 1;
@@ -725,7 +875,7 @@ div.buttons-container {
     margin-top: 30px;
     margin-bottom: 40px;
     padding: 5px;
-    border: solid 1px rgba(64, 117, 144, 0.3);
+    border: solid 1px var(--highlight_color_03);
     max-width: 9%;
     align-items: stretch;
 }
@@ -780,6 +930,8 @@ div.tag-container h3 {
 }
 
 
+/* --------------------------------------- */
+
 /* Dataset detail page */
 
 div.main-container {
@@ -808,7 +960,7 @@ div.main-container h3 {
 
 div.border {
     margin: 5px;
-    border: solid 1px rgba(64, 117, 144, 0.3);
+    border: solid 1px var(--highlight_color_03);
 }
 
 div.maxw50 {
@@ -854,6 +1006,7 @@ div.main-container-h i.edit {
     right: 1px;
 }
 
+/* --------------------------------------- */
 
 /* Table settings */
 
@@ -1023,6 +1176,8 @@ table.obs-table td {
     color: #0a79df;
 }
 
+/* --------------------------------------- */
+
 /* FORM stuff */
 
 /* Small form used for search boxes ect */
@@ -1083,12 +1238,12 @@ p.upload {
    padding: 10px;
    margin: 5px;
    margin-top: 10px;
-   border: solid 1px rgba(64, 117, 144, 0.3);
+   border: solid 1px var(--highlight_color_03);
 }*/
 
 progress.progress {
     margin: 5px;
-    border: solid 1px rgba(64, 117, 144, 0.3);
+    border: solid 1px var(--highlight_color_03);
     height: 15px;
     border-radius: 9px;
     width: 99%;
@@ -1150,7 +1305,7 @@ progress.progress {
     background: #fff;
     background-color: transparent;
     font-size: 35px;
-    z-index: 99999;
+    z-index: 1000;
     /*    color: black; */
     -webkit-transition-duration: 0.3s;
     -moz-transition-duration: 0.3s;
@@ -1237,6 +1392,7 @@ progress.progress {
     height: 32px;
 }
 
+/* --------------------------------------- */
 
 /* Spectra - HEADER display */
 
@@ -1253,6 +1409,7 @@ span.header-value {
     color: blue;
 }
 
+/* --------------------------------------- */
 
 /* Dialog windows */
 
@@ -1265,24 +1422,17 @@ span.header-value {
     color: red;
 }
 
-/* Footer stuff */
+/* --------------------------------------- */
+
+/* FOOTER */
 * {
     margin: 0;
-}
-
-html, body {
-    height: 100%;
 }
 
 .page-wrap {
     min-height: 100%;
     /* equal to footer height */
     /*margin-bottom: -40px;*/
-}
-
-.page-wrap-base {
-    height: 95vh;
-    overflow: scroll;
 }
 
 /*.page-wrap:after {*/
@@ -1391,10 +1541,6 @@ td.bold {
     background-color: #ddd
 }
 
-.show {
-    display: block;
-}
-
 .phot-submit-btn {
     cursor: pointer;
 }
@@ -1423,7 +1569,6 @@ td.bold {
     margin: 5px;
 }
 
-
 a.disabled {
     pointer-events: none;
     color: gray;
@@ -1433,14 +1578,6 @@ a.disabled {
     float: left;
     margin-left: 2px;
     margin-right: 2px;
-}
-
-.headerdiv {
-    display: flex;
-    /*align-items: center;*/
-    justify-content: space-between;
-    height: 5vh;
-    overflow: visible;
 }
 
 .dropdownbtn {
@@ -1465,6 +1602,10 @@ h3.titlelink {
     color: #5B7FB1FF;
 }
 
+/* --------------------------------------- */
+
+/* DASHBOARD */
+
 div.dashboard-wrapper {
     width: 95%;
     height: 90%;
@@ -1483,7 +1624,7 @@ div.dash-square {
     margin: 4px;
     padding: 10px;
     border-radius: 10px;
-    border: 2px solid rgba(64, 117, 144, 0.3);
+    border: 2px solid var(--highlight_color_03);
     overflow: scroll;
 }
 
@@ -1581,7 +1722,7 @@ div.dash-lower-right h1 {
 }
 
 div.dash-changelog-container {
-    border-top: 2px solid rgba(64, 117, 144, 0.3);
+    border-top: 2px solid var(--highlight_color_03);
     overflow: scroll;
     max-height: 90%;
     width: 100%;
@@ -1590,7 +1731,7 @@ div.dash-changelog-container {
 div.dash-changelog-field {
     padding: 5px;
     width: calc(100% - 10px);
-    border-bottom: 2px solid rgba(64, 117, 144, 0.3);
+    border-bottom: 2px solid var(--highlight_color_03);
 }
 
 b.dash-changelog-field-title {
@@ -1606,19 +1747,19 @@ b.dash-changelog-field-name {
 }
 
 div.dash-systems {
-    background-image: url("images/systems_icon.svg");
+    background-image: url("../images/systems_icon.svg");
 }
 
 div.dash-spec {
-    background-image: url("images/spectra_icon.svg");
+    background-image: url("../images/spectra_icon.svg");
 }
 
 div.dash-lc {
-    background-image: url("images/lc_icon.svg");
+    background-image: url("../images/lc_icon.svg");
 }
 
 div.dash-aly {
-    background-image: url("images/analysis_icon.svg");
+    background-image: url("../images/analysis_icon.svg");
 }
 
 button.dash-button {
@@ -1632,7 +1773,7 @@ button.dash-button {
     white-space: nowrap;
     cursor: pointer;
     background-color: rgba(173, 215, 246, 0.2);
-    border: 2px solid rgba(64, 117, 144, 0.3);
+    border: 2px solid var(--highlight_color_03);
     border-radius: 10px;
     border-collapse: separate;
     color: rgba(23, 43, 54, 1);
@@ -1648,7 +1789,6 @@ button.dash-button:disabled {
     color: rgba(160, 162, 163, 1);
     cursor: default;
 }
-
 
 button.dash-button.top-button {
     margin-bottom: 3px;
@@ -1673,30 +1813,6 @@ i.dash-icon {
     color: rgba(23, 43, 54, 1);
 }
 
-.homeicon {
-    display: flex;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    margin: auto;
-    max-height: 70%;
-}
-
-span.projname {
-    font-size: 22px;
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-    overflow: scroll;
-    font-weight: bold;
-    color: rgba(0, 0, 0, .7);
-}
-
-div.icon-container {
-    width: 7.5%;
-    position: relative;
-}
-
 .divlink {
     position: absolute;
     cursor: pointer;
@@ -1715,7 +1831,7 @@ div.icon-container {
 #id_nsys {
     cursor: pointer;
     background-color: rgba(173, 215, 246, 0.2);
-    border: 1px solid rgba(64, 117, 144, 0.3);
+    border: 1px solid var(--highlight_color_03);
     border-radius: 5px;
     border-collapse: separate;
     color: rgba(23, 43, 54, 1);
@@ -1727,7 +1843,7 @@ div.icon-container {
 #id_xaxis {
     cursor: pointer;
     background-color: rgba(173, 215, 246, 0.2);
-    border: 1px solid rgba(64, 117, 144, 0.3);
+    border: 1px solid var(--highlight_color_03);
     border-radius: 5px;
     border-collapse: separate;
     color: rgba(23, 43, 54, 1);
@@ -1739,7 +1855,7 @@ div.icon-container {
 #id_yaxis {
     cursor: pointer;
     background-color: rgba(173, 215, 246, 0.2);
-    border: 1px solid rgba(64, 117, 144, 0.3);
+    border: 1px solid var(--highlight_color_03);
     border-radius: 5px;
     border-collapse: separate;
     color: rgba(23, 43, 54, 1);
@@ -1751,7 +1867,7 @@ div.icon-container {
 #id_size {
     cursor: pointer;
     background-color: rgba(173, 215, 246, 0.2);
-    border: 1px solid rgba(64, 117, 144, 0.3);
+    border: 1px solid var(--highlight_color_03);
     border-radius: 5px;
     border-collapse: separate;
     color: rgba(23, 43, 54, 1);
@@ -1763,7 +1879,7 @@ div.icon-container {
 #id_color {
     cursor: pointer;
     background-color: rgba(173, 215, 246, 0.2);
-    border: 1px solid rgba(64, 117, 144, 0.3);
+    border: 1px solid var(--highlight_color_03);
     border-radius: 5px;
     border-collapse: separate;
     color: rgba(23, 43, 54, 1);
@@ -1776,7 +1892,7 @@ div.icon-container {
 #submitbtn {
     cursor: pointer;
     background-color: rgba(173, 215, 246, 0.2);
-    border: 1px solid rgba(64, 117, 144, 0.3);
+    border: 1px solid var(--highlight_color_03);
     border-radius: 5px;
     border-collapse: separate;
     color: rgba(23, 43, 54, 1);
@@ -1784,40 +1900,4 @@ div.icon-container {
 
 #submitbtn:hover {
     background-color: rgba(173, 215, 246, 0.4);
-}
-
-.msg-container{
-    position: absolute;
-    top: 5.5vh;
-    margin-left: calc(2.5% + 4px);
-    z-index: 10; /* This is probably high enough? */
-    width: 50%;
-    max-width: 50%;
-    max-height: 75%;
-    text-align: left;
-    display: inline-flex;
-    align-items: center;
-    overflow: scroll;
-}
-
-.msg-list {
-    padding: 0;
-}
-
-.single-msg {
-    background-color: rgb(237, 245, 251, 0.7);
-    border: 2px solid rgb(184, 205, 217, 0.7);
-    padding: 5px;
-    border-radius: 5px;
-    border-collapse: separate;
-    color: rgba(23, 43, 54, 0.7);
-    margin-bottom: 5px;
-}
-
-.remove-msg-btn {
-    border-color: inherit;
-    border-style: solid;
-    margin-right: 5px;
-    border-radius: 5px;
-    background-color: inherit;
 }

@@ -9,32 +9,32 @@
 
 {% endblock %}
 
-{% block headertitle %} Spectrum Files {% endblock %}
+{% block headertitle %} Spectra File List {% endblock %}
 
 {% block content %}
 
     <i display="none" id="project-pk" project={{ project.pk }}
             project_slug={{ project.slug }}></i>
 
-    <section class='data-section'>
+<!--    <section class='data-section'>-->
 
-        <div class="main-container">
-            <div class='header-item'>
-                <h3 id="nameField"> Upload new Spectra</h3>
-            </div>
+<!--        <div class="main-container">-->
+<!--            <div class='header-item'>-->
+<!--                <h3 id="nameField"> Upload new Spectra</h3>-->
+<!--            </div>-->
 
-            <div class="flex-data-container j-center">
-                <div class='upload'>
-                    <a href="{% url "observations:spectra_upload" project.slug %}">
-                        <img class="image-link" width="350px" src="{% static "images/upload_form.png" %}">
-                    </a>
-                </div>
-            </div>
-        </div>
+<!--            <div class="flex-data-container j-center">-->
+<!--                <div class='upload'>-->
+<!--                    <a href="{% url "observations:spectra_upload" project.slug %}">-->
+<!--                        <img class="image-link" width="350px" src="{% static "images/upload_form.png" %}">-->
+<!--                    </a>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
 
-    </section>
+<!--    </section>-->
 
-    <br>
+<!--    <br>-->
 
     <i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
 
@@ -83,8 +83,8 @@
                 <h3 id="nameField"> Uploaded files </h3>
             </div>
             <div class='header-item'>
-                <h4> (multiple files might be combined into a single <a
-                        href="{% url "observations:spectra_list" project.slug %}">spectrum<a>)</h4>
+                <h4> Multiple files may belong into a single <a
+                        href="{% url "observations:spectra_list" project.slug %}">spectrum<a>.</h4>
             </div>
 
         </div>

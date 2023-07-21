@@ -96,6 +96,8 @@ $(document).ready(function () {
         openObservatoryEditBox(thisrow, data);
     });
 
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#observation_dropdown")
 });
 
 

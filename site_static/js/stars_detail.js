@@ -192,7 +192,11 @@ $(document).ready(function () {
     $(".copyarea").each(function () {
         $(this).val($.trim($(this).val()));
     })
+
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#system_dropdown")
 });
+
 
 // Create the page dynamically
 function makepage() {

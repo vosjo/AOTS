@@ -5,7 +5,7 @@
 {% block head %}
     <script type="text/javascript" src="{% static 'js/profile_page.js' %}"></script>
     <title>Your Profile</title>
-    <link href="{% static 'userpage.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/userpage.css' %}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block headertitle %} Your Profile {% endblock %}
@@ -69,5 +69,4 @@
         <input type="submit" class="upload-button" name="chngpic" value="Change Profile Picture"/>
     </form>
 </div>
-{{ script|safe }}
 {% endblock %}

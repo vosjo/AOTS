@@ -56,9 +56,10 @@ $(document).ready(function () {
         paging: true,
         pageLength: 20,
         lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all.
-        scrollY: $(window).height() - $('header').outerHeight(true) - $('.upload').outerHeight(true) - $('#messages').outerHeight(true) - 186,
+        scrollY: $(window).height() - $('.nav_bar').outerHeight(true) - $('footer').outerHeight(true) - 186,
         scrollCollapse: true,
     });
+    console.log( $('.msg-container').outerHeight(true));
 
     // Event listener to the two range filtering inputs to redraw on input
     $('#filter-form').submit(function (event) {
@@ -420,9 +421,7 @@ $(document).ready(function () {
     //   Initialize edit windows
     edit_linkage_window = $("#editLinkage").dialog({
         autoOpen: false,
-//         width: '40%',
         width: '975',
-//         minwidth: '350',
         modal: true,
         title: "Adjust file allocations",
         buttons: {"Update": updateLinkage},
@@ -438,33 +437,15 @@ $(document).ready(function () {
         modal: true,
         autoOpen: false,
         title: "Add raw data",
-//         cache: false,
         close: function () {
             add_spectra_window.dialog("close");
         },
-//         close: function() { add_spectra_window.dialog( "destroy" ); },
     });
+
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#observation_dropdown")
 });
 
-
-// function initialize_add_spectra_window() {
-//     add_spectra_window = $("#addRawSpec").dialog({
-//         autoOpen: false,
-//         width: '975',
-//         modal: true,
-//         title: "Add raw data",
-// //         cache: false,
-//         close: function() { add_spectra_window.dialog( "close" ); },
-// //         buttons: {
-// //             "Refresh": function () {
-// //                 add_spectra_window.dialog( "destroy" );
-// //                 initialize_add_spectra_window();
-// // //                 window.location.reload();
-// //                 add_spectra_window.dialog( "open" );
-// //             }
-// //         },
-//    });
-// }
 
 // Table filter functionality
 

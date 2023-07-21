@@ -145,7 +145,11 @@ $(document).ready(function () {
             deselect_row(this);
         });
     });
+
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#observation_dropdown")
 });
+
 
 // Table filter functionality
 

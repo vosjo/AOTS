@@ -6,7 +6,6 @@ var add_systems_window = null;
 
 
 $(document).ready(function () {
-
     star_table = $('#datatable').DataTable({
         dom: 'l<"toolbar">frtip',
         serverSide: true,
@@ -44,9 +43,9 @@ $(document).ready(function () {
             },
         ],
         paging: true,
-        pageLength: 50,
+        pageLength: 20,
         lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all.
-        scrollY: $(window).height() - $('header').outerHeight(true) - 196,
+        scrollY: $(window).height() - $('.nav_bar').outerHeight(true)  - $('footer').outerHeight(true) - 196,
         scrollCollapse: true,
         autoWidth: true,
     });
@@ -358,6 +357,9 @@ $(document).ready(function () {
                 $("td[id='label']").removeClass('gray');
             }
         });
+
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#system_dropdown")
 });
 
 

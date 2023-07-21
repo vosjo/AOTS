@@ -44,7 +44,7 @@ $(document).ready(function () {
         pageLength: 20,
         lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all.
         // scrollY: $(window).height() - $('header').outerHeight(true) - $('.upload').outerHeight(true) - $('#messages').outerHeight(true) - 186,
-        scrollY: $(window).height() - $('header').outerHeight(true) - 196,
+        scrollY: $(window).height() - $('.nav_bar').outerHeight(true) - $('footer').outerHeight(true) - 196,
         scrollCollapse: true,
     });
 
@@ -143,6 +143,9 @@ $(document).ready(function () {
             $('#filter-dashboard-button').text("filter_list");
         }
     }
+
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#analysis_dropdown")
 });
 
 

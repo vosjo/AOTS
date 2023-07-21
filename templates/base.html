@@ -3,8 +3,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'jquery-ui.css' %}" rel="stylesheet" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="{% static 'css/base.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/fontawesome.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/fontawesome_regular.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/fontawesome_solid.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/jquery-ui.css' %}" rel="stylesheet" type="text/css">
     <link rel="icon" href="{% static 'favicon.ico' %}">
 
     <script
@@ -12,7 +17,7 @@
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
             crossorigin="anonymous"></script>
     <script type="text/javascript" src="{% static 'js/base_js.js' %}"></script>
-    <script type="text/javascript" src="{% static 'jquery-ui.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-ui.min.js' %}"></script>
 
     {% block head %}{% endblock %}
 </head>
@@ -20,112 +25,108 @@
 <body>
 
 <div class="page-wrap-base">
-
-    <header>
-        <div class="headerdiv">
-            <div id='titlebar'>
-                <div class="icon-container">
-                    <a href="/w/projects">
-                        <img class="homeicon" src={% static "images/aotslogo.png" %}>
-                    </a>
-                </div>
-                <span class="projname">{{ project.name }}</span>
+    <nav>
+        <div class="nav_bar" id="mainNavBar">
+          <a class="logo" href="/w/projects">
+        <!--   <img src={% static "images/aotslogo.png" %}>-->
+              AOTS
+          </a>
+<!--           &mdash; -->
+          <a class="title_line">{{ project.name }}<i class="site_title">  &mdash; {% block headertitle %}{% endblock %}</i></a>
+          <div class="float_right">
+            <a href="/" id="projects_a">
+              <i class="fa-solid fa-diagram-project"></i>
+              Projects
+            </a>
+            <a href={% url 'dash:dashboard' project.slug %} id="dashboard_a">
+              <i class="fa-solid fa-table-columns"></i>
+              Dashboard
+            </a>
+            <div class="nav_dropdown" id="system_dropdown">
+              <button class="drop_button">
+                <i class="fa-solid fa-star"></i>
+                Systems
+                <i class="fa fa-caret-down"></i>
+              </button>
+              <div class="nav_dropdown-content">
+                <a href={% url 'systems:star_list' project.slug %}>System list</a>
+                <a href={% url 'systems:tag_list' project.slug %}>Tags</a>
+              </div>
             </div>
-
-            <nav>
-                <div id="toolbar" role='navigation'>
-                    <ul>
-                        <li>
-                            <i class="icon material-icons">help</i>
-                            <a href="/w/documentation"> <u>docs</u> </a>
-                        </li>
-                        <li>
-                            <i class="icon material-icons">assignment</i>
-                            <a href="/">Projects</a>
-                        </li>
-
-                        <li>
-                            <i class="icon material-icons">speed</i>
-                            <a href={% url 'dash:dashboard' project.slug %}>Dashboard</a>
-                        </li>
-
-                        <li>
-                            <i class="icon material-icons">star</i>
-                            <a href={% url 'systems:star_list' project.slug %}>Systems</a>
-                            <ul>
-                                <li><a href={% url 'systems:star_list' project.slug %}>Systems</a></li>
-                                <li><a href={% url 'systems:tag_list' project.slug %}>Tags</a></li>
-                            </ul>
-                        </li>
-                        <li>
-                            <i class="icon material-icons">visibility</i>
-                            <a href={% url 'observations:spectra_list' project.slug %}>Observations</a>
-                            <ul>
-                                <li>
-                                    <a href={% url 'observations:spectra_list' project.slug %}>
-                                        Spectra</a>
-                                    <ul>
-                                        <li><a href={% url 'observations:spectra_list' project.slug %}>Overview</a></li>
-                                        <li><a href={% url 'observations:spectra_upload' project.slug %}>Upload</a></li>
-                                        <li><a href={% url 'observations:specfile_list' project.slug %}>File list</a>
-                                        </li>
-                                        <li><a href={% url 'observations:rawspecfile_list' project.slug %}>Raw data</a>
-                                        </li>
-                                    </ul>
-                                </li>
-                                <li><a href={% url 'observations:lightcurve_list' project.slug %}>Light Curves</a></li>
-                                <li><a href={% url 'observations:observatory_list' project.slug %}>Observatories</a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li>
-                            <i class="icon material-icons">build</i>
-                            <a href={% url 'analysis:dataset_list' project.slug %}>Analysis</a>
-                            <ul>
-                                <li><a href={% url 'analysis:dataset_list' project.slug %}>Datasets</a></li>
-                                <li><a href={% url 'analysis:method_list' project.slug %}>Methods</a></li>
-<!--                                <li><a href={% url 'analysis:parameter_plotter' project.slug %}>Parameter plotter</a>
-                                </li>-->
-                            </ul>
-                        </li>
-                        {% if user.is_authenticated %}
-                            <li>
-                                <i class="icon material-icons">account_circle</i>
-                                <a href="/users/you">{{ user }}</a>
-                                <ul>
-                                    <li><a href="/users/you">View Profile</a></li>
-                                    <li><a href="/accounts/logout">Log Out</a></li>
-                                    <li><a href="/accounts/password_change">Change password</a></li>
-                                </ul>
-                            </li>
-                        {% else %}
-                            <li>
-                                <i class="icon material-icons">lock</i>
-                                <a href="/accounts/login/?next={{ request.path }}">Log In</a>
-                                <ul>
-                                    <li><a href="/accounts/login/?next={{ request.path }}">Log In</a></li>
-                                    <li><a href="/accounts/password_reset">Reset password</a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-                    </ul>
-
+            <div class="nav_dropdown" id="observation_dropdown">
+              <button class="drop_button">
+                <i class="fa-solid fa-binoculars"></i>
+                Observations
+                <i class="fa fa-caret-down"></i>
+              </button>
+              <div class="nav_dropdown-content">
+                  <div class="unfold" >
+                    <button class="unfold_button">Spectra
+                      <i class="fa fa-caret-right" id="caretRight"></i>
+                    </button>
+                    <div class="unfold-content">
+                      <a href={% url 'observations:spectra_list' project.slug %}>Overview</a>
+                      <a href={% url 'observations:spectra_upload' project.slug %}>Upload</a>
+                      <a href={% url 'observations:specfile_list' project.slug %}>File list</a>
+                      <a href={% url 'observations:rawspecfile_list' project.slug %}>Raw data</a>
+                    </div>
+                  </div>
+                <a href={% url 'observations:lightcurve_list' project.slug %}>Light Curves</a>
+                <a href={% url 'observations:observatory_list' project.slug %}>Observatories</a>
+              </div>
+            </div>
+            <div class="nav_dropdown" id="analysis_dropdown">
+              <button class="drop_button">
+                <i class="fa-solid fa-chart-line"></i>
+                Analysis
+                <i class="fa fa-caret-down"></i>
+              </button>
+              <div class="nav_dropdown-content">
+                <a href={% url 'analysis:dataset_list' project.slug %}>Datasets</a>
+                <a href={% url 'analysis:method_list' project.slug %}>Methods</a>
+              </div>
+            </div>
+            <a href="/w/documentation">
+              <i class="fa-solid fa-book"></i>
+              Guides
+            </a>
+            {% if user.is_authenticated %}
+                <div class="nav_dropdown" id="user_dropdown">
+                  <button class="drop_button active">
+                    <i class="fa-solid fa-user"></i>
+                    {{ user }}
+                    <i class="fa fa-caret-down"></i>
+                  </button>
+                  <div class="nav_dropdown-content">
+                    <a href="/users/you">View Profile</a>
+                    <a href="/accounts/password_change">Change password</a>
+                    <a href="/accounts/logout">Log Out</a>
+                  </div>
                 </div>
-
-                <!--       <div id="subtoolbar" role='navigation'> -->
-                <!--       </div> -->
-
-            </nav>
+            {% else %}
+                <div class="nav_dropdown" id="user_dropdown">
+                  <button class="drop_button active">
+                    <i class="fa-solid fa-user"></i>
+                    Log In
+                    <i class="fa fa-caret-down"></i>
+                  </button>
+                  <div class="nav_dropdown-content">
+                    <a href="/accounts/login/?next={{ request.path }}">Log In</a>
+                    <a href="/accounts/password_reset">Reset password</a>
+                  </div>
+                </div>
+            {% endif %}
+        <!--    <a href="#about">About</a>-->
+            <a href="javascript:void(0);" class="menu_icon" id="menu_icon">&#9776;</a>
+          </div>
         </div>
-
-        {% block header %}{% endblock %}
-    </header>
+    </nav>
 
     {% if messages %}
         <div class="msg-container">
             <ul id="messages" class="msg-list">
                 {% for message in messages %}
-                    <li{% if message.tags %} class="single-msg {{ message.tags }}"{% endif %}>{{ message }}</li>
+                    <li>{% if message.tags %} class="single-msg {{ message.tags }}"{% endif %}>{{ message }}</li>
                 {% endfor %}
             </ul>
         </div>
@@ -135,7 +136,7 @@
 
 </div>
 
-<!--   Hidden field with user name  -->
+<!--   Hidden field with username  -->
 <textarea id="user-name" hidden>
     {{ user.first_name }} {{ user.last_name }}
 </textarea>

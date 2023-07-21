@@ -55,7 +55,7 @@ $(document).ready(function () {
         paging: true,
         pageLength: 20,
         lengthMenu: [[10, 20, 50, 100, 1000], [10, 20, 50, 100, 1000]], // Use -1 for all.
-        scrollY: $(window).height() - $('header').outerHeight(true) - 196,
+        scrollY: $(window).height() - $('.nav_bar').outerHeight(true) - $('footer').outerHeight(true) - 196,
         scrollCollapse: true,
     });
 
@@ -146,6 +146,9 @@ $(document).ready(function () {
             deselect_row(this);
         });
     });
+
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#observation_dropdown")
 });
 
 

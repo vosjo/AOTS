@@ -3,15 +3,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'jquery-ui.css' %}" rel="stylesheet" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="{% static 'css/base.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/fontawesome.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/fontawesome_regular.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/fontawesome_solid.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/jquery-ui.css' %}" rel="stylesheet" type="text/css">
 
     <script
             src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
             crossorigin="anonymous"></script>
     <script type="text/javascript" src="{% static 'js/base_js.js' %}"></script>
-    <script type="text/javascript" src="{% static 'jquery-ui.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-ui.min.js' %}"></script>
     <link rel="icon" href="{% static 'favicon.ico' %}">
     {% block head %}{% endblock %}
 </head>
@@ -19,67 +24,59 @@
 <body>
 
 <div class="page-wrap">
-
-    <header>
-
-        <div class="headerdiv">
-            <div id='titlebar'>
-                <div class="icon-container">
-                    <a href="/w/projects">
-                        <img class="homeicon" src={% static "images/aotslogo.png" %}>
-                    </a>
+    <nav>
+        <div class="nav_bar" id="mainNavBar">
+          <a class="logo" href="/w/projects">
+        <!--   <img src={% static "images/aotslogo.png" %}>-->
+              AOTS
+          </a>
+<!--          <a class="title_line"><i class="site_title">{% block headertitle %}{% endblock %}</i></a>-->
+          <div class="float_right">
+            <a href="/" id="projects_a">
+              <i class="fa-solid fa-diagram-project"></i>
+              Projects
+            </a>
+            <a href="/w/documentation">
+              <i class="fa-solid fa-book"></i>
+              Guides
+            </a>
+            {% if user.is_authenticated %}
+                <div class="nav_dropdown" id="user_dropdown">
+                  <button class="drop_button active">
+                    <i class="fa-solid fa-user"></i>
+                    {{ user }}
+                    <i class="fa fa-caret-down"></i>
+                  </button>
+                  <div class="nav_dropdown-content">
+                    <a href="/users/you">View Profile</a>
+                    <a href="/accounts/password_change">Change password</a>
+                    <a href="/accounts/logout">Log Out</a>
+                  </div>
                 </div>
-            </div>
-
-            <nav>
-                <div id="toolbar" role='navigation'>
-                    <ul>
-                        <li>
-                            <i class="icon material-icons">help</i>
-                            <a href="/w/documentation/"> <u>docs</u> </a>
-                        </li>
-                        <li>
-                            <i class="icon material-icons">assignment</i>
-                            <a href="/w/projects/"> Projects</a>
-                        </li>
-                        {% if user.is_authenticated %}
-                            <li>
-                                <i class="icon material-icons">account_circle</i>
-                                <a href="/users/you">{{ user }}</a>
-                                <ul>
-                                    <li><a href="/users/you">View Profile</a></li>
-                                    <li><a href="/accounts/logout">Log Out</a></li>
-                                    <li><a href="/accounts/password_change">Change password</a></li>
-                                </ul>
-                            </li>
-                        {% else %}
-                            <li>
-                                <i class="icon material-icons">lock</i>
-                                <a href="/accounts/login/?next={{ request.path }}">Log In</a>
-                                <ul>
-                                    <li><a href="/accounts/login/?next={{ request.path }}">Log In</a></li>
-                                    <li><a href="/accounts/password_reset">Reset password</a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-                    </ul>
-
+            {% else %}
+                <div class="nav_dropdown" id="user_dropdown">
+                  <button class="drop_button active">
+                    <i class="fa-solid fa-user"></i>
+                    Log In
+                    <i class="fa fa-caret-down"></i>
+                  </button>
+                  <div class="nav_dropdown-content">
+                    <a href="/accounts/login/?next={{ request.path }}">Log In</a>
+                    <a href="/accounts/password_reset">Reset password</a>
+                  </div>
                 </div>
-
-                <!--       <div id="subtoolbar" role='navigation'> -->
-                <!--       </div> -->
-
-            </nav>
+            {% endif %}
+        <!--    <a href="#about">About</a>-->
+            <a href="javascript:void(0);" class="menu_icon" id="menu_icon">&#9776;</a>
+          </div>
         </div>
-        {% block header %}{% endblock %}
-    </header>
+    </nav>
 
     <ul id="messages">
         {% for message in messages %}
             <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
         {% endfor %}
     </ul>
-
 
     {% block content %}{% endblock %}
 </div>

@@ -18,6 +18,8 @@ $(document).ready(function () {
     $("#noteEditButton").click(openNoteEditBox);
     $("#nameEditButton").click(openNameEditBox);
 
+    // Adjust nav bar highlight
+    adjust_nav_bar_active("#analysis_dropdown")
 });
 
 function openNoteEditBox() {

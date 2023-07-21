@@ -169,7 +169,7 @@ a:link, a:visited {
   display: none;
   position: absolute;
   background-color: #f9f9f9;
-  min-width: 160px;
+  min-width: 169px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 2000;
 }
@@ -205,7 +205,7 @@ a:link, a:visited {
   left: 100%;
   width: 100%;
   background-color: #f9f9f9;
-  min-width: 160px;
+  min-width: 169px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
 
@@ -275,7 +275,7 @@ a:link, a:visited {
   }
 
   #user_dropdown {
-    min-width: 160px;
+    min-width: 169px;
   }
 
   .nav_bar .float_right a.menu_icon {
@@ -291,7 +291,7 @@ a:link, a:visited {
   }
 
   .nav_bar a.title_line {
-    max-width: calc(100vw - 926px - 40px - 108px);
+    max-width: calc(100vw - 935px - 40px - 108px);
   }
 }
 

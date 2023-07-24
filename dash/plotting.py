@@ -96,7 +96,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         g_mag_abs_err = None
 
         for name, data_source, val, err_l, err_u in pset:
-            if data_source != "AVG":
+            if data_source != "AVG" and name != 'absolute_g_mag':
                 continue
             if name == "teff":
                 teff = val
@@ -107,10 +107,9 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
             if name == "bp_rp" and bp_rp == 0:
                 bp_rp = val
                 bp_rp_err = (err_l + err_u) / 2
-            if data_source == "Gaia DR3":
-                if name == 'absolute_g_mag':
-                    g_mag_abs = val
-                    g_mag_abs_err = (err_l + err_u) / 2
+            if name == 'absolute_g_mag':
+                g_mag_abs = val
+                g_mag_abs_err = (err_l + err_u) / 2
 
         if teff is None or tefferr is None:
             teff = tefferr = -1000.
@@ -140,8 +139,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         loggs_errs.append(loggerr)
         bp_rps.append(bp_rp)
         bp_rps_errs.append(bp_rp_err)
-        g_mag_abss.append(mag)
-        g_mag_abs_errs.append(magerr)
+        g_mag_abss.append(g_mag_abs)
+        g_mag_abs_errs.append(g_mag_abs_err)
 
     # print(len(connection.queries))
     star_props = dict(idents=idents,

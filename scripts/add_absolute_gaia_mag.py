@@ -59,7 +59,6 @@ if __name__ == '__main__':
                 print('\t\tSkip star due to a too high parallax error')
                 continue
 
-
             #   Check if Gaia Gmag is available
             gmag = star.photometry_set.filter(band__exact='GAIA3.G')
 

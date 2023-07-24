@@ -42,6 +42,8 @@ if __name__ == '__main__':
 
     #   Loop over projects
     for pro in projects:
+        if pro.name != 'The EDR3 Hot Subdwarf Catalogue':
+            continue
         print()
         print(pro)
 
@@ -59,14 +61,14 @@ if __name__ == '__main__':
 
             #   Check if parallax entry from GAIA DR3 exists -> skip if yes
             old_parall = star.parameter_set.filter(name__exact='parallax')
-            conti = False
-            for old in old_parall:
-                source_name = old.data_source.name
-                if source_name == 'Gaia DR3':
-                    conti = True
-            if conti:
-                print('\tSkip star')
-                continue
+            # conti = False
+            # for old in old_parall:
+            #     source_name = old.data_source.name
+            #     if source_name == 'Gaia DR3':
+            #         conti = True
+            # if conti:
+            #     print('\tSkip star')
+            #     continue
 
             #   Get GAIA data
             gaia_data = Vizier(

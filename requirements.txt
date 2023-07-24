@@ -32,3 +32,4 @@ django-environ>=0.8.1
 specutils>=1.5.0
 matplotlib>=3.7.1
 django-simple-history>=3.3.0
+matplotlib

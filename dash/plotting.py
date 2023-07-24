@@ -178,7 +178,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         if sum(star_props['mag_abs'] != -1000.) == 0:
             ystr = "mag"
             messages.warning(request,
-                             "Absolute g band magnitudes are not available. Plot apparent magnitudes instead.")
+                             "Absolute g-band magnitudes are not available, instead apparent magnitudes are plotted.")
 
     starsource = bpl.ColumnDataSource(data=star_props)
 

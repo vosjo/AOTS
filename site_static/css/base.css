@@ -86,7 +86,7 @@ a:link, a:visited {
   display: block;
   background-color: var(--highlight_color_03);
   box-shadow: 0 0px 10px 2px var(--highlight_color_03);
-  margin-bottom: 20px;
+  margin-bottom: 40px;
   text-decoration: none;
   text-transform: uppercase;
 }

@@ -55,6 +55,11 @@ if __name__ == '__main__':
             para_value = dr3_para.value
             para_err = dr3_para.error
 
+            #   Only use well definded parallaxes
+            if para_value <= 0.:
+                print('\t\tSkip star due to a too negative parallax')
+                continue
+
             if para_err > 0.1:
                 print('\t\tSkip star due to a too high parallax error')
                 continue

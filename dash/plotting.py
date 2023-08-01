@@ -326,13 +326,13 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         #   Plot limits for CMD with Gaia data
         if xstr == "bp_rp" and ystr == "mag_abs":
             fig.y_range = Range1d(
-                max(np.amax(y), np.amax(gaia_color)) + np.ptp(y) * 0.05,
-                min(np.amin(y), np.amin(gaia_color)) - np.ptp(y) * 0.05
+                max(np.nanmax(y), np.nanmax(gaia_color)) + (np.nanmax(y) - np.nanmin(y)) * 0.05,
+                min(np.nanmin(y), np.nanmin(gaia_color)) - (np.nanmax(y) - np.nanmin(y)) * 0.05
             )
 
             fig.x_range = Range1d(
-                min(np.amin(x), np.amin(gaia_color)) - np.ptp(x) * 0.05,
-                max(np.amax(x), np.amax(gaia_color)) + np.ptp(x) * 0.05
+                min(np.nanmin(x), np.nanmin(gaia_color)) - np.ptp(x) * 0.05,
+                max(np.nanmax(x), np.nanmax(gaia_color)) + np.ptp(x) * 0.05
             )
 
     except ValueError:

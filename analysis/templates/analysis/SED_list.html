@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+
+    {% include "datatables.html" %}
+    <script type="text/javascript" src="{% static 'js/sed_list.js' %}"></script>
+
+    <title>SEDs</title>
+
+{% endblock %}
+
+{% block headertitle %} SEDs {% endblock %}
+
+{% block content %}
+
+    <i display="none" id="project-pk" project={{ project.pk }}></i>
+
+    <i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
+
+    <div id="filter-dashboard">
+
+        <form method="get" action="/analysis/" class="table-filter" id="filter-form">
+            <h3 class="center"> Filter SEDs </h3>
+
+            <div class="table-filter-item">
+                <p class="filter-label">Target:</p>
+                <input class="filter-input" id="filter_target" type="text" placeholder="identifier">
+            </div>
+
+            <input type="submit" class="button filter" id="submit-search" value="Apply">
+        </form>
+
+    </div>
+
+    <section>
+
+        <table id="SEDtable" class="fullwidth">
+            <thead>
+            <tr>
+                {% if user.is_authenticated %}
+                    <th>
+                        <i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i>
+                    </th>
+                {% endif %}
+                <th>System</th>
+                <th>Effective Temperature Teff</th>
+                <th>Surface Gravity logg</th>
+                <th>Metallicity</th>
+            </tr>
+            </thead>
+            <tfoot>
+            <tr>
+                {% if user.is_authenticated %}
+                    <th></th>
+                {% endif %}
+                <th>System</th>
+                <th>Effective Temperature Teff</th>
+                <th>Surface Gravity logg</th>
+                <th>Metallicity</th>
+            </tr>
+            </tfoot>
+        </table>
+
+
+    </section>
+
+{% endblock %}

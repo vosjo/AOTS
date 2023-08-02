@@ -11,6 +11,7 @@ from .datasource import DataSource, AverageDataSource
 # -- all constants are the roud_value function are imported from default values
 from .default_values import *
 
+from .SEDs import SED
 
 def combine_parameter_name(name, component):
     if component in [1, 2]:
@@ -90,7 +91,7 @@ class Parameter(models.Model):
     # -- unit in which this variable is measured
     unit = models.CharField(max_length=50)
 
-    # -- valid setting to indicate wether or not this parameter is trustworthy
+    # -- valid setting to indicate whether this parameter is trustworthy
     valid = models.BooleanField(default=True)
 
     # -- set average=True to indicate this parameter contains the average
@@ -119,6 +120,11 @@ class Parameter(models.Model):
             ds = ''
         return "{} = {} +- {} {} -{}- ({})".format(self.cname, self.rvalue(), self.rerror(),
                                                    self.unit, 'V' if self.valid else 'F', ds)
+
+
+
+class SEDParameter(Parameter):
+    SED = models.ForeignKey(SED, on_delete=models.CASCADE, blank=True, null=True)
 
 
 # @python_2_unicode_compatible  # to support Python 2

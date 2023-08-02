@@ -608,18 +608,18 @@ $(window).click(function (e) {
 
 
 function Toggleeditdropdown() {
-    $("#editdropdown").toggleClass("show");
+    $("#editdropdown").toggle();
     let otherdd = $("#downloaddropdown");
-    if (otherdd.hasClass("show")) {
-        otherdd.toggleClass("show");
+    if (otherdd.is(":visible")) {
+        otherdd.toggle();
     }
 }
 
 
 function Toggledownloaddropdown() {
-    $("#downloaddropdown").toggleClass("show");
+    $("#downloaddropdown").toggle("show");
     let otherdd = $("#editdropdown")
-    if (otherdd.hasClass("show")) {
-        otherdd.toggleClass("show");
+    if (otherdd.is(":visible")) {
+        otherdd.toggle("show");
     }
 }

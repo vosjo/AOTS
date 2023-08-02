@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+
+    {% include "datatables.html" %}
+    <script type="text/javascript" src="{% static 'js/rvcurve_list.js' %}"></script>
+
+    <title>RVcurves</title>
+
+{% endblock %}
+
+{% block headertitle %} RVcurves {% endblock %}
+
+{% block content %}
+
+    <i display="none" id="project-pk" project={{ project.pk }}></i>
+
+    <i class="material-icons button filter" id="filter-dashboard-button">filter_list</i>
+
+    <div id="filter-dashboard">
+
+        <form method="get" action="/observations/" class="table-filter" id="filter-form">
+            <h3 class="center"> Filter RVcurves </h3>
+
+            <div class="table-filter-item">
+                <p class="filter-label">Target:</p>
+                <input class="filter-input" id="filter_target" type="text" placeholder="identifier">
+            </div>
+
+            <input type="submit" class="button filter" id="submit-search" value="Apply">
+        </form>
+
+    </div>
+
+    <section>
+
+        <table id="RVcurvestable" class="fullwidth">
+            <thead>
+            <tr>
+                {% if user.is_authenticated %}
+                    <th>
+                        <i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i>
+                    </th>
+                {% endif %}
+                <th>System</th>
+                <th>Timespan covered</th>
+                <th># of Samples</th>
+                <th>Average RV</th>
+                <th>Half-Amplitude K</th>
+                <th>Solved?</th>
+            </tr>
+            </thead>
+            <tfoot>
+            <tr>
+                {% if user.is_authenticated %}
+                    <th></th>
+                {% endif %}
+                <th>System</th>
+                <th>Timespan covered</th>
+                <th># of Samples</th>
+                <th>Average RV</th>
+                <th>Half-Amplitude K</th>
+                <th>Solved?</th>
+            </tr>
+            </tfoot>
+        </table>
+
+
+    </section>
+
+{% endblock %}

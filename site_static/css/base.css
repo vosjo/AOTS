@@ -1527,6 +1527,7 @@ td.bold {
     position: absolute;
     background-color: #f1f1f1;
     z-index: 1;
+    white-space: nowrap;
 }
 
 .dropdown-content a {

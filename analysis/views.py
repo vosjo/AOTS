@@ -7,8 +7,10 @@ from django.shortcuts import get_object_or_404, render, reverse
 from AOTS.custom_permissions import check_user_can_view_project
 from stars.models import Project
 from .auxil import process_datasets, plot_parameters
+from .auxil.plot_rvcurve import plot_rvcurve
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm
 from .models import DataSet
+from .models.rvcurves import RVcurve
 
 
 @check_user_can_view_project
@@ -141,3 +143,152 @@ def parameter_plotter(request, project=None, **kwargs):
     }
 
     return render(request, 'analysis/parameter_plotter.html', context)
+
+
+# New rvcurve and SED views- above views are deprecated and will be removed
+
+@check_user_can_view_project
+def rvcurve_detail(request, dataset_id, project=None, **kwargs):
+    # show details dataset information
+
+    project = get_object_or_404(Project, slug=project)
+
+    dataset = get_object_or_404(DataSet, pk=dataset_id)
+
+    # make related datasets list
+    related_datasets = dataset.star.dataset_set.all()
+    related_stars = DataSet.objects.filter(method__exact=dataset.method)
+
+    # make the main figure
+    fit = dataset.make_large_figure()
+
+    oc = dataset.make_OC_figure()
+
+    #   Make the CI figures if they are available
+    hist = dataset.make_parameter_hist_figures()
+
+    #   Create necessary javascript
+    histnames = hist.keys()
+    all_figs = dict(hist, **{'fit': fit, 'oc': oc})
+    script, figures = components(all_figs, CDN)
+
+    #   Get only histogram plots
+    if not hist:
+        hists = []
+    else:
+        hists = [figures[name] for name in histnames]
+
+    context = {
+        'project': project,
+        'dataset': dataset,
+        'related_datasets': related_datasets,
+        'related_stars': related_stars,
+        'fit': figures['fit'],
+        'oc': figures['oc'],
+        'hist': hists,
+        'script': script,
+    }
+
+    return render(request, 'analysis/dataset_detail.html', context)
+
+
+@check_user_can_view_project
+def SED_detail(request, dataset_id, project=None, **kwargs):
+    # show details dataset information
+
+    project = get_object_or_404(Project, slug=project)
+
+    dataset = get_object_or_404(DataSet, pk=dataset_id)
+
+    # make related datasets list
+    related_datasets = dataset.star.dataset_set.all()
+    related_stars = DataSet.objects.filter(method__exact=dataset.method)
+
+    # make the main figure
+    fit = dataset.make_large_figure()
+
+    oc = dataset.make_OC_figure()
+
+    #   Make the CI figures if they are available
+    hist = dataset.make_parameter_hist_figures()
+
+    #   Create necessary javascript
+    histnames = hist.keys()
+    all_figs = dict(hist, **{'fit': fit, 'oc': oc})
+    script, figures = components(all_figs, CDN)
+
+    #   Get only histogram plots
+    if not hist:
+        hists = []
+    else:
+        hists = [figures[name] for name in histnames]
+
+    context = {
+        'project': project,
+        'dataset': dataset,
+        'related_datasets': related_datasets,
+        'related_stars': related_stars,
+        'fit': figures['fit'],
+        'oc': figures['oc'],
+        'hist': hists,
+        'script': script,
+    }
+
+    return render(request, 'analysis/dataset_detail.html', context)
+
+
+@check_user_can_view_project
+def rvcurve_list(request, project=None, **kwargs):
+    project = get_object_or_404(Project, slug=project)
+
+    context = {'project': project, }
+
+    return render(request, 'analysis/rvcurve_list.html', context)
+
+
+@check_user_can_view_project
+def SED_list(request, project=None, **kwargs):
+    project = get_object_or_404(Project, slug=project)
+
+    context = {'project': project, }
+
+    return render(request, 'analysis/SED_list.html', context)
+
+
+@check_user_can_view_project
+def rvcurve_detail(request, dataset_id, project=None, **kwargs):
+    # show details dataset information
+
+    project = get_object_or_404(Project, slug=project)
+
+    rvcurve = get_object_or_404(RVcurve, pk=dataset_id)
+
+    # make the main figure
+    fit, oc, metadata = plot_rvcurve(rvcurve.sourcefile)
+
+    #   Make the CI figures if they are available
+    hist = dataset.make_parameter_hist_figures()
+
+    #   Create necessary javascript
+    histnames = hist.keys()
+    all_figs = dict(hist, **{'fit': fit, 'oc': oc})
+    script, figures = components(all_figs, CDN)
+
+    #   Get only histogram plots
+    if not hist:
+        hists = []
+    else:
+        hists = [figures[name] for name in histnames]
+
+    context = {
+        'project': project,
+        'dataset': dataset,
+        'related_datasets': related_datasets,
+        'related_stars': related_stars,
+        'fit': figures['fit'],
+        'oc': figures['oc'],
+        'hist': hists,
+        'script': script,
+    }
+
+    return render(request, 'analysis/dataset_detail.html', context)

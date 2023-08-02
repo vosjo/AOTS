@@ -5,6 +5,8 @@ from django.urls import reverse
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from analysis.models import Method, DataSet, Parameter
+from analysis.models.SEDs import SED
+from analysis.models.rvcurves import RVcurve
 from stars.api.serializers import SimpleStarSerializer
 
 
@@ -95,3 +97,55 @@ class ParameterListSerializer(ModelSerializer):
             'valid',
         ]
         read_only_fields = ('pk',)
+
+
+class SEDSerializer(ModelSerializer):
+    star = SerializerMethodField()
+    sedfile = SerializerMethodField()
+    href = SerializerMethodField()
+
+    class Meta:
+        model = SED
+        fields = [
+            'pk',
+            'star',
+            'project',
+            'ra',
+            'dec',
+            'teff',
+            'logg',
+            'metallicity',
+            'note',
+            'href',
+        ]
+        read_only_fields = ('pk',)
+
+    def get_href(self, obj):
+        return reverse('analysis:sed_detail', kwargs={'project': obj.project.slug, 'sed_id': obj.pk})
+
+
+class RVcurveSerializer(ModelSerializer):
+    star = SerializerMethodField()
+    rvcurvefile = SerializerMethodField()
+    href = SerializerMethodField()
+
+    class Meta:
+        model = RVcurve
+        fields = [
+            'pk',
+            'star',
+            'project',
+            'time_spanned',
+            'N_samples',
+            'average_rv',
+            'half_amplitude',
+            'solved',
+            'ra',
+            'dec',
+            'note',
+            'href',
+        ]
+        read_only_fields = ('pk',)
+
+    def get_href(self, obj):
+        return reverse('analysis:rvcurve_detail', kwargs={'project': obj.project.slug, 'rvcurve_id': obj.pk})

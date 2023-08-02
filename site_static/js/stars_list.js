@@ -838,18 +838,18 @@ function allow_unselect(e) {
 }
 
 function Toggleeditdropdown() {
-    $("#editdropdown").toggleClass("show");
+    $("#editdropdown").toggle();
     let otherdd = $("#carryoverdropdown");
-    if (otherdd.hasClass("show")) {
-        otherdd.toggleClass("show");
+    if (otherdd.is(":visible")) {
+        otherdd.toggle();
     }
 }
 
 function Togglecarryoverdropdown() {
-    $("#carryoverdropdown").toggleClass("show");
+    $("#carryoverdropdown").toggle("show");
     let otherdd = $("#editdropdown")
-    if (otherdd.hasClass("show")) {
-        otherdd.toggleClass("show");
+    if (otherdd.is(":visible")) {
+        otherdd.toggle("show");
     }
 }
 

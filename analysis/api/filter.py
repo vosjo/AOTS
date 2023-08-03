@@ -84,6 +84,16 @@ class ParameterFilter(filters.FilterSet):
         lookup_expr='exact',
     )
 
+
+    star_pk = filters.NumberFilter(
+        field_name="star",
+        lookup_expr='exact',
+        method="star_pk_exact",
+    )
+
+    def star_pk_exact(self, queryset, name, value):
+        return queryset.filter(star__pk__exact=value)
+
     class Meta:
         model = Parameter
         fields = ['star', ]

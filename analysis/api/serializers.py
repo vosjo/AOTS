@@ -100,7 +100,5 @@ class ParameterListSerializer(ModelSerializer):
         read_only_fields = ('pk',)
 
     def get_project(self, obj):
-        print('test')
-        print(obj.star.project.name)
         return obj.star.project.name
 

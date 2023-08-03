@@ -477,11 +477,15 @@ class UpdateParamsForm(forms.Form):
 
         for param in params:
             for paramset in param["params"]:
+
                 ind = params.index(param)
                 comp = params[ind]["component"]
                 name = paramset["pinfo"].name
                 source = paramset["pinfo"].data_source.name
-                initval, initerrval = paramset["values"][0].split(" &pm; ")
+                try:
+                    initval, initerrval = paramset["values"][0].split(" &pm; ")
+                except ValueError:
+                    initval, initerrval = paramset["values"][1].split(" &pm; ")
                 initval = float(initval)
                 initerrval = float(initerrval)
 

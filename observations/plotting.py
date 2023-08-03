@@ -74,8 +74,7 @@ def plot_visibility(observation):
     try:
 
         if observation.observatory.space_craft:
-            label = mpl.Label(x=180, y=110, x_units='screen', y_units='screen', text='Observatory is a Space Craft',
-                              render_mode='css',
+            label = mpl.HTMLLabel(x=180, y=110, x_units='screen', y_units='screen', text='Observatory is a Space Craft',
                               border_line_color='red', border_line_alpha=1.0, text_color='red', text_align='center',
                               text_baseline='middle',
                               background_fill_color='white', background_fill_alpha=1.0)
@@ -402,8 +401,8 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
 
     else:
 
-        label = mpl.Label(x=800, y=200, x_units='screen', y_units='screen',
-                          text='No period provided, cannot phase fold lightcurve', render_mode='css',
+        label = mpl.HTMLLabel(x=800, y=200, x_units='screen', y_units='screen',
+                          text='No period provided, cannot phase fold lightcurve', 
                           text_align='center',
                           border_line_color='red', border_line_alpha=1.0, text_color='red',
                           background_fill_color='white', background_fill_alpha=1.0)

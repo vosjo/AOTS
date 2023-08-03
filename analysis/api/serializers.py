@@ -81,6 +81,8 @@ class DataSetListSerializer(ModelSerializer):
 
 
 class ParameterListSerializer(ModelSerializer):
+    project = SerializerMethodField()
+
     class Meta:
         model = Parameter
         fields = [
@@ -93,5 +95,12 @@ class ParameterListSerializer(ModelSerializer):
             'error',
             'unit',
             'valid',
+            'project',
         ]
         read_only_fields = ('pk',)
+
+    def get_project(self, obj):
+        print('test')
+        print(obj.star.project.name)
+        return obj.star.project.name
+

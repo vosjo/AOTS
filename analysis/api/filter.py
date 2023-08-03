@@ -92,7 +92,8 @@ class ParameterFilter(filters.FilterSet):
     def qs(self):
         parent = super(ParameterFilter, self).qs
 
-        parent = get_allowed_objects_to_view_for_user(
+        return get_allowed_objects_to_view_for_user(
             parent,
             self.request.user,
+            parameter_switch=True,
         )

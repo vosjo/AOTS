@@ -31,7 +31,7 @@ class IsAllowedOnProject(permissions.BasePermission):
         return False
 
 
-def get_allowed_objects_to_view_for_user(qs, user):
+def get_allowed_objects_to_view_for_user(qs, user, parameter_switch=False):
     """
     Function that will limit the provided queryset to the objects that
     the provided user can see.
@@ -40,13 +40,13 @@ def get_allowed_objects_to_view_for_user(qs, user):
     An anonymous user can see objects from all public projects. A logged
     in user can also see private projects that he/she has viewing rights
     for.
-
-    (for some reason qs1.union(qs2) can not be used here instead of
-    using th | operator!!!)
     """
 
     #   Check if project is public
-    public = qs.filter(project__is_public__exact=True)
+    if parameter_switch:
+        public = qs.filter(star__project__is_public__exact=True)
+    else:
+        public = qs.filter(project__is_public__exact=True)
 
     #   Check if user is logged in ...
     if user.is_anonymous:
@@ -54,9 +54,14 @@ def get_allowed_objects_to_view_for_user(qs, user):
         return public
     else:
         #   Check if user is allowed to view the project ...
-        restricted = qs.filter(
-            project__pk__in=user.get_read_projects().values('pk')
-        )
+        if parameter_switch:
+            restricted = qs.filter(
+                star__project__pk__in=user.get_read_projects().values('pk')
+            )
+        else:
+            restricted = qs.filter(
+                project__pk__in=user.get_read_projects().values('pk')
+            )
         if len(restricted) > 0:
             #   ... if this is the case return the specific queryset ...
             return restricted

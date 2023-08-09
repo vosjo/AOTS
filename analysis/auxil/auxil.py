@@ -1,7 +1,9 @@
+import numpy as np
 from astropy.coordinates.angles import Angle
+from scipy import stats
 
 from stars.models import Star
-from .models import DataSet
+# from .models import DataSet
 
 
 def create_parameters(analmethod, parameters):
@@ -15,54 +17,85 @@ def create_parameters(analmethod, parameters):
                                         star=analmethod.star)
 
 
-def process_analysis_file(file_id):
-    analfile = DataSet.objects.get(pk=file_id)
+# def process_analysis_file(file_id):
+#     analfile = DataSet.objects.get(pk=file_id)
+#
+#     data = analfile.get_data()
+#
+#     # -- check if name or coordinates are present
+#     if not 'ra' in data or not 'dec' in data:
+#         analfile.delete()
+#         return False, "Could not add file as System info was not present"
+#
+#     # -- type to read some basic info
+#     if 'type' in data:
+#         analfile.analysis_type = data['type']
+#
+#     if 'note' in data:
+#         analfile.note = data['note']
+#
+#     if 'name' in data:
+#         analfile.name = data['name']
+#
+#     analfile.save()
+#
+#     message = "Validated the analysis file"
+#
+#     # -- match to an existing star, or create a new one
+#     if type(data['ra']) == str:
+#         ra = Angle(data['ra'], unit='hour').degree
+#         dec = Angle(data['dec'], unit='degree').degree
+#     else:
+#         ra, dec = data['ra'], data['dec']
+#
+#     star = Star.objects.filter(ra__range=(ra - 0.01, ra + 0.01)) \
+#         .filter(dec__range=(dec - 0.01, dec + 0.01))
+#
+#     if len(star) > 0:
+#         # there is an existing star
+#         star = star[0]
+#         star.dataset_set.add(analfile)
+#         message += ", added to existing System {}".format(star)
+#     else:
+#         # Need to create a new star
+#         star = Star(name=data['name'], ra=ra, dec=dec, classification='')
+#         star.save()
+#         star.dataset_set.add(analfile)
+#         message += ", created new System {}".format(star)
+#
+#     # -- add parameters
+#     create_parameters(analfile, data['PARAMETERS'])
+#     message += ", added {} parameters".format(len(data['PARAMETERS'].keys()))
+#
+#     return True, message
 
-    data = analfile.get_data()
 
-    # -- check if name or coordinates are present
-    if not 'ra' in data or not 'dec' in data:
-        analfile.delete()
-        return False, "Could not add file as System info was not present"
+def calculate_logp(vrad, vrad_err):
+    """
+    :param vrad: Radial Velocity array
+    :param vrad_err: Array of corresponding Errors
+    :return: logp value
+    """
+    ndata = len(vrad)
+    if ndata < 2:
+        return np.nan
+    nfit = 1
 
-    # -- type to read some basic info
-    if 'type' in data:
-        analfile.analysis_type = data['type']
+    vrad_wmean = np.sum(vrad / vrad_err) / np.sum(1 / vrad_err)
 
-    if 'note' in data:
-        analfile.note = data['note']
+    chi = (vrad - vrad_wmean) / vrad_err
 
-    if 'name' in data:
-        analfile.name = data['name']
+    chisq = chi ** 2
+    chisq_sum = np.sum(chisq)
 
-    analfile.save()
+    dof = ndata - nfit
 
-    message = "Validated the analysis file"
+    pval = stats.chi2.sf(chisq_sum, dof)
+    logp = np.log10(pval)
 
-    # -- match to an existing star, or create a new one
-    if type(data['ra']) == str:
-        ra = Angle(data['ra'], unit='hour').degree
-        dec = Angle(data['dec'], unit='degree').degree
-    else:
-        ra, dec = data['ra'], data['dec']
+    if pval == 0:
+        return -500
+    if np.isnan(logp):
+        return 0
 
-    star = Star.objects.filter(ra__range=(ra - 0.01, ra + 0.01)) \
-        .filter(dec__range=(dec - 0.01, dec + 0.01))
-
-    if len(star) > 0:
-        # there is an existing star
-        star = star[0]
-        star.dataset_set.add(analfile)
-        message += ", added to existing System {}".format(star)
-    else:
-        # Need to create a new star
-        star = Star(name=data['name'], ra=ra, dec=dec, classification='')
-        star.save()
-        star.dataset_set.add(analfile)
-        message += ", created new System {}".format(star)
-
-    # -- add parameters
-    create_parameters(analfile, data['PARAMETERS'])
-    message += ", added {} parameters".format(len(data['PARAMETERS'].keys()))
-
-    return True, message
+    return logp

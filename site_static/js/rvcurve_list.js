@@ -11,6 +11,7 @@ $(document).ready(function () {
                 render: selection_render,
                 width: '10',
             },
+            {data: 'logp', render: logp_render},
             {data: 'star', render: star_render},
             {data: 'time_spanned', render: timespan_render},
             {data: 'N_samples', render: nsamples_render},
@@ -20,6 +21,7 @@ $(document).ready(function () {
         ];
     } else {
         columns = [
+            {data: 'logp', render: logp_render},
             {data: 'star', render: star_render},
             {data: 'time_spanned', render: timespan_render},
             {data: 'N_samples', render: nsamples_render},
@@ -125,7 +127,8 @@ $(document).ready(function () {
             "</div>" +
             "</div>" +
             '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar"></progress>'
-      );
+        );
+        $("#delete-button").click(delete_all_selected_rvcurves);
     }
 
     //   Reset check boxes when changing number of displayed objects in table
@@ -170,7 +173,7 @@ function selection_render(data, type, full, meta) {
 
 function star_render(data, type, full, meta) {
     try {
-        return "<a href='" + data['href'] + "' >" + data['name'] + "</a>" + " (" + data['ra'].toFixed(5) + " " + data['dec'].toFixed(5) + ")"
+        return "<a href='" + data['href'] + "' >" + data['name'] + "</a>"
     } catch (err) {
         return ''
     }
@@ -188,7 +191,8 @@ function timespan_render(data, type, full, meta) {
     if (data === 0) {
         return "-"
     } else {
-        return data
+        return Math.round(data * 100) / 100 // Round to 2 decimal places
+
     }
 }
 
@@ -196,7 +200,7 @@ function averagerv_render(data, type, full, meta) {
     if (data === 0) {
         return "-"
     } else {
-        return data
+        return Math.round(data * 100) / 100 // Round to 2 decimal places
     }
 }
 
@@ -204,9 +208,27 @@ function halfamplitude_render(data, type, full, meta) {
     if (data === 0) {
         return "-"
     } else {
-        return data
+        return Math.round(data * 100) / 100 // Round to 2 decimal places
     }
 }
+
+
+function logp_render(data, type, full, meta) {
+    if (data === 0) {
+        return "-"
+    } else {
+        if (data < -4) {
+            return "<a href='" + full['href'] + "' >" + Math.round(data * 10000) / 10000 + " (Detection)</a> "
+        }
+        if (-4 < data < -1){
+            return "<a href='" + full['href'] + "' >" + Math.round(data * 10000) / 10000 + " (Candidate)</a> "
+        }
+        if (-1 < data){
+            return "<a href='" + full['href'] + "' >" + Math.round(data * 10000) / 10000 + " (No Detection)</a> "
+        }
+    }
+}
+
 
 function solved_render(data, type, full, meta) {
     if (data) {
@@ -236,7 +258,7 @@ function select_row(row) {
 function deselect_row(row) {
     $(row.node()).find("i[class*=select]").text('check_box_outline_blank');
     $(row.node()).removeClass('selected');
-    if (RVcurveRVcurves_table.rows('.selected').data().length === 0) {
+    if (RVcurves_table.rows('.selected').data().length === 0) {
         $('#select-all').text('check_box_outline_blank');
         $('#dl-button').addClass("disabled");
         $('#dl-raw-button').addClass("disabled");
@@ -314,5 +336,52 @@ function Toggledownloaddropdown() {
     let otherdd = $("#editdropdown")
     if (otherdd.is(":visible")) {
         otherdd.toggle("show");
+    }
+}
+
+//  Delete spectra
+function delete_all_selected_rvcurves() {
+    if (confirm('Are you sure you want to delete these RV curves? This can NOT be undone!') === true) {
+        let rows = [];
+        //   Get list of selected spectra
+        RVcurves_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+            rows.push(this);
+        });
+
+        //   Set Promise -> evaluates to a resolved Promise
+        let p = $.when()
+
+        // Loop over selected spectra
+        $.each(rows, function (index, row) {
+            let pk = row.data()["href"].split('/')[5];
+            //  Delete each individual specfile or the spectrum if it is not associated
+            //  with any specfile, although the latter should never happen
+            //    Promise chaining using .then() + async function definition
+            //    to allow the use of await
+            p = p.then(async function () {
+                //  Ajax call to remove spec files
+                await $.ajax({
+                    url: "/api/analysis/rvcurves/" + pk + '/',
+                    type: "DELETE",
+                    success: function (json) {
+                        //  Remove the whole spectrum from table
+                       RVcurves_table.row(row).remove().draw('full-hold');
+                    },
+                    error: function (xhr, errmsg, err) {
+                        if (xhr.status === 403) {
+                            alert('You have to be logged in to delete this spectrum.');
+                        } else {
+                            alert(xhr.status + ": " + xhr.responseText);
+                        }
+                        console.log(xhr.status + ": " + xhr.responseText);
+                    }
+                });
+            });
+        })
+
+        //   Reset check boxes
+        RVcurves_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+        });
     }
 }

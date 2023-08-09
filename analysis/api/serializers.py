@@ -141,6 +141,7 @@ class RVcurveSerializer(ModelSerializer):
             'average_rv',
             'half_amplitude',
             'solved',
+            'logp',
             # 'rvcurvefile',
             'note',
             'href',

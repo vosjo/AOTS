@@ -1,6 +1,6 @@
 from django.urls import include, re_path, path
 from rest_framework import routers
-
+from analysis.api.views import getRVCurvePath
 from .views import (
     ParameterViewSet, DatasetViewSet, MethodViewSet, processDataSet, SEDViewSet, RVcurveViewSet, bulkUploadRVcurves,
 )
@@ -25,5 +25,10 @@ urlpatterns = [
         'api-rvcurve-upload/',
         bulkUploadRVcurves,
         name='api-spec-upload',
+    ),
+    path(
+        'rvcurves/<int:rvcurve_pk>/path/',
+        getRVCurvePath,
+        name='rvcurve_path',
     ),
 ]

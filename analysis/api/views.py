@@ -14,7 +14,7 @@ from .filter import DataSetFilter, MethodFilter, ParameterFilter, SEDFilter, RVc
 from .serializers import MethodSerializer, DataSetListSerializer, ParameterListSerializer, SEDSerializer, \
     RVcurveSerializer
 from ..auxil.apiprocessing import find_or_create_star
-from ..auxil.auxil import calculate_logp
+from ..auxil.auxil import calculate_logp, process_rvcurvefiles
 from ..models.SEDs import SED
 from ..models.rvcurves import RVcurve
 
@@ -81,6 +81,14 @@ class RVcurveViewSet(viewsets.ModelViewSet):
     filterset_class = RVcurveFilter
 
 
+@api_view(['GET'])
+def getRVCurvePath(request, rvcurve_pk):
+    rvcurve = RVcurve.objects.get(pk=rvcurve_pk)
+    path = rvcurve.sourcefile.url
+
+    return Response(path)
+
+
 @api_view(('POST',))
 @authentication_classes([])
 @permission_classes([])
@@ -101,61 +109,7 @@ def bulkUploadRVcurves(request, **kwargs):
         except ObjectDoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
 
-        returned_messages = []
-        n_exceptions = 0
-
-        for f in files:
-            test = fits.open(f)
-            metadata = dict(test[0].header)
-            datapoints = np.array(list(test[1].data))
-            column_names = dict(test[1].header)["COLNAMES"].split(";")
-            rvs = datapoints[:, column_names.index("RV")]
-            rvs_err = datapoints[:, column_names.index("RVERR")]
-            times = datapoints[:, column_names.index("MJD")]
-
-            print(metadata["LOGP"], type(metadata["LOGP"]))
-
-            if not metadata["LOGP"] or np.isnan(metadata["LOGP"]):
-                metadata["LOGP"] = calculate_logp(rvs, rvs_err)
-
-            if not metadata["RVAVG"] or np.isnan(metadata["RVAVG"]):
-                metadata["RVAVG"] = np.mean(rvs)
-
-            if not metadata["U_RVAVG"] or np.isnan(metadata["U_RVAVG"]):
-                metadata["U_RVAVG"] = np.sqrt(np.sum(np.square(rvs_err)))
-
-            if not metadata["DRV"] or np.isnan(metadata["DRV"]):
-                metadata["DRV"] = np.ptp(rvs)
-
-            if not metadata["U_DRV"] or np.isnan(metadata["U_DRV"]):
-                metadata["U_DRV"] = np.sqrt(rvs[np.argmax(rvs)] ** 2 + rvs[np.argmin(rvs)] ** 2) / 2
-
-            if not metadata["NSPEC"] or np.isnan(metadata["NSPEC"]):
-                metadata["NSPEC"] = len(rvs)
-
-            if not metadata["TSPAN"] or np.isnan(metadata["TSPAN"]):
-                metadata["TSPAN"] = np.ptp(times)
-
-            newrvcurve = RVcurve(
-                sourcefile=f,
-                average_rv=metadata["RVAVG"],
-                average_rv_err=metadata["U_RVAVG"],
-                delta_rv=metadata["DRV"],
-                delta_rv_err=metadata["U_DRV"],
-                logp=metadata["LOGP"],
-                N_samples=metadata["NSPEC"],
-                time_spanned=metadata["TSPAN"],
-                project=project,
-            )
-            newrvcurve.save()
-
-            success, msg, star = find_or_create_star(metadata, project, newrvcurve)
-
-            if success:
-                returned_messages.append(f"Successfully added RV curve to star {star.name}")
-            else:
-                n_exceptions += 1
-                returned_messages.append(f"Something went wrong for file {f}")
+        returned_messages, n_exceptions = process_rvcurvefiles(files, project)
 
         returned_messages = ";".join(returned_messages)
 

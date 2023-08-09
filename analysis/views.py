@@ -7,8 +7,9 @@ from django.shortcuts import get_object_or_404, render, reverse
 from AOTS.custom_permissions import check_user_can_view_project
 from stars.models import Project
 from .auxil import process_datasets, plot_parameters
+from .auxil.auxil import process_rvcurvefiles
 from .auxil.plot_rvcurve import plot_rvcurve
-from .forms import UploadAnalysisFileForm, ParameterPlotterForm
+from .forms import UploadAnalysisFileForm, ParameterPlotterForm, UploadRVCurveForm
 from .models import DataSet
 from .models.rvcurves import RVcurve
 
@@ -194,9 +195,55 @@ def SED_detail(request, dataset_id, project=None, **kwargs):
 
 @check_user_can_view_project
 def rvcurve_list(request, project=None, **kwargs):
+
     project = get_object_or_404(Project, slug=project)
 
-    context = {'project': project, }
+    if request.method == 'POST' and request.user.is_authenticated:
+        upload_form = UploadRVCurveForm(request.POST, request.FILES)
+        if upload_form.is_valid():
+            try:
+                files = request.FILES.getlist("rvcurvefile")
+
+                returned_messages, n_exceptions = process_rvcurvefiles(files, project)
+
+                for m in returned_messages:
+                    messages.add_message(
+                        request,
+                        messages.INFO,
+                        m,
+                    )
+
+            except Exception as e:
+                print(e)
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Something went wrong!",
+                )
+                return HttpResponseRedirect(
+                    reverse('analysis:rvcurve_list', kwargs={'project': project.slug})
+                )
+
+            return HttpResponseRedirect(reverse(
+                        'analysis:rvcurve_list',
+                        kwargs={'project': project.slug},
+                    ))
+        else:
+            #   Add message
+            messages.add_message(
+                request,
+                messages.ERROR,
+                "Invalid form. Please try again.",
+            )
+            #   Return and redirect
+            return HttpResponseRedirect(
+                reverse('analysis:rvcurve_list', kwargs={'project': project.slug})
+            )
+
+    upload_form = UploadRVCurveForm()
+
+    context = {'project': project,
+               'upload_form': upload_form}
 
     return render(request, 'analysis/rvcurve_list.html', context)
 

@@ -62,3 +62,13 @@ class ParameterPlotterForm(forms.Form):
                 'yaxis': self.clean_yaxis(),
                 'size': self.cleaned_data['size'],
                 'color': self.cleaned_data['color'], }
+
+
+class UploadRVCurveForm(forms.Form):
+    #   Files
+    rvcurvefile = forms.FileField(
+        label='Select RV curve files',
+        widget=forms.ClearableFileInput(
+            attrs={'allow_multiple_selected': True}
+            ),
+    )

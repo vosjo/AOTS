@@ -126,9 +126,12 @@ $(document).ready(function () {
             "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i>Download RV curves</a>" +
             "</div>" +
             "</div>" +
+            "<button id='upload-button' class='tb-button'><i class='material-icons button' title='Add System(s)'>add</i>Upload RV curve(s)</button>" +
             '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar"></progress>'
         );
         $("#delete-button").click(delete_all_selected_rvcurves);
+        $("#dl-button").click(download_rvcurves);
+        $("#upload-button").click(openAddUploadRVCurvesWindow);
     }
 
     //   Reset check boxes when changing number of displayed objects in table
@@ -147,6 +150,12 @@ $(document).ready(function () {
 
     // Adjust nav bar highlight
     adjust_nav_bar_active("#analysis_dropdown")
+
+    upload_rvcurves_window = $("#uploadRVcurves").dialog({
+        autoOpen: false,
+        width: '875',
+        modal: true,
+    });
 });
 
 
@@ -384,4 +393,101 @@ function delete_all_selected_rvcurves() {
             deselect_row(this);
         });
     }
+}
+
+//  Download RV Curves
+function download_rvcurves() {
+    //   Prevent impatient users from clicking again.
+    $('#dl-button').prop('disabled', true);
+    showProgress("Be Patient...");
+    //   Prepare file list
+    let rvcurvelist = [];
+    //   Get list of selected spectra
+    RVcurves_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+        let rvfilepk = this.data()["href"].split('/')[5];
+        //    Get file path
+        $.getJSON(
+            "/api/analysis/rvcurves/" + rvfilepk + "/path/",
+            function (path) {
+                //    Add to file list
+                rvcurvelist.push(path);
+            });
+    });
+
+    console.log(rvcurvelist)
+
+    //   Load Filesaver and jszip libs to facilitate download
+    $.getScript("/static/js/JsZip/FileSaver.js").done(function () {
+        $.getScript("/static/js/JsZip/jszip.js").done(async function () {
+            $.getScript("/static/js/JsZip/jszip-utils.js").done(async function () {
+
+                //  Create zip file
+                let zip = new JSZip();
+
+                //  Set time string for zip file name
+                let dt = new Date();
+                let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
+
+                //  Get file using promises so that file assembly can wait until
+                //  download has finished
+                const getPromises = rvcurvelist.map(async path => {
+                    let file = path.split('/').slice(-1);
+                    return new Promise(function (resolve, reject) {
+                        JSZipUtils.getBinaryContent(path, function (err, data) {
+                            if (err) {
+                                reject("ERROR: File not found");
+                            } else {
+                                resolve([file, data]);
+                            }
+                        })
+                    });
+                });
+
+                //  Fill zip file
+                for (const promise of getPromises) {
+                    try {
+                        const content = await promise;
+                        zip.file(content[0], content[1]);
+                    } catch (err) {
+                        showError(err);
+                        return
+                    }
+                }
+
+                //  Generate zip file
+                zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
+                    //  Update download progress
+                    let msg = "            " + metadata.percent.toFixed(2) + " %           ";
+                    showProgress(msg);
+                    updatePercent(metadata.percent | 0);
+                })
+                    .then(function callback(blob) {
+                        //  Save zip file
+                        saveAs(blob, "RVcurve_" + timecode + ".zip");
+                        //  Reset download button
+                        $('#dl-button').prop('disabled', false);
+                        showProgress("Download RV Curves");
+                        $("#progress-bar").hide();
+                    }, function (e) {
+                        showError(e);
+                    });
+            });
+        });
+    });
+}
+
+function upload_rvcurves() {
+
+}
+
+function openAddUploadRVCurvesWindow() {
+    upload_rvcurves_window = $("#uploadRVcurves").dialog({
+        autoOpen: false,
+        title: "Upload RV Curve(s)",
+        close: function () {
+            upload_rvcurves_window.dialog("close");
+        },
+    });
+
+    upload_rvcurves_window.dialog("open");
 }

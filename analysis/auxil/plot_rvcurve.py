@@ -6,6 +6,10 @@ from analysis.auxil.plot_datasets import plot_error_large, plot_error
 from bokeh import models as mpl
 
 
+def sinusoid(t, K, p, rv_offset, phase_shift):
+    return rv_offset + K * np.sin(1/p * 2 * np.pi * (t - phase_shift))
+
+
 def plot_rvcurve(datafile):
     fitsfile = fits.open(datafile.path)
 
@@ -13,10 +17,12 @@ def plot_rvcurve(datafile):
         metadata = dict(fitsfile[0].header)
         datapoints = np.array(list(fitsfile[1].data))
         fit = None
+        fitparams = None
     elif len(fitsfile) == 3:
         metadata = dict(fitsfile[0].header)
         datapoints = np.array(list(fitsfile[1].data))
         fit = fitsfile[2].data
+        fitparams = dict(fitsfile[2].header)
     else:
         raise AssertionError("Your provided RVcurve file does not seem to match the requirements!")
 
@@ -32,7 +38,7 @@ def plot_rvcurve(datafile):
                      tools=TOOLS)
 
     fig.circle(times, rvs, color="blue",
-               size=7, legend_label="")
+               size=7, legend_label="Measurements")
 
     err_xs, err_ys = [], []
     for x, y, yerr in zip(times, rvs, rvs_err):
@@ -53,16 +59,36 @@ def plot_rvcurve(datafile):
     fig.min_border = 5
 
     if fit:
-        fittimes = fit[0, :]
-        fitrvs = fit[1, :]
+        try:
+            fittimes = fit[0, :]
+            fitrvs = fit[1, :]
 
-        ocfig = bpl.figure(width=800, height=200, toolbar_location='right',
-                           tools=TOOLS)
+            fig.line(fittimes, fitrvs, legend_label="Fit")
 
-        f = interp1d(fittimes, fitrvs, bounds_error=False)
+            ocfig = bpl.figure(width=800, height=200, toolbar_location='right',
+                               tools=TOOLS)
 
-        ocfig.circle(times, rvs-f(times), color="blue",
-                     size=7, legend_label="")
+            f = interp1d(fittimes, fitrvs, bounds_error=False)
+
+            ocfig.circle(times, rvs - f(times), color="blue",
+                         size=7, legend_label="Residuals")
+
+        except Exception as e:
+            #TODO: add the super complicated Kepler model thingy
+            if fitparams["MTYPE"] == "sinusoid":
+                tspace = np.linspace(times.min(), times.max(), 1000)
+                fitspace = sinusoid(tspace, fitparams["K"], fitparams["P"], fitparams["OFFSET"], fitparams["PHASE"])
+
+                fig.line(tspace, fitspace, legend_label="Fit")
+
+                ocfig = bpl.figure(width=800, height=200, toolbar_location='right',
+                                   tools=TOOLS)
+
+                f = interp1d(tspace, fitspace, bounds_error=False)
+
+                ocfig.circle(times, rvs - f(times), color="blue",
+                             size=7, legend_label="")
+
 
     else:
         ocfig = bpl.figure(width=800, height=200)

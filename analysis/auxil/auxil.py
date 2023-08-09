@@ -106,7 +106,7 @@ def calculate_logp(vrad, vrad_err):
     return logp
 
 
-def process_rvcurvefiles(files, project):
+def process_rvcurvefiles(files, project, handle_double=None):
     returned_messages = []
     n_exceptions = 0
     for f in files:
@@ -118,27 +118,38 @@ def process_rvcurvefiles(files, project):
         rvs_err = datapoints[:, column_names.index("RVERR")]
         times = datapoints[:, column_names.index("MJD")]
 
-        print(metadata["LOGP"], type(metadata["LOGP"]))
+        try:
+            curveexists = RVcurve.objects.get(average_rv__exact=np.mean(rvs),
+                                              time_spanned__exact=np.ptp(times),
+                                              delta_rv=np.ptp(rvs))
+            if handle_double == "overwrite":
+                curveexists.delete()
+            if handle_double == "append":
+                # TODO: add append action
+                pass
+        except:
+            n_exceptions += 1
+            returned_messages.append(f"RV Curve with average RV {np.mean(rvs)} already exists, please specify if you want to append or overwrite!")
 
-        if not metadata["LOGP"] or np.isnan(metadata["LOGP"]):
+        if "LOGP" not in metadata or np.isnan(metadata["LOGP"]):
             metadata["LOGP"] = calculate_logp(rvs, rvs_err)
 
-        if not metadata["RVAVG"] or np.isnan(metadata["RVAVG"]):
+        if "RVAVG" not in metadata or np.isnan(metadata["RVAVG"]):
             metadata["RVAVG"] = np.mean(rvs)
 
-        if not metadata["U_RVAVG"] or np.isnan(metadata["U_RVAVG"]):
+        if "U_RVAVG" not in metadata or np.isnan(metadata["U_RVAVG"]):
             metadata["U_RVAVG"] = np.sqrt(np.sum(np.square(rvs_err)))
 
-        if not metadata["DRV"] or np.isnan(metadata["DRV"]):
+        if "DRV" not in metadata or np.isnan(metadata["DRV"]):
             metadata["DRV"] = np.ptp(rvs)
 
-        if not metadata["U_DRV"] or np.isnan(metadata["U_DRV"]):
+        if "U_DRV" not in metadata or np.isnan(metadata["U_DRV"]):
             metadata["U_DRV"] = np.sqrt(rvs[np.argmax(rvs)] ** 2 + rvs[np.argmin(rvs)] ** 2) / 2
 
-        if not metadata["NSPEC"] or np.isnan(metadata["NSPEC"]):
+        if "NSPEC" not in metadata or np.isnan(metadata["NSPEC"]):
             metadata["NSPEC"] = len(rvs)
 
-        if not metadata["TSPAN"] or np.isnan(metadata["TSPAN"]):
+        if "TSPAN" not in metadata or np.isnan(metadata["TSPAN"]):
             metadata["TSPAN"] = np.ptp(times)
 
         newrvcurve = RVcurve(

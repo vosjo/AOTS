@@ -34,12 +34,12 @@ $(document).ready(function () {
     let ajax_kw;
     if (sessionStorage.getItem("selectedpks") === null) {
         ajax_kw = {
-            url: '/api/analysis/rvcurves/?format=datatables&keep=href',
+            url: '/api/analysis/rvcurves/?format=datatables&keep=href,delta_rv,delta_rv_err,average_rv_err',
             data: get_filter_keywords
         }
     } else {
         ajax_kw = {
-            url: '/api/analysis/rvcurves/?format=datatables&keep=href',
+            url: '/api/analysis/rvcurves/?format=datatables&keep=href,delta_rv,delta_rv_err,average_rv_err',
             data: carryover
         }
     }
@@ -209,13 +209,18 @@ function averagerv_render(data, type, full, meta) {
     if (data === 0) {
         return "-"
     } else {
-        return Math.round(data * 100) / 100 // Round to 2 decimal places
+        return Math.round(data * 100) / 100 + " ± " + Math.round(full["average_rv_err"] * 100) / 100  // Round to 2 decimal places
     }
 }
 
 function halfamplitude_render(data, type, full, meta) {
     if (data === 0) {
-        return "-"
+        if (full["delta_rv"] !== 0) {
+            return Math.round(full["delta_rv"] * 100) / 100 + " ± " + Math.round(full["delta_rv_err"] * 100) / 100
+        }
+        else{
+            return "-"
+        }
     } else {
         return Math.round(data * 100) / 100 // Round to 2 decimal places
     }
@@ -229,7 +234,7 @@ function logp_render(data, type, full, meta) {
         if (data < -4) {
             return "<a href='" + full['href'] + "' >" + Math.round(data * 10000) / 10000 + " (Detection)</a> "
         }
-        if (-4 < data < -1){
+        if (-4 < data && data < -1){
             return "<a href='" + full['href'] + "' >" + Math.round(data * 10000) / 10000 + " (Candidate)</a> "
         }
         if (-1 < data){
@@ -240,6 +245,7 @@ function logp_render(data, type, full, meta) {
 
 
 function solved_render(data, type, full, meta) {
+    console.log(full)
     if (data) {
         return "yes"
     } else {

@@ -291,7 +291,7 @@ a:link, a:visited {
   }
 
   .nav_bar a.title_line {
-    max-width: calc(100vw - 935px - 40px - 108px);
+    max-width: calc(100vw - 975px - 40px - 108px);
   }
 }
 

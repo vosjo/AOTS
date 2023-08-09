@@ -1,8 +1,8 @@
-from django.urls import include, re_path
+from django.urls import include, re_path, path
 from rest_framework import routers
 
 from .views import (
-    ParameterViewSet, DatasetViewSet, MethodViewSet, processDataSet, SEDViewSet, RVcurveViewSet,
+    ParameterViewSet, DatasetViewSet, MethodViewSet, processDataSet, SEDViewSet, RVcurveViewSet, bulkUploadRVcurves,
 )
 
 app_name = 'analysis-api'
@@ -21,4 +21,9 @@ urlpatterns = [
             processDataSet,
             name='process_dataset',
             ),
+    path(
+        'api-rvcurve-upload/',
+        bulkUploadRVcurves,
+        name='api-spec-upload',
+    ),
 ]

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+{% load conversion_tags %}
+
+{% block head %}
+
+    {% include "bokeh.html" %}
+    <script type="text/javascript" src="{% static 'js/dataset_detail.js' %}"></script>
+    <title>RV curve for {{ rvcurve.star.name }}</title>
+
+{% endblock %}
+
+
+{% block headertitle %}RV curve for {{ rvcurve.star.name }}{% endblock %}
+
+
+{% block content %}
+
+    <i display="none" id="project-pk" project={{ project.pk }}></i>
+
+    <section class='data-section'>
+
+        <div class="main-container-h border">
+
+            {% if user.is_authenticated %}
+                <i id="nameEditButton" class="material-icons button edit" title="edit name" dataset_id={{ dataset.pk }}>edit</i>
+            {% endif %}
+
+            <div class='header-item'>
+                <h3 id="nameField"> RV curve </h3>
+            </div>
+
+            <div class='header-item'>
+                <p class="material-icons">star </p>
+                <h3><a href={% url 'systems:star_detail' project.slug rvcurve.star.pk %}>{{ rvcurve.star.name }}</a>
+                </h3>
+            </div>
+        </div>
+
+        <div class="flex-data-container j-center">
+
+            <div class="main-container border maxw50 minw800">
+                <i id="figureFullscreenButton" class="material-icons button edit" title="expand figure">zoom_out_map</i>
+                <!--zoom_out_map all_out fullscreen-->
+                <div class='block'>
+                    {{ fit|safe }}
+                </div>
+
+                <div class='block'>
+                    {{ oc|safe }}
+                </div>
+
+            </div>
+
+
+            <div class="main-container maxw50 stretch">
+
+                <div class="main-container border ">
+                    <h3>Parameters</h3>
+                    <p>Parameter stuff</p>
+                </div>
+
+                <div class="main-container border">
+                    <h3>Notes</h3>
+                    {% if user.is_authenticated %}
+                        <i id="noteEditButton" class="material-icons button edit" title="edit note"
+                           dataset_id={{ rvcurve.pk }}>edit</i>
+                    {% endif %}
+                    <div id="noteField">
+                        {{ rvcurve.note|linebreaks }}
+                    </div>
+                </div>
+
+                <div class="main-container border">
+                    <h3>Meta data</h3>
+                    <table class="metatable">
+                        <tr>
+                            <th>Added by</th>
+                            <td>{{ rvcurve.history.earliest.history_user.first_name }} {{ rvcurve.history.earliest.history_user.last_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Added on</th>
+                            <td>{{ rvcurve.history.earliest.history_date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last modified</th>
+                            <td>{{ rvcurve.history.latest.history_date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Modified by</th>
+                            <td id=modified_by>{{ rvcurve.last.history_user.username }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <hr>
+
+    </section>
+
+    <div id="nameEdit">
+        <textarea name="edit-name" id="edit-name" cols="80" rows="2"></textarea>
+    </div>
+
+    {{ script|safe }}
+
+{% endblock %}

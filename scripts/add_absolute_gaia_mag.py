@@ -68,8 +68,10 @@ if __name__ == '__main__':
             gmag = star.photometry_set.filter(band__exact='GAIA3.G')
 
             if not gmag:
-                print('\t\tSkip star due to missing Gaia G magnitude')
-                continue
+                gmag = star.photometry_set.filter(band__exact='GAIA2.G')
+                if not gmag:
+                    print('\t\tSkip star due to missing Gaia G magnitude')
+                    continue
 
             #   Get Gaia photometry
             gmag = gmag[0]

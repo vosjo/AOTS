@@ -115,6 +115,7 @@ class SEDSerializer(ModelSerializer):
             'teff',
             'logg',
             'metallicity',
+            'sedfile',
             'note',
             'href',
         ]
@@ -126,7 +127,7 @@ class SEDSerializer(ModelSerializer):
 
 class RVcurveSerializer(ModelSerializer):
     star = SerializerMethodField()
-    rvcurvefile = SerializerMethodField()
+    # rvcurvefile = SerializerMethodField()
     href = SerializerMethodField()
 
     class Meta:
@@ -140,8 +141,7 @@ class RVcurveSerializer(ModelSerializer):
             'average_rv',
             'half_amplitude',
             'solved',
-            'ra',
-            'dec',
+            # 'rvcurvefile',
             'note',
             'href',
         ]
@@ -149,3 +149,9 @@ class RVcurveSerializer(ModelSerializer):
 
     def get_href(self, obj):
         return reverse('analysis:rvcurve_detail', kwargs={'project': obj.project.slug, 'rvcurve_id': obj.pk})
+
+    def get_star(self, obj):
+        if obj.star:
+            return SimpleStarSerializer(obj.star).data
+        else:
+            return {}

@@ -20,7 +20,14 @@ class RVcurve(models.Model):
     N_samples = models.FloatField(default=0)  # number of samples
 
     average_rv = models.FloatField(default=0)  # average value of the RV curve
-    half_amplitude = models.FloatField(default=0)  # half-amplitude K of the RV curve
+    average_rv_err = models.FloatField(default=0)
+
+    delta_rv = models.FloatField(default=0) # delta of highest to lowest rv values
+    delta_rv_err = models.FloatField(default=0) # delta of highest to lowest rv values
+
+    half_amplitude = models.FloatField(default=0)  # half-amplitude K of the RV curve from orbital solution
+    half_amplitude_err = models.FloatField(default=0)
+
     logp = models.FloatField(default=0)  # false-detection probability log p
 
     solved = models.BooleanField(default=False)

@@ -23,7 +23,7 @@
 
         {% if related_datasets %}
             <div>
-                <h3 title="Other datasets for the same star"> {{ dataset.star.name }} </h2>
+                <h3 title="Other datasets for the same star"> {{ dataset.star.name }} </h3>
                     <ul>
                         {% for d in related_datasets %}
                             {% if d.id == dataset.id %}
@@ -43,7 +43,7 @@
 
         {% if related_stars %}
             <div>
-                <h3 title="Other stars with same dataset type"> {{ dataset.method.name }} </h2>
+                <h3 title="Other stars with same dataset type"> {{ dataset.method.name }} </h3>
                     <ul>
                         {% for d in related_stars %}
                             {% if d.id == dataset.id %}

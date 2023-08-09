@@ -148,51 +148,6 @@ def parameter_plotter(request, project=None, **kwargs):
 # New rvcurve and SED views- above views are deprecated and will be removed
 
 @check_user_can_view_project
-def rvcurve_detail(request, dataset_id, project=None, **kwargs):
-    # show details dataset information
-
-    project = get_object_or_404(Project, slug=project)
-
-    dataset = get_object_or_404(DataSet, pk=dataset_id)
-
-    # make related datasets list
-    related_datasets = dataset.star.dataset_set.all()
-    related_stars = DataSet.objects.filter(method__exact=dataset.method)
-
-    # make the main figure
-    fit = dataset.make_large_figure()
-
-    oc = dataset.make_OC_figure()
-
-    #   Make the CI figures if they are available
-    hist = dataset.make_parameter_hist_figures()
-
-    #   Create necessary javascript
-    histnames = hist.keys()
-    all_figs = dict(hist, **{'fit': fit, 'oc': oc})
-    script, figures = components(all_figs, CDN)
-
-    #   Get only histogram plots
-    if not hist:
-        hists = []
-    else:
-        hists = [figures[name] for name in histnames]
-
-    context = {
-        'project': project,
-        'dataset': dataset,
-        'related_datasets': related_datasets,
-        'related_stars': related_stars,
-        'fit': figures['fit'],
-        'oc': figures['oc'],
-        'hist': hists,
-        'script': script,
-    }
-
-    return render(request, 'analysis/dataset_detail.html', context)
-
-
-@check_user_can_view_project
 def SED_detail(request, dataset_id, project=None, **kwargs):
     # show details dataset information
 
@@ -256,39 +211,28 @@ def SED_list(request, project=None, **kwargs):
 
 
 @check_user_can_view_project
-def rvcurve_detail(request, dataset_id, project=None, **kwargs):
+def rvcurve_detail(request, rvcurve_id, project=None, **kwargs):
     # show details dataset information
 
     project = get_object_or_404(Project, slug=project)
 
-    rvcurve = get_object_or_404(RVcurve, pk=dataset_id)
+    rvcurve = get_object_or_404(RVcurve, pk=rvcurve_id)
 
     # make the main figure
     fit, oc, metadata = plot_rvcurve(rvcurve.sourcefile)
 
-    #   Make the CI figures if they are available
-    hist = dataset.make_parameter_hist_figures()
+    all_figs = [fit, oc]
 
-    #   Create necessary javascript
-    histnames = hist.keys()
-    all_figs = dict(hist, **{'fit': fit, 'oc': oc})
     script, figures = components(all_figs, CDN)
 
-    #   Get only histogram plots
-    if not hist:
-        hists = []
-    else:
-        hists = [figures[name] for name in histnames]
 
     context = {
         'project': project,
-        'dataset': dataset,
-        'related_datasets': related_datasets,
-        'related_stars': related_stars,
-        'fit': figures['fit'],
-        'oc': figures['oc'],
-        'hist': hists,
+        'fit': figures[0],
+        'oc': figures[1],
+        'rvcurve': rvcurve,
+        'metadata': metadata,
         'script': script,
     }
 
-    return render(request, 'analysis/dataset_detail.html', context)
+    return render(request, 'analysis/rvcurve_detail.html', context)

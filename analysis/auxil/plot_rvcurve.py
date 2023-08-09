@@ -1,28 +1,30 @@
 from astropy.io import fits
 from bokeh import plotting as bpl
 from scipy.interpolate import interp1d
-
+import numpy as np
 from analysis.auxil.plot_datasets import plot_error_large, plot_error
 from bokeh import models as mpl
 
 
 def plot_rvcurve(datafile):
-    fitsfile = fits.open(datafile)
+    fitsfile = fits.open(datafile.path)
 
     if len(fitsfile) == 2:
-        metadata = fitsfile[0]
-        datapoints = fitsfile[1].data
+        metadata = dict(fitsfile[0].header)
+        datapoints = np.array(list(fitsfile[1].data))
         fit = None
     elif len(fitsfile) == 3:
-        metadata = fitsfile[0]
-        datapoints = fitsfile[1].data
+        metadata = dict(fitsfile[0].header)
+        datapoints = np.array(list(fitsfile[1].data))
         fit = fitsfile[2].data
     else:
         raise AssertionError("Your provided RVcurve file does not seem to match the requirements!")
 
-    times = datapoints[0, :]
-    rvs = datapoints[1, :]
-    rvs_err = datapoints[2, :]
+    column_names = dict(fitsfile[1].header)["COLNAMES"].split(";")
+
+    times = datapoints[:, column_names.index("MJD")]
+    rvs = datapoints[:, column_names.index("RV")]
+    rvs_err = datapoints[:, column_names.index("RVERR")]
 
     TOOLS = "pan, box_zoom, wheel_zoom, reset"
 

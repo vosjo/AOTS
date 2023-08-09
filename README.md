@@ -66,11 +66,7 @@ To run AOTS locally, using the simple sqlite database and the included server:
 ### 1. Setup the database
 
 ```
-python manage.py makemigrations users
-python manage.py makemigrations stars
-python manage.py makemigrations observations
-python manage.py makemigrations analysis
-python manage.py makemigrations dash
+python manage.py makemigrations 
 python manage.py migrate
 ```
 

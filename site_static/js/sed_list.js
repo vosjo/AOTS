@@ -1,4 +1,4 @@
-var sed_table = null;
+var seds_table = null;
 
 $(document).ready(function () {
     let columns;
@@ -11,37 +11,41 @@ $(document).ready(function () {
                 render: selection_render,
                 width: '10',
             },
-            {data: 'pk'},
-            {data: 'star', render: star_render},
             {data: 'teff', render: teff_render},
+            {data: 'star', render: star_render},
             {data: 'logg', render: logg_render},
+            {data: 'logtheta', render: logt_render},
             {data: 'metallicity', render: metallicity_render},
+            {data: 'color_excess', render: color_excess_render},
         ];
     } else {
         columns = [
-            {data: 'pk'},
-            {data: 'star', render: star_render},
             {data: 'teff', render: teff_render},
+            {data: 'star', render: star_render},
             {data: 'logg', render: logg_render},
+            {data: 'logtheta', render: logt_render},
             {data: 'metallicity', render: metallicity_render},
+            {data: 'color_excess', render: color_excess_render},
         ];
     }
 
     let ajax_kw;
     if (sessionStorage.getItem("selectedpks") === null) {
         ajax_kw = {
-            url: '/api/analysis/sed/?format=datatables&keep=href',
+            url: '/api/analysis/seds/?format=datatables&keep=href,teff_lerr,teff_uerr,logg_lerr,logg_uerr,' +
+                 'metallicity_lerr,metallicity_uerr,color_excess_lerr,color_excess_uerr,logtheta_uerr,logtheta_uerr',
             data: get_filter_keywords
         }
     } else {
         ajax_kw = {
-            url: '/api/analysis/sed/?format=datatables&keep=href',
+            url: '/api/analysis/seds/?format=datatables&keep=href,teff_lerr,teff_uerr,logg_lerr,logg_uerr,' +
+                 'metallicity_lerr,metallicity_uerr,color_excess_lerr,color_excess_uerr,logtheta_uerr,logtheta_uerr',
             data: carryover
         }
     }
 
     // Table functionality
-    sed_table = $('#SEDtable').DataTable({
+    seds_table = $('#sedstable').DataTable({
         dom: 'l<"toolbar">frtip',
         autoWidth: false,
         serverSide: true,
@@ -60,13 +64,13 @@ $(document).ready(function () {
     // Event listener to the two range filtering inputs to redraw on input
     $('#filter-form').submit(function (event) {
         event.preventDefault();
-        sed_table.draw();
+        seds_table.draw();
     });
 
     // check and uncheck tables rows
-    $('#sedtable tbody').on('click', 'td.select-control', function () {
+    $('#sedstable tbody').on('click', 'td.select-control', function () {
         var tr = $(this).closest('tr');
-        var row = sed_table.row(tr);
+        var row = seds_table.row(tr);
         if ($(row.node()).hasClass('selected')) {
             deselect_row(row);
         } else {
@@ -79,14 +83,14 @@ $(document).ready(function () {
             // deselect all
             $(this).text('check_box_outline_blank');
 
-            sed_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            seds_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
                 deselect_row(this); // Open this row
             });
         } else {
             // close all rows
             $(this).text('check_box');
 
-            sed_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            seds_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
                 select_row(this); // close the row
             });
         }
@@ -122,26 +126,36 @@ $(document).ready(function () {
             "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i>Download SEDs</a>" +
             "</div>" +
             "</div>" +
+            "<button id='upload-button' class='tb-button'><i class='material-icons button' title='Add System(s)'>add</i>Upload SED(s)</button>" +
             '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar"></progress>'
         );
+        $("#delete-button").click(delete_all_selected_seds);
+        $("#dl-button").click(download_seds);
+        $("#upload-button").click(openAddUploadsedsWindow);
     }
 
     //   Reset check boxes when changing number of displayed objects in table
-    $('#sedtable_length').change(function () {
-        sed_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+    $('#sedstable_length').change(function () {
+        seds_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
             deselect_row(this);
         });
     });
 
     //   Reset check boxes when switching to the next table page
-    $('#sedtable_paginate').click(function () {
-        sed_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+    $('#sedstable_paginate').click(function () {
+        seds_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
             deselect_row(this);
         });
     });
 
     // Adjust nav bar highlight
     adjust_nav_bar_active("#analysis_dropdown")
+
+    upload_seds_window = $("#uploadseds").dialog({
+        autoOpen: false,
+        width: '875',
+        modal: true,
+    });
 });
 
 
@@ -159,18 +173,16 @@ function get_filter_keywords(d) {
 
 // Table renderers
 function selection_render(data, type, full, meta) {
-    if ($(sed_table.row(meta['row']).node()).hasClass('selected')) {
+    if ($(seds_table.row(meta['row']).node()).hasClass('selected')) {
         return '<i class="material-icons button select" title="Select">check_box</i>';
     } else {
         return '<i class="material-icons button select" title="Select">check_box_outline_blank</i>';
     }
 }
 
-
-
 function star_render(data, type, full, meta) {
     try {
-        return "<a href='" + data['href'] + "' >" + data['name'] + "</a>" + " (" + data['ra'].toFixed(5) + " " + data['dec'].toFixed(5) + ")"
+        return "<a href='" + data['href'] + "' >" + data['name'] + "</a>"
     } catch (err) {
         return ''
     }
@@ -180,23 +192,68 @@ function teff_render(data, type, full, meta) {
     if (data === 0) {
         return "-"
     } else {
-        return data
+        if (full["teff_uerr"] === full["teff_lerr"]){
+            return "SED with T<sub>eff</sub> " + Math.round(data * 100) / 100 + " ± " + Math.round(full["teff_uerr"] * 100) / 100  // Round to 2 decimal places
+        }
+        else {
+            return "SED with T<sub>eff</sub> " + Math.round(data * 100) / 100 + " ± " + Math.round(full["teff_uerr"] * 100) / 100  // Round to 2 decimal places
+        }
     }
 }
+
+function logt_render(data, type, full, meta) {
+    if (data === 0) {
+        return "-"
+    } else {
+        if (full["logt_uerr"] === full["logt_lerr"]){
+            return Math.round(data * 100) / 100 + " ± " + Math.round(full["logt_lerr"] * 100) / 100  // Round to 2 decimal places
+        }
+        else {
+            return Math.round(data * 100) / 100 + " ± " + Math.round(full["logt_lerr"] * 100) / 100  // Round to 2 decimal places
+        }
+    }
+}
+
+
+function color_excess_render(data, type, full, meta) {
+    if (data === 0) {
+        return "-"
+    } else {
+        if (full["logg_uerr"] === full["logg_lerr"]){
+            return Math.round(data * 100) / 100 + " ± " + Math.round(full["color_excess_render_lerr"] * 100) / 100  // Round to 2 decimal places
+        }
+        else {
+            return Math.round(data * 100) / 100 + " ± " + Math.round(full["color_excess_render_lerr"] * 100) / 100  // Round to 2 decimal places
+        }
+    }
+}
+
 
 function logg_render(data, type, full, meta) {
     if (data === 0) {
         return "-"
     } else {
-        return data
+        if (full["logg_uerr"] === full["logg_lerr"]){
+            return Math.round(data * 100) / 100 + " ± " + Math.round(full["logg_lerr"] * 100) / 100  // Round to 2 decimal places
+        }
+        else {
+            return Math.round(data * 100) / 100 + " ± " + Math.round(full["logg_lerr"] * 100) / 100  // Round to 2 decimal places
+        }
     }
 }
+
+
 
 function metallicity_render(data, type, full, meta) {
     if (data === 0) {
         return "-"
     } else {
-        return data
+        if (full["metallicity_uerr"] === full["metallicity_lerr"]){
+            return Math.round(data * 100) / 100 + " ± " + Math.round(full["metallicity_lerr"] * 100) / 100  // Round to 2 decimal places
+        }
+        else {
+            return Math.round(data * 100) / 100 + " ± " + Math.round(full["metallicity_uerr"] * 100) / 100  // Round to 2 decimal places
+        }
     }
 }
 
@@ -205,7 +262,7 @@ function metallicity_render(data, type, full, meta) {
 function select_row(row) {
     $(row.node()).find("i[class*=select]").text('check_box');
     $(row.node()).addClass('selected');
-    if (sed_table.rows('.selected').data().length < sed_table.rows().data().length) {
+    if (seds_table.rows('.selected').data().length < seds_table.rows().data().length) {
         $('#select-all').text('indeterminate_check_box');
     } else {
         $('#select-all').text('check_box');
@@ -219,7 +276,7 @@ function select_row(row) {
 function deselect_row(row) {
     $(row.node()).find("i[class*=select]").text('check_box_outline_blank');
     $(row.node()).removeClass('selected');
-    if (sed_table.rows('.selected').data().length === 0) {
+    if (seds_table.rows('.selected').data().length === 0) {
         $('#select-all').text('check_box_outline_blank');
         $('#dl-button').addClass("disabled");
         $('#dl-raw-button').addClass("disabled");
@@ -228,6 +285,22 @@ function deselect_row(row) {
     } else {
         $('#select-all').text('indeterminate_check_box');
     }
+}
+
+
+//  Download options:
+
+//  Update progress bar
+function updatePercent(percent) {
+    $("#progress-bar")
+        .val(percent);
+}
+
+//  Change download button text
+function showProgress(text) {
+    $("#progress-bar").show()
+    $("#dl-button")
+        .val(text);
 }
 
 //  Show Error message
@@ -281,4 +354,144 @@ function Toggledownloaddropdown() {
     if (otherdd.is(":visible")) {
         otherdd.toggle("show");
     }
+}
+
+//  Delete spectra
+function delete_all_selected_seds() {
+    if (confirm('Are you sure you want to delete these SEDs? This can NOT be undone!') === true) {
+        let rows = [];
+        //   Get list of selected spectra
+        seds_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+            rows.push(this);
+        });
+
+        //   Set Promise -> evaluates to a resolved Promise
+        let p = $.when()
+
+        // Loop over selected spectra
+        $.each(rows, function (index, row) {
+            let pk = row.data()["href"].split('/')[5];
+            //  Delete each individual specfile or the spectrum if it is not associated
+            //  with any specfile, although the latter should never happen
+            //    Promise chaining using .then() + async function definition
+            //    to allow the use of await
+            p = p.then(async function () {
+                //  Ajax call to remove spec files
+                await $.ajax({
+                    url: "/api/analysis/seds/" + pk + '/',
+                    type: "DELETE",
+                    success: function (json) {
+                        //  Remove the whole spectrum from table
+                       seds_table.row(row).remove().draw('full-hold');
+                    },
+                    error: function (xhr, errmsg, err) {
+                        if (xhr.status === 403) {
+                            alert('You have to be logged in to delete this SED.');
+                        } else {
+                            alert(xhr.status + ": " + xhr.responseText);
+                        }
+                        console.log(xhr.status + ": " + xhr.responseText);
+                    }
+                });
+            });
+        })
+
+        //   Reset check boxes
+        seds_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            deselect_row(this);
+        });
+    }
+}
+
+//  Download SEDs
+function download_seds() {
+    //   Prevent impatient users from clicking again.
+    $('#dl-button').prop('disabled', true);
+    showProgress("Be Patient...");
+    //   Prepare file list
+    let sedlist = [];
+    //   Get list of selected spectra
+    seds_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+        let sedfilepk = this.data()["href"].split('/')[5];
+        //    Get file path
+        $.getJSON(
+            "/api/analysis/seds/" + sedfilepk + "/path/",
+            function (path) {
+                //    Add to file list
+                sedlist.push(path);
+            });
+    });
+
+    console.log(sedlist)
+
+    //   Load Filesaver and jszip libs to facilitate download
+    $.getScript("/static/js/JsZip/FileSaver.js").done(function () {
+        $.getScript("/static/js/JsZip/jszip.js").done(async function () {
+            $.getScript("/static/js/JsZip/jszip-utils.js").done(async function () {
+
+                //  Create zip file
+                let zip = new JSZip();
+
+                //  Set time string for zip file name
+                let dt = new Date();
+                let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
+
+                //  Get file using promises so that file assembly can wait until
+                //  download has finished
+                const getPromises = sedlist.map(async path => {
+                    let file = path.split('/').slice(-1);
+                    return new Promise(function (resolve, reject) {
+                        JSZipUtils.getBinaryContent(path, function (err, data) {
+                            if (err) {
+                                reject("ERROR: File not found");
+                            } else {
+                                resolve([file, data]);
+                            }
+                        })
+                    });
+                });
+
+                //  Fill zip file
+                for (const promise of getPromises) {
+                    try {
+                        const content = await promise;
+                        zip.file(content[0], content[1]);
+                    } catch (err) {
+                        showError(err);
+                        return
+                    }
+                }
+
+                //  Generate zip file
+                zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
+                    //  Update download progress
+                    let msg = "            " + metadata.percent.toFixed(2) + " %           ";
+                    showProgress(msg);
+                    updatePercent(metadata.percent | 0);
+                })
+                    .then(function callback(blob) {
+                        //  Save zip file
+                        saveAs(blob, "RVcurve_" + timecode + ".zip");
+                        //  Reset download button
+                        $('#dl-button').prop('disabled', false);
+                        showProgress("Download SEDs");
+                        $("#progress-bar").hide();
+                    }, function (e) {
+                        showError(e);
+                    });
+            });
+        });
+    });
+}
+
+function openAddUploadsedsWindow() {
+    upload_seds_window = $("#uploadseds").dialog({
+        autoOpen: false,
+        title: "Upload SED(s)",
+        close: function () {
+            upload_seds_window.dialog("close");
+        },
+    });
+
+    upload_seds_window.dialog("open");
 }

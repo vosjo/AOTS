@@ -101,7 +101,6 @@ class ParameterListSerializer(ModelSerializer):
 
 class SEDSerializer(ModelSerializer):
     star = SerializerMethodField()
-    sedfile = SerializerMethodField()
     href = SerializerMethodField()
 
     class Meta:
@@ -110,19 +109,35 @@ class SEDSerializer(ModelSerializer):
             'pk',
             'star',
             'project',
-            'ra',
-            'dec',
             'teff',
+            'teff_lerr',
+            'teff_uerr',
             'logg',
+            'logg_lerr',
+            'logg_uerr',
             'metallicity',
-            'sedfile',
+            'metallicity_lerr',
+            'metallicity_uerr',
+            'color_excess',
+            'color_excess_lerr',
+            'color_excess_uerr',
+            'logtheta',
+            'logtheta_lerr',
+            'logtheta_uerr',
+            # 'sedfile',
             'note',
             'href',
         ]
         read_only_fields = ('pk',)
 
     def get_href(self, obj):
-        return reverse('analysis:sed_detail', kwargs={'project': obj.project.slug, 'sed_id': obj.pk})
+        return reverse('analysis:SED_detail', kwargs={'project': obj.project.slug, 'sed_id': obj.pk})
+
+    def get_star(self, obj):
+        if obj.star:
+            return SimpleStarSerializer(obj.star).data
+        else:
+            return {}
 
 
 class RVcurveSerializer(ModelSerializer):

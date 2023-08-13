@@ -1715,6 +1715,7 @@ div.dash-lower-right {
     width: 25%;
     float: right;
     overflow: hidden;
+    padding: 0px;
 }
 
 div.dash-lower-right h1 {
@@ -1725,14 +1726,14 @@ div.dash-lower-right h1 {
 div.dash-changelog-container {
     border-top: 2px solid var(--highlight_color_03);
     overflow: scroll;
-    max-height: 90%;
+    max-height: 100%;
     width: 100%;
 }
 
 div.dash-changelog-field {
     padding: 5px;
     width: calc(100% - 10px);
-    border-bottom: 2px solid var(--highlight_color_03);
+    border-bottom: 1px solid var(--highlight_color_03);
 }
 
 b.dash-changelog-field-title {
@@ -1901,4 +1902,10 @@ i.dash-icon {
 
 #submitbtn:hover {
     background-color: rgba(173, 215, 246, 0.4);
+}
+
+
+h2.latest-changes {
+    margin: 10px;
+    max-height: 5%;
 }

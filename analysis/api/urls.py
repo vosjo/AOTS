@@ -11,7 +11,7 @@ router = routers.DefaultRouter()
 router.register(r'methods', MethodViewSet)
 router.register(r'datasets', DatasetViewSet)
 router.register(r'parameters', ParameterViewSet)
-router.register(r'sed', SEDViewSet)
+router.register(r'seds', SEDViewSet)
 router.register(r'rvcurves', RVcurveViewSet)
 
 urlpatterns = [

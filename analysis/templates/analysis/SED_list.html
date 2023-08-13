@@ -35,7 +35,7 @@
 
     <section>
 
-        <table id="SEDtable" class="fullwidth">
+        <table id="sedstable" class="fullwidth">
             <thead>
             <tr>
                 {% if user.is_authenticated %}
@@ -43,10 +43,12 @@
                         <i id="select-all" class="material-icons button select" title="Select/Deselect All">check_box_outline_blank</i>
                     </th>
                 {% endif %}
+                <th>Effective Temperature T<sub>eff</sub></th>
                 <th>System</th>
-                <th>Effective Temperature Teff</th>
-                <th>Surface Gravity logg</th>
+                <th>Surface Gravity log(g)</th>
+                <th>Angular diameter log(ϴ)</th>
                 <th>Metallicity</th>
+                <th>Color Excess</th>
             </tr>
             </thead>
             <tfoot>
@@ -54,15 +56,42 @@
                 {% if user.is_authenticated %}
                     <th></th>
                 {% endif %}
+                <th>Effective Temperature T<sub>eff</sub></th>
                 <th>System</th>
-                <th>Effective Temperature Teff</th>
-                <th>Surface Gravity logg</th>
+                <th>Surface Gravity log(g)</th>
+                <th>Angular diameter log(ϴ)</th>
                 <th>Metallicity</th>
+                <th>Color Excess</th>
             </tr>
             </tfoot>
         </table>
 
-
     </section>
 
+    <div id="uploadseds">
+        <div class="ui-controlgroup-horizontal">
+            <form action="{% url "analysis:SED_list" project.slug %}" method="post"
+                  enctype="multipart/form-data" class="upload" id="system-upload-form">
+                <h3> Add new SEDs </h3>
+                {% if user.is_authenticated %}
+                    {% csrf_token %}
+                    {% if upload_form.non_field_errors %}
+                        <p>{{ upload_form.non_field_errors }}</p>
+                    {% endif %}
+
+                    <p>
+                        {{ upload_form.sourcefile.errors }}
+                        {{ upload_form.sourcefile }}
+                    </p>
+
+                    <!--       <input id="system-add-upload-button" type="submit" class="material-icons button" value="file_upload"/> -->
+                    <input type="submit" class="upload-button" value="Upload SED File"/>
+                {% else %}
+                    <p> Log in to upload SEDs! </p>
+                {% endif %}
+            </form>
+        </div>
+        <a disabled {#  href="/media/docs/Bulk_system_example.csv" #}><p class="add-system-csv-example">Example .fits file (coming soon!)</p>
+        </a>
+    </div>
 {% endblock %}

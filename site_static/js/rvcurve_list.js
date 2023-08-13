@@ -384,7 +384,7 @@ function delete_all_selected_rvcurves() {
                     },
                     error: function (xhr, errmsg, err) {
                         if (xhr.status === 403) {
-                            alert('You have to be logged in to delete this spectrum.');
+                            alert('You have to be logged in to delete this RV curve.');
                         } else {
                             alert(xhr.status + ": " + xhr.responseText);
                         }
@@ -480,10 +480,6 @@ function download_rvcurves() {
             });
         });
     });
-}
-
-function upload_rvcurves() {
-
 }
 
 function openAddUploadRVCurvesWindow() {

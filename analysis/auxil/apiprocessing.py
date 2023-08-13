@@ -2,14 +2,14 @@ from django.db.models import F, ExpressionWrapper, DecimalField
 from stars.models import Star
 
 
-def find_or_create_star(metadata, project, rvcurve):
+def find_or_create_star(metadata, project, modelinstance, modeltype, update_star=True):
     message = "RV Curve successfully created"
     ra = metadata["RA"]
     dec = metadata["DEC"]
 
     star = Star.objects.filter(project__exact=project) \
-            .filter(ra__range=(ra - 0.1, ra + 0.1)) \
-            .filter(dec__range=(dec - 0.1, dec + 0.1))
+        .filter(ra__range=(ra - 0.1, ra + 0.1)) \
+        .filter(dec__range=(dec - 0.1, dec + 0.1))
 
     if len(star) > 0:
         #     If there is one or more stars returned, select the closest star
@@ -21,7 +21,13 @@ def find_or_create_star(metadata, project, rvcurve):
                 output_field=DecimalField()
             )
         ).order_by('distance')[0]
-        star.rvcurve_set.add(rvcurve)
+        if modeltype == "RV":
+            star.rvcurve_set.add(modelinstance)
+        elif modeltype == "SED":
+            star.sed_set.add(modelinstance)
+            if update_star:
+                # TODO: update star params
+                pass
         message += ", and added to existing System {} (_r = {})".format(
             star,
             star.distance
@@ -45,7 +51,13 @@ def find_or_create_star(metadata, project, rvcurve):
             star.classification = metadata['SPCLASS']
         star.save()
 
-        star.rvcurve_set.add(rvcurve)
+        if modeltype == "RV":
+            star.rvcurve_set.add(modelinstance)
+        elif modeltype == "SED":
+            star.sed_set.add(modelinstance)
+            if update_star:
+                # TODO: update star params
+                pass
 
         message += ", and added to new System {}".format(star)
         return True, message, star

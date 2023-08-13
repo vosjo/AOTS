@@ -72,3 +72,13 @@ class UploadRVCurveForm(forms.Form):
             attrs={'allow_multiple_selected': True}
             ),
     )
+
+
+class UploadSEDForm(forms.Form):
+    #   Files
+    sourcefile = forms.FileField(
+        label='Select SEDS files',
+        widget=forms.ClearableFileInput(
+            attrs={'allow_multiple_selected': True}
+            ),
+    )

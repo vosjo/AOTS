@@ -17,8 +17,24 @@ class SED(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False, )
 
     teff = models.FloatField(default=0)
+    teff_lerr = models.FloatField(default=0)
+    teff_uerr = models.FloatField(default=0)
+
     logg = models.FloatField(default=0)
+    logg_lerr = models.FloatField(default=0)
+    logg_uerr = models.FloatField(default=0)
+
     metallicity = models.FloatField(default=0)
+    metallicity_lerr = models.FloatField(default=0)
+    metallicity_uerr = models.FloatField(default=0)
+
+    color_excess = models.FloatField(default=0)
+    color_excess_lerr = models.FloatField(default=0)
+    color_excess_uerr = models.FloatField(default=0)
+
+    logtheta = models.FloatField(default=0)
+    logtheta_lerr = models.FloatField(default=0)
+    logtheta_uerr = models.FloatField(default=0)
 
     instrument = models.CharField(max_length=200, default='')
 
@@ -31,4 +47,4 @@ class SED(models.Model):
 
     # -- representation of self
     def __str__(self):
-        return f"SED for {self.star.name} with ...some parameters..."  # TODO:add these parameters here
+        return f"SED for {self.star.name} with T_eff {self.teff} and log(g) {self.logg}."

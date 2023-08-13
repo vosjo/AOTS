@@ -21,9 +21,9 @@ urlpatterns = [
         name='rvcurve_detail'
     ),
 
-    path('SED/', views.SED_list, name='SED_list'),
+    path('seds/', views.SED_list, name='SED_list'),
     path(
-        'SED/<int:SED_id>/',
+        'seds/<int:sed_id>/',
         views.SED_detail,
         name='SED_detail'
     ),

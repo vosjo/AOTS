@@ -4,6 +4,7 @@ from astropy.io import fits
 from scipy import stats
 
 from analysis.auxil.apiprocessing import find_or_create_star
+from analysis.models.SEDs import SED
 from analysis.models.rvcurves import RVcurve
 from stars.models import Star
 
@@ -106,6 +107,13 @@ def calculate_logp(vrad, vrad_err):
     return logp
 
 
+def get_key_or_blank(dictionary, key):
+    try:
+        return dictionary[key]
+    except KeyError:
+        return 0
+
+
 def process_rvcurvefiles(files, project, handle_double=None):
     returned_messages = []
     n_exceptions = 0
@@ -113,7 +121,16 @@ def process_rvcurvefiles(files, project, handle_double=None):
         test = fits.open(f)
         metadata = dict(test[0].header)
         datapoints = np.array(list(test[1].data))
-        column_names = dict(test[1].header)["COLNAMES"].split(";")
+        datainfo = dict(test[1].header)
+        column_names = []
+        n = 1
+        while True:
+            if "TTYPE" + str(n) in datainfo:
+                column_names.append(datainfo["TTYPE" + str(n)])
+                n += 1
+            else:
+                break
+
         rvs = datapoints[:, column_names.index("RV")]
         rvs_err = datapoints[:, column_names.index("RVERR")]
         times = datapoints[:, column_names.index("MJD")]
@@ -154,21 +171,74 @@ def process_rvcurvefiles(files, project, handle_double=None):
 
         newrvcurve = RVcurve(
             sourcefile=f,
-            average_rv=metadata["RVAVG"],
-            average_rv_err=metadata["U_RVAVG"],
-            delta_rv=metadata["DRV"],
-            delta_rv_err=metadata["U_DRV"],
-            logp=metadata["LOGP"],
-            N_samples=metadata["NSPEC"],
-            time_spanned=metadata["TSPAN"],
+            average_rv=get_key_or_blank(metadata, "RVAVG"),
+            average_rv_err=get_key_or_blank(metadata, "U_RVAVG"),
+            delta_rv=get_key_or_blank(metadata, "DRV"),
+            delta_rv_err=get_key_or_blank(metadata, "U_DRV"),
+            logp=get_key_or_blank(metadata, "LOGP"),
+            N_samples=get_key_or_blank(metadata, "NSPEC"),
+            time_spanned=get_key_or_blank(metadata, "TSPAN"),
             project=project,
         )
         newrvcurve.save()
 
-        success, msg, star = find_or_create_star(metadata, project, newrvcurve)
+        success, msg, star = find_or_create_star(metadata, project, newrvcurve, modeltype="RV")
 
         if success:
             returned_messages.append(f"Successfully added RV curve to star {star.name}")
+        else:
+            n_exceptions += 1
+            returned_messages.append(f"Something went wrong for file {f}")
+    return returned_messages, n_exceptions
+
+
+def process_SEDfiles(files, project, handle_double=None, update_star=False):
+    returned_messages = []
+    n_exceptions = 0
+    for f in files:
+        test = fits.open(f)
+        metadata = dict(test[0].header)
+
+        # try:
+        curveexists = SED.objects.get(teff__exact=metadata["TEFF"],
+                                      logg__exact=metadata["LOGG"],
+                                      metallicity__exact=metadata['METAL'])
+        if handle_double == "overwrite":
+            curveexists.delete()
+        # except:
+        #     n_exceptions += 1
+        #     returned_messages.append(f"SED with effective Temperature {metadata['TEFF']}, logg {metadata['LOGG']} and "
+        #                              f"metallicity {metadata['METAL']} already exists, please specify if you want to "
+        #                              f"append or overwrite!")
+
+        newSED = SED(
+            sourcefile=f,
+            teff=get_key_or_blank(metadata, "TEFF"),
+            teff_lerr=get_key_or_blank(metadata, "TEFF_LE"),
+            teff_uerr=get_key_or_blank(metadata, "TEFF_UE"),
+            logg=get_key_or_blank(metadata, "LOGG"),
+            logg_lerr=get_key_or_blank(metadata, "LOGG_LE"),
+            logg_uerr=get_key_or_blank(metadata, "LOGG_UE"),
+            metallicity=get_key_or_blank(metadata, "METAL"),
+            metallicity_lerr=get_key_or_blank(metadata, "METAL_LE"),
+            metallicity_uerr=get_key_or_blank(metadata, "METAL_UE"),
+            color_excess=get_key_or_blank(metadata, "CEX"),
+            color_excess_lerr=get_key_or_blank(metadata, "CEX_LE"),
+            color_excess_uerr=get_key_or_blank(metadata, "CEX_UE"),
+            logtheta=get_key_or_blank(metadata, "LOGT"),
+            logtheta_lerr=get_key_or_blank(metadata, "LOGT_LE"),
+            logtheta_uerr=get_key_or_blank(metadata, "LOGT_UE"),
+            project=project,
+        )
+        newSED.save()
+
+        if update_star:
+            success, msg, star = find_or_create_star(metadata, project, newSED, "SED", True)
+        else:
+            success, msg, star = find_or_create_star(metadata, project, newSED, "SED")
+
+        if success:
+            returned_messages.append(f"Successfully added SED to star {star.name}")
         else:
             n_exceptions += 1
             returned_messages.append(f"Something went wrong for file {f}")

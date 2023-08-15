@@ -9,8 +9,10 @@ from stars.models import Project
 from .auxil import process_datasets, plot_parameters
 from .auxil.auxil import process_rvcurvefiles, process_SEDfiles
 from .auxil.plot_rvcurve import plot_rvcurve
+from .auxil.plot_seds import plot_sed
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm, UploadRVCurveForm, UploadSEDForm
 from .models import DataSet
+from .models.SEDs import SED
 from .models.rvcurves import RVcurve
 
 
@@ -149,48 +151,33 @@ def parameter_plotter(request, project=None, **kwargs):
 # New rvcurve and SED views- above views are deprecated and will be removed
 
 @check_user_can_view_project
-def SED_detail(request, dataset_id, project=None, **kwargs):
+def SED_detail(request, sed_id, project=None, **kwargs):
     # show details dataset information
 
     project = get_object_or_404(Project, slug=project)
 
-    dataset = get_object_or_404(DataSet, pk=dataset_id)
-
-    # make related datasets list
-    related_datasets = dataset.star.dataset_set.all()
-    related_stars = DataSet.objects.filter(method__exact=dataset.method)
+    sed = get_object_or_404(SED, pk=sed_id)
 
     # make the main figure
-    fit = dataset.make_large_figure()
+    flxfig, flxoc, magfig, magoc, metadata = plot_sed(sed.sourcefile)
 
-    oc = dataset.make_OC_figure()
+    all_figs = [flxfig, magfig, flxoc, magoc]
 
-    #   Make the CI figures if they are available
-    hist = dataset.make_parameter_hist_figures()
-
-    #   Create necessary javascript
-    histnames = hist.keys()
-    all_figs = dict(hist, **{'fit': fit, 'oc': oc})
     script, figures = components(all_figs, CDN)
 
-    #   Get only histogram plots
-    if not hist:
-        hists = []
-    else:
-        hists = [figures[name] for name in histnames]
 
     context = {
         'project': project,
-        'dataset': dataset,
-        'related_datasets': related_datasets,
-        'related_stars': related_stars,
-        'fit': figures['fit'],
-        'oc': figures['oc'],
-        'hist': hists,
+        'flxfig': figures[0],
+        'magfig': figures[1],
+        'flxoc': figures[2],
+        'magoc': figures[3],
+        'sed': sed,
+        'metadata': metadata,
         'script': script,
     }
 
-    return render(request, 'analysis/dataset_detail.html', context)
+    return render(request, 'analysis/sed_detail.html', context)
 
 
 @check_user_can_view_project

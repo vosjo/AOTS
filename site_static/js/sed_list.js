@@ -193,10 +193,10 @@ function teff_render(data, type, full, meta) {
         return "-"
     } else {
         if (full["teff_uerr"] === full["teff_lerr"]){
-            return "SED with T<sub>eff</sub> " + Math.round(data * 100) / 100 + " ± " + Math.round(full["teff_uerr"] * 100) / 100  // Round to 2 decimal places
+            return "<a href= '" + full['href'] + "'>SED with T<sub>eff</sub> " + Math.round(data * 100) / 100 + " ± " + Math.round(full["teff_uerr"] * 100) / 100 + "</a>" // Round to 2 decimal places
         }
         else {
-            return "SED with T<sub>eff</sub> " + Math.round(data * 100) / 100 + " ± " + Math.round(full["teff_uerr"] * 100) / 100  // Round to 2 decimal places
+            return "<a href= '" + full['href'] + "'>SED with T<sub>eff</sub> " + Math.round(data * 100) / 100 + " ± " + Math.round(full["teff_uerr"] * 100) / 100 + "</a>"   // Round to 2 decimal places
         }
     }
 }

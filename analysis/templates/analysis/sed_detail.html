@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+{% load conversion_tags %}
+
+{% block head %}
+
+    {% include "bokeh.html" %}
+    <script type="text/javascript" src="{% static 'js/sed_detail.js' %}"></script>
+    <title>SED for {{ sed.star.name }}</title>
+
+{% endblock %}
+
+
+{% block headertitle %}SED for {{ sed.star.name }}{% endblock %}
+
+
+{% block content %}
+
+    <i display="none" id="project-pk" project={{ project.pk }}></i>
+
+    <section class='data-section'>
+
+        <div class="main-container-h border">
+
+            <div class='header-item'>
+                <h3 id="nameField"> SED </h3>
+            </div>
+
+            <div class='header-item'>
+                <p class="material-icons">star </p>
+                <h3><a href={% url 'systems:star_detail' project.slug sed.star.pk %}>{{ sed.star.name }}</a>
+                </h3>
+            </div>
+        </div>
+
+        <div class="flex-data-container j-center">
+
+            <div class="main-container border maxw50 minw800">
+                <div class="toggle-container">
+                    <label class="toggle">
+                        <input type="checkbox" id="switchToggle">
+                        <span class="slider"></span>
+                        <span class="labels" data-on="MAG" data-off="FLUX"></span>
+                    </label>
+                </div>
+                <!--zoom_out_map all_out fullscreen-->
+                <div class='block' id='fluxBlock'>
+                    {{ flxfig|safe }}
+                </div>
+                <div class='block' id='magBlock' style='display: none'>
+                    {{ magfig|safe }}
+                </div>
+
+                <div class='block' id='fluxOcBlock'>
+                    {{ flxoc|safe }}
+                </div>
+                <div class='block' id='magOcBlock' style='display: none'>
+                    {{ magoc|safe }}
+                </div>
+
+            </div>
+
+
+            <div class="main-container maxw50 stretch">
+
+                <div class="main-container border ">
+                    <h3>Parameters</h3>
+                    <p>Parameter stuff</p>
+                </div>
+
+                <div class="main-container border">
+                    <h3>Notes</h3>
+                    {% if user.is_authenticated %}
+                        <i id="noteEditButton" class="material-icons button edit" title="edit note"
+                           dataset_id={{ sed.pk }}>edit</i>
+                    {% endif %}
+                    <div id="noteField">
+                        {{ sed.note|linebreaks }}
+                    </div>
+                </div>
+
+                <div class="main-container border">
+                    <h3>Meta data</h3>
+                    <table class="metatable">
+                        <tr>
+                            <th>Added by</th>
+                            <td>{{ sed.history.earliest.history_user.first_name }} {{ sed.history.earliest.history_user.last_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Added on</th>
+                            <td>{{ sed.history.earliest.history_date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last modified</th>
+                            <td>{{ sed.history.latest.history_date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Modified by</th>
+                            <td id=modified_by>{{ sed.last.history_user.username }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <hr>
+
+    </section>
+
+    {{ script|safe }}
+
+{% endblock %}

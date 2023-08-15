@@ -141,12 +141,16 @@ def process_rvcurvefiles(files, project, handle_double=None):
                                               delta_rv=np.ptp(rvs))
             if handle_double == "overwrite":
                 curveexists.delete()
-            if handle_double == "append":
+            elif handle_double == "append":
                 # TODO: add append action
                 pass
+            else:
+                n_exceptions += 1
+                returned_messages.append(
+                    f"RV Curve with average RV {np.mean(rvs)} already exists, please specify if you want to append or overwrite!")
+
         except:
-            n_exceptions += 1
-            returned_messages.append(f"RV Curve with average RV {np.mean(rvs)} already exists, please specify if you want to append or overwrite!")
+            pass
 
         if "LOGP" not in metadata or np.isnan(metadata["LOGP"]):
             metadata["LOGP"] = calculate_logp(rvs, rvs_err)
@@ -199,17 +203,21 @@ def process_SEDfiles(files, project, handle_double=None, update_star=False):
         test = fits.open(f)
         metadata = dict(test[0].header)
 
-        # try:
-        curveexists = SED.objects.get(teff__exact=metadata["TEFF"],
-                                      logg__exact=metadata["LOGG"],
-                                      metallicity__exact=metadata['METAL'])
-        if handle_double == "overwrite":
-            curveexists.delete()
-        # except:
-        #     n_exceptions += 1
-        #     returned_messages.append(f"SED with effective Temperature {metadata['TEFF']}, logg {metadata['LOGG']} and "
-        #                              f"metallicity {metadata['METAL']} already exists, please specify if you want to "
-        #                              f"append or overwrite!")
+        try:
+            curveexists = SED.objects.get(teff__exact=metadata["TEFF"],
+                                          logg__exact=metadata["LOGG"],
+                                          metallicity__exact=metadata['METAL'])
+            if handle_double == "overwrite":
+                curveexists.delete()
+            else:
+                n_exceptions += 1
+                returned_messages.append(
+                    f"SED with effective Temperature {metadata['TEFF']}, logg {metadata['LOGG']} and "
+                    f"metallicity {metadata['METAL']} already exists, please specify if you want to "
+                    f"append or overwrite!")
+
+        except:
+            pass
 
         newSED = SED(
             sourcefile=f,

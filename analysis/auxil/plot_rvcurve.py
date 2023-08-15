@@ -16,17 +16,26 @@ def plot_rvcurve(datafile):
     if len(fitsfile) == 2:
         metadata = dict(fitsfile[0].header)
         datapoints = np.array(list(fitsfile[1].data))
+        datainfo = dict(fitsfile[1].header)
         fit = None
         fitparams = None
     elif len(fitsfile) == 3:
         metadata = dict(fitsfile[0].header)
         datapoints = np.array(list(fitsfile[1].data))
+        datainfo = dict(fitsfile[1].header)
         fit = fitsfile[2].data
         fitparams = dict(fitsfile[2].header)
     else:
         raise AssertionError("Your provided RVcurve file does not seem to match the requirements!")
 
-    column_names = dict(fitsfile[1].header)["COLNAMES"].split(";")
+    column_names = []
+    n = 1
+    while True:
+        if "TTYPE" + str(n) in datainfo:
+            column_names.append(datainfo["TTYPE" + str(n)])
+            n += 1
+        else:
+            break
 
     times = datapoints[:, column_names.index("MJD")]
     rvs = datapoints[:, column_names.index("RV")]
@@ -73,6 +82,13 @@ def plot_rvcurve(datafile):
             ocfig.circle(times, rvs - f(times), color="blue",
                          size=7, legend_label="Residuals")
 
+            ocfig.toolbar.logo = None
+            ocfig.yaxis.axis_label = "RV (km/s)"
+            ocfig.xaxis.axis_label = "HJD"
+            ocfig.yaxis.axis_label_text_font_size = '10pt'
+            ocfig.xaxis.axis_label_text_font_size = '10pt'
+            ocfig.min_border = 5
+
         except Exception as e:
             #TODO: add the super complicated Kepler model thingy
             if fitparams["MTYPE"] == "sinusoid":
@@ -88,6 +104,9 @@ def plot_rvcurve(datafile):
 
                 ocfig.circle(times, rvs - f(times), color="blue",
                              size=7, legend_label="")
+
+                hline = mpl.Span(location=0, dimension='width', line_color='black', line_width=2, line_dash='dashed')
+                ocfig.add_layout(hline)
 
 
     else:

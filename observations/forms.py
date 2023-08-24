@@ -8,21 +8,35 @@ from stars.models import Star
 from .models import Observatory, SpecFile
 
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
+
 # ===========================================================================================
 #  SPECFILE
 # ===========================================================================================
 
 class UploadSpectraDetailForm(forms.Form):
     #   File
-    spectrumfile = forms.FileField(
-        label='Select a spectrum',
-        widget=forms.ClearableFileInput(
-            attrs={'allow_multiple_selected': True}
-            ),
-    )
+    spectrumfile = MultipleFileField(label='Please select the spectra...')
+
     # merge_spectra_if_possible = forms.BooleanField(required=False)
 
-    #   Add infos provided by the user?
+    #   Add info provided by the user?
     add_info = forms.BooleanField(initial=False, required=False)
 
     #   File type
@@ -99,19 +113,19 @@ class UploadSpectraDetailForm(forms.Form):
     )
 
 
-class UploadSpecFileForm(forms.Form):
-    specfile_field = forms.FileField(
-        label='Select a spectrum',
-        widget=forms.ClearableFileInput(
-            attrs={'allow_multiple_selected': True}
-            )
-    )
+# class UploadSpecFileForm(forms.Form):
+#     specfile_field = forms.FileField(
+#         label='Select a spectrum',
+#         widget=forms.ClearableFileInput(
+#             attrs={'allow_multiple_selected': True}
+#             )
+#     )
 
 
 class UploadRawSpecFileForm(forms.Form):
-    '''
+    """
         Upload form for spectroscopic raw data
-    '''
+    """
 
     system_name = forms.CharField(
         max_length=100,
@@ -141,16 +155,13 @@ class UploadRawSpecFileForm(forms.Form):
     )
 
     #   Raw file upload field
-    rawfile = forms.FileField(
-        label='Raw files',
-        widget=forms.ClearableFileInput(attrs={'allow_multiple_selected': True})
-    )
+    rawfile = MultipleFileField(label='Raw files')
 
 
 class PatchRawSpecFileForm(forms.Form):
-    '''
+    """
         Patch form for spectroscopic raw data
-    '''
+    """
     system_name_patch = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={'class': 'form_long'}),
@@ -179,37 +190,37 @@ class PatchRawSpecFileForm(forms.Form):
 
 
 class OrderField(forms.IntegerField):
-    '''
+    """
         Specific form field for the polynomial order
-    '''
+    """
 
     def validate(self, value):
         #   Use the parent's handling of integer fields
         super().validate(value)
         #   Add specific handling
-        if value != None and value > 15:
+        if value is not None and value > 15:
             raise forms.ValidationError("More than 15 orders are not supported")
 
 
 class BinningField(forms.IntegerField):
-    '''
+    """
         Specific form field for the polynomial order
-    '''
+    """
 
     def validate(self, value):
         #   Use the parent's handling of integer fields
         super().validate(value)
         #   Add specific handling
-        if value != None and value > 100:
+        if value is not None and value > 100:
             raise forms.ValidationError("Binning of > 100 is not supported")
         # if value != None and value == 0:
         # raise forms.ValidationError("Binning of 0 makes no sense")
 
 
 class SpectrumModForm(forms.Form):
-    '''
+    """
         Form to customize spectral plots (on the detail page)
-    '''
+    """
     normalize = forms.BooleanField(label="Normalize", required=False)
     order = OrderField(label="Polynomial order", required=False)
     binning = BinningField(label="Select a binning", required=False)
@@ -225,11 +236,7 @@ class SpectrumModForm(forms.Form):
 # ===========================================================================================
 
 class UploadLightCurveForm(forms.Form):
-    lcfile = forms.FileField(label='Select a light curve',
-                             widget=forms.ClearableFileInput(
-                                 attrs={'allow_multiple_selected': True}
-                                 )
-                             )
+    lcfile = MultipleFileField(label='Select light curves')
 
 
 # ===========================================================================================

@@ -299,9 +299,6 @@ a:link, a:visited {
 
 /* GENERAL DEFINITIONS */
 
-.show {
-    display: block;
-}
 
 .icon {
     align-self: center;
@@ -1900,4 +1897,8 @@ i.dash-icon {
 
 #submitbtn:hover {
     background-color: rgba(173, 215, 246, 0.4);
+}
+
+.show {
+    display: block;
 }

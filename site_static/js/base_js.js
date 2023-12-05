@@ -185,11 +185,11 @@ $(document).ready(function () {
         }
     })
 
-    // Close the dropdown menu if the user clicks outside of it
+    // Close the dropdown menu of the nav bar if the user clicks outside of it
     $(window).click(function (e) {
         if (!e.target.matches('.drop_button') && !e.target.matches('.unfold_button')) {
     //       openNavMenu();
-            $(".dropdown-content").each(function (i) {
+            $(".nav_dropdown-content").each(function (i) {
                 if ($(this).hasClass('show')) {
                     $(this).removeClass('show');
                 }

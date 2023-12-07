@@ -1,4 +1,5 @@
 var lightcurve_table = null;
+let add_lightcurve_window = null;
 
 $(document).ready(function () {
     let columns;
@@ -126,12 +127,15 @@ $(document).ready(function () {
 
     if (user_authenticated) {
         $("div.toolbar").html(
-            "<input id='dl-button'  class='tb-button' value='Download Lightcurve(s)' type='button' disabled>" +
-            "<input id='delete-button'  class='tb-button' value='Delete Lightcurve(s)' type='button' disabled>" +
-            '<progress id="progress-bar" value="0" max="100" class="progress-bar"></progress>'
+            "<button id='add-button' class='tb-button'><i class='material-icons button' title='Add new'>add</i>Add new</button>" +
+            "<button id='dl-button' class='tb-button' disabled=><i class='material-icons button' title='Download selected'>download</i>Download selected</button>" +
+            "<button id='delete-button' class='tb-button' disabled=><i class='material-icons button' title='Delete selected'>delete</i>Delete selected</button>" +
+            '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
+            '<progress hidden id="progress-bar-upload" value="0" max="100" class="progress-bar"></progress>'
         );
         $("#dl-button").click(download_lightcurves);
         $("#delete-button").click(delete_lightcurves);
+        $("#add-button").click(open_add_lightcurve_window);
     }
     $('#lightcurvetable_length').change(function () {
         lightcurve_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
@@ -146,9 +150,32 @@ $(document).ready(function () {
         });
     });
 
+
+    //  Initialize add_lightcurve_window();
+    add_lightcurve_window = $("#add_lightcurve").dialog({
+        autoOpen: false,
+        width: '400',
+        modal: true,
+        autoOpen: false,
+        title: "Add new light curve(s)",
+        close: function () {
+            add_lightcurve_window.dialog("close");
+        },
+    });
+
     // Adjust nav bar highlight
     adjust_nav_bar_active("#observation_dropdown")
 });
+
+
+//  Open add lightcurve window
+function open_add_lightcurve_window() {
+//    $("#raw-upload-form").submit(function () {
+//        $(this).closest(".ui-dialog-content").dialog("close");
+//    });
+
+    add_lightcurve_window.dialog("open");
+}
 
 
 // Table filter functionality

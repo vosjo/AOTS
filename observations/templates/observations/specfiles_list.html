@@ -5,11 +5,11 @@
 
     {% include "datatables.html" %}
     <script type="text/javascript" src="{% static 'js/specfiles_list.js' %}"></script>
-    <title>Spectrum Files</title>
+    <title>Spectra: File list</title>
 
 {% endblock %}
 
-{% block headertitle %} Spectra File List {% endblock %}
+{% block headertitle %} Spectra: File list {% endblock %}
 
 {% block content %}
 
@@ -80,10 +80,10 @@
     <section class='data-section'>
         <div class="main-container">
             <div class='header-item'>
-                <h3 id="nameField"> Uploaded files </h3>
+                <h2 id="nameField"> Uploaded files </h2>
             </div>
             <div class='header-item'>
-                <h4> Multiple files may belong into a single <a
+                <h4> Multiple files can be part of a single <a
                         href="{% url "observations:spectra_list" project.slug %}">spectrum<a>.</h4>
             </div>
 

@@ -16,28 +16,37 @@
     <i display="none" id="project-pk" project={{ project.pk }}></i>
 
 
-    <div class='upload_old'>
-        <form action="{% url "observations:lightcurve_list" project.slug %}" method="post" enctype="multipart/form-data"
-              class="upload" id="lightcurve-upload-form">
-            <h3> Add new light curves </h3>
+    <!-- Div ect necessary for editing on page stuff with ajax -->
+    <div id="add_lightcurve">
+        {% if user.is_authenticated %}
+            <fieldset>
+                <legend> Select light curve files </legend>
+                <div class="ui-controlgroup-horizontal">
+                    <form action="{% url "observations:lightcurve_list" project.slug %}" method="post" enctype="multipart/form-data"
+                          class="upload" id="lightcurve-upload-form">
 
-            {% if user.is_authenticated %}
-                {% csrf_token %}
-                {% if upload_form.non_field_errors %}
-                    <p>{{ upload_form.non_field_errors }}</p>
-                {% endif %}
+                        {% csrf_token %}
+                        {% if upload_form.non_field_errors %}
+                            <p>{{ upload_form.non_field_errors }}</p>
+                        {% endif %}
 
-                <p>
-                    {{ upload_form.lcfile.errors }}
-                    {{ upload_form.lcfile }}
-                </p>
+<!--                        <fieldset>-->
+<!--                            <legend> Add new light curves </legend>-->
 
-                <!--       <input type="submit" class="material-icons button" value="file_upload"/> -->
-                <input type="submit" class="upload-button" value="Upload"/>
-            {% else %}
-                <p> Log in to upload files! </p>
-            {% endif %}
-        </form>
+                        <p>
+                            {{ upload_form.lcfile.errors }}
+                            {{ upload_form.lcfile }}
+                        </p>
+
+<!--                        </fieldset>-->
+
+                        <div class="system-form-submit">
+                            <input type="submit" class="upload-button" value="Upload"/>
+                        </div>
+                    </form>
+                </div>
+            </fieldset>
+        {% endif %}
     </div>
 
 

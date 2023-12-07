@@ -119,7 +119,7 @@ $(document).ready(function () {
             "</div>" +
             "</div>" +
             "<div class='dropdown-container'>" +
-            "<button onclick='Toggledownloaddropdown()' class='dropbtn' id='download'><i class='material-icons button' title='Carry over selection'>download</i>Download Files</button>" +
+            "<button onclick='Toggledownloaddropdown()' class='dropbtn' id='download'><i class='material-icons button' title='Download Files'>download</i>Download Files</button>" +
             "<div id='downloaddropdown' class='dropdown-content'>" +
             "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i>Download Spectra</a>" +
             "<a id='dl-button-raw' class='tb-button disabled'><i class='material-icons button dropdownbtn'>raw_on</i>Download Raw Data</a>" +

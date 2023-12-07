@@ -115,13 +115,17 @@ $(document).ready(function () {
     // Add toolbar to table
     if (user_authenticated) {
         $("div.toolbar").html(
-            "<input id='dl-button'  class='tb-button' value='Download raw data' type='button' disabled>" +
-            '<progress id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
-            "<input id='add-button' class='tb-button' value='Add Raw spectra' type='button'>" +
-            '<progress id="progress-bar-upload" value="0" max="100" class="progress-bar"></progress>' +
-            "<input id='change-button'  class='tb-button' value='Change file allocations' type='button' disabled>" +
-            "<input id='delete-button'  class='tb-button' value='Delete raw data' type='button' disabled>" +
-            "<p class='hide' id='result'></p>"
+            "<div class='dropdown-container'>" +
+            "<button onclick='Toggleeditdropdown()' class='dropbtn' id='editselected'><i class='material-icons button' title='Edit selected'>edit_note</i>Edit selected</button>" +
+            "<div id='editdropdown' class='dropdown-content'>" +
+            "<a id='delete-button' class='tb-button disabled'><i class='material-icons button dropdownbtn'>delete</i>Delete raw data</a>" +
+            "<a id='change-button' class='tb-button disabled'><i class='material-icons button dropdownbtn'>autorenew</i>Update file allocations</a>" +
+            "</div>" +
+            "</div>" +
+            "<button id='add-button' class='tb-button'><i class='material-icons button' title='Add Raw spectra'>add</i>Add Raw spectra</button>" +
+            "<button id='dl-button' class='tb-button' disabled=><i class='material-icons button' title='Download raw data'>download</i>Download raw data</button>" +
+            '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
+            '<progress hidden id="progress-bar-upload" value="0" max="100" class="progress-bar"></progress>'
         );
         $("#dl-button").click(download_rawfiles);
         $("#delete-button").click(delete_all_selected_rawspecfiles);
@@ -404,21 +408,21 @@ $(document).ready(function () {
     });
 
 
-    //   Reset check boxes when changing number of displayed objects in table
+    //  Reset check boxes when changing number of displayed objects in table
     $('#rawspecfiletable_length').change(function () {
         rawspecfile_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
             deselect_row(this);
         });
     });
 
-    //   Reset check boxes when switching to the next table page
+    //  Reset check boxes when switching to the next table page
     $('#rawspecfiletable_paginate').click(function () {
         rawspecfile_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
             deselect_row(this);
         });
     });
 
-    //   Initialize edit windows
+    //  Initialize edit windows
     edit_linkage_window = $("#editLinkage").dialog({
         autoOpen: false,
         width: '975',
@@ -430,7 +434,7 @@ $(document).ready(function () {
         }
     });
 
-//    initialize_add_spectra_window();
+    //  Initialize_add_spectra_window();
     add_spectra_window = $("#addRawSpec").dialog({
         autoOpen: false,
         width: '975',
@@ -442,7 +446,7 @@ $(document).ready(function () {
         },
     });
 
-    // Adjust nav bar highlight
+    //  Adjust nav bar highlight
     adjust_nav_bar_active("#observation_dropdown")
 });
 
@@ -531,8 +535,8 @@ function select_row(row) {
     }
     $('#dl-button').prop('disabled', false);
     $('#rm-button').prop('disabled', false);
-    $('#delete-button').prop('disabled', false);
-    $('#change-button').prop('disabled', false);
+    $('#delete-button').removeClass("disabled");
+    $('#change-button').removeClass("disabled");
 }
 
 function deselect_row(row) {
@@ -542,8 +546,8 @@ function deselect_row(row) {
         $('#select-all').text('check_box_outline_blank');
         $('#dl-button').prop('disabled', true);
         $('#rm-button').prop('disabled', true);
-        $('#delete-button').prop('disabled', true);
-        $('#change-button').prop('disabled', true);
+        $('#delete-button').addClass("disabled");
+        $('#change-button').addClass("disabled");
     } else {
         $('#select-all').text('indeterminate_check_box');
     }
@@ -792,3 +796,25 @@ function download_rawfiles() {
         });
     });
 }
+
+
+// Tool bar drop down
+function Toggleeditdropdown() {
+    $("#editdropdown").toggleClass("show");
+    let otherdd = $("#downloaddropdown");
+    if (otherdd.hasClass("show")) {
+        otherdd.toggleClass("show");
+    }
+}
+
+
+// Close the dropdown menu if the user clicks outside of it
+$(window).click(function (e) {
+    if (!e.target.matches('.dropbtn')) {
+        $(".dropdown-content").each(function (i) {
+            if ($(this).hasClass('show')) {
+                $(this).removeClass('show');
+            }
+        })
+    }
+})

@@ -11,7 +11,16 @@
 
 {% block headertitle %} Spectra: Raw File List {% endblock %}
 
+
 {% block content %}
+
+    <div class="msg-container">
+        <ul id="messages" class="msg-list">
+            {% for message in messages %}
+                <li {% if message.tags %} class="single-msg {{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
 
     <i display="none" id="project-pk" project={{ project.pk }}
             project_slug={{ project.slug }}></i>
@@ -36,7 +45,7 @@
             </div>
 
             <div class="table-filter-item">
-                <p class="filter-label">Observation data:</p>
+                <p class="filter-label">Observation date:</p>
                 <input class="filter-input" id="filter_obs_date" type="text" placeholder="yyyy-mm-dd">
             </div>
 

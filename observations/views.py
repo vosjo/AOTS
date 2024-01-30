@@ -39,9 +39,9 @@ def spectra_list(request, project=None, **kwargs):
 
 @check_user_can_view_project
 def spectrum_detail(request, spectrum_id, project=None, **kwargs):
-    '''
+    """
         Show detailed spectrum information
-    '''
+    """
 
     #   Load project and spectrum
     project = get_object_or_404(Project, slug=project)
@@ -120,9 +120,9 @@ def spectrum_detail(request, spectrum_id, project=None, **kwargs):
 
 
 def add_spectra(request, project=None, **kwargs):
-    '''
+    """
         Spectra upload page
-    '''
+    """
 
     #   Set project
     project = get_object_or_404(Project, slug=project)
@@ -280,9 +280,9 @@ def add_spectra(request, project=None, **kwargs):
 
 @check_user_can_view_project
 def specfile_list(request, project=None, **kwargs):
-    '''
+    """
         SpecFile index page
-    '''
+    """
 
     #   Set project
     project = get_object_or_404(Project, slug=project)
@@ -299,9 +299,9 @@ def specfile_list(request, project=None, **kwargs):
 
 @check_user_can_view_project
 def rawspecfile_list(request, project=None, **kwargs):
-    '''
+    """
         RawFile index page, including raw file upload
-    '''
+    """
 
     #   Set project
     project = get_object_or_404(Project, slug=project)
@@ -361,6 +361,7 @@ def rawspecfile_list(request, project=None, **kwargs):
 
                         #   Set success/error message
                         message_list.append([success, message])
+
                     except Exception as e:
                         #   Handel error
                         print(e)
@@ -394,7 +395,7 @@ def rawspecfile_list(request, project=None, **kwargs):
 def lightcurve_list(request, project=None, **kwargs):
     """
        Lightcurve index page using datatables and restframework api
-   """
+    """
 
     project = get_object_or_404(Project, slug=project)
 
@@ -434,9 +435,9 @@ def lightcurve_list(request, project=None, **kwargs):
 
 @check_user_can_view_project
 def lightcurve_detail(request, lightcurve_id, project=None, **kwargs):
-    '''
+    """
         Show detailed information to lightcurves
-    '''
+    """
 
     project = get_object_or_404(Project, slug=project)
 

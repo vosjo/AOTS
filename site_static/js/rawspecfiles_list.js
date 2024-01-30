@@ -19,7 +19,7 @@ $(document).ready(function () {
             {data: 'filetype'},
             {data: 'exptime'},
             {data: 'filename', orderable: false},
-            {data: 'added_on'},
+            {data: 'added_on', orderable: false},
             {data: 'specfile', render: reduced_render},
             {data: 'systems', orderable: false, render: systems_render},
 //          { data: 'specfiles', orderable: false, render: processed_render },
@@ -31,8 +31,8 @@ $(document).ready(function () {
             {data: 'instrument'},
             {data: 'filetype'},
             {data: 'exptime'},
-            {data: 'filename'},
-            {data: 'added_on'},
+            {data: 'filename', orderable: false},
+            {data: 'added_on', orderable: false},
             {data: 'specfile', render: reduced_render},
             {data: 'systems', orderable: false, render: systems_render},
 //          { data: 'specfiles', orderable: false, render: processed_render },
@@ -124,8 +124,8 @@ $(document).ready(function () {
             "</div>" +
             "<button id='add-button' class='tb-button'><i class='material-icons button' title='Add Raw spectra'>add</i>Add Raw spectra</button>" +
             "<button id='dl-button' class='tb-button' disabled=><i class='material-icons button' title='Download raw data'>download</i>Download raw data</button>" +
-            '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
-            '<progress hidden id="progress-bar-upload" value="0" max="100" class="progress-bar"></progress>'
+            '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar" label="Download progress"></progress>' +
+            '<progress hidden id="progress-bar-upload" value="0" max="100" class="progress-bar" label="Upload progress"></progress>'
         );
         $("#dl-button").click(download_rawfiles);
         $("#delete-button").click(delete_all_selected_rawspecfiles);
@@ -325,7 +325,7 @@ $(document).ready(function () {
         const data = rawfiles.files[0];
         //  Display progress bar
         if (data != null) {
-            $("#progress-bar-upload").removeClass("hidden");
+            $("#progress-bar-upload").show();
         }
         ;
         //  Get project
@@ -353,27 +353,39 @@ $(document).ready(function () {
                     let success = message_list[0];
                     let message = message_list[1];
 
+                    const btn = document.createElement("button");
+                    btn.appendChild(document.createTextNode("\u{00d7}"));
+                    btn.classList.add("remove-msg-btn");
+                    btn.addEventListener("click", function() {
+                        const listItem = this.parentNode;
+                        listItem.parentNode.removeChild(listItem);
+                    });
+                    const line = document.createElement("li");
+                    line.appendChild(btn);
+                    line.classList.add("single-msg");
+
                     if (success == true) {
-                        $("#messages").append(
-                            "<li class=\"success\">" + message + "</li>"
-                        );
+                        line.append(message);
+                        line.classList.add("success");
+                        $("#messages").append(line);
                     } else if (success == false) {
-                        $("#messages").append(
-                            "<li class=\"error\">" + message + "</li>"
-                        );
+                        line.append(message);
+                        line.classList.add("error");
+                        $("#messages").append(line);
                     } else {
-                        $("#messages").append(
-                            "<li class=\"error\">An undefined error has occurred.</li>"
-                        );
-                    }
-                    ;
+                        line.append("An undefined error has occurred.");
+                        line.classList.add("error");
+                    };
                 });
 
                 //  Redraw table
                 rawspecfile_table.draw('full-hold');
 
+                //  Redraw messages
+                $('#messages').css("opacity", 1.);
+
                 //  Reset form fields
-                $("#raw-upload-form")[0].reset();
+//                $("#raw-upload-form")[0].reset();
 
                 //  Reset Specfile dropdown that is not reset by the line above
                 $("#id_system>option").map(function () {
@@ -395,6 +407,7 @@ $(document).ready(function () {
                 });
 
                 //  Remove progress bar
+                $("#progress-bar-upload").hide();
 //                 $("#progress-bar-upload").addClass("not-visible");
             },
             error: function (err) {
@@ -575,7 +588,6 @@ function openAddSpectraWindow() {
 //  Delete raw data
 function delete_all_selected_rawspecfiles() {
     if (confirm('Are you sure you want to delete this spectrum? This can NOT be undone!') === true) {
-        let rows = [];
         //   Get list of selected files
         rawspecfile_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
             //  Determine ID/PK
@@ -584,10 +596,9 @@ function delete_all_selected_rawspecfiles() {
             $.ajax({
                 url: "/api/observations/rawspecfiles/" + pk + '/',
                 type: "DELETE",
-                success: function (json) {
-                    //  Remove the whole spectrum from table
-                    rawspecfile_table.row(this).remove().draw('full-hold');
-                },
+//                success: function (json) {
+//                    rawspecfile_tablw(this).remove().draw('full-hold');
+//                },
                 error: function (xhr, errmsg, err) {
                     if (xhr.status === 403) {
                         alert('You have to be logged in to delete this spectrum.');
@@ -598,6 +609,8 @@ function delete_all_selected_rawspecfiles() {
                 }
             });
         })
+        //  Redraw table after files are deleted
+        setTimeout(() => rawspecfile_table.draw('full-hold'), 500);
 
         //   Reset check boxes
         rawspecfile_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
@@ -700,14 +713,14 @@ function change_rawspecfiles_linkage(row, pk_raw, pk_system, pk_spf) {
 
 //  Update progress bar
 function updatePercent(percent) {
-    $("#progress-bar")
-        .val(percent);
+    $("#progress-bar").val(percent);
 }
 
 //  Change download button text
 function showProgress(text) {
-    $("#dl-button")
-        .val(text);
+//    $("#dl-button")
+//        .val(text);
+    $("#dl-button").text(text);
 }
 
 //  Show Error message
@@ -767,7 +780,7 @@ function download_rawfiles() {
                 for (const promise of getPromises) {
                     try {
                         const content = await promise;
-                        console.log(content[1]);
+//                        console.log(content[1]);
                         zip.file(content[0], content[1]);
                     } catch (err) {
                         showError(err);
@@ -779,19 +792,20 @@ function download_rawfiles() {
                 zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
                     //  Update download progress
                     let msg = "            " + metadata.percent.toFixed(2) + " %           ";
-                    showProgress(msg);
+//                    showProgress(msg);
+                    $("#progress-bar").show();
                     updatePercent(metadata.percent | 0);
                 })
                     .then(function callback(blob) {
                         //  Save zip file
                         saveAs(blob, "Raw_data_" + timecode + ".zip");
                         //  Reset download button
-                        showProgress("Download raw data");
+                        $("#progress-bar").hide();
+//                        <i class='material-icons button' title='Download raw data'>download</i>
+//                        showProgress("Download raw data");
                     }, function (e) {
                         showError(e);
                     });
-
-
             });
         });
     });

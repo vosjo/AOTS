@@ -243,4 +243,4 @@ class TagFilter(filters.FilterSet):
     def qs(self):
         parent = super().qs
 
-        return get_allowed_objects_to_view_for_user(parent, self.request.user)
+        return get_allowed_objects_to_view_for_user(parent, self.request.user).order_by('name')

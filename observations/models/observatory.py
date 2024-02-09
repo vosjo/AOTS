@@ -4,18 +4,14 @@ import astropy.units as u
 from astroplan import Observer
 from astropy.coordinates import EarthLocation
 from astropy.time import Time
-from django.conf import settings
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
-from six import python_2_unicode_compatible
 
 from stars.models import Project
-from users.models import get_sentinel_user
 
 
-@python_2_unicode_compatible  # to support Python 2
 class Observatory(models.Model):
     # -- an observatory belongs to a specific project
     #   when that project is deleted, the observatory is also deleted.

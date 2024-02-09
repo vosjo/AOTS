@@ -1,9 +1,6 @@
-# from __future__ import unicode_literals
-
 from django.db import models
 from django.db.models.signals import pre_delete, post_delete, post_save, pre_save
 from django.dispatch import receiver
-from six import python_2_unicode_compatible
 
 from analysis.auxil import parameter_derivation
 from stars.models import Star
@@ -22,7 +19,7 @@ def combine_parameter_name(name, component):
 class ParameterManager(models.Manager):
     """
     Custom manager for Parameter class to provide sorting of the parameters in a more
-    sensible fasion then alphabetical (provides standard order options)
+    sensible fashion than alphabetical (provides standard order options)
     """
 
     def order_by(self, *args, **kwargs):
@@ -34,7 +31,6 @@ class ParameterManager(models.Manager):
         return sorted_results
 
 
-@python_2_unicode_compatible  # to support Python 2
 class Parameter(models.Model):
     """
     A simple parameter belonging to a parameter set
@@ -121,7 +117,6 @@ class Parameter(models.Model):
                                                    self.unit, 'V' if self.valid else 'F', ds)
 
 
-# @python_2_unicode_compatible  # to support Python 2
 class DerivedParameter(Parameter):
     """
     Subtype of an average parameter that is derived based on other parameters
@@ -298,7 +293,7 @@ def derived_parameter_update_on_save(sender, **kwargs):
 @receiver(post_save, sender=DerivedParameter)
 def derived_parameter_find_sources_on_create(sender, **kwargs):
     """
-    When a new Derived parameter is created, find all necesary parameters
+    When a new Derived parameter is created, find all necessary parameters
     to derive it from
     """
     param = kwargs['instance']
@@ -315,7 +310,7 @@ def derived_parameter_find_sources_on_create(sender, **kwargs):
 def derived_parameter_bookkeeping_on_update(sender, **kwargs):
     """
     Check if there are any derived parameters using this parameter,
-    and if so, update theire values
+    and if so, update their values
     """
     if kwargs.get('raw', False):
         return
@@ -332,7 +327,7 @@ def derived_parameter_bookkeeping_on_update(sender, **kwargs):
 def derived_parameter_bookkeeping_on_delete(sender, **kwargs):
     """
     Check if there are any derived parameters using this parameter,
-    and if so, update theire values
+    and if so, update their values
     """
     if kwargs.get('raw', False):
         return

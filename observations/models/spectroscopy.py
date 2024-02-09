@@ -3,24 +3,21 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 
 from astropy.io import fits
-from django.conf import settings
 from django.db import models
 from django.db.models.signals import pre_delete, post_delete
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
-from six import python_2_unicode_compatible
 
 from observations.auxil import fileio
 from stars.models import Star, Project
-from users.models import get_sentinel_user
 from .observatory import Observatory
 
 
 ###############################################################################
 
-###     Spectrum    ###
-
-@python_2_unicode_compatible  # to support Python 2
+###
+#   Spectrum
+#
 class Spectrum(models.Model):
     # -- a spectrum belongs to one star only and is deleted when the star
     #   is deleted. However, a star can be added after creation.
@@ -109,9 +106,9 @@ class Spectrum(models.Model):
 
 
 class UserInfo(models.Model):
-    '''
+    """
         Spectrum infos provided by the user during file upload
-    '''
+    """
     #   UserInfo belongs to a spectrum and is deleted when the spectrum
     #   is deleted.
     spectrum = models.ForeignKey(
@@ -181,18 +178,18 @@ class UserInfo(models.Model):
     history = HistoricalRecords(cascade_delete_history=True)
 
 
-###     SpecFile    ###
-
-@python_2_unicode_compatible  # to support Python 2
+###
+#   SpecFile
+#
 class SpecFile(models.Model):
     """
     Model to represent an uploaded spectrum file. Can be fits or hdf5.
-    A spectrum can exists out of different files (fx. BLUE, REDL and REDU
-    for uves).
+    A spectrum can exist out of different files (fx. BLUE, REDL and REDU
+    for UVES).
 
     This setup allows us to keep links to the uploaded files in the database
-    even when the spectra are deleted. The spectra, and even targets can be
-    rebuild from the information in the specfiles.
+    even when the spectra are deleted. The spectra and even targets can be
+    rebuilt from the information in the specfiles.
     """
 
     #   A specfile belongs to a spectrum but does not need to be deleted when
@@ -256,9 +253,9 @@ class SpecFile(models.Model):
         )
 
 
-###     RawSpecFile     ###
-
-@python_2_unicode_compatible  # to support Python 2
+###
+#   RawSpecFilez
+#
 class RawSpecFile(models.Model):
     """
         Model to represent an uploaded raw spectrum or file containing
@@ -288,12 +285,12 @@ class RawSpecFile(models.Model):
 
     #   Fields necessary to detect doubles. If spectra have same hjd,
     #   instrument and file type, they are probably the same file.
-    hjd = models.FloatField(default=-1)
+    hjd = models.FloatField(default=-1.)
     instrument = models.CharField(max_length=200, default='')
     filetype = models.CharField(max_length=200, default='')
 
     #   Exposure time
-    exptime = models.FloatField(default=-1)  # s
+    exptime = models.FloatField(default=-1.)  # s
 
     #   The raw file
     rawfile = models.FileField(upload_to=fileio.get_rawfile_path)
@@ -330,9 +327,9 @@ class RawSpecFile(models.Model):
             self.obs_date,
         )
 
-
-###     Deletion handlers   ###
-
+###
+#   Deletion handlers
+#
 #   Handler to assure the deletion of a RawSpecFile removes the actual file
 @receiver(pre_delete, sender=RawSpecFile)
 def RawFile_pre_delete(sender, instance, **kwargs):

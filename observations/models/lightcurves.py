@@ -7,14 +7,12 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
-from six import python_2_unicode_compatible
 
 from observations.auxil import fileio
 from stars.models import Star, Project
 from .observatory import Observatory
 
 
-@python_2_unicode_compatible  # to support Python 2
 class LightCurve(models.Model):
     # -- a lightcurve belongs to one star only and is deleted when the star
     #   is deleted. However, a star can be added after creation.

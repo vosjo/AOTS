@@ -14,7 +14,6 @@ $(document).ready(function () {
                 width: '10',
             },
             {data: 'obs_date'},
-//          { data: 'hjd' },
             {data: 'instrument'},
             {data: 'filetype'},
             {data: 'exptime'},
@@ -27,7 +26,6 @@ $(document).ready(function () {
     } else {
         columns = [
             {data: 'obs_date'},
-//          { data: 'hjd' },
             {data: 'instrument'},
             {data: 'filetype'},
             {data: 'exptime'},
@@ -59,7 +57,6 @@ $(document).ready(function () {
         scrollY: $(window).height() - $('.nav_bar').outerHeight(true) - $('footer').outerHeight(true) - 186,
         scrollCollapse: true,
     });
-    console.log( $('.msg-container').outerHeight(true));
 
     // Event listener to the two range filtering inputs to redraw on input
     $('#filter-form').submit(function (event) {
@@ -313,15 +310,16 @@ $(document).ready(function () {
 
 
     //  Add progress bar for raw data file upload
+    //  TODO: Convert the next two to one function
     $("#raw-upload-form").submit(function (e) {
         //  Prevent normal behaviour
         e.preventDefault();
         //  Get form
-        $form = $(this);
+        let $form = $(this);
         //  Create new form
         let formData = new FormData(this);
         //  Get files
-        const rawfiles = document.getElementById('id_rawfile');
+        const rawfiles = document.getElementById('id_raw_files');
         const data = rawfiles.files[0];
         //  Display progress bar
         if (data != null) {
@@ -329,11 +327,11 @@ $(document).ready(function () {
         }
         ;
         //  Get project
-        let project = $('#project-pk').attr('project_slug')
+        let projectSlug = $('#project-pk').attr('project_slug');
         //  Ajax call to make it happen
         $.ajax({
             type: 'POST',
-            url: '/w/' + project + '/observations/rawspecfiles/',
+            url: '/w/' + projectSlug +'/observations/rawspecfiles/',
             data: formData,
             dataType: 'json',
             xhr: function () {
@@ -384,9 +382,6 @@ $(document).ready(function () {
                 //  Redraw messages
                 $('#messages').css("opacity", 1.);
 
-                //  Reset form fields
-//                $("#raw-upload-form")[0].reset();
-
                 //  Reset Specfile dropdown that is not reset by the line above
                 $("#id_system>option").map(function () {
                     //  Set pk
@@ -420,6 +415,109 @@ $(document).ready(function () {
         });
     });
 
+    $("#raw-upload-form-simple").submit(function (e) {
+        //  Prevent normal behaviour
+        e.preventDefault();
+        //  Get form
+        let $form = $(this);
+        //  Create new form
+        let formData = new FormData(this);
+        //  Get files
+        const rawfiles = document.getElementById('id_raw_files');
+        const data = rawfiles.files[0];
+        //  Display progress bar
+        if (data != null) {
+            $("#progress-bar-upload").show();
+        }
+        ;
+        //  Get project
+        let projectSlug = $('#project-pk').attr('project_slug');
+        //  Ajax call to make it happen
+        $.ajax({
+            type: 'POST',
+            url: '/w/' + projectSlug +'/observations/rawspecfiles/',
+            data: formData,
+            dataType: 'json',
+            xhr: function () {
+                //  Handel progress bar updates
+                const xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', e => {
+                    if (e.lengthComputable) {
+                        const percentProgress = (e.loaded / e.total) * 100;
+                        $("#progress-bar-upload").val(percentProgress);
+                    }
+                });
+                return xhr
+            },
+            success: function (response) {
+                //  Set extract and set message
+                $.each(response.messages, function (id, message_list) {
+                    let success = message_list[0];
+                    let message = message_list[1];
+
+                    const btn = document.createElement("button");
+                    btn.appendChild(document.createTextNode("\u{00d7}"));
+                    btn.classList.add("remove-msg-btn");
+                    btn.addEventListener("click", function() {
+                        const listItem = this.parentNode;
+                        listItem.parentNode.removeChild(listItem);
+                    });
+                    const line = document.createElement("li");
+                    line.appendChild(btn);
+                    line.classList.add("single-msg");
+
+                    if (success == true) {
+                        line.append(message);
+                        line.classList.add("success");
+                        $("#messages").append(line);
+                    } else if (success == false) {
+                        line.append(message);
+                        line.classList.add("error");
+                        $("#messages").append(line);
+                    } else {
+                        line.append("An undefined error has occurred.");
+                        line.classList.add("error");
+                    };
+                });
+
+                //  Redraw table
+                rawspecfile_table.draw('full-hold');
+
+                //  Redraw messages
+                $('#messages').css("opacity", 1.);
+
+                //  Reset Specfile dropdown that is not reset by the line above
+                $("#id_system>option").map(function () {
+                    //  Set pk
+                    let pk = $(this).val();
+                    //  Get Specfile info as JASON
+                    $.getJSON("/api/systems/stars/" + pk + '/specfiles/', function (data) {
+                        //  Refilling Specfile drop down
+                        for (let key in data) {
+                            if (data.hasOwnProperty(key)) {
+                                let value = data[key];
+                                $("#id_specfile").append(
+                                    "<option value = \"" + key + "\">" + value
+                                    + "</option>");
+                            }
+                        }
+                        ;
+                    });
+                });
+
+                //  Remove progress bar
+                $("#progress-bar-upload").hide();
+//                 $("#progress-bar-upload").addClass("not-visible");
+            },
+            error: function (err) {
+                console.log('error', err);
+                alert(err.statusText);
+            },
+            cache: false,
+            contentType: false,
+            processData: false,
+        });
+    });
 
     //  Reset check boxes when changing number of displayed objects in table
     $('#rawspecfiletable_length').change(function () {
@@ -456,6 +554,7 @@ $(document).ready(function () {
         title: "Add raw data",
         close: function () {
             add_spectra_window.dialog("close");
+            hideForms();
         },
     });
 
@@ -463,9 +562,22 @@ $(document).ready(function () {
     adjust_nav_bar_active("#observation_dropdown")
 });
 
+//  Displays forms based on selection
+function showForm(form_id) {
+    $('#buttons_raw_upload_possibilities').hide();
+//    $('#' + form_id).addClass('active');
+    $('#' + form_id).show();
+}
+
+function hideForms() {
+    $('#buttons_raw_upload_possibilities').show();
+    $("form.form_raw_spec_files").each(function(i) {
+//        $(this).removeClass('active');
+        $(this).hide();
+    });
+}
 
 // Table filter functionality
-
 function get_filter_keywords(d) {
 
     d = $.extend({}, d, {
@@ -506,7 +618,6 @@ function get_filter_keywords(d) {
 
 
 // Table renderers
-
 function selection_render(data, type, full, meta) {
     if ($(rawspecfile_table.row(meta['row']).node()).hasClass('selected')) {
         return '<i class="material-icons button select" title="Select">check_box</i>';
@@ -537,7 +648,6 @@ function reduced_render(data, type, full, meta) {
 
 
 // Selection and Deselection of rows
-
 function select_row(row) {
     $(row.node()).find("i[class*=select]").text('check_box');
     $(row.node()).addClass('selected');
@@ -569,16 +679,10 @@ function deselect_row(row) {
 
 //  Open add spectra window
 function openAddSpectraWindow() {
-//     add_spectra_window = $("#addRawSpec").dialog({
-//         autoOpen: false,
-//         title: "Add raw data",
-//         close: function() {
-//             add_spectra_window.dialog( "close" );
-//     //           $(".upload-button").click();
-//         },
-//     });
-
     $("#raw-upload-form").submit(function () {
+        $(this).closest(".ui-dialog-content").dialog("close");
+    });
+    $("#raw-upload-form-simple").submit(function () {
         $(this).closest(".ui-dialog-content").dialog("close");
     });
 
@@ -610,7 +714,7 @@ function delete_all_selected_rawspecfiles() {
             });
         })
         //  Redraw table after files are deleted
-        setTimeout(() => rawspecfile_table.draw('full-hold'), 500);
+        setTimeout(() => rawspecfile_table.draw('full-hold'), 2000);
 
         //   Reset check boxes
         rawspecfile_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
@@ -618,7 +722,6 @@ function delete_all_selected_rawspecfiles() {
         });
     }
 }
-
 
 //  Open edit window for file linkage
 function openLinkageEditWindow() {
@@ -780,7 +883,6 @@ function download_rawfiles() {
                 for (const promise of getPromises) {
                     try {
                         const content = await promise;
-//                        console.log(content[1]);
                         zip.file(content[0], content[1]);
                     } catch (err) {
                         showError(err);

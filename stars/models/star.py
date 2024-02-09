@@ -5,12 +5,10 @@ from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
-from six import python_2_unicode_compatible
 
 from .project import Project
 
 
-@python_2_unicode_compatible  # to support Python 2
 class Tag(models.Model):
     """
     A tag that can be added to a star to facilitate grouping
@@ -38,7 +36,6 @@ class Tag(models.Model):
         return "{}:{}".format(self.name, self.description)
 
 
-@python_2_unicode_compatible  # to support Python 2
 class Star(models.Model):
     name = models.CharField(max_length=200)
 
@@ -165,7 +162,6 @@ class Star(models.Model):
         return "{}: {:.2f} {:.2f}".format(self.name, self.ra, self.dec)
 
 
-@python_2_unicode_compatible  # to support Python 2
 class Identifier(models.Model):
     """
     An alternative name for a star

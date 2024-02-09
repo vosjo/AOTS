@@ -123,9 +123,43 @@
         {% if user.is_authenticated %}
             <fieldset>
                 <div class="ui-controlgroup-horizontal">
+                    <div id="buttons_raw_upload_possibilities">
+                        <fieldset>
+                            <legend>Coherent Dataset Upload</legend>
+                            <div class="box_form_raw_spec_files">
+                                <button class="button_form_raw_spec_files" onclick="showForm('raw-upload-form-simple')">
+                                    Automatically upload coherent data sets
+                                </button>
+                                <p class="text_form_raw_spec_files">
+                                    This upload option supports the upload of coherent datasets, such as an observation night
+                                    with multiple observations of a target (or targets) with associated calibration data (flats,
+                                    darks, biases). The calibration data will be associated with all observed objects. In other
+                                    words, the database won't try to identify the calibration data that best matches the
+                                    observations of a particular object.
+                                </p>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Individual Data Upload</legend>
+                            <div class="box_form_raw_spec_files">
+                                <button class="button_form_raw_spec_files" onclick="showForm('raw-upload-form')">
+                                    Manually control how data gets uploaded
+                                </button>
+                                <p class="text_form_raw_spec_files">
+                                    This upload option supports uploading individual raw data files or bulk data, allowing
+                                    association with a single object and optional association with a reduced spectrum. You have
+                                    control over the data association, but uploads of scientific data, such as a target
+                                    spectrum, are limited to one target at a time.
+                                </p>
+                            </div>
+                        </fieldset>
+                    </div>
 
                     <form action="{% url "observations:rawspecfile_list" project.slug %}" method="post"
-                          enctype="multipart/form-data" class="" id="raw-upload-form">
+                          enctype="multipart/form-data" class="form_raw_spec_files" id="raw-upload-form">
+
+                        <button type="button" class="form_raw_return_button" onclick="hideForms()">Return</button>
 
                         {% csrf_token %}
                         {% if raw_upload_form.non_field_errors %}
@@ -140,23 +174,25 @@
                                     <tr>
                                         <td>
                                             <label for="{{ raw_upload_form.system_name.id_for_label }}">System name
-                                                (main id):</label>
+                                                (main id):
+                                            </label>
                                         </td>
                                         <td>
                                             {{ raw_upload_form.system_name }}
                                             <span class="error">
-                                {{ raw_upload_form.system_name.errors.as_text }}
-                                </span>
+                                                {{ raw_upload_form.system_name.errors.as_text }}
+                                            </span>
                                         </td>
                                         <td id='label'>
                                             <label for="{{ raw_upload_form.specfile_date.id_for_label }}">Observation
-                                                date:</label>
+                                                date:
+                                            </label>
                                         </td>
                                         <td>
                                             {{ raw_upload_form.specfile_date }}
                                             <span class="error">
-                                {{ raw_upload_form.specfile_date.errors.as_text }}
-                                </span>
+                                                {{ raw_upload_form.specfile_date.errors.as_text }}
+                                            </span>
                                         </td>
                                     </tr>
                                 </table>
@@ -204,10 +240,10 @@
                         <fieldset>
                             <legend>Select raw data</legend>
                             <div class="cg-block">
-                                {{ raw_upload_form.rawfile }}
+                                {{ raw_upload_form.raw_files }}
                                 <span class="error">
-                        {{ raw_upload_form.rawfile.errors.as_text }}
-                            </span>
+                                    {{ raw_upload_form.raw_files.errors.as_text }}
+                                </span>
                             </div>
                         </fieldset>
 
@@ -216,6 +252,33 @@
                         </div>
 
                     </form>
+
+                    <form action="{% url "observations:rawspecfile_list" project.slug %}" method="post"
+                          enctype="multipart/form-data" class="form_raw_spec_files" id="raw-upload-form-simple">
+
+                        <button type="button" class="form_raw_return_button" onclick="hideForms()">Return</button>
+
+                        {% csrf_token %}
+                        {% if raw_upload_form.non_field_errors %}
+                            <p>{{ raw_upload_form.non_field_errors }}</p>
+                        {% endif %}
+
+                        <fieldset>
+                            <legend>Select raw data</legend>
+                            <div class="cg-block">
+                                {{ raw_upload_form.raw_files }}
+                                <span class="error">
+                                    {{ raw_upload_form.raw_files.errors.as_text }}
+                                </span>
+                            </div>
+                        </fieldset>
+
+                        <div class="system-form-submit">
+                            <input type="submit" class="upload-button" value="Upload raw data"/>
+                        </div>
+
+                    </form>
+
                 </div>
             </fieldset>
         {% endif %}

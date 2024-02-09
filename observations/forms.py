@@ -155,7 +155,7 @@ class UploadRawSpecFileForm(forms.Form):
     )
 
     #   Raw file upload field
-    rawfile = MultipleFileField(label='Raw files')
+    raw_files = MultipleFileField(label='Raw files')
 
 
 class PatchRawSpecFileForm(forms.Form):

@@ -9,7 +9,6 @@ from simple_history.models import HistoricalRecords
 from analysis.auxil import fileio
 from analysis.auxil import plot_datasets
 from stars.models import Star, Project
-from users.models import get_sentinel_user
 # -- all constants are the roud_value function are imported from default values
 from .default_values import *
 

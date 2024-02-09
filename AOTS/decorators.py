@@ -2,14 +2,14 @@
 
 from django.shortcuts import get_object_or_404
 
-from stars.models import Project
+from stars.models import Project, Star
 
 
 def user_login_required_for_edit(function):
-    '''
-    Decorator for views that checks that the logged in user is a student,
+    """
+    Decorator for views that checks that the logged-in user is a student,
     redirects to the log-in page if necessary.
-    '''
+    """
 
     def wrap(request, *args, **kwargs):
 

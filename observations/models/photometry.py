@@ -1,10 +1,8 @@
 from django.conf import settings
 from django.db import models
 from simple_history.models import HistoricalRecords
-from six import python_2_unicode_compatible
 
 from stars.models import Star
-from users.models import get_sentinel_user
 
 band_wavelengths = {'GALEX.FUV': 1535,
                     'GALEX.NUV': 2300,
@@ -46,7 +44,6 @@ band_wavelengths = {'GALEX.FUV': 1535,
                     }
 
 
-@python_2_unicode_compatible  # to support Python 2
 class Photometry(models.Model):
     """
     A photometric measurement. We only save the observed value,

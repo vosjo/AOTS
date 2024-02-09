@@ -49,9 +49,9 @@ def extract_header_info(header, user_info={}):
 
 
 def extract_header_raw(header, user_info={}):
-    '''
+    """
     Set header data for raw file
-    '''
+    """
 
     #   Read header & extract data
     data = derive_generic_raw(header)
@@ -225,7 +225,7 @@ def derive_generic_info(header):
 
 def derive_generic_raw(header):
     """
-    Tries to read some basic information from a unknown raw data files
+    Tries to read some basic information from an unknown raw data files
     """
 
     data = {}
@@ -258,6 +258,15 @@ def derive_generic_raw(header):
 
     #   Pointing info
     data['objectname'] = header.get('OBJECT', '')
+    try:
+        data['ra'] = float(header.get('RA', 0.))
+    except Exception:
+        data['ra'] = Angle(header.get('RA', 0.), unit='hour').degree
+
+    try:
+        data['dec'] = float(header.get('DEC', 0.))
+    except Exception:
+        data['dec'] = Angle(header.get('DEC', 0.), unit='degree').degree
 
     #   Telescope and instrument info
     data['instrument'] = header.get('INSTRUME', 'UK')

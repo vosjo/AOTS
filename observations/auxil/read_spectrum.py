@@ -332,32 +332,196 @@ def process_specfile(specfile_id, create_new_star=True,
         return True, message
 
 
-###     RawSpecFile     ###
-
-def derive_rawfile_info(rawfile_id, user_info={}):
+###
+#   RawSpecFile
+#
+def derive_raw_file_info(raw_file_id, return_object_properties=False):
     """
         Read some basic info from the raw file and store it in the database
-    """
 
+        Parameters
+        ----------
+        raw_file_id                 : `integer`
+            ID of the raw file
+
+        return_object_properties    : `boolean`, optional
+            If `True` the object name, right ascension, declination will be
+            returned
+            Default is ``False``
+
+        Returns
+        -------
+        object_name                 : `string`, optional
+            Object name
+
+        ra                          : `float`, optional
+            Right ascension in degree
+
+        dec                         : `float`, optional
+            Declination in degree
+    """
     #   Initialize file and read Header
-    rawfile = RawSpecFile.objects.get(pk=rawfile_id)
-    header = rawfile.get_header()
+    raw_file = RawSpecFile.objects.get(pk=raw_file_id)
+    header = raw_file.get_header()
 
     #   Extract info from Header
-    data = instrument_headers.extract_header_raw(header, user_info=user_info)
+    data = instrument_headers.extract_header_raw(header)
 
     #   Set variables
-    rawfile.hjd = data['hjd']
-    rawfile.instrument = data['instrument']
-    rawfile.filetype = data['filetype']
-    rawfile.exptime = data['exptime']
-    # rawfile.obs_date   = data['date-obs']
-    rawfile.obs_date = Time(data['hjd'], format='jd', precision=0).iso
+    raw_file.hjd = data['hjd']
+    raw_file.instrument = data['instrument']
+    raw_file.filetype = data['filetype']
+    raw_file.exptime = data['exptime']
+    raw_file.obs_date = Time(data['hjd'], format='jd', precision=0).iso
 
     #   Save file
-    rawfile.save()
+    raw_file.save()
 
-    return "Raw file details added/updated", True
+    #   Get object name, ra, and dec if filetype is 'Science'
+    if return_object_properties:
+        return data['objectname'], data['ra'], data['dec']
+
+
+def add_and_process_science_raw_spec(raw_file_id, create_new_star=True):
+    """
+        Processes raw spectrum files, attempts to identify science spectra
+        (actual exposures of objects), and uses the object information and
+        observation time to identify the 'Star' and the reduced 'Spec files'
+        in the database to which the raw spectrum belongs.
+
+        Parameters:
+        -----------
+        raw_file_id         : `integer`
+            ID of the raw file
+
+        create_new_star     : `boolean`, optional
+            If `True`, a new 'Star' object will be created if an object is
+            specified in the FITS header but is not yet in the database.
+            Default is ``True``.
+
+        Returns:
+        --------
+        is_object_addable   : `boolean`
+            Is `True` is the raw spec file was successfully added, False
+            otherwise.
+
+        message             : `string`
+            Contains info on what went wrong, or just a success message.
+
+        is_object_file      : `boolean`
+            Is `True` if the raw specfile is an actual exposure of an object
+
+        spec_file_pk        : `integer`
+
+        star_pk             : `integer`
+    """
+    #   Initialize return message
+    message = ""
+
+    #   Fill raw file model with infos
+    object_name, ra, dec = derive_raw_file_info(
+        raw_file_id,
+        return_object_properties=True,
+    )
+
+    #   Initialize raw file instance and extract file name
+    raw_file = RawSpecFile.objects.get(pk=raw_file_id)
+    raw_file_name = raw_file.rawfile.name.split('/')[-1]
+
+    if raw_file.filetype == 'Science' and object_name != '' and ra != 0. and dec != 0.:
+        ###
+        #   Check if the raw file already exists
+        #
+        #   TODO: Check this with respect to multiobject spectrographs.
+        #         Add a switch that avoids this check?
+        #         Resolve object name with Simbad to get coordinates?
+        #         But object might be a cluster or so...
+        other_raw_spec_files = RawSpecFile.objects \
+            .exclude(id__exact=raw_file_id) \
+            .filter(hjd__range=[
+                raw_file.hjd - 0.00000001,
+                raw_file.hjd + 0.00000001
+            ]) \
+            .filter(instrument__iexact=raw_file.instrument) \
+            .filter(filetype__iexact=raw_file.filetype) \
+            .filter(project__exact=raw_file.project.pk)
+
+        #   If file is already in the database, use this one
+        if len(other_raw_spec_files) > 0:
+            #   Remove the uploaded raw file
+            raw_file.delete()
+
+            message += (f"{raw_file_name} (raw file) for object {object_name} "
+                        f"is a duplicate and already exists in the database. "
+                        f"Contact the database administrator if this is "
+                        f"incorrect, or if you are trying to upload raw data "
+                        f"from a multi-object spectrograph.")
+
+            return False, message, True, None, None
+        else:
+            #   Add raw specfile to existing spec file
+            spec_files = SpecFile.objects \
+                .filter(project__exact=raw_file.project) \
+                .filter(ra__range=[ra - 1 / 3600., ra + 1 / 3600.]) \
+                .filter(dec__range=[dec - 1 / 3600., dec + 1 / 3600.]) \
+                .filter(instrument__iexact=raw_file.instrument) \
+                .filter(hjd__range=(raw_file.hjd - 0.001, raw_file.hjd + 0.001))
+
+            if len(spec_files) > 0:
+                #   TODO: Instead of getting the first spec file add an error message and
+                #         redirect the user to the detailed raw spectrum upload method.
+                spec_file = spec_files[0]
+                spec_file.rawspecfile_set.add(raw_file)
+                spec_file_pk = spec_file.pk
+                message += (f"Raw spectrum added to existing spectrum file "
+                            f"{spec_file} (Target: {spec_file.objectname})")
+            else:
+                spec_file_pk = None
+                message += (f"No reduced spectrum found for this raw spectrum "
+                            f"file: {raw_file_name} (Target: {object_name})")
+
+            #   Add the raw spectrum to existing or new star
+            star = Star.objects.filter(project__exact=raw_file.project) \
+                .filter(ra__range=(ra - 0.1, ra + 0.1)) \
+                .filter(dec__range=(dec - 0.1, dec + 0.1))
+
+            if len(star) > 0:
+                #     If there is one or more stars returned, select the
+                #     closest star
+                star = star.annotate(
+                    distance=ExpressionWrapper(
+                        ((F('ra') - ra) ** 2 + (F('dec') - dec) ** 2) ** (1. / 2.),
+                        output_field=DecimalField()
+                    )
+                ).order_by('distance')[0]
+                #   TODO: Instead of getting the closes star add an error message and
+                #         redirect the user to the detailed raw spectrum upload method.
+                star.rawspecfile_set.add(raw_file)
+                message += (f", and added to existing System {star} (_r = "
+                            f"{star.distance})")
+            else:
+                if not create_new_star:
+                    raw_file.delete()
+                    message += (f", no star found, raw data file "
+                                f"({raw_file_name}) NOT added to database.")
+                    return False, message, True, None, None
+
+                #     Need to make a new star
+                star = Star(
+                    name=object_name,
+                    ra=ra,
+                    dec=dec,
+                    project=raw_file.project,
+                )
+                star.save()
+
+                star.rawspecfile_set.add(raw_file)
+
+                message += f", and added to new System {star}"
+
+            return True, message, True, spec_file_pk, star.pk
+    else:
+        return True, "", False, None, None
 
 
 def process_raw_spec(rawfile_id, specfiles, stars):
@@ -369,10 +533,10 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         rawfile_id          : `integer`
             ID of the raw file
 
-        specfiles           : `QuerySet
+        specfiles           : `QuerySet`
             SpecFile instances
 
-        stars               : `QuerySet
+        stars               : `QuerySet`
             Star instances
 
         Returns:
@@ -383,7 +547,6 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         message             : `string`
             Contains info on what went wrong, or just a success message.
     """
-
     #   Initialize return message
     message = ""
 
@@ -395,7 +558,7 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         return False, message
 
     #   Fill rawfile model with infos
-    derive_rawfile_info(rawfile_id)
+    derive_raw_file_info(rawfile_id)
 
     #   Initialize raw file instance and extract file name
     rawfile = RawSpecFile.objects.get(pk=rawfile_id)

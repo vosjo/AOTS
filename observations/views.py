@@ -290,8 +290,6 @@ def specfile_list(request, project=None, **kwargs):
     #   Set dict for the renderer
     context = {
         'project': project,
-        # 'upload_form': upload_form,
-        # 'raw_upload_form': raw_upload_form,
     }
 
     return render(request, 'observations/specfiles_list.html', context)
@@ -329,45 +327,134 @@ def rawspecfile_list(request, project=None, **kwargs):
     # Handle file upload
     if request.method == 'POST' and request.user.is_authenticated:
         #   Raw files
-        if 'rawfile' in request.FILES:
+        if 'raw_files' in request.FILES:
+            #   Prepare list for messages
+            message_list = []
 
-            #   Get form
-            raw_upload_form = UploadRawSpecFileForm(request.POST, request.FILES)
+            #   Get form detailed upload
+            raw_upload_form = UploadRawSpecFileForm(
+                request.POST,
+                request.FILES,
+            )
+
             if raw_upload_form.is_valid():
                 #   Read selected Specfile and/or system/star
-                specfiles = raw_upload_form.cleaned_data['specfile']
+                spec_files = raw_upload_form.cleaned_data['specfile']
                 stars = raw_upload_form.cleaned_data['system']
 
-                message_list = []
+                if len(spec_files) == 0 and len(stars) == 0:
 
-                #   Get files
-                files = request.FILES.getlist('rawfile')
-                for f in files:
-                    #    Save the new raw file
-                    newrawspec = RawSpecFile(
-                        project=project,
-                    )
-                    newrawspec.save()
-                    newrawspec.rawfile.save(f.name, f)
+                    #   Prepare fist for star IDs, spec file IDs,
+                    #   raw spec file IDs
+                    not_science_raw_spec_files_pks = []
+                    spec_file_pks = []
+                    star_pks = []
 
-                    #    Now process it and check for duplicates
-                    try:
-                        #   Process raw file
-                        success, message = read_spectrum.process_raw_spec(
-                            newrawspec.pk,
-                            specfiles,
-                            stars,
+                    #   Get files
+                    files = request.FILES.getlist('raw_files')
+                    for f in files:
+                        #    Save the new raw file
+                        new_raw_spec = RawSpecFile(
+                            project=project,
                         )
+                        new_raw_spec.save()
+                        new_raw_spec.rawfile.save(f.name, f)
 
-                        #   Set success/error message
-                        message_list.append([success, message])
+                        #    Check the uploaded files for "science" data.
+                        #    Process those first.
+                        try:
+                            result = read_spectrum.add_and_process_science_raw_spec(
+                                new_raw_spec.pk
+                            )
+                            is_object_addable = result[0]
+                            message = result[1]
+                            object_detected = result[2]
+                            spec_file_pk = result[3]
+                            star_pk = result[4]
+                            if is_object_addable and object_detected:
+                                #   Add star and spec file IDs, if available, to
+                                #   the prepared lists
+                                star_pks.append(star_pk)
+                                if spec_file_pk:
+                                    spec_file_pks.append(spec_file_pk)
 
-                    except Exception as e:
-                        #   Handel error
-                        print(e)
-                        newrawspec.delete()
-                        message_text = "Exception occurred when adding: " + str(f)
-                        message_list.append([False, message_text])
+                                #   Set success/error message
+                                message_list.append([is_object_addable, message])
+                            elif is_object_addable:
+                                #   Add pk to list
+                                not_science_raw_spec_files_pks.append(
+                                    new_raw_spec.pk
+                                )
+                            else:
+                                #   Set success/error message
+                                message_list.append([is_object_addable, message])
+
+                        except Exception as e:
+                            #   Handel error
+                            print(e)
+                            message_text = (f"Exception occurred when adding: "
+                                            f"{new_raw_spec.rawfile.name}")
+                            message_list.append([False, message_text])
+                            new_raw_spec.delete()
+
+                    for pk in not_science_raw_spec_files_pks:
+                        #   Get spec files and stars as queryset so that
+                        #   'process_raw_spec' can be used
+                        determined_spec_files = SpecFile.objects.filter(
+                            pk__in=spec_file_pks
+                        )
+                        determined_stars = Star.objects.filter(pk__in=star_pks)
+
+                        #    Now process it and check for duplicates
+                        try:
+                            #   Process raw file
+                            success, message = read_spectrum.process_raw_spec(
+                                pk,
+                                determined_spec_files,
+                                determined_stars,
+                            )
+
+                            #   Set success/error message
+                            message_list.append([success, message])
+
+                        except Exception as e:
+                            #   Get raw spec file
+                            new_raw_spec_file = RawSpecFile.objects.get(pk=pk)
+
+                            #   Handel error
+                            print(e)
+                            new_raw_spec_file.delete()
+                            message_text = (f"Exception occurred when adding: "
+                                            f"{new_raw_spec_file.rawfile.name}")
+                            message_list.append([False, message_text])
+
+                else:
+                    #   Get files
+                    files = request.FILES.getlist('raw_files')
+                    for f in files:
+                        #    Save the new raw file
+                        new_raw_spec = RawSpecFile(project=project)
+                        new_raw_spec.save()
+                        new_raw_spec.rawfile.save(f.name, f)
+
+                        #    Now process it and check for duplicates
+                        try:
+                            #   Process raw file
+                            success, message = read_spectrum.process_raw_spec(
+                                new_raw_spec.pk,
+                                spec_files,
+                                stars,
+                            )
+
+                            #   Set success/error message
+                            message_list.append([success, message])
+
+                        except Exception as e:
+                            #   Handel error
+                            print(e)
+                            new_raw_spec.delete()
+                            message_text = f"Exception occurred when adding: {f}"
+                            message_list.append([False, message_text])
 
                 return JsonResponse(
                     {'info': 'Data uploaded', 'messages': message_list}

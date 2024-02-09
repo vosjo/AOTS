@@ -1179,6 +1179,64 @@ table.obs-table td {
 
 /* FORM stuff */
 
+fieldset {
+    border-radius: 4px;
+}
+
+/* Form for raw spec file upload */
+.box_form_raw_spec_files {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.button_form_raw_spec_files {
+    background-color: #e9e9ed;
+    color: #333;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button_form_raw_spec_files:hover {
+    background-color: var(--highlight_color_03);
+    color: #000000;
+}
+
+.text_form_raw_spec_files {
+    font-size: 16px;
+    margin-top: 15px;
+    text-align: justify;
+}
+
+.form_raw_spec_files {
+    display: none;
+}
+
+.form_raw_spec_files.active {
+    display: block;
+}
+
+.form_raw_return_button {
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: #e9e9ed;
+    color: #333;
+    font-size: 17px;
+    border-radius: 5px;
+    border: none;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    font-weight: bold;
+    color: #666;
+  }
+
 /* Small form used for search boxes ect */
 .small-form {
     display: flex;
@@ -1217,8 +1275,7 @@ div.upload_old {
     justify-content: space-around;
 }
 
-form.upload,
-p.upload {
+form.upload, p.upload {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1227,6 +1284,7 @@ p.upload {
     margin: 3px;
     border-style: solid;
     border-color: rgba(64, 117, 144, 0.4);
+    border-radius: 4px;
 }
 
 /*form.upload_2 {
@@ -1275,7 +1333,7 @@ progress.progress {
     color: #666;
 }
 
-.upload-button:hover {
+.upload-button:hover, .form_raw_return_button:hover {
     background-color: #c5d5dd;
     color: black;
 }

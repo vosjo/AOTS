@@ -838,9 +838,7 @@ function allow_unselect(e) {
 }
 
 function Toggleeditdropdown() {
-    console.log('INNN');
     $("#editdropdown").toggleClass("show");
-    console.log('INNN2');
     let otherdd = $("#carryoverdropdown");
     if (otherdd.hasClass("show")) {
         otherdd.toggleClass("show");

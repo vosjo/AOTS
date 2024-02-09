@@ -4,14 +4,8 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
-from six import python_2_unicode_compatible
-
-from users.models import get_sentinel_user
 
 
-# Create your models here.
-
-@python_2_unicode_compatible  # to support Python 2
 class Project(models.Model):
     """
     A project that contains a set of stars.

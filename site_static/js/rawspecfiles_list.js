@@ -319,8 +319,9 @@ $(document).ready(function () {
         //  Create new form
         let formData = new FormData(this);
         //  Get files
-        const rawfiles = document.getElementById('id_raw_files');
-        const data = rawfiles.files[0];
+        const raw_files = document.getElementById('id_raw_files');
+        console.log('raw_files', raw_files)
+        const data = raw_files.files[0];
         //  Display progress bar
         if (data != null) {
             $("#progress-bar-upload").show();
@@ -423,8 +424,8 @@ $(document).ready(function () {
         //  Create new form
         let formData = new FormData(this);
         //  Get files
-        const rawfiles = document.getElementById('id_raw_files');
-        const data = rawfiles.files[0];
+        const raw_files = $('input#id_raw_files')[1]
+        const data = raw_files.files[0];
         //  Display progress bar
         if (data != null) {
             $("#progress-bar-upload").show();
@@ -480,11 +481,11 @@ $(document).ready(function () {
                     };
                 });
 
-                //  Redraw table
-                rawspecfile_table.draw('full-hold');
-
                 //  Redraw messages
                 $('#messages').css("opacity", 1.);
+
+                //  Redraw table
+                rawspecfile_table.draw('full-hold');
 
                 //  Reset Specfile dropdown that is not reset by the line above
                 $("#id_system>option").map(function () {
@@ -507,7 +508,6 @@ $(document).ready(function () {
 
                 //  Remove progress bar
                 $("#progress-bar-upload").hide();
-//                 $("#progress-bar-upload").addClass("not-visible");
             },
             error: function (err) {
                 console.log('error', err);

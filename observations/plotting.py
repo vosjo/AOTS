@@ -115,7 +115,7 @@ def plot_visibility(observation):
 
         print(e)
 
-        label = mpl.Label(x=75, y=40, x_units='screen', text='Could not calculate visibility', render_mode='css',
+        label = mpl.Label(x=75, y=40, x_units='screen', text='Could not calculate visibility',
                           border_line_color='red', border_line_alpha=1.0, text_color='red',
                           background_fill_color='white', background_fill_alpha=1.0)
 

@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
             coord = SkyCoord(ra=ra, dec=dec, unit=(u.deg, u.deg), frame='icrs')
 
-            #   Check if parallax entry from GAIA DR3 exists -> skip if yes
+            #   Check is parallax entry from GAIA DR3 exists -> skip if yes
             old_parall = star.parameter_set.filter(name__exact='parallax')
             conti = False
             for old in old_parall:
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
             #   Check if GAIA request contains data
             if gaia_data and len(gaia_data[0]) == 1:
-                print('\tAdd photometry')
+                print('\tAdd phtometry')
                 mags = ['Gmag', 'BPmag', 'RPmag']
                 errs = ['e_Gmag', 'e_BPmag', 'e_RPmag']
                 bands = ['GAIA3.G', 'GAIA3.BP', 'GAIA3.RP']
@@ -162,7 +162,7 @@ if __name__ == '__main__':
                         str(gaia_data[0]['e_pmDE']) != '--'):
                     old_pmdec = star.parameter_set.filter(name__exact='pmdec')
                     for old in old_pmdec:
-                        #   Delete old entries if requested
+                        #   Delete old entries is requested
                         if rm_old_para:
                             print('\t\tDelete old pmdec entry')
                             old.delete()

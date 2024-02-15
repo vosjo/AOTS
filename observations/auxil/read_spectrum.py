@@ -255,8 +255,10 @@ def process_specfile(specfile_id, create_new_star=True,
 
     if len(duplicates) > 0:
         #     This specfile already exists, so remove it
+        message += (f"Specfile {specfile.specfile.name.split('/')[-1]} "
+                    f"is a duplicate and was not added!")
         specfile.delete()
-        return False, "This specfile is a duplicate and was not added!"
+        return False, message
 
     # -- add specfile to existing or new spectrum
     spectrum = Spectrum.objects.filter(project__exact=specfile.project) \

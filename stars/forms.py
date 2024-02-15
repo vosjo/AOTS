@@ -11,10 +11,10 @@ from .models import Star, Tag
 
 class RAField(forms.CharField):
     """
-        Custom field to input Right Ascention (RA) in hexadecimal form in hours.
+        Custom field to input Right Ascension (RA) in hexadecimal form in hours.
     """
 
-    errormessage = 'Cannot interpret RA angle, try format: hh:mm:ss.ss, hh mm ss.ss or dd.ddddd'
+    error_message = 'Cannot interpret RA angle, try format: hh:mm:ss.ss, hh mm ss.ss or dd.ddddd'
 
     def clean(self, value):
         if not value:
@@ -24,14 +24,14 @@ class RAField(forms.CharField):
         #   Check if a decimal or hexadecimal number was given
         if re.match('^\d+\.\d+$', value) or re.match('^\d+\.+$', value):
             if float(value) > 360 or float(value) < 0:
-                raise ValidationError(self.errormessage, code='invalid_ra')
+                raise ValidationError(self.error_message, code='invalid_ra')
             else:
                 return float(value)
         else:
             try:
                 return Angle(value.strip(), unit='hour').degree
             except:
-                raise ValidationError(self.errormessage, code='invalid_ra')
+                raise ValidationError(self.error_message, code='invalid_ra')
 
 
 class DecField(forms.CharField):
@@ -39,7 +39,7 @@ class DecField(forms.CharField):
         Custom field to input Declination (Dec) in hexadecimal form in hours.
     """
 
-    errormessage = 'Cannot interpret Dec angle, try format: dd:mm:ss.ss, dd mm ss.ss or dd.ddddd'
+    error_message = 'Cannot interpret Dec angle, try format: dd:mm:ss.ss, dd mm ss.ss or dd.ddddd'
 
     def clean(self, value):
         if not value:
@@ -50,14 +50,14 @@ class DecField(forms.CharField):
         #   Check if a decimal or hexadecimal number was given
         if re.match('^\d+\.\d+$', value) or re.match('^\d+\.+$', value):
             if float(value) < -90 or float(value) > 90:
-                raise ValidationError(self.errormessage, code='invalid_dec')
+                raise ValidationError(self.error_message, code='invalid_dec')
             else:
                 return float(value)
         else:
             try:
                 return Angle(value.strip(), unit='degree').degree
             except:
-                raise ValidationError(self.errormessage, code='invalid_dec')
+                raise ValidationError(self.error_message, code='invalid_dec')
 
 
 # ==================================================================================

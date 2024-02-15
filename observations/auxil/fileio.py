@@ -51,6 +51,7 @@ def istext(filename):
         return False
 
 
+#   TODO: Move to tools or so
 def cal_wave(header, npoints):
     """
         Calculates wave length range from Header information
@@ -275,12 +276,12 @@ def read_spectrum(filename, return_header=False):
         instrument = header.get('INSTRUME', 'UK')
 
         #   Check for multispec entry in FITS Header
-        iraf_multispec = header.get('WAT2_001', 'UK')
+        iraf_multispec = header.get('WAT0_001', 'UK')
 
         ###
         #   Try instrument specific extractions
         #
-        if iraf_multispec != 'UK':
+        if iraf_multispec == 'system=multispec':
             '''
             IRAF multispec echelle data
             '''

@@ -217,22 +217,23 @@ def add_spectra(request, project=None, **kwargs):
                             level = messages.ERROR
                         messages.add_message(request, level, message)
 
-                        #   Refresh SpecFile from database
-                        newspec.refresh_from_db()
+                        if success:
+                            #   Refresh SpecFile from database
+                            newspec.refresh_from_db()
 
-                        if len(user_info) > 0:
-                            #   Save user info in extra model
-                            success, message = read_spectrum.add_userinfo(
-                                user_info,
-                                newspec.spectrum.pk,
-                            )
+                            if len(user_info) > 0:
+                                #   Save user info in extra model
+                                success, message = read_spectrum.add_userinfo(
+                                    user_info,
+                                    newspec.spectrum.pk,
+                                )
 
-                            #   Set success/error message
-                            if success:
-                                level = messages.INFO
-                            else:
-                                level = messages.WARNING
-                            messages.add_message(request, level, message)
+                                #   Set success/error message
+                                if success:
+                                    level = messages.INFO
+                                else:
+                                    level = messages.WARNING
+                                messages.add_message(request, level, message)
 
                     except Exception as e:
                         #   Handel error
@@ -245,6 +246,8 @@ def add_spectra(request, project=None, **kwargs):
                         )
 
                 #   Return and redirect
+                #   TODO: Better return to spectrum list instead of specfile list?
+                #         Return to upload page if only unsuccessful uploads?
                 return HttpResponseRedirect(reverse(
                     'observations:specfile_list',
                     kwargs={'project': project.slug}
@@ -295,6 +298,7 @@ def specfile_list(request, project=None, **kwargs):
     return render(request, 'observations/specfiles_list.html', context)
 
 
+#   TODO: Refactor the following function
 @check_user_can_view_project
 def rawspecfile_list(request, project=None, **kwargs):
     """

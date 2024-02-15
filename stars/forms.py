@@ -478,26 +478,33 @@ class UpdateParamsForm(forms.Form):
         for param in params:
             for paramset in param["params"]:
 
-                ind = params.index(param)
-                comp = params[ind]["component"]
-                name = paramset["pinfo"].name
-                source = paramset["pinfo"].data_source.name
-                try:
-                    initval, initerrval = paramset["values"][0].split(" &pm; ")
-                except ValueError:
-                    initval, initerrval = paramset["values"][1].split(" &pm; ")
-                initval = float(initval)
-                initerrval = float(initerrval)
+                # ind = params.index(param)
+                # comp = params[ind]["component"]
+                comp = param["component"]
+                paramset_pinfo = paramset["pinfo"]
+                if paramset_pinfo:
+                    name = paramset_pinfo.name
+                    source = paramset_pinfo.data_source.name
+                    try:
+                        initval, initerrval = paramset["values"][0].split(" &pm; ")
+                    except ValueError:
+                        initval, initerrval = paramset["values"][1].split(" &pm; ")
+                    initval = float(initval)
+                    initerrval = float(initerrval)
 
-                # add initial value directly to field
-                self.fields["_".join([name, comp, source])] = forms.FloatField(required=False,
-                                                                               label=source + "_" + name,
-                                                                               show_hidden_initial=True,
-                                                                               initial=initval)
-                self.fields["_".join([name + "-err", comp, source])] = forms.FloatField(required=False,
-                                                                                        label=source + "_" + name + "_err",
-                                                                                        show_hidden_initial=True,
-                                                                                        initial=initerrval)
+                    # add initial value directly to field
+                    self.fields["_".join([name, comp, source])] = forms.FloatField(
+                        required=False,
+                        label=source + "_" + name,
+                        show_hidden_initial=True,
+                        initial=initval,
+                    )
+                    self.fields["_".join([name + "-err", comp, source])] = forms.FloatField(
+                        required=False,
+                        label=source + "_" + name + "_err",
+                        show_hidden_initial=True,
+                        initial=initerrval,
+                    )
 
     def get_fields(self):
         for field_name in self.fields:

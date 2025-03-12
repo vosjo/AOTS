@@ -1,7 +1,7 @@
 import astropy.units as u
 import numpy as np
 from astroplan.moon import moon_illumination
-from astropy.coordinates import SkyCoord, AltAz, get_moon
+from astropy.coordinates import SkyCoord, AltAz, get_body
 from astropy.time import Time
 from django.db.models import F, ExpressionWrapper, DecimalField
 
@@ -158,7 +158,7 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
 
     #   Get the sky and moon coordinates at time and location of observations
     sky = SkyCoord(ra=spectrum.ra * u.deg, dec=spectrum.dec * u.deg, )
-    moon = get_moon(time)
+    moon = get_body('moon', time)
 
     #   Set observatory and transform sky coordinates to altitude & azimuth
     observatory = spectrum.observatory.get_EarthLocation()

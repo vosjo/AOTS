@@ -1,7 +1,7 @@
 import astropy.units as u
 import numpy as np
 from astroplan.moon import moon_illumination
-from astropy.coordinates import SkyCoord, AltAz, get_moon
+from astropy.coordinates import SkyCoord, AltAz, get_body
 from astropy.time import Time
 from django.db.models import F, ExpressionWrapper, FloatField
 
@@ -84,7 +84,7 @@ def derive_lightcurve_info(lightcurve_pk):
 
     # get the star and moon coordinates at time and location of observations
     star = SkyCoord(ra=lightcurve.ra * u.deg, dec=lightcurve.dec * u.deg, )
-    moon = get_moon(time)
+    moon = get_body('moon', time)
 
     observatory = lightcurve.observatory.get_EarthLocation()
     frame = AltAz(obstime=time, location=observatory)

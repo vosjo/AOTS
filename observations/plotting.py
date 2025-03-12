@@ -3,7 +3,7 @@ collection of all necessary bokeh plotting functions for spectra
 """
 import astropy.units as u
 import numpy as np
-from astropy.coordinates import SkyCoord, AltAz, get_moon
+from astropy.coordinates import SkyCoord, AltAz, get_body
 from astropy.time import Time
 from bokeh import models as mpl
 from bokeh import plotting as bpl
@@ -98,7 +98,7 @@ def plot_visibility(observation):
 
         star_altaz = star.transform_to(frame_star)
 
-        moon = get_moon(times)
+        moon = get_body('moon', times)
         moon_altaz = moon.transform_to(frame_star)
 
         times = times.to_datetime()
@@ -402,7 +402,7 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
     else:
 
         label = mpl.HTMLLabel(x=800, y=200, x_units='screen', y_units='screen',
-                          text='No period provided, cannot phase fold lightcurve', 
+                          text='No period provided, cannot phase fold lightcurve',
                           text_align='center',
                           border_line_color='red', border_line_alpha=1.0, text_color='red',
                           background_fill_color='white', background_fill_alpha=1.0)

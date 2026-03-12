@@ -2,7 +2,7 @@
 
 ## Installing Django
 
-This will install AOTS using a python virtualenv to avoid conflicts with other packages.
+This will install AOTS using a python virtual environment to avoid conflicts with other packages.
 
 ### 1. Prerequisites
 
@@ -16,12 +16,11 @@ cd www/aots
 
 For the rest of this guide, we will assume that these directories are located in the user's home directory.
 
-You need the python-dev package and virtualenv. Moreover you should update pip:
+You need the python-dev package. Moreover you should update pip:
 
 ```
-sudo apt-get install python-dev-is-python3
+sudo apt install python-dev-is-python3
 pip install -U pip
-pip install virtualenv
 ```
 
 ### 2. Create the virtual environment
@@ -29,21 +28,15 @@ pip install virtualenv
 Create a new virtual python environment for AOTS and activate it (Bash syntax):
 
 ```
-virtualenv aotsenv
+python -m venv aotsenv
 source aotsenv/bin/activate
 ```
 
 On Windows Computers do
 
 ```
-virtualenv aotsenv
+python -m venv aotsenv
 aotsenv\Scripts\Activate
-```
-
-If this fails with an error similar to: Error: unsupported locale setting do:
-
-```
-export LC_ALL=C
 ```
 
 ### 3. Clone AOTS from github
@@ -173,8 +166,7 @@ cp AOTS/.env.example  AOTS/.env
 ### 2. Adjust the .env file
 
 In .env the secret Django security key, the postgres database password, the server IP and URL, as well as the name of
-the computer used in production needs to be specified. If a special log directory is required or a different database
-user was defined during setup, this has to be specified here as well.
+the computer used in production needs to be specified.
 
 ```
 SECRET_KEY=generate_and_add_your_secret_security_key_here
@@ -185,7 +177,6 @@ DATABASE_HOST=localhost
 DATABASE_PORT=
 DEVICE=the_name_of_your_device_used_in_production
 ALLOWED_HOSTS=server_url,server_ip,localhost
-LOG_DIR=/home/aots/www/aots/AOTS/logs/
 ```
 
 Instructions on how to generate a secret key can be found
@@ -270,14 +261,18 @@ User=aots
 Group=www-data
 WorkingDirectory=/home/aots/www/aots/AOTS
 ExecStart=/home/aots/www/aots/aotsenv/bin/gunicorn \
-          --access-logfile - \
           --workers 3 \
           --timeout 600 \
-          --error-logfile /home/aots/www/aots/AOTS/logs/gunicorn_error.log \
+          --access-logfile - \
+          --error-logfile - \
           --capture-output \
           --log-level info \
           --bind unix:/home/aots/www/aots/run/gunicorn.sock \
           AOTS.wsgi:application
+          
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gunicorn_aots
 
 [Install]
 WantedBy=multi-user.target
@@ -318,28 +313,6 @@ Check status:
 ```
 sudo systemctl status gunicorn_aots
 ```
-
-## Setup logroate
-
-To enable log rotation create a file with the following content /etc/logrotate.d:
-
-```
-/home/aots/www/aots/AOTS/logs/*.log {
-  rotate 14
-  daily
-  compress
-  delaycompress
-  nocreate
-  notifempty
-  missingok
-  su aots www-data
-}
-```
-
-Change user name, group, and the log directory as needed.
-
-Alternatively, 'logging.handlers.RotatingFileHandler' can be selected as class for the logging handlers in
-settings_production.py.
 
 ## Configure NGNIX
 

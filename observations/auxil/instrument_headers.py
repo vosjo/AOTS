@@ -197,6 +197,8 @@ def derive_generic_info(header):
 
     #   Pointing info
     data['objectname'] = header.get('OBJECT', '')
+    if data['objectname'] == '':
+        data['objectname'] = header.get('TARGET', '')
 
     try:
         data['ra'] = float(header.get('RA', 0.))

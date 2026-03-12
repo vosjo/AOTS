@@ -302,6 +302,15 @@ def read_spectrum(filename, return_header=False):
 
             wave = data['wave'][0]
 
+        elif instrument in ['OSIRIS',]:
+            """
+            OSIRIS on GTC
+            """
+            data = fits.getdata(filename, 1)
+
+            flux = data['OPT_FLAM']
+            wave = data['OPT_WAVE']
+
         elif 'SDSS' in header.get('telescop', ''):
             """
             SDSS spectrum

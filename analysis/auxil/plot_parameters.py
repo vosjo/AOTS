@@ -97,7 +97,8 @@ def plot_parameters(parameters, **kwargs):
     fig = bpl.figure(width=800, height=600, toolbar_location='right',
                      tools=TOOLS)
 
-    fig.circle(xpar, ypar, source=datasource, size=5)
+    fig.scatter(xpar, ypar, source=datasource, size=5, marker="circle")
+
     #    Make sure xpar is filled otherwise avoid plotting
     if xpar != '':
         plot_errorbars(fig, data[xpar], data[ypar], xerr=data['e_' + xpar], yerr=data['e_' + ypar])

@@ -78,9 +78,10 @@ def plot_generic(datafile):
                 )
 
             elif get_attr(dataset, "datatype", None) == "discrete" and mode == "DATA":
-                fig.circle(
+                fig.scatter(
                     dataset[xpar][s],
                     dataset[ypar][s],
+                    marker="circle",
                     color=colors[i],
                     legend_label=name,
                     size=6,
@@ -176,9 +177,10 @@ def plot_generic_large(datafile):
                 bokehsource.add(dataset[xpar], name=name + "_x")
                 bokehsource.add(dataset[ypar], name=name + "_y")
 
-                rend = fig.circle(
+                rend = fig.scatter(
                     name + "_x",
                     name + "_y",
+                    marker="circle",
                     color=colors[i],
                     source=bokehsource,
                     size=7,
@@ -286,9 +288,10 @@ def plot_generic_OC(datafile):
                     dataset[xpar], dataset[ypar], color=colors[i], legend_label=name
                 )
             elif get_attr(dataset, "datatype", None) == "discrete":
-                fig.circle(
+                fig.scatter(
                     dataset[xpar],
                     dataset[ypar],
+                    marker="circle",
                     color=colors[i],
                     legend_label=name,
                     size=7,

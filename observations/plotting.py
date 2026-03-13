@@ -3,6 +3,7 @@ collection of all necessary bokeh plotting functions for spectra
 """
 import astropy.units as u
 import numpy as np
+import pandas as pd
 from astropy.coordinates import SkyCoord, AltAz, get_body
 from astropy.time import Time
 from bokeh import models as mpl
@@ -420,65 +421,116 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
 
 
 def plot_sed(star_id):
-    star = Star.objects.get(pk=star_id)
 
+    star = Star.objects.get(pk=star_id)
     photometry = star.photometry_set.all()
 
-    meas, flux, err, wave, bands, system = [], [], [], [], [], []
-    for point in photometry:
+    data = []
 
-        if not point.band in zeropoints: continue
-        zp = zeropoints[point.band]
-        bands.append(point.band)
-        system.append(point.band.split('.')[0])
-        meas.append(point.measurement)
-        flux.append(zp * 10 ** (-point.measurement / 2.5))
-        err.append(point.error)
-        wave.append(point.wavelength)
+    for p in photometry:
 
-    meas, flux, err, wave, bands, system = np.array(meas), np.array(flux), np.array(err), np.array(wave), np.array(
-        bands), np.array(system),
+        if p.band not in zeropoints:
+            continue
 
-    photd = dict(wave=wave,
-                 flux=flux,
-                 band=bands,
-                 mag=meas,
-                 err=err, )
-    photsource = bpl.ColumnDataSource(data=photd)
+        zp = zeropoints[p.band]
+        system = p.band.split('.')[0]
 
-    tools = [mpl.PanTool(), mpl.WheelZoomTool(),
-             mpl.BoxZoomTool(), mpl.ResetTool()]
-    fig = bpl.figure(width=600, height=400, x_axis_type="log", y_axis_type="log", tools=tools)
+        flux = zp * 10 ** (-p.measurement / 2.5)
 
-    # fig.circle(wave, meas)
-    main_plot = fig.circle('wave', 'flux', size=8, color='white', alpha=0.1, name='hover', source=photsource)
+        data.append(dict(
+            wave=p.wavelength,
+            flux=flux,
+            band=p.band,
+            mag=p.measurement,
+            err=p.error,
+            system=system
+        ))
 
-    colors = {'2MASS': 'black',
-              'WISE': 'gray',
-              'STROMGREN': 'olive',
-              'SDSS': 'olive',
-              'GAIA2': 'maroon',
-              'GAIA3': 'maroon',
-              'APASS': 'gold',
-              'GALEX': 'powderblue',
-              'PANSTAR': 'green',
-              'SKYMAP': 'red',
-              }
+    photd = pd.DataFrame(data)
 
-    for band in set(system):
-        sel = np.where(system == band)
-        fig.circle(wave[sel], flux[sel], color=colors[band],
-                   fill_alpha=0.3, line_alpha=1.0, size=9, line_width=1.5)
+    source = bpl.ColumnDataSource(photd)
+
+    tools = [
+        mpl.PanTool(),
+        mpl.WheelZoomTool(),
+        mpl.BoxZoomTool(),
+        mpl.ResetTool()
+    ]
+
+    fig = bpl.figure(
+        width=600,
+        height=400,
+        x_axis_type="log",
+        y_axis_type="log",
+        tools=tools
+    )
 
     fig.toolbar.logo = None
-    fig.yaxis.axis_label = 'Flux'
-    fig.xaxis.axis_label = 'Wavelength (AA)'
-    fig.yaxis.axis_label_text_font_size = '10pt'
-    fig.xaxis.axis_label_text_font_size = '10pt'
+
+    fig.yaxis.axis_label = "Flux"
+    fig.xaxis.axis_label = "Wavelength (AA)"
+
+    fig.yaxis.axis_label_text_font_size = "10pt"
+    fig.xaxis.axis_label_text_font_size = "10pt"
+
     fig.min_border = 5
 
-    hover = mpl.HoverTool(tooltips=[("band", "@band"), ("magnitude", "@mag +- @err")],
-                          renderers=[main_plot])
+    if not data:
+        fig.text(
+            x=[0.5],
+            y=[0.5],
+            text=["No photometry available"],
+            text_align="center"
+        )
+        return fig
+
+    # invisible hover layer
+    main_plot = fig.scatter(
+        'wave',
+        'flux',
+        size=8,
+        marker="circle",
+        color='white',
+        alpha=0.1,
+        source=source,
+        name="hover"
+    )
+
+    colors = {
+        '2MASS': 'black',
+        'WISE': 'gray',
+        'STROMGREN': 'olive',
+        'SDSS': 'olive',
+        'GAIA2': 'maroon',
+        'GAIA3': 'maroon',
+        'APASS': 'gold',
+        'GALEX': 'powderblue',
+        'PANSTAR': 'green',
+        'SKYMAP': 'red',
+    }
+
+    # plot per system
+    for system, group in photd.groupby("system"):
+
+        fig.scatter(
+            group.wave,
+            group.flux,
+            marker="circle",
+            size=9,
+            color=colors.get(system, "black"),
+            fill_alpha=0.3,
+            line_alpha=1.0,
+            line_width=1.5
+        )
+
+    hover = mpl.HoverTool(
+        tooltips=[
+            ("band", "@band"),
+            ("magnitude", "@mag ± @err"),
+        ],
+        renderers=[main_plot]
+    )
+
     fig.add_tools(hover)
 
     return fig

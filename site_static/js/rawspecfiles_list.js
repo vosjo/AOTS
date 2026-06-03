@@ -131,14 +131,14 @@ $(document).ready(function () {
     }
 
     //  Save content of system and specfile form fields to allow their reset
-    // if (user_authenticated) {
-    let saved_system = $("#id_system")[0]['innerHTML'];
-    let saved_specfile = $("#id_specfile")[0]['innerHTML'];
-    // }
+    if (user_authenticated) {
+        if ($("#id_system").length && $("#id_specfile").length) {
+            let saved_system = $("#id_system")[0].innerHTML;
+            let saved_specfile = $("#id_specfile")[0].innerHTML;
 
-    //  Add spectra form:
-    //  Adjust form drop dropdown content I: read system name
-    $("#id_system_name").on("keyup", function () {
+            //  Add spectra form:
+            //  Adjust form drop dropdown content I: read system name
+            $("#id_system_name").on("keyup", function () {
         let name = $(this).val().toLowerCase();
         $("#id_system option").filter(function () {
             $(this).toggle($(this).text().toLowerCase().indexOf(name) > -1)
@@ -307,6 +307,7 @@ $(document).ready(function () {
         $("#id_specfile_patch").val([]);
         $("#id_specfile_patch").append(saved_specfile);
     });
+        }
 
 
     //  Add progress bar for raw data file upload
@@ -557,6 +558,7 @@ $(document).ready(function () {
             hideForms();
         },
     });
+    }
 
     //  Adjust nav bar highlight
     adjust_nav_bar_active("#observation_dropdown")

@@ -18,7 +18,8 @@ from .views import (
     getRawSpecfilePath,
     getSpecfileRawPath,
     getLightCurvePath,
-    bulkUploadSpectra, bulkDownloadSpectra
+    bulkUploadSpectra, bulkDownloadSpectra,
+    getTaskStatus,
 )
 
 app_name = 'observations-api'
@@ -96,5 +97,10 @@ urlpatterns = [
         'api-spec-download/',
         bulkDownloadSpectra,
         name='api-spec-download',
+    ),
+    path(
+        'tasks/<str:task_id>/',
+        getTaskStatus,
+        name='task-status',
     ),
 ]

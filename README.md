@@ -89,9 +89,13 @@ python manage.py createsuperuser
 
 ### 3. Start the development server
 
+Set `DJANGO_ENV=development` in `AOTS/.env` (or export it in your shell).
+Production deployments should use `DJANGO_ENV=production`.
+
 ```
 python manage.py runserver
 ```
+
 
 ## Setup postgres database for production
 
@@ -170,6 +174,7 @@ the computer used in production needs to be specified.
 
 ```
 SECRET_KEY=generate_and_add_your_secret_security_key_here
+DJANGO_ENV=production
 DATABASE_NAME=aotsdb
 DATABASE_USER=aotsuser
 DATABASE_PASSWORD=your_database_password
@@ -177,7 +182,14 @@ DATABASE_HOST=localhost
 DATABASE_PORT=
 DEVICE=the_name_of_your_device_used_in_production
 ALLOWED_HOSTS=server_url,server_ip,localhost
+CSRF_TRUSTED_ORIGINS=https://your_server_url
+CELERY_BROKER_URL=redis://localhost:6379/0
 ```
+
+`DEVICE` is optional if `DJANGO_ENV=production` is set (legacy fallback: hostname match).
+`CELERY_BROKER_URL` is optional for normal operation; Redis/Celery are **infrastructure
+preparation** for later background work (see
+[Redis and background tasks (Celery)](#redis-and-background-tasks-celery) and [TODO.md](TODO.md)).
 
 Instructions on how to generate a secret key can be found
 here: https://tech.serhatteker.com/post/2020-01/django-create-secret-key/
@@ -383,3 +395,135 @@ Finally, we need to open up our firewall to normal traffic on port 80
 ```
 sudo ufw allow 'Nginx Full'
 ```
+
+
+## Redis and background tasks (Celery)
+
+The codebase includes **Celery** and **Redis** configuration (`AOTS/celery.py`, `CELERY_*` in
+settings, optional `?async=1` on spectrum/specfile process endpoints). This is deliberately
+**preparation for later use**: day-to-day operation is unchanged — the web UI and most API calls
+do **not** need Redis or a Celery worker.
+
+Today, the only wired async path is opt-in FITS/spectrum **processing** via `?async=1`. The main
+planned benefit is **bulk spectrum downloads**: building large ZIP archives on the server
+(currently synchronous in `bulkDownloadSpectra` and, in the browser, via JSZip in list views)
+should move into Celery so HTTP workers are not blocked and Gunicorn timeouts are avoided. See
+[TODO.md](TODO.md) for a short roadmap.
+
+Redis is the message broker and result backend when you do use Celery. Without Redis, processing
+and downloads behave as before (synchronously in Django/Gunicorn or in the browser).
+
+### When is Redis required?
+
+| Mode | Redis | Celery worker |
+|------|-------|---------------|
+| Normal operation (UI, bulk download API, sync process URLs) | No | No |
+| Opt-in async processing (`?async=1` on process URLs) | Yes | Yes |
+| Planned: server-side bulk ZIP downloads via Celery | Yes | Yes |
+| Tests / CI (`CELERY_TASK_ALWAYS_EAGER=True`) | No | No |
+
+Examples of optional async endpoints:
+
+- `POST /api/observations/specfiles/<pk>/process/?async=1`
+- `POST /api/observations/spectra/<pk>/process/?async=1`
+- `GET /api/observations/tasks/<task_id>/` — poll task status
+
+Without Redis, keep using the process URLs **without** `?async=1`, and use bulk download as
+today (synchronous API or browser-side ZIP). No Celery worker is needed until you adopt async
+processing or the planned Celery-based bulk downloads.
+
+### Install Redis (Linux)
+
+The Python package `redis` in `requirements.txt` is only the client. You also need a
+**Redis server** for async mode:
+
+```
+sudo apt install redis-server
+sudo systemctl enable --now redis-server
+redis-cli ping
+```
+
+Expected response: `PONG`.
+
+### Configuration (`.env`)
+
+Copy and extend `AOTS/.env` from `AOTS/.env.example`. Relevant variables:
+
+```
+CELERY_BROKER_URL=redis://localhost:6379/0
+# Optional; defaults to CELERY_BROKER_URL if omitted:
+# CELERY_RESULT_BACKEND=redis://localhost:6379/0
+```
+
+For a password-protected Redis instance (recommended in production):
+
+```
+CELERY_BROKER_URL=redis://:your_redis_password@localhost:6379/0
+```
+
+**Development without Redis:** run tasks in-process (no separate worker):
+
+```
+CELERY_TASK_ALWAYS_EAGER=True
+```
+
+Settings are loaded from `AOTS/settings/base.py` (`CELERY_*` variables).
+
+### Start a Celery worker
+
+Use the same virtualenv and `.env` as Django. From the project root (`AOTS/`):
+
+```
+export DJANGO_ENV=development   # or production
+celery -A AOTS worker -l info
+```
+
+In another terminal, start Django as usual (`runserver` or Gunicorn). The worker must be able to
+reach the same Redis URL as Django.
+
+### Production notes
+
+- Run Redis on `localhost` only (or a private network); do not expose it to the internet.
+- Set `requirepass` in `/etc/redis/redis.conf` and use it in `CELERY_BROKER_URL`.
+- Run the Celery worker as a **systemd service** alongside Gunicorn (same user, same
+  `WorkingDirectory` and environment file).
+- The existing Gunicorn timeout (600s) applies to **synchronous** requests; async jobs can run
+  longer in the worker without blocking HTTP workers.
+
+Example systemd unit (adjust paths and user):
+
+```
+sudo nano /etc/systemd/system/celery_aots.service
+```
+
+```
+[Unit]
+Description=AOTS Celery worker
+After=network.target redis-server.service
+
+[Service]
+User=aots
+Group=www-data
+WorkingDirectory=/home/aots/www/aots/AOTS
+EnvironmentFile=/home/aots/www/aots/AOTS/AOTS/.env
+ExecStart=/home/aots/www/aots/aotsenv/bin/celery -A AOTS worker -l info
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```
+sudo systemctl daemon-reload
+sudo systemctl enable --now celery_aots
+sudo systemctl status celery_aots
+```
+
+### Troubleshooting
+
+| Problem | Likely cause |
+|---------|----------------|
+| `Connection refused` when using `?async=1` | Redis not running or wrong `CELERY_BROKER_URL` |
+| Task stays `PENDING` | Celery worker not started |
+| Works in tests but not locally | `CELERY_TASK_ALWAYS_EAGER=True` in test config only |
+| `pip install redis` alone is not enough | Redis **server** not installed |

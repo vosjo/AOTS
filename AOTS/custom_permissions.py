@@ -11,24 +11,54 @@ class IsAllowedOnProject(permissions.BasePermission):
     they have permission to perform those actions for the project this object belongs to.
     """
 
-    def has_object_permission(self, request, view, obj):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if request.user.is_anonymous:
+            return False
+        if request.method == 'POST':
+            project = _get_project_from_request(request)
+            if project is None:
+                return False
+            return request.user.can_add(project)
+        return True
 
-        # show the object if the user is allowed to see this project (GET, HEAD or OPTIONS)
+    def has_object_permission(self, request, view, obj):
+        project = _get_object_project(obj)
+
         if request.method in permissions.SAFE_METHODS:
             if request.user.is_anonymous:
-                return obj.project.is_public
-            else:
-                return request.user.can_read(obj.project)
+                return project.is_public
+            return request.user.can_read(project)
 
-        # User can add objects in this project?
-        if request.method == ['POST'] and not request.user.is_anonymous:
-            return request.user.can_add(obj.project)
+        if request.user.is_anonymous:
+            return False
 
-        # check if the user is allowed to edit/delete this specific object
-        if request.method in ['PUT', 'PATCH', 'DELETE'] and not request.user.is_anonymous:
+        if request.method == 'DELETE':
+            return request.user.can_delete(obj)
+
+        if request.method in ('PUT', 'PATCH'):
             return request.user.can_edit(obj)
 
         return False
+
+
+def _get_object_project(obj):
+    if hasattr(obj, 'project'):
+        return obj.project
+    if hasattr(obj, 'star'):
+        return obj.star.project
+    raise AttributeError(f"Cannot determine project for {obj!r}")
+
+
+def _get_project_from_request(request):
+    project_id = request.data.get('project')
+    if project_id is None:
+        return None
+    try:
+        return Project.objects.get(pk=project_id)
+    except (Project.DoesNotExist, ValueError, TypeError):
+        return None
 
 
 def get_allowed_objects_to_view_for_user(qs, user, parameter_switch=False):
@@ -41,33 +71,24 @@ def get_allowed_objects_to_view_for_user(qs, user, parameter_switch=False):
     in user can also see private projects that he/she has viewing rights
     for.
     """
-
-    #   Check if project is public
     if parameter_switch:
         public = qs.filter(star__project__is_public__exact=True)
     else:
         public = qs.filter(project__is_public__exact=True)
 
-    #   Check if user is logged in ...
     if user.is_anonymous:
-        #   ... return the "public" queryset if not
         return public
+
+    if parameter_switch:
+        restricted = qs.filter(
+            star__project__pk__in=user.get_read_projects().values('pk')
+        )
     else:
-        #   Check if user is allowed to view the project ...
-        if parameter_switch:
-            restricted = qs.filter(
-                star__project__pk__in=user.get_read_projects().values('pk')
-            )
-        else:
-            restricted = qs.filter(
-                project__pk__in=user.get_read_projects().values('pk')
-            )
-        if len(restricted) > 0:
-            #   ... if this is the case return the specific queryset ...
-            return restricted
-        else:
-            #   ... if not, return the public queryset
-            return public
+        restricted = qs.filter(
+            project__pk__in=user.get_read_projects().values('pk')
+        )
+
+    return (public | restricted).distinct()
 
 
 def check_user_can_view_project(function):
@@ -77,7 +98,6 @@ def check_user_can_view_project(function):
     """
 
     def wrapper(request, *args, **kwargs):
-        user = request.user
         try:
             project = Project.objects.get(slug=kwargs['project'])
         except Exception:

@@ -1,3 +1,6 @@
+import random
+import string
+
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import pre_save
@@ -56,10 +59,12 @@ def set_project_slug(sender, **kwargs):
     slug = slugify(project.name[0:17], allow_unicode=False)
 
     extension = 1
-    while Project._default_manager.filter(**{'slug': unique_slug}).exists() or extension > 99:
+    while Project._default_manager.filter(slug=unique_slug).exists() and extension <= 99:
         unique_slug = '{}-{}'.format(slug, extension)
         extension += 1
     if extension > 99:
-        unique_slug = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(20))
+        unique_slug = ''.join(
+            random.choice(string.ascii_lowercase + string.digits) for _ in range(20)
+        )
 
     project.slug = unique_slug

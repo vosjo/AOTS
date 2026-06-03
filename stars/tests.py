@@ -55,6 +55,19 @@ class RobotsTxtTests(TestCase):
         lines = response.content.decode().splitlines()
         self.assertEqual(lines[0], "User-Agent: *")
 
+
+class ProjectSlugTests(TestCase):
+    def test_unique_slugs_for_colliding_slugify(self):
+        Project.objects.create(name='My Project')
+        project_b = Project(name='My-Project')
+        project_b.save()
+
+        self.assertNotEqual(
+            Project.objects.get(name='My Project').slug,
+            project_b.slug,
+        )
+        self.assertTrue(project_b.slug)
+
     def test_post_disallowed(self):
         response = self.client.post("/robots.txt")
 

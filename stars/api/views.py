@@ -3,7 +3,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
+from AOTS.api_mixins import DatatablesOrderingMixin, ProjectFilteredQuerysetMixin
+from AOTS.permissions_helpers import get_object_if_allowed
 from stars.models import Project, Star, Identifier, Tag
 from .filter import (
     StarFilter,
@@ -31,8 +32,19 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
+    def get_queryset(self):
+        qs = Project.objects.all()
+        user = self.request.user
+        if user.is_anonymous:
+            return qs.filter(is_public=True)
+        if user.is_superuser:
+            return qs
+        return qs.filter(
+            pk__in=user.get_read_projects().values('pk')
+        ) | qs.filter(is_public=True).distinct()
+
     def list(self, request):
-        queryset = Project.objects.all()
+        queryset = self.get_queryset()
         serializer = ProjectListSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -41,14 +53,19 @@ class ProjectViewSet(viewsets.ModelViewSet):
 # STARS
 # ===============================================================
 
-class StarViewSet(viewsets.ModelViewSet):
+class StarViewSet(
+    ProjectFilteredQuerysetMixin,
+    DatatablesOrderingMixin,
+    viewsets.ModelViewSet,
+):
     """
     list:
     Returns a list of all stars/objects in the database
     """
 
-    queryset = Star.objects.all()
+    queryset = Star.objects.select_related('project').prefetch_related('tags')
     serializer_class = StarSerializer
+    default_ordering = ('name',)
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = StarFilter
@@ -66,22 +83,12 @@ def getStarSpecfiles(request, star_pk):
     """
         Get all SpecFiles associated with a system
     """
-
-    #   Get system and spectra
-    star = Star.objects.get(pk=star_pk)
+    star = get_object_if_allowed(Star, request, star_pk, select_related=('project',))
     spectra = star.spectrum_set.all()
 
-    pagination_class = None
-
-    #   Arrange SpecFile infos
     return_dict = {}
     for spectrum in spectra:
         for spec in spectrum.specfile_set.all():
-            # return_dict[spec.pk] = "{}@{} - {}".format(
-            # spec.hjd,
-            # spec.instrument,
-            # spec.filetype,
-            # )
             return_dict[spec.pk] = "{} - {}".format(
                 spec.obs_date,
                 spec.instrument,
@@ -93,9 +100,14 @@ def getStarSpecfiles(request, star_pk):
 # TAGS
 # ===============================================================
 
-class TagViewSet(viewsets.ModelViewSet):
-    queryset = Tag.objects.all()
+class TagViewSet(
+    ProjectFilteredQuerysetMixin,
+    DatatablesOrderingMixin,
+    viewsets.ModelViewSet,
+):
+    queryset = Tag.objects.select_related('project')
     serializer_class = TagSerializer
+    default_ordering = ('name',)
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TagFilter
@@ -109,18 +121,16 @@ class TagViewSet(viewsets.ModelViewSet):
 # this does require to define a custom get_queryset, which also requires the addition of a basename in the
 # router in urls.py
 
-class IdentifierViewSet(viewsets.ModelViewSet):
-    # queryset = Identifier.objects.all()
+class IdentifierViewSet(
+    ProjectFilteredQuerysetMixin,
+    viewsets.ModelViewSet,
+):
+    queryset = Identifier.objects.select_related('star', 'star__project')
     serializer_class = IdentifierListSerializer
 
-    def list(self, request):
-        queryset = Identifier.objects.all()
-        star = request.query_params.get('star', None)
-        if not star is None:
-            queryset = queryset.filter(star=star)
-        serializer = IdentifierListSerializer(queryset, many=True)
-        return Response(serializer.data)
-
     def get_queryset(self):
-        qs = Identifier.objects.all()
-        return get_allowed_objects_to_view_for_user(qs, self.request.user)
+        qs = super().get_queryset()
+        star = self.request.query_params.get('star')
+        if star is not None:
+            qs = qs.filter(star=star)
+        return qs

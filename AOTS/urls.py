@@ -17,10 +17,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-# from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView, TemplateView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
+from AOTS.views import health_check
 from stars import views as star_views
 from stars.api.views import ProjectViewSet
 
@@ -28,6 +29,7 @@ router = routers.DefaultRouter()
 router.register(r'projects', ProjectViewSet)
 
 urlpatterns = [
+                  path('health/', health_check, name='health'),
                   path('', RedirectView.as_view(pattern_name='projects')),
                   path(
                       "robots.txt",
@@ -68,18 +70,19 @@ urlpatterns = [
                       include('dash.urls', namespace='dash')
                   ),
                   path(
-                      'w/<slug:project>/observations/',
-                      RedirectView.as_view(
-                          pattern_name='observations:observatory_list'
-                      )
-                  ),
-                  path(
                       'w/<slug:project>/analysis/',
                       include('analysis.urls', namespace='analysis')
                   ),
                   path(
                       'w/<slug:project>/dashboard/',
                       RedirectView.as_view(pattern_name='dash:dashboard')
+                  ),
+
+                  path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+                  path(
+                      'api/docs/',
+                      SpectacularSwaggerView.as_view(url_name='schema'),
+                      name='swagger-ui',
                   ),
 
                   path('api/', include(router.urls), name='project-api'),

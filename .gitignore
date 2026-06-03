@@ -31,7 +31,7 @@ tests/.coverage
 build/
 logs/
 tests/report/
-*/migrations
+*/migrations/__pycache__
 static/
 populate*
 observed_systems*
@@ -43,7 +43,7 @@ AOTS/.env
 *.csv
 *.csv#
 *.back
-venv/
+.venv/
 .idea/
 !media/docs/Bulk_system_example.csv
 /hotSD_gaia_edr3_catalogue.fits

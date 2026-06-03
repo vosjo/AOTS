@@ -16,6 +16,7 @@ from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -46,23 +47,38 @@ from .serializers import (
     LightCurveSerializer,
     ObservatorySerializer,
 )
-from users.api_auth import authenticate_API_key
+from AOTS.api_mixins import DatatablesOrderingMixin, ProjectFilteredQuerysetMixin
+from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
+from AOTS.task_helpers import run_task
+from observations.tasks import (
+    process_lightcurve_task,
+    process_raw_specfile_task,
+    process_specfile_task,
+    process_spectrum_task,
+)
 from rest_framework import status
+from celery.result import AsyncResult
 
 
 # from django_filters import rest_framework as filters
 
 
-# from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
+from users.api_auth import authenticate_API_key
+from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 
 
 # ===============================================================
 # Spectrum
 # ===============================================================
 
-class SpectrumViewSet(viewsets.ModelViewSet):
-    queryset = Spectrum.objects.all()
+class SpectrumViewSet(
+    ProjectFilteredQuerysetMixin,
+    DatatablesOrderingMixin,
+    viewsets.ModelViewSet,
+):
+    queryset = Spectrum.objects.select_related('project', 'star')
     serializer_class = SpectrumSerializer
+    default_ordering = ('hjd',)
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = SpectrumFilter
@@ -70,15 +86,33 @@ class SpectrumViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 def processSpectrum(request, spectrum_pk):
-    success, message = read_spectrum.derive_spectrum_info(spectrum_pk)
-    spectrum = Spectrum.objects.get(pk=spectrum_pk)
+    spectrum = get_object_if_allowed(
+        Spectrum, request, spectrum_pk, require_edit=True,
+    )
+    async_requested = request.query_params.get('async') == '1'
+    _, task_id = run_task(
+        process_spectrum_task,
+        spectrum_pk,
+        async_requested=async_requested,
+    )
+    if task_id:
+        return Response(
+            {'status': 'pending', 'task_id': task_id},
+            status=status.HTTP_202_ACCEPTED,
+        )
+    spectrum.refresh_from_db()
 
     return Response(SpectrumSerializer(spectrum).data)
 
 
-class UserInfoViewSet(viewsets.ModelViewSet):
-    queryset = UserInfo.objects.all()
+class UserInfoViewSet(
+    ProjectFilteredQuerysetMixin,
+    DatatablesOrderingMixin,
+    viewsets.ModelViewSet,
+):
+    queryset = UserInfo.objects.select_related('project')
     serializer_class = UserInfoSerializer
+    default_ordering = ('hjd',)
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = UserInfoFilter
@@ -88,9 +122,14 @@ class UserInfoViewSet(viewsets.ModelViewSet):
 # SpecFile
 # ===============================================================
 
-class SpecFileViewSet(viewsets.ModelViewSet):
-    queryset = SpecFile.objects.all()
+class SpecFileViewSet(
+    ProjectFilteredQuerysetMixin,
+    DatatablesOrderingMixin,
+    viewsets.ModelViewSet,
+):
+    queryset = SpecFile.objects.select_related('project', 'spectrum', 'spectrum__star')
     serializer_class = SpecFileSerializer
+    default_ordering = ('hjd',)
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = SpecFileFilter
@@ -98,15 +137,28 @@ class SpecFileViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 def processSpecfile(request, specfile_pk):
-    success, message = read_spectrum.process_specfile(specfile_pk)
-    specfile = SpecFile.objects.get(pk=specfile_pk)
+    specfile = get_object_if_allowed(
+        SpecFile, request, specfile_pk, require_edit=True,
+    )
+    async_requested = request.query_params.get('async') == '1'
+    _, task_id = run_task(
+        process_specfile_task,
+        specfile_pk,
+        async_requested=async_requested,
+    )
+    if task_id:
+        return Response(
+            {'status': 'pending', 'task_id': task_id},
+            status=status.HTTP_202_ACCEPTED,
+        )
+    specfile.refresh_from_db()
 
     return Response(SpecFileSerializer(specfile).data)
 
 
 @api_view(['GET'])
 def getSpecfileHeader(request, specfile_pk):
-    specfile = SpecFile.objects.get(pk=specfile_pk)
+    specfile = get_object_if_allowed(SpecFile, request, specfile_pk)
     header = specfile.get_header()
 
     return Response(header)
@@ -114,7 +166,7 @@ def getSpecfileHeader(request, specfile_pk):
 
 @api_view(['GET'])
 def getSpecfilePath(request, specfile_pk):
-    specfile = SpecFile.objects.get(pk=specfile_pk)
+    specfile = get_object_if_allowed(SpecFile, request, specfile_pk)
     path = specfile.specfile.url
 
     return Response(path)
@@ -122,8 +174,8 @@ def getSpecfilePath(request, specfile_pk):
 
 @api_view(['GET'])
 def getSpecfileRawPath(request, specfile_pk):
+    specfile = get_object_if_allowed(SpecFile, request, specfile_pk)
     path_list = []
-    specfile = SpecFile.objects.get(pk=specfile_pk)
     rawfiles = specfile.rawspecfile_set.all()
     for raw in rawfiles:
         path_list.append(raw.rawfile.url)
@@ -135,9 +187,19 @@ def getSpecfileRawPath(request, specfile_pk):
 # RawSpecFile
 # ===============================================================
 
-class RawSpecFileViewSet(viewsets.ModelViewSet):
-    queryset = RawSpecFile.objects.all()
+class RawSpecFileViewSet(
+    ProjectFilteredQuerysetMixin,
+    DatatablesOrderingMixin,
+    viewsets.ModelViewSet,
+):
+    queryset = RawSpecFile.objects.select_related('project').prefetch_related(
+        'star',
+        'specfile',
+        'specfile__spectrum',
+        'specfile__spectrum__star',
+    )
     serializer_class = RawSpecFileSerializer
+    default_ordering = ('hjd',)
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RawSpecFileFilter
@@ -145,15 +207,28 @@ class RawSpecFileViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 def processRawSpecfile(request, rawspecfile_pk):
-    success, message = read_spectrum.process_raw_spec(rawspecfile_pk)
-    rawspecfile = RawSpecFile.objects.get(pk=rawspecfile_pk)
+    rawspecfile = get_object_if_allowed(
+        RawSpecFile, request, rawspecfile_pk, require_edit=True,
+    )
+    async_requested = request.query_params.get('async') == '1'
+    _, task_id = run_task(
+        process_raw_specfile_task,
+        rawspecfile_pk,
+        async_requested=async_requested,
+    )
+    if task_id:
+        return Response(
+            {'status': 'pending', 'task_id': task_id},
+            status=status.HTTP_202_ACCEPTED,
+        )
+    rawspecfile.refresh_from_db()
 
     return Response(RawSpecFileSerializer(rawspecfile).data)
 
 
 @api_view(['GET'])
 def getRawSpecfilePath(request, rawspecfile_pk):
-    rawfile = RawSpecFile.objects.get(pk=rawspecfile_pk)
+    rawfile = get_object_if_allowed(RawSpecFile, request, rawspecfile_pk)
     path = rawfile.rawfile.url
 
     return Response(path)
@@ -163,9 +238,14 @@ def getRawSpecfilePath(request, rawspecfile_pk):
 # LightCurve
 # ===============================================================
 
-class LightCurveViewSet(viewsets.ModelViewSet):
-    queryset = LightCurve.objects.all()
+class LightCurveViewSet(
+    ProjectFilteredQuerysetMixin,
+    DatatablesOrderingMixin,
+    viewsets.ModelViewSet,
+):
+    queryset = LightCurve.objects.select_related('project', 'star')
     serializer_class = LightCurveSerializer
+    default_ordering = ('hjd',)
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = LightCurveFilter
@@ -173,15 +253,28 @@ class LightCurveViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 def processLightCurve(request, lightcurve_pk):
-    success, message = read_lightcurve.process_lightcurve(lightcurve_pk)
-    lightcurve = LightCurve.objects.get(pk=lightcurve_pk)
+    lightcurve = get_object_if_allowed(
+        LightCurve, request, lightcurve_pk, require_edit=True,
+    )
+    async_requested = request.query_params.get('async') == '1'
+    _, task_id = run_task(
+        process_lightcurve_task,
+        lightcurve_pk,
+        async_requested=async_requested,
+    )
+    if task_id:
+        return Response(
+            {'status': 'pending', 'task_id': task_id},
+            status=status.HTTP_202_ACCEPTED,
+        )
+    lightcurve.refresh_from_db()
 
     return Response(LightCurveSerializer(lightcurve).data)
 
 
 @api_view(['GET'])
 def getLightCurveHeader(request, lightcurve_pk):
-    lightcurve = LightCurve.objects.get(pk=lightcurve_pk)
+    lightcurve = get_object_if_allowed(LightCurve, request, lightcurve_pk)
     header = lightcurve.get_header()
 
     return Response(header)
@@ -189,7 +282,7 @@ def getLightCurveHeader(request, lightcurve_pk):
 
 @api_view(['GET'])
 def getLightCurvePath(request, lightcurve_pk):
-    lightcurve = LightCurve.objects.get(pk=lightcurve_pk)
+    lightcurve = get_object_if_allowed(LightCurve, request, lightcurve_pk)
     path = lightcurve.lcfile.url
 
     return Response(path)
@@ -199,9 +292,14 @@ def getLightCurvePath(request, lightcurve_pk):
 # Observatory
 # ===============================================================
 
-class ObservatoryViewSet(viewsets.ModelViewSet):
-    queryset = Observatory.objects.all()
+class ObservatoryViewSet(
+    ProjectFilteredQuerysetMixin,
+    DatatablesOrderingMixin,
+    viewsets.ModelViewSet,
+):
+    queryset = Observatory.objects.select_related('project')
     serializer_class = ObservatorySerializer
+    default_ordering = ('name',)
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ObservatoryFilter
@@ -231,6 +329,11 @@ def bulkUploadSpectra(request, **kwargs):
             project = Project.objects.get(name__exact=project_pk)
         except ObjectDoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
+
+        try:
+            check_project_access(request.user, project, require_add=True)
+        except PermissionDenied:
+            return Response(status.HTTP_403_FORBIDDEN)
 
         user_info = {}
 
@@ -275,6 +378,21 @@ def bulkUploadSpectra(request, **kwargs):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+def getTaskStatus(request, task_id):
+    result = AsyncResult(task_id)
+    payload = {
+        'task_id': task_id,
+        'status': result.status,
+        'ready': result.ready(),
+    }
+    if result.failed():
+        payload['error'] = str(result.result)
+    elif result.successful():
+        payload['result'] = result.result
+    return Response(payload)
+
+
 @api_view(('GET',))
 @authentication_classes([])
 @permission_classes([])
@@ -294,6 +412,11 @@ def bulkDownloadSpectra(request, **kwargs):
         except ObjectDoesNotExist:
             return Response(status.HTTP_400_BAD_REQUEST)
 
+        try:
+            check_project_access(request.user, project)
+        except PermissionDenied:
+            return Response(status.HTTP_403_FORBIDDEN)
+
         files_to_return = []
         preferred_filenames = []
 
@@ -305,11 +428,20 @@ def bulkDownloadSpectra(request, **kwargs):
             list_contains_names = True
 
         if list_contains_names:
-            spectra_to_return = Spectrum.objects.filter(project=project,
-                                                        star__name__in=requested_stars).prefetch_related('specfile_set')
+            spectra_to_return = Spectrum.objects.filter(
+                project=project,
+                star__name__in=requested_stars,
+            ).prefetch_related('specfile_set')
         else:
-            spectra_to_return = Spectrum.objects.filter(project=project, pk__in=requested_stars).prefetch_related(
-                'specfile_set')
+            spectra_to_return = Spectrum.objects.filter(
+                project=project,
+                pk__in=requested_stars,
+            ).prefetch_related('specfile_set')
+
+        spectra_to_return = get_allowed_objects_to_view_for_user(
+            spectra_to_return,
+            request.user,
+        )
 
         for spec in spectra_to_return:
             spfiles = list(spec.specfile_set.all())

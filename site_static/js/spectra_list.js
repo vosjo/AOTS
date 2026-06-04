@@ -642,12 +642,7 @@ function bulk_download_spectra_api(spectrum_pks) {
             'Projectid': projectId,
             'Staridlist': starList,
         },
-        beforeSend: function (xhr) {
-            const token = $('input[name=csrfmiddlewaretoken]').val();
-            if (token) {
-                xhr.setRequestHeader('X-CSRFToken', token);
-            }
-        },
+        // X-CSRFToken: global $.ajaxSetup in base_js.js (getCsrfToken)
     }).done(function (data) {
         poll_bulk_download_task(data.task_id, projectId);
     }).fail(function (xhr) {

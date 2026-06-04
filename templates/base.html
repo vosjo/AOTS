@@ -23,6 +23,8 @@
 </head>
 
 <body>
+{# CSRF for AJAX (SessionAuthentication on API POST); cookie is also set by Django #}
+<div style="display:none" aria-hidden="true">{% csrf_token %}</div>
 
 <div class="page-wrap-base">
     <nav>

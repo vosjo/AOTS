@@ -100,9 +100,12 @@
                     <i class="fa fa-caret-down"></i>
                   </button>
                   <div class="nav_dropdown-content">
-                    <a href="/users/you">View Profile</a>
-                    <a href="/accounts/password_change">Change password</a>
-                    <a href="/accounts/logout">Log Out</a>
+                    <a href="{% url 'users:personal_page' %}">View Profile</a>
+                    <a href="{% url 'password_change' %}">Change password</a>
+                    <form class="logout-form" method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit">Log Out</button>
+                    </form>
                   </div>
                 </div>
             {% else %}
@@ -113,8 +116,8 @@
                     <i class="fa fa-caret-down"></i>
                   </button>
                   <div class="nav_dropdown-content">
-                    <a href="/accounts/login/?next={{ request.path }}">Log In</a>
-                    <a href="/accounts/password_reset">Reset password</a>
+                    <a href="{% url 'login' %}?next={{ request.path }}">Log In</a>
+                    <a href="{% url 'password_reset' %}">Reset password</a>
                   </div>
                 </div>
             {% endif %}

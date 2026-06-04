@@ -69,7 +69,7 @@ class UserInfoFilter(filters.FilterSet):
     fluxcal = filters.BooleanFilter(field_name='fluxcal')
 
     def star_name_icontains(self, queryset, name, value):
-        return queryset.filter(spectrum_star__name__icontains=value)
+        return queryset.filter(spectrum__star__name__icontains=value)
 
     class Meta:
         model = UserInfo
@@ -205,7 +205,7 @@ class LightCurveFilter(filters.FilterSet):
         return queryset.filter(star__pk__in=pks)
 
     def star_name_icontains(self, queryset, name, value):
-        return queryset.filter(spectrum__star__name__icontains=value)
+        return queryset.filter(star__name__icontains=value)
 
     class Meta:
         model = LightCurve

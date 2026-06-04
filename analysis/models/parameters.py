@@ -22,13 +22,9 @@ class ParameterManager(models.Manager):
     sensible fashion than alphabetical (provides standard order options)
     """
 
-    def order_by(self, *args, **kwargs):
-        super(ParameterManager, self).get_query_set().order_by(*args, **kwargs)
-
     def order(self, *args, **kwargs):
-        parameters = self.get_queryset().all()
-        sorted_results = sorted(parameters, key=lambda t: t.order())
-        return sorted_results
+        parameters = list(self.get_queryset())
+        return sorted(parameters, key=lambda t: t.order())
 
 
 class Parameter(models.Model):

@@ -623,3 +623,55 @@ function Toggledownloaddropdown() {
         otherdd.toggleClass("show");
     }
 }
+
+
+/**
+ * Server-side bulk ZIP via Celery (requires Redis + worker).
+ * Pass spectrum PKs; polls task status then triggers file download.
+ */
+function bulk_download_spectra_api(spectrum_pks) {
+    const projectId = $('#project-pk').attr('project');
+    const starList = spectrum_pks.join(';');
+    showProgress('Preparing download…');
+    $('#dl-button').prop('disabled', true);
+
+    $.ajax({
+        url: '/api/observations/bulk-download/start/',
+        method: 'POST',
+        headers: {
+            'Projectid': projectId,
+            'Staridlist': starList,
+        },
+        beforeSend: function (xhr) {
+            const token = $('input[name=csrfmiddlewaretoken]').val();
+            if (token) {
+                xhr.setRequestHeader('X-CSRFToken', token);
+            }
+        },
+    }).done(function (data) {
+        poll_bulk_download_task(data.task_id, projectId);
+    }).fail(function (xhr) {
+        showError(xhr.responseJSON && xhr.responseJSON.detail ? xhr.responseJSON.detail : 'Bulk download failed');
+        $('#dl-button').prop('disabled', false);
+    });
+}
+
+function poll_bulk_download_task(taskId, projectId) {
+    $.getJSON('/api/observations/tasks/' + taskId + '/').done(function (status) {
+        if (!status.ready) {
+            showProgress('Building ZIP… ' + status.status);
+            setTimeout(function () {
+                poll_bulk_download_task(taskId, projectId);
+            }, 2000);
+            return;
+        }
+        if (status.status === 'SUCCESS') {
+            window.location = '/api/observations/bulk-download/' + taskId + '/file/';
+            $('#dl-button').prop('disabled', false);
+            showProgress('Download Spectra');
+            return;
+        }
+        showError(status.error || 'Bulk download failed');
+        $('#dl-button').prop('disabled', false);
+    });
+}

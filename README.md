@@ -397,6 +397,23 @@ sudo ufw allow 'Nginx Full'
 ```
 
 
+## API authentication (bulk upload/download)
+
+| Client | Authentication |
+|--------|----------------|
+| Browser (logged in) | Django **session cookie** after normal login |
+| Scripts / automation | Headers `HTTP_PUBLICAPIKEY` and `HTTP_SECRETAPIKEY` (no extra session required) |
+
+Bulk endpoints (`/api/observations/api-spec-upload/`, `api-spec-download/`, async
+`bulk-download/start/`) accept **either** session or API key. Project scope uses header
+`HTTP_PROJECTID`; bulk download uses `HTTP_STARIDLIST` (semicolon-separated star names or
+spectrum PKs).
+
+Task status: `GET /api/observations/tasks/<task_id>/` (only for the user who started the task).
+After async bulk download: `GET /api/observations/bulk-download/<task_id>/file/`.
+
+See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for list API field contracts.
+
 ## Redis and background tasks (Celery)
 
 The codebase includes **Celery** and **Redis** configuration (`AOTS/celery.py`, `CELERY_*` in
@@ -405,10 +422,9 @@ settings, optional `?async=1` on spectrum/specfile process endpoints). This is d
 do **not** need Redis or a Celery worker.
 
 Today, the only wired async path is opt-in FITS/spectrum **processing** via `?async=1`. The main
-planned benefit is **bulk spectrum downloads**: building large ZIP archives on the server
-(currently synchronous in `bulkDownloadSpectra` and, in the browser, via JSZip in list views)
-should move into Celery so HTTP workers are not blocked and Gunicorn timeouts are avoided. See
-[TODO.md](TODO.md) for a short roadmap.
+**bulk spectrum downloads** also support Celery via `POST /api/observations/bulk-download/start/`
+(async by default). The legacy synchronous endpoint `api-spec-download/` remains for small
+exports; the browser may still use JSZip until the frontend is rebuilt.
 
 Redis is the message broker and result backend when you do use Celery. Without Redis, processing
 and downloads behave as before (synchronously in Django/Gunicorn or in the browser).
@@ -419,7 +435,7 @@ and downloads behave as before (synchronously in Django/Gunicorn or in the brows
 |------|-------|---------------|
 | Normal operation (UI, bulk download API, sync process URLs) | No | No |
 | Opt-in async processing (`?async=1` on process URLs) | Yes | Yes |
-| Planned: server-side bulk ZIP downloads via Celery | Yes | Yes |
+| Async bulk ZIP (`bulk-download/start/`) | Yes | Yes |
 | Tests / CI (`CELERY_TASK_ALWAYS_EAGER=True`) | No | No |
 
 Examples of optional async endpoints:

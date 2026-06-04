@@ -5,6 +5,7 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from AOTS.custom_permissions import IsAllowedOnProject, get_allowed_objects_to_view_for_user
+from analysis.models import Parameter
 from stars.models import Project, Star
 
 User = get_user_model()
@@ -146,3 +147,24 @@ class IsAllowedOnProjectTests(TestCase):
             data={'project': self.project.pk},
         )
         self.assertFalse(self.permission.has_permission(request, None))
+
+    def test_readwrite_user_can_patch_project(self):
+        request = self._drf_request('patch', self.readwrite_user)
+        self.assertTrue(
+            self.permission.has_object_permission(request, None, self.project)
+        )
+
+    def test_readwrite_user_can_edit_parameter(self):
+        parameter = Parameter.objects.create(
+            star=self.star,
+            name='logg',
+            component=1,
+            value=4.0,
+            error=0.1,
+            unit='cgs',
+        )
+        request = self._drf_request('patch', self.readwrite_user)
+        self.assertTrue(
+            self.permission.has_object_permission(request, None, parameter)
+        )
+        self.assertTrue(self.readwrite_user.can_edit(parameter))

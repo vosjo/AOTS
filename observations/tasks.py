@@ -33,3 +33,34 @@ def process_raw_specfile_task(self, rawspecfile_pk):
 def process_lightcurve_task(self, lightcurve_pk):
     logger.info('Processing lightcurve pk=%s task_id=%s', lightcurve_pk, self.request.id)
     return read_lightcurve.process_lightcurve(lightcurve_pk)
+
+
+@shared_task(bind=True)
+def build_bulk_spectra_zip_task(self, project_pk, requested_stars, user_pk):
+    import shutil
+
+    from django.contrib.auth import get_user_model
+
+    from observations.services.bulk_download import (
+        bulk_download_artifact_path,
+        build_zip_archive,
+        collect_download_files,
+        resolve_spectra_queryset,
+    )
+    from stars.models import Project
+
+    logger.info('Bulk ZIP project=%s task_id=%s', project_pk, self.request.id)
+    user = get_user_model().objects.get(pk=user_pk)
+    project = Project.objects.get(pk=project_pk)
+    spectra = resolve_spectra_queryset(project, requested_stars, user)
+    files_to_return, preferred_filenames = collect_download_files(spectra)
+    if not files_to_return:
+        return {'error': 'No files matched the selection.'}
+
+    zip_path, temp_directory = build_zip_archive(files_to_return, preferred_filenames)
+    dest = bulk_download_artifact_path(self.request.id)
+    try:
+        shutil.copy2(zip_path, dest)
+    finally:
+        shutil.rmtree(temp_directory, ignore_errors=True)
+    return {'task_id': self.request.id, 'file': dest, 'status': 'ready'}

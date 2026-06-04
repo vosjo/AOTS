@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 from rest_framework import permissions
-
+from AOTS.project_resolution import get_object_project
 from stars.models import Project
 
 
@@ -24,7 +24,7 @@ class IsAllowedOnProject(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        project = _get_object_project(obj)
+        project = get_object_project(obj)
 
         if request.method in permissions.SAFE_METHODS:
             if request.user.is_anonymous:
@@ -41,14 +41,6 @@ class IsAllowedOnProject(permissions.BasePermission):
             return request.user.can_edit(obj)
 
         return False
-
-
-def _get_object_project(obj):
-    if hasattr(obj, 'project'):
-        return obj.project
-    if hasattr(obj, 'star'):
-        return obj.star.project
-    raise AttributeError(f"Cannot determine project for {obj!r}")
 
 
 def _get_project_from_request(request):
@@ -100,16 +92,18 @@ def check_user_can_view_project(function):
     def wrapper(request, *args, **kwargs):
         try:
             project = Project.objects.get(slug=kwargs['project'])
-        except Exception:
-            messages.error(request, "That page requires login to view")
+        except Project.DoesNotExist:
+            messages.error(request, 'That page requires login to view')
             return redirect('login')
 
-        if request.user.is_anonymous and project.is_public:
-            return function(request, *args, **kwargs)
-        elif not request.user.is_anonymous and request.user.can_read(project):
-            return function(request, *args, **kwargs)
-        else:
-            messages.error(request, "Project: {} requires login to see".format(project))
+        if request.user.is_anonymous:
+            if not project.is_public:
+                messages.error(request, 'Project: {} requires login to see'.format(project))
+                return redirect('login')
+        elif not request.user.can_read(project):
+            messages.error(request, 'Project: {} requires login to see'.format(project))
             return redirect('login')
+
+        return function(request, *args, **kwargs)
 
     return wrapper

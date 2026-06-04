@@ -142,7 +142,8 @@ class DataSet(DataSource):
     history = HistoricalRecords(cascade_delete_history=True)
 
     def get_data(self):
-        return fileio.read2dict(self.datafile.path)
+        from analysis.services.dataset_io import read_dataset_data
+        return read_dataset_data(self)
 
     def make_figure(self):
         """

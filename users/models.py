@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from AOTS.project_resolution import get_object_project
 from stars import models as star_models
 
 
@@ -8,7 +9,7 @@ def get_sentinel_user():
     """
     Sets a default 'deleted' user if the user is deleted.
     """
-    return User().objects.get_or_create(username='deleted')[0]
+    return User.objects.get_or_create(username='deleted')[0]
 
 
 # deprecated??
@@ -16,7 +17,7 @@ def get_unknown_user():
     """
     Gets the unknown user to be used as a default for the added_by field
     """
-    return User().objects.get_or_create(username='unknown')[0]
+    return User.objects.get_or_create(username='unknown')[0]
 
 
 class User(AbstractUser):
@@ -71,9 +72,10 @@ class User(AbstractUser):
         """
         if self.is_superuser:
             return True
-        if self._project_in_user_set(obj.project, 'readwrite_projects'):
+        project = get_object_project(obj)
+        if self._project_in_user_set(project, 'readwrite_projects'):
             return True
-        if self._project_in_user_set(obj.project, 'readwriteown_projects') and \
+        if self._project_in_user_set(project, 'readwriteown_projects') and \
                 obj.history.earliest().history_user == self:
             return True
         return False
@@ -84,12 +86,13 @@ class User(AbstractUser):
         """
         if self.is_superuser:
             return True
-        if self._project_in_user_set(obj.project, 'readwrite_projects') and \
+        project = get_object_project(obj)
+        if self._project_in_user_set(project, 'readwrite_projects') and \
                 obj.history.earliest().history_user == self:
             return True
-        if self._project_in_user_set(obj.project, 'readwriteown_projects') and \
+        if self._project_in_user_set(project, 'readwriteown_projects') and \
                 obj.history.earliest().history_user == self:
             return True
-        if self._project_in_user_set(obj.project, 'managed_projects'):
+        if self._project_in_user_set(project, 'managed_projects'):
             return True
         return False

@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
 
-from AOTS.custom_permissions import IsAllowedOnProject, _get_object_project
+from AOTS.custom_permissions import IsAllowedOnProject
 
 
 def get_object_if_allowed(model, request, pk, select_related=None, require_edit=False):

@@ -1,6 +1,13 @@
 # Backlog
 
-## Bulk downloads: replace synchronous ZIP with Celery
+## Bulk downloads: Celery (partially implemented)
+
+Implemented: `POST /api/observations/bulk-download/start/`, `GET …/bulk-download/<task_id>/file/`,
+task ownership checks, `build_bulk_spectra_zip` Celery task. Remaining: wire
+`spectra_list.js` to poll+download by default; optional async bulk upload; production TTL/cleanup
+for `media/bulk_downloads/`.
+
+## Bulk downloads: original notes
 
 ### Problem (today)
 

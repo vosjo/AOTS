@@ -69,19 +69,12 @@ class LightCurve(models.Model):
 
     # -- function to get the lightcurve
     def get_lightcurve(self):
-        return fileio.read_lightcurve(self.lcfile.path, return_header=True)
+        from observations.services import fits_io
+        return fits_io.read_lightcurve_data(self)
 
     def get_header(self, hdu=0):
-        try:
-            header = fits.getheader(self.lcfile.path, hdu)
-            h = OrderedDict()
-            for k, v in header.items():
-                if k != 'comment' and k != 'history' and k != '' and not type(v) is fits.card.Undefined:
-                    h[k] = v
-        except Exception as e:
-            print(e)
-            h = {}
-        return h
+        from observations.services import fits_io
+        return fits_io.read_lightcurve_header(self, hdu=hdu)
 
     def get_weather_url(self):
         if not self.observatory is None:

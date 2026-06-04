@@ -39,6 +39,7 @@ class SpectrumListSerializer(ModelSerializer):
             'airmass',
             'resolution',
         ]
+        datatables_always_serialize = ('specfiles', 'telescope', 'href')
         read_only_fields = ('pk',)
 
     def get_star(self, obj):
@@ -133,6 +134,51 @@ class UserInfoSerializer(ModelSerializer):
 # ===============================================================
 # SPECFILE
 # ===============================================================
+
+class SpecFileListSerializer(ModelSerializer):
+    star = SerializerMethodField()
+    spectrum = SerializerMethodField()
+    added_on = SerializerMethodField()
+    filename = SerializerMethodField()
+
+    class Meta:
+        model = SpecFile
+        fields = [
+            'pk',
+            'star',
+            'spectrum',
+            'hjd',
+            'instrument',
+            'filetype',
+            'added_on',
+            'filename',
+            'project',
+        ]
+        read_only_fields = ('pk',)
+
+    def get_star(self, obj):
+        if obj.spectrum is None or obj.spectrum.star is None:
+            return ''
+        link = reverse(
+            'systems:star_detail',
+            kwargs={'project': obj.project.slug, 'star_id': obj.spectrum.star.pk},
+        )
+        return {obj.spectrum.star.name: link}
+
+    def get_spectrum(self, obj):
+        if obj.spectrum is None:
+            return ''
+        return reverse(
+            'observations:spectrum_detail',
+            kwargs={'project': obj.project.slug, 'spectrum_id': obj.spectrum.pk},
+        )
+
+    def get_added_on(self, obj):
+        return Time(obj.history.earliest().history_date, precision=0).iso
+
+    def get_filename(self, obj):
+        return obj.specfile.name.split('/')[-1]
+
 
 class SpecFileSerializer(ModelSerializer):
     star = SerializerMethodField()

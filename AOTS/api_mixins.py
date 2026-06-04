@@ -38,4 +38,11 @@ class DatatablesOrderingMixin:
         order_name = getter('columns[%s][data]' % order_column)
         if getter('order[0][dir]') == 'desc':
             order_name = '-' + order_name
+
+        allowed = getattr(self, 'allowed_order_fields', None)
+        if allowed is not None:
+            field_name = order_name.lstrip('-')
+            if field_name not in allowed:
+                return queryset.order_by(*self.default_ordering)
+
         return queryset.order_by(order_name)

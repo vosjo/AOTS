@@ -39,19 +39,6 @@ class ProjectSerializer(ModelSerializer):
 # ===============================================================
 
 
-class TagListSerializer(ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = [
-            'star',
-            'name',
-            'description',
-            'color',
-            'pk',
-        ]
-        read_only_fields = ('pk',)
-
-
 class TagSerializer(ModelSerializer):
     class Meta:
         model = Tag
@@ -147,13 +134,19 @@ class StarListSerializer(ModelSerializer):
         return reverse('systems:star_detail', kwargs={'project': obj.project.slug, 'star_id': obj.pk})
 
     def get_nphot(self, obj):
-        return len(obj.photometry_set.all())
+        if hasattr(obj, 'nphot_count'):
+            return obj.nphot_count
+        return obj.photometry_set.count()
 
     def get_nspec(self, obj):
-        return len(obj.spectrum_set.all())
+        if hasattr(obj, 'nspec_count'):
+            return obj.nspec_count
+        return obj.spectrum_set.count()
 
     def get_nlc(self, obj):
-        return len(obj.lightcurve_set.all())
+        if hasattr(obj, 'nlc_count'):
+            return obj.nlc_count
+        return obj.lightcurve_set.count()
 
     def get_classification_type_display(self, obj):
         return obj.get_classification_type_display()

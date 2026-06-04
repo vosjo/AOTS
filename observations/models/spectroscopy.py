@@ -227,23 +227,12 @@ class SpecFile(models.Model):
     history = HistoricalRecords(cascade_delete_history=True)
 
     def get_spectrum(self):
-        return fileio.read_spectrum(self.specfile.path, return_header=True)
+        from observations.services import fits_io
+        return fits_io.read_specfile_spectrum(self)
 
     def get_header(self, hdu=0):
-        try:
-            header = fits.getheader(self.specfile.path, hdu)
-            h = OrderedDict()
-            for k, v in header.items():
-                if (k != 'comment' and
-                        k != 'history' and
-                        k != '' and
-                        type(v) is not fits.card.Undefined
-                ):
-                    h[k] = v
-        except Exception as e:
-            print(e)
-            h = {}
-        return h
+        from observations.services import fits_io
+        return fits_io.read_specfile_header(self, hdu=hdu)
 
     #   Representation of self
     def __str__(self):
@@ -301,23 +290,9 @@ class RawSpecFile(models.Model):
     #   Bookkeeping
     history = HistoricalRecords(cascade_delete_history=True)
 
-    #   Get header
     def get_header(self, hdu=0):
-        try:
-            header = fits.getheader(self.rawfile.path, hdu)
-            h = OrderedDict()
-            #   Sanitize header
-            for k, v in header.items():
-                if (k != 'comment' and
-                        k != 'history' and
-                        k != '' and
-                        type(v) is not fits.card.Undefined
-                ):
-                    h[k] = v
-        except Exception as e:
-            print(e)
-            h = {}
-        return h
+        from observations.services import fits_io
+        return fits_io.read_raw_header(self, hdu=hdu)
 
     #   Representation of self
     def __str__(self):

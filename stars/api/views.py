@@ -1,3 +1,4 @@
+from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
@@ -63,12 +64,23 @@ class StarViewSet(
     Returns a list of all stars/objects in the database
     """
 
-    queryset = Star.objects.select_related('project').prefetch_related('tags')
+    queryset = Star.objects.select_related('project')
     serializer_class = StarSerializer
     default_ordering = ('name',)
+    allowed_order_fields = frozenset({
+        'pk', 'name', 'ra', 'dec', 'classification', 'observing_status',
+    })
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = StarFilter
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.annotate(
+            nphot_count=Count('photometry', distinct=True),
+            nspec_count=Count('spectrum', distinct=True),
+            nlc_count=Count('lightcurve', distinct=True),
+        ).prefetch_related('tags', 'dataset_set__method', 'photometry_set')
 
     def get_serializer_class(self):
         if self.action == 'list':

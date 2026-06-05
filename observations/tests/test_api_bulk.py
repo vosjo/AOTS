@@ -36,18 +36,27 @@ class BulkApiTests(TestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(
             '/api/observations/api-spec-download/',
+            {'legacy_sync': '1'},
             HTTP_PROJECTID=str(self.project.pk),
         )
         self.assertEqual(response.status_code, 400)
 
-    def test_bulk_download_session_user(self):
+    def test_bulk_download_sync_deprecated_without_legacy_flag(self):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(
             '/api/observations/api-spec-download/',
             HTTP_PROJECTID=str(self.project.pk),
             HTTP_STARIDLIST=str(self.star.pk),
         )
-        self.assertIn(response.status_code, (200, 400))
+        self.assertEqual(response.status_code, 410)
+
+    def test_bulk_download_start_requires_auth(self):
+        response = self.client.post(
+            '/api/observations/bulk-download/start/',
+            HTTP_PROJECTID=str(self.project.pk),
+            HTTP_STARIDLIST=str(self.star.pk),
+        )
+        self.assertEqual(response.status_code, 403)
 
     def test_task_status_forbidden_for_other_user(self):
         from AOTS.task_metadata import store_task_owner

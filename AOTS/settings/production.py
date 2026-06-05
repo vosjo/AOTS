@@ -2,7 +2,7 @@
 Production settings for AOTS.
 """
 
-from .base import REST_FRAMEWORK as BASE_REST_FRAMEWORK, env
+from .base import CELERY_BROKER_URL, REST_FRAMEWORK as BASE_REST_FRAMEWORK, env
 
 DEBUG = False
 
@@ -26,6 +26,19 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+
+# Shared cache for task ownership (Gunicorn workers) and optional TTL helpers
+_cache_url = env('CACHE_URL', default='')
+if not _cache_url and CELERY_BROKER_URL.startswith('redis://'):
+    _cache_url = CELERY_BROKER_URL.rsplit('/', 1)[0] + '/1'
+
+if _cache_url:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': _cache_url,
+        }
+    }
 
 REST_FRAMEWORK = {
     **BASE_REST_FRAMEWORK,

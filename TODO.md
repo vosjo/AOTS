@@ -1,53 +1,23 @@
 # Backlog
 
-## Bulk downloads: Celery (partially implemented)
+## Bulk downloads / uploads (Celery)
 
-Implemented: `POST /api/observations/bulk-download/start/`, `GET …/bulk-download/<task_id>/file/`,
-task ownership checks, `build_bulk_spectra_zip` Celery task. Remaining: wire
-`spectra_list.js` to poll+download by default; optional async bulk upload; production TTL/cleanup
-for `media/bulk_downloads/`.
+**Done:**
 
-## Bulk downloads: original notes
+- `POST /api/observations/bulk-download/start/` + `GET …/bulk-download/<task_id>/file/`
+- Task ownership + Redis cache in production (`CACHE_URL` / broker DB `1`)
+- `spectra_list.js`: Celery download when `AOTS_USE_CELERY_BULK_DOWNLOAD=True` (template flag)
+- JSZip fallback when flag is `false`
+- TTL: `BULK_DOWNLOAD_TTL_SECONDS`, `manage.py cleanup_bulk_downloads`, Celery Beat schedule
+- Delete ZIP after successful download when `BULK_DOWNLOAD_DELETE_AFTER_SEND=True`
+- Sync download deprecated: `GET api-spec-download/` returns **410** unless `?legacy_sync=1`
+- Bulk upload: `POST api-spec-upload/?async=1` enqueues `process_bulk_upload_task`
 
-### Problem (today)
+**Optional later:**
 
-- **API:** `GET` `bulkDownloadSpectra` (`observations/api/views.py`) copies FITS files into a temp
-  directory, builds a ZIP in the **same HTTP request**, and streams it back. Large selections tie up
-  a Gunicorn worker and can hit the configured request timeout (600s).
-- **UI:** List views (`site_static/js/spectra_list.js`, `rawspecfiles_list.js`, …) fetch many
-  files in the browser and pack them with JSZip — heavy on the client and the server for many
-  parallel downloads.
+- Wire raw-spec bulk download the same way (`rawspecfiles_list.js`)
+- Frontend rewrite: unified progress UI
 
-Permissions and project checks must stay as strict as they are now.
+## Other
 
-### Target
-
-1. **Enqueue** a download job (project + star/spectrum selection, same headers/params as today).
-2. **Celery worker** builds the ZIP under `MEDIA_ROOT` or a dedicated temp area, updates task
-   progress if useful.
-3. **Client polls** `GET /api/observations/tasks/<task_id>/` (already used for `?async=1`
-   processing) until `SUCCESS`, then downloads via a short-lived file URL or a dedicated
-   `GET …/download/<task_id>/` that streams the artifact and deletes temp files.
-
-Optional later: same pattern for very large **bulk uploads** (`bulkUploadSpectra`).
-
-### Prerequisites (mostly done)
-
-- Redis + `CELERY_BROKER_URL` in `.env`
-- `celery -A AOTS worker` (see README)
-- `run_task` / task status API in `AOTS/task_helpers.py` and observations API
-
-### Implementation sketch
-
-| Step | Work |
-|------|------|
-| 1 | New Celery task `build_bulk_spectra_zip` in `observations/tasks.py` (reuse selection logic from `bulkDownloadSpectra`). |
-| 2 | New endpoints: start job (`202` + `task_id`), poll status, download result; enforce `check_project_access` / `get_allowed_objects_to_view_for_user`. |
-| 3 | Retire or thin the synchronous `bulkDownloadSpectra` path (keep sync fallback behind a flag only if needed for API clients). |
-| 4 | Frontend: replace JSZip bulk actions with “prepare download → poll → save file” (progress in UI). |
-| 5 | Ops: TTL/cleanup for temp ZIPs; worker memory limits; document Redis as **required** for bulk download in production. |
-
-### Out of scope (for this item)
-
-- Changing DataTables list behaviour unrelated to download.
-- Migrating single-file downloads that are already fast.
+See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for DataTables API fields.

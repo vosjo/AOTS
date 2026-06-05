@@ -64,3 +64,49 @@ def build_bulk_spectra_zip_task(self, project_pk, requested_stars, user_pk):
     finally:
         shutil.rmtree(temp_directory, ignore_errors=True)
     return {'task_id': self.request.id, 'file': dest, 'status': 'ready'}
+
+
+@shared_task(bind=True)
+def process_bulk_upload_task(self, project_pk, specfile_pks, user_pk):
+    from django.contrib.auth import get_user_model
+
+    logger.info(
+        'Bulk upload processing project=%s specfiles=%s task_id=%s',
+        project_pk,
+        len(specfile_pks),
+        self.request.id,
+    )
+    user_info = {}
+    messages = []
+    errors = 0
+    for specfile_pk in specfile_pks:
+        try:
+            success, message = read_spectrum.process_specfile(
+                specfile_pk,
+                create_new_star=True,
+                user_info=user_info,
+            )
+            messages.append(message)
+            if not success:
+                errors += 1
+        except Exception as exc:
+            messages.append(str(exc))
+            errors += 1
+
+    return {
+        'task_id': self.request.id,
+        'messages': messages,
+        'errors': errors,
+        'processed': len(specfile_pks),
+        'user_pk': user_pk,
+        'project_pk': project_pk,
+    }
+
+
+@shared_task
+def cleanup_bulk_download_artifacts_task():
+    from observations.services.bulk_download import cleanup_expired_bulk_downloads
+
+    removed = cleanup_expired_bulk_downloads()
+    logger.info('Removed %s expired bulk download ZIP(s)', removed)
+    return {'removed': removed}

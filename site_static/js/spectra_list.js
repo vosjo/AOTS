@@ -392,8 +392,27 @@ function showError_raw(text) {
         .val(text);
 }
 
-//  Download Spectra
+//  Download Spectra (Celery ZIP on server, or legacy JSZip in browser)
 function download_specfiles() {
+    if (window.AOTS_USE_CELERY_BULK_DOWNLOAD) {
+        let spectrum_pks = [];
+        spectra_table.rows('.selected').every(function () {
+            let pk = this.data().pk;
+            if (pk !== undefined && pk !== null) {
+                spectrum_pks.push(String(pk));
+            }
+        });
+        if (spectrum_pks.length === 0) {
+            showError('No spectra selected.');
+            return;
+        }
+        bulk_download_spectra_api(spectrum_pks);
+        return;
+    }
+    download_specfiles_jszip();
+}
+
+function download_specfiles_jszip() {
     //   Prevent impatient users from clicking again.
     $('#dl-button').prop('disabled', true);
     showProgress("Be Patient...");
@@ -634,6 +653,7 @@ function bulk_download_spectra_api(spectrum_pks) {
     const starList = spectrum_pks.join(';');
     showProgress('Preparing download…');
     $('#dl-button').prop('disabled', true);
+    $("#progress-bar").show();
 
     $.ajax({
         url: '/api/observations/bulk-download/start/',
@@ -652,7 +672,11 @@ function bulk_download_spectra_api(spectrum_pks) {
 }
 
 function poll_bulk_download_task(taskId, projectId) {
-    $.getJSON('/api/observations/tasks/' + taskId + '/').done(function (status) {
+    $.ajax({
+        url: '/api/observations/tasks/' + taskId + '/',
+        dataType: 'json',
+        xhrFields: {withCredentials: true},
+    }).done(function (status) {
         if (!status.ready) {
             showProgress('Building ZIP… ' + status.status);
             setTimeout(function () {
@@ -667,6 +691,9 @@ function poll_bulk_download_task(taskId, projectId) {
             return;
         }
         showError(status.error || 'Bulk download failed');
+        $('#dl-button').prop('disabled', false);
+    }).fail(function (xhr) {
+        showError(xhr.responseJSON && xhr.responseJSON.detail ? xhr.responseJSON.detail : 'Bulk download status failed');
         $('#dl-button').prop('disabled', false);
     });
 }

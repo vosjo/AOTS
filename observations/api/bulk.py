@@ -20,12 +20,16 @@ from AOTS.task_metadata import store_task_owner, user_may_view_task
 from observations.auxil import read_spectrum
 from observations.models import SpecFile, Spectrum
 from observations.services.bulk_download import (
+    BulkDownloadFile,
     bulk_download_artifact_path,
     build_zip_archive,
     collect_download_files,
     resolve_spectra_queryset,
 )
-from observations.tasks import build_bulk_spectra_zip_task
+from observations.tasks import (
+    build_bulk_spectra_zip_task,
+    process_bulk_upload_task,
+)
 from stars.models import Project
 from users.api_auth import APIKeyAuthentication
 
@@ -91,31 +95,52 @@ def bulkUploadSpectra(request, **kwargs):
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    specfile_pks = []
+    for f in files:
+        newspec = SpecFile(specfile=f, project=project)
+        newspec.save()
+        specfile_pks.append(newspec.pk)
+
+    if request.query_params.get('async') == '1':
+        _, task_id = run_task(
+            process_bulk_upload_task,
+            project.pk,
+            specfile_pks,
+            request.user.pk,
+            async_requested=True,
+            owner_user_id=request.user.pk,
+            project_id=project.pk,
+        )
+        return Response(
+            {
+                'status': 'pending',
+                'task_id': task_id,
+                'uploaded': len(specfile_pks),
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )
+
     user_info = {}
     returned_messages = []
     n_exceptions = 0
 
-    for f in files:
-        newspec = SpecFile(specfile=f, project=project)
-        newspec.save()
+    for specfile_pk in specfile_pks:
         try:
             success, message = read_spectrum.process_specfile(
-                newspec.pk,
+                specfile_pk,
                 create_new_star=True,
                 user_info=user_info,
             )
-            newspec.refresh_from_db()
             returned_messages.append(message)
             if not success:
                 n_exceptions += 1
         except Exception as exc:
             returned_messages.append(str(exc))
-            newspec.delete()
             n_exceptions += 1
 
     data = ';'.join(returned_messages)
     if n_exceptions != 0:
-        if n_exceptions == len(files):
+        if n_exceptions == len(specfile_pks):
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         return Response(data, status=status.HTTP_207_MULTI_STATUS)
     return Response(data, status=status.HTTP_200_OK)
@@ -125,7 +150,23 @@ def bulkUploadSpectra(request, **kwargs):
 @authentication_classes(BULK_AUTH)
 @permission_classes([IsAuthenticated])
 def bulkDownloadSpectra(request, **kwargs):
-    """Synchronous bulk download (legacy); prefer bulkDownloadSpectraStart for large sets."""
+    """
+    Synchronous bulk download (legacy).
+
+    Prefer POST /api/observations/bulk-download/start/ (Celery).
+    Set query param legacy_sync=1 to use this endpoint explicitly.
+    """
+    if request.query_params.get('legacy_sync') != '1':
+        return Response(
+            {
+                'detail': (
+                    'Synchronous bulk download is deprecated. Use '
+                    'POST /api/observations/bulk-download/start/ or pass ?legacy_sync=1.'
+                ),
+            },
+            status=status.HTTP_410_GONE,
+        )
+
     project, err = _get_project_from_header(request)
     if err:
         return err
@@ -163,6 +204,8 @@ def bulkDownloadSpectra(request, **kwargs):
             filename='files.zip',
             status=status.HTTP_200_OK,
         )
+        response['Deprecation'] = 'true'
+        response['Link'] = '</api/observations/bulk-download/start/>; rel="successor-version"'
     finally:
         shutil.rmtree(temp_directory, ignore_errors=True)
     return response
@@ -227,7 +270,7 @@ def bulkDownloadSpectraFile(request, task_id):
         )
 
     return FileResponse(
-        open(path, 'rb'),
+        BulkDownloadFile(task_id),
         as_attachment=True,
         filename='files.zip',
     )

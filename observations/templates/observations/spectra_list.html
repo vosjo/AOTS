@@ -4,6 +4,9 @@
 {% block head %}
 
     {% include "datatables.html" %}
+    <script type="text/javascript">
+        window.AOTS_USE_CELERY_BULK_DOWNLOAD = {{ aots_use_celery_bulk_download|yesno:"true,false" }};
+    </script>
     <script type="text/javascript" src="{% static 'js/spectra_list.js' %}"></script>
 
     <title>Spectra</title>

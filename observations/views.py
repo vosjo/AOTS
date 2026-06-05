@@ -34,7 +34,16 @@ def spectra_list(request, project=None, **kwargs):
 
     project = get_object_or_404(Project, slug=project)
 
-    return render(request, 'observations/spectra_list.html', {'project': project})
+    from django.conf import settings
+
+    return render(
+        request,
+        'observations/spectra_list.html',
+        {
+            'project': project,
+            'aots_use_celery_bulk_download': settings.AOTS_USE_CELERY_BULK_DOWNLOAD,
+        },
+    )
 
 
 @check_user_can_view_project

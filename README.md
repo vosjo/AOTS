@@ -197,21 +197,10 @@ here: https://tech.serhatteker.com/post/2020-01/django-create-secret-key/
 ### 3. Setup the database
 
 ```
-python manage.py makemigrations users
-python manage.py makemigrations stars
-python manage.py makemigrations observations
-python manage.py makemigrations analysis
 python manage.py migrate
 ```
 
-In case you want a fresh start, run:
-
-```
-find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
-find . -path "*/migrations/*.pyc"  -delete
-```
-
-and drop the database or remove the db.sqlite3 file.
+In case you want a fresh start, drop the database or remove the db.sqlite3 file.
 
 ### 4. Create a admin user
 
@@ -404,13 +393,16 @@ sudo ufw allow 'Nginx Full'
 | Browser (logged in) | Django **session cookie** after normal login |
 | Scripts / automation | Headers `HTTP_PUBLICAPIKEY` and `HTTP_SECRETAPIKEY` (no extra session required) |
 
-Bulk endpoints (`/api/observations/api-spec-upload/`, `api-spec-download/`, async
-`bulk-download/start/`) accept **either** session or API key. Project scope uses header
-`HTTP_PROJECTID`; bulk download uses `HTTP_STARIDLIST` (semicolon-separated star names or
-spectrum PKs).
+Bulk endpoints accept **either** session or API key. Headers: `Projectid`, `Staridlist`
+(semicolon-separated spectrum PKs or star names).
 
-Task status: `GET /api/observations/tasks/<task_id>/` (only for the user who started the task).
-After async bulk download: `GET /api/observations/bulk-download/<task_id>/file/`.
+| Action | Endpoint |
+|--------|----------|
+| Start download (Celery) | `POST /api/observations/bulk-download/start/` |
+| Poll task | `GET /api/observations/tasks/<task_id>/` |
+| Download ZIP | `GET /api/observations/bulk-download/<task_id>/file/` |
+| Upload + process async | `POST /api/observations/api-spec-upload/?async=1` |
+| Legacy sync download | `GET /api/observations/api-spec-download/?legacy_sync=1` |
 
 See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for list API field contracts.
 
@@ -469,6 +461,7 @@ Copy and extend `AOTS/.env` from `AOTS/.env.example`. Relevant variables:
 CELERY_BROKER_URL=redis://localhost:6379/0
 # Optional; defaults to CELERY_BROKER_URL if omitted:
 # CELERY_RESULT_BACKEND=redis://localhost:6379/0
+AOTS_USE_CELERY_BULK_DOWNLOAD=True
 ```
 
 For a password-protected Redis instance (recommended in production):
@@ -533,6 +526,50 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 sudo systemctl enable --now celery_aots
 sudo systemctl status celery_aots
+```
+
+### Celery Beat (bulk ZIP TTL cleanup, optional)
+
+Removes expired files from `media/bulk_downloads/` daily. Example unit:
+
+```
+sudo nano /etc/systemd/system/celery_beat_aots.service
+```
+
+```
+[Unit]
+Description=AOTS Celery beat
+After=network.target redis-server.service
+
+[Service]
+User=aots
+Group=www-data
+WorkingDirectory=/home/aots/www/aots/AOTS
+EnvironmentFile=/home/aots/www/aots/AOTS/AOTS/.env
+ExecStart=/home/aots/www/aots/aotsenv/bin/celery -A AOTS beat -l info
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```
+sudo systemctl daemon-reload
+sudo systemctl enable --now celery_beat_aots
+```
+
+Manual cleanup of ZIPs older than BULK_DOWNLOAD_TTL_SECONDS (default 24h):
+```
+python manage.py cleanup_bulk_downloads
+```
+
+Alternatively run cleanup from cron (e.g. daily).
+
+Tune in `.env`:
+
+```
+BULK_DOWNLOAD_TTL_SECONDS=86400
+BULK_DOWNLOAD_DELETE_AFTER_SEND=True
 ```
 
 ### Troubleshooting

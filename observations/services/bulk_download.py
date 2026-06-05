@@ -3,14 +3,24 @@ Build bulk spectrum ZIP archives for API download.
 """
 
 import os
-import random
 import shutil
 import tempfile
+import time
 
 from django.conf import settings
 
 from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 from observations.models import Spectrum
+
+
+def bulk_download_directory():
+    directory = os.path.join(settings.MEDIA_ROOT, 'bulk_downloads')
+    os.makedirs(directory, exist_ok=True)
+    return directory
+
+
+def bulk_download_artifact_path(task_id):
+    return os.path.join(bulk_download_directory(), f'{task_id}.zip')
 
 
 def resolve_spectra_queryset(project, requested_stars, user):
@@ -69,7 +79,62 @@ def build_zip_archive(files_to_return, preferred_filenames):
     return os.path.join(temp_directory, 'files.zip'), temp_directory
 
 
-def bulk_download_artifact_path(task_id):
-    directory = os.path.join(settings.MEDIA_ROOT, 'bulk_downloads')
-    os.makedirs(directory, exist_ok=True)
-    return os.path.join(directory, f'{task_id}.zip')
+def cleanup_expired_bulk_downloads():
+    """
+    Remove ZIP files older than BULK_DOWNLOAD_TTL_SECONDS.
+    Returns the number of deleted files.
+    """
+    ttl = getattr(settings, 'BULK_DOWNLOAD_TTL_SECONDS', 86400)
+    directory = bulk_download_directory()
+    if not os.path.isdir(directory):
+        return 0
+
+    cutoff = time.time() - ttl
+    removed = 0
+    for name in os.listdir(directory):
+        if not name.endswith('.zip'):
+            continue
+        path = os.path.join(directory, name)
+        try:
+            if os.path.isfile(path) and os.path.getmtime(path) < cutoff:
+                os.unlink(path)
+                removed += 1
+        except OSError:
+            continue
+    return removed
+
+
+def remove_bulk_download_artifact(task_id):
+    path = bulk_download_artifact_path(task_id)
+    if os.path.isfile(path):
+        os.unlink(path)
+        return True
+    return False
+
+
+class BulkDownloadFile:
+    """File wrapper that removes the artifact when the response is closed."""
+
+    name = 'files.zip'
+
+    def __init__(self, task_id):
+        self.task_id = task_id
+        self.path = bulk_download_artifact_path(task_id)
+        self._file = open(self.path, 'rb')
+
+    def read(self, size=-1):
+        return self._file.read(size)
+
+    def close(self):
+        self._file.close()
+        if getattr(settings, 'BULK_DOWNLOAD_DELETE_AFTER_SEND', True):
+            remove_bulk_download_artifact(self.task_id)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        chunk = self.read(8192)
+        if not chunk:
+            raise StopIteration
+        return chunk

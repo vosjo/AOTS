@@ -19,9 +19,8 @@ from .views import (
     getSpecfileRawPath,
     getLightCurvePath,
     bulkUploadSpectra,
-    bulkDownloadSpectra,
-    bulkDownloadSpectraStart,
-    bulkDownloadSpectraFile,
+    bulkDownloadStart,
+    bulkDownloadFile,
     getTaskStatus,
 )
 
@@ -97,18 +96,13 @@ urlpatterns = [
         name='api-spec-upload',
     ),
     path(
-        'api-spec-download/',
-        bulkDownloadSpectra,
-        name='api-spec-download',
-    ),
-    path(
         'bulk-download/start/',
-        bulkDownloadSpectraStart,
+        bulkDownloadStart,
         name='bulk-download-start',
     ),
     path(
         'bulk-download/<str:task_id>/file/',
-        bulkDownloadSpectraFile,
+        bulkDownloadFile,
         name='bulk-download-file',
     ),
     path(

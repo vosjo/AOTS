@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.test import TestCase
@@ -32,23 +34,56 @@ class BulkApiTests(TestCase):
         )
         self.project.readwrite_users.add(self.api_user)
 
-    def test_bulk_download_requires_star_list(self):
+    def test_bulk_download_start_requires_star_list(self):
         self.client.force_authenticate(user=self.user)
-        response = self.client.get(
-            '/api/observations/api-spec-download/',
-            {'legacy_sync': '1'},
+        response = self.client.post(
+            '/api/observations/bulk-download/start/',
             HTTP_PROJECTID=str(self.project.pk),
         )
         self.assertEqual(response.status_code, 400)
 
-    def test_bulk_download_sync_deprecated_without_legacy_flag(self):
+    def test_bulk_download_start_rejects_invalid_kind(self):
         self.client.force_authenticate(user=self.user)
-        response = self.client.get(
-            '/api/observations/api-spec-download/',
+        response = self.client.post(
+            '/api/observations/bulk-download/start/?kind=invalid',
             HTTP_PROJECTID=str(self.project.pk),
             HTTP_STARIDLIST=str(self.star.pk),
         )
-        self.assertEqual(response.status_code, 410)
+        self.assertEqual(response.status_code, 400)
+
+    @patch('observations.api.bulk.run_task', return_value=(None, 'test-task-id'))
+    def test_bulk_download_start_accepts_lightcurves_kind(self, mock_run_task):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/observations/bulk-download/start/?kind=lightcurves',
+            HTTP_PROJECTID=str(self.project.pk),
+            HTTP_STARIDLIST='1',
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data['kind'], 'lightcurves')
+
+    @patch('observations.api.bulk.run_task', return_value=(None, 'test-task-id'))
+    def test_bulk_download_start_accepts_datasets_kind(self, mock_run_task):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/observations/bulk-download/start/?kind=datasets',
+            HTTP_PROJECTID=str(self.project.pk),
+            HTTP_STARIDLIST='1',
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data['kind'], 'datasets')
+
+    @patch('observations.api.bulk.run_task', return_value=(None, 'test-task-id'))
+    def test_bulk_download_start_accepts_raw_kind(self, mock_run_task):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/observations/bulk-download/start/?kind=raw',
+            HTTP_PROJECTID=str(self.project.pk),
+            HTTP_STARIDLIST='999',
+        )
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data['kind'], 'raw')
+        mock_run_task.assert_called_once()
 
     def test_bulk_download_start_requires_auth(self):
         response = self.client.post(

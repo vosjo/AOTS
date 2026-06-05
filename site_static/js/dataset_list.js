@@ -33,7 +33,7 @@ $(document).ready(function () {
         autoWidth: false,
         serverSide: true,
         ajax: {
-            url: '/api/analysis/datasets/?format=datatables&keep=href,file_url',
+            url: '/api/analysis/datasets/?format=datatables&keep=pk,href,file_url',
             data: get_filter_keywords
         },
         searching: false,
@@ -67,7 +67,7 @@ $(document).ready(function () {
             "<div class='dropdown-container'>" +
             "<button onclick='Toggledownloaddropdown()' class='dropbtn' id='download'><i class='material-icons button' title='Carry over selection'>download</i>Download Files</button>" +
             "<div id='downloaddropdown' class='dropdown-content'>" +
-            "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i>Download Dataset</a>" +
+            "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i><span class='dl-btn-text'>Download Dataset</span></a>" +
             "</div>" +
             "</div>" +
             "<button id='adddataset-button' class='tb-button'><i class='material-icons button' title='Add Datasets(s)'>add</i>Add Datasets(s)</button>" +
@@ -290,91 +290,56 @@ function updatePercent(percent) {
 
 //  Change download button text
 function showProgress(text) {
-    $("#progress-bar").show()
-    $("#dl-button")
-        .val(text);
+    $("#progress-bar").show();
+    $("#dl-button .dl-btn-text").text(text);
 }
 
 
 //  Show Error message
 function showError(text) {
-    $("#dl-button")
-        .removeClass()
-        .addClass("alert")
-        .val(text);
+    $("#dl-button .dl-btn-text").text(text);
+    $("#progress-bar").hide();
+}
+
+
+function selected_dataset_pks() {
+    let pks = [];
+    dataset_table.rows('.selected').every(function () {
+        let pk = this.data().pk;
+        if (pk !== undefined && pk !== null) {
+            pks.push(String(pk));
+        }
+    });
+    return pks;
 }
 
 
 //  Download functions
 function download_dataset() {
-    //   Prevent impatient users from clicking again.
-    $('#dl-button').prop('disabled', true);
-    showProgress("Be Patient...");
-    //   Prepare file list
-    let url_list = [];
-    //   Get list of selected spectra
-    dataset_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-        let url = this.data()["file_url"];
-        url_list.push(url);
-    });
-
-    //   Load Filesaver and jszip libs to facilitate download
-    $.getScript("/static/js/JsZip/FileSaver.js").done(function () {
-        $.getScript("/static/js/JsZip/jszip.js").done(async function () {
-            $.getScript("/static/js/JsZip/jszip-utils.js").done(async function () {
-
-                //  Create zip file
-                let zip = new JSZip();
-
-                //  Set time string for zip file name
-                let dt = new Date();
-                let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
-
-                //  Get file using promises so that file assembly can wait until
-                //  download has finished
-                const getPromises = url_list.map(async url => {
-                    let file = url.split('/').slice(-1);
-                    return new Promise(function (resolve, reject) {
-                        JSZipUtils.getBinaryContent(url, function (err, data) {
-                            if (err) {
-                                reject("ERROR: File not found");
-                            } else {
-                                resolve([file, data]);
-                            }
-                        })
-                    });
-                });
-
-                //  Fill zip file
-                for (const promise of getPromises) {
-                    try {
-                        const content = await promise;
-                        zip.file(content[0], content[1]);
-                    } catch (err) {
-                        showError(err);
-                        return
-                    }
-                }
-
-                //  Generate zip file
-                zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
-                    //  Update download progress
-                    let msg = "            " + metadata.percent.toFixed(2) + " %           ";
-                    showProgress(msg);
-                    updatePercent(metadata.percent | 0);
-                })
-                    .then(function callback(blob) {
-                        //  Save zip file
-                        saveAs(blob, "Dataset_" + timecode + ".zip");
-                        //  Reset download button
-                        $('#dl-button').prop('disabled', false);
-                        showProgress("Download Dataset");
-                        $("#progress-bar").hide();
-                    }, function (e) {
-                        showError(e);
-                    });
-            });
-        });
+    if ($('#dl-button').hasClass('disabled')) {
+        showError('Select datasets first (checkbox column).');
+        return;
+    }
+    const pks = selected_dataset_pks();
+    if (pks.length === 0) {
+        showError('No datasets selected.');
+        return;
+    }
+    $('#dl-button').addClass('disabled');
+    $("#progress-bar").show();
+    aotsStartBulkDownload({
+        projectId: $('#project-pk').attr('project'),
+        idList: pks,
+        kind: 'datasets',
+        onProgress: showProgress,
+        onError: function (msg) {
+            showError(msg);
+            $('#dl-button').removeClass('disabled');
+        },
+        onComplete: function () {
+            $('#dl-button').removeClass('disabled');
+            showProgress('Download Dataset');
+        },
     });
 }
 

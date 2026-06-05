@@ -145,4 +145,3 @@ CELERY_TASK_EAGER_PROPAGATES = True
 BULK_DOWNLOAD_TTL_SECONDS = env.int('BULK_DOWNLOAD_TTL_SECONDS', default=86400)
 BULK_DOWNLOAD_DELETE_AFTER_SEND = env.bool('BULK_DOWNLOAD_DELETE_AFTER_SEND', default=True)
 # UI: spectra list uses Celery bulk download when true (see spectra_list.html)
-AOTS_USE_CELERY_BULK_DOWNLOAD = env.bool('AOTS_USE_CELERY_BULK_DOWNLOAD', default=True)

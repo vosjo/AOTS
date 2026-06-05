@@ -53,6 +53,7 @@ class DataSetListSerializer(ModelSerializer):
             'added_on',
         ]
         read_only_fields = ('pk', 'file_url',)
+        datatables_always_serialize = ('pk', 'href', 'file_url')
 
 
     def get_added_on(self, obj):

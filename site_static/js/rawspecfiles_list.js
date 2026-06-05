@@ -836,82 +836,45 @@ function showError(text) {
         .val(text);
 }
 
+function selected_rawspecfile_pks() {
+    let pks = [];
+    rawspecfile_table.rows('.selected').every(function () {
+        let pk = this.data().pk;
+        if (pk !== undefined && pk !== null) {
+            pks.push(String(pk));
+        }
+    });
+    return pks;
+}
+
 //  Download Raw Data
 function download_rawfiles() {
-    //   Prepare file list
-    let rawlist = [];
-    //   Get list of selected spectra
-    rawspecfile_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-        //  Determine ID/PK
-        let pk = this.data()['pk'];
-
-        //    Get file path
-        $.getJSON(
-            "/api/observations/rawspecfiles/" + pk + "/path/",
-            function (path) {
-                //    Add to file list
-                rawlist.push(path);
-            });
-    });
-
-    //   Load Filesaver and jszip libs to facilitate download
-    $.getScript("/static/js/JsZip/FileSaver.js").done(function () {
-        $.getScript("/static/js/JsZip/jszip.js").done(async function () {
-            $.getScript("/static/js/JsZip/jszip-utils.js").done(async function () {
-
-                //  Create zip file
-                let zip = new JSZip();
-
-                //  Set time string for zip file name
-                let dt = new Date();
-                let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
-
-                //  Get file using promises so that file assembly can wait until
-                //  download has finished
-                const getPromises = rawlist.map(async path => {
-                    let file = path.split('/').slice(-1);
-                    return new Promise(function (resolve, reject) {
-                        JSZipUtils.getBinaryContent(path, function (err, data) {
-                            if (err) {
-                                reject("ERROR: File not found");
-                            } else {
-                                resolve([file, data]);
-                            }
-                        })
-                    });
-                });
-
-                //  Fill zip file
-                for (const promise of getPromises) {
-                    try {
-                        const content = await promise;
-                        zip.file(content[0], content[1]);
-                    } catch (err) {
-                        showError(err);
-                        return
-                    }
-                }
-
-                //  Generate zip file
-                zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
-                    //  Update download progress
-                    let msg = "            " + metadata.percent.toFixed(2) + " %           ";
-//                    showProgress(msg);
-                    $("#progress-bar").show();
-                    updatePercent(metadata.percent | 0);
-                })
-                    .then(function callback(blob) {
-                        //  Save zip file
-                        saveAs(blob, "Raw_data_" + timecode + ".zip");
-                        //  Reset download button
-                        $("#progress-bar").hide();
-//                        <i class='material-icons button' title='Download raw data'>download</i>
-//                        showProgress("Download raw data");
-                    }, function (e) {
-                        showError(e);
-                    });
-            });
-        });
+    if ($('#dl-button').prop('disabled')) {
+        showError('Select raw files first (checkbox column).');
+        return;
+    }
+    const pks = selected_rawspecfile_pks();
+    if (pks.length === 0) {
+        showError('No raw files selected.');
+        return;
+    }
+    $('#dl-button').prop('disabled', true);
+    $("#progress-bar").show();
+    aotsStartBulkDownload({
+        projectId: $('#project-pk').attr('project'),
+        idList: pks,
+        kind: 'rawspecfiles',
+        onProgress: showProgress,
+        onError: function (msg) {
+            showError(msg);
+            $('#dl-button').prop('disabled', false);
+            $("#progress-bar").hide();
+        },
+        onComplete: function () {
+            $('#dl-button').prop('disabled', false);
+            $("#progress-bar").hide();
+            showProgress('Download raw data');
+        },
     });
 }
 

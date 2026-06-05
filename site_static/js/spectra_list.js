@@ -386,212 +386,70 @@ function showError_raw(text) {
     $("#progress-bar-raw").hide();
 }
 
-//  Download Spectra (Celery ZIP on server, or legacy JSZip in browser)
+function selected_spectrum_pks() {
+    let spectrum_pks = [];
+    spectra_table.rows('.selected').every(function () {
+        let pk = this.data().pk;
+        if (pk !== undefined && pk !== null) {
+            spectrum_pks.push(String(pk));
+        }
+    });
+    return spectrum_pks;
+}
+
 function download_specfiles() {
     if ($('#dl-button').hasClass('disabled')) {
         showError('Select spectra first (checkbox column).');
         return;
     }
-    if (window.AOTS_USE_CELERY_BULK_DOWNLOAD) {
-        let spectrum_pks = [];
-        spectra_table.rows('.selected').every(function () {
-            let pk = this.data().pk;
-            if (pk !== undefined && pk !== null) {
-                spectrum_pks.push(String(pk));
-            }
-        });
-        if (spectrum_pks.length === 0) {
-            showError('No spectra selected.');
-            return;
-        }
-        bulk_download_spectra_api(spectrum_pks);
+    const spectrum_pks = selected_spectrum_pks();
+    if (spectrum_pks.length === 0) {
+        showError('No spectra selected.');
         return;
     }
-    download_specfiles_jszip();
-}
-
-function download_specfiles_jszip() {
-    //   Prevent impatient users from clicking again.
     $('#dl-button').addClass('disabled');
-    showProgress("Be Patient...");
-    //   Prepare file list
-    let spfilelist = [];
-    //   Get list of selected spectra
-    spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-        let specfiles = this.data()["specfiles"];
-        //  Loop over all associated files
-        $.each(specfiles, function (ind) {
-            //  Identify files
-            let sfilepk = specfiles[ind]['pk'];
-
-            //    Get file path
-            $.getJSON(
-                "/api/observations/specfiles/" + sfilepk + "/path/",
-                function (path) {
-                    //    Add to file list
-                    spfilelist.push(path);
-                });
-        });
-    });
-
-    //   Load Filesaver and jszip libs to facilitate download
-    $.getScript("/static/js/JsZip/FileSaver.js").done(function () {
-        $.getScript("/static/js/JsZip/jszip.js").done(async function () {
-            $.getScript("/static/js/JsZip/jszip-utils.js").done(async function () {
-
-                //  Create zip file
-                let zip = new JSZip();
-
-                //  Set time string for zip file name
-                let dt = new Date();
-                let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
-
-                //  Get file using promises so that file assembly can wait until
-                //  download has finished
-                const getPromises = spfilelist.map(async path => {
-                    let file = path.split('/').slice(-1);
-                    return new Promise(function (resolve, reject) {
-                        JSZipUtils.getBinaryContent(path, function (err, data) {
-                            if (err) {
-                                reject("ERROR: File not found");
-                            } else {
-                                resolve([file, data]);
-                            }
-                        })
-                    });
-                });
-
-                //  Fill zip file
-                for (const promise of getPromises) {
-                    try {
-                        const content = await promise;
-                        zip.file(content[0], content[1]);
-                    } catch (err) {
-                        showError(err);
-                        return
-                    }
-                }
-
-                //  Generate zip file
-                zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
-                    //  Update download progress
-                    let msg = "            " + metadata.percent.toFixed(2) + " %           ";
-                    showProgress(msg);
-                    updatePercent(metadata.percent | 0);
-                })
-                    .then(function callback(blob) {
-                        //  Save zip file
-                        saveAs(blob, "Spectra_" + timecode + ".zip");
-                        //  Reset download button
-                        $('#dl-button').removeClass('disabled');
-                        showProgress("Download Spectra");
-                        $("#progress-bar").hide();
-                    }, function (e) {
-                        showError(e);
-                    });
-            });
-        });
+    $("#progress-bar").show();
+    aotsStartBulkDownload({
+        projectId: $('#project-pk').attr('project'),
+        idList: spectrum_pks,
+        kind: 'processed',
+        onProgress: showProgress,
+        onError: function (msg) {
+            showError(msg);
+            $('#dl-button').removeClass('disabled');
+        },
+        onComplete: function () {
+            $('#dl-button').removeClass('disabled');
+            showProgress('Download Spectra');
+        },
     });
 }
 
-
-//  Download Raw Data
 function download_rawfiles() {
-    //   Prevent impatient users from clicking again.
+    if ($('#dl-button-raw').hasClass('disabled')) {
+        showError_raw('Select spectra first (checkbox column).');
+        return;
+    }
+    const spectrum_pks = selected_spectrum_pks();
+    if (spectrum_pks.length === 0) {
+        showError_raw('No spectra selected.');
+        return;
+    }
     $('#dl-button-raw').addClass('disabled');
-    showProgress_raw("Be Patient...");
-
-    //   Prepare file list
-    let rawfileList = [];
-
-    //   Get list of selected spectra
-    spectra_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-        //  System name
-        let name = this.data()["star"]["name"].trim().replace(" ", "_");
-
-        //  Specfile infos
-        let specfiles = this.data()["specfiles"];
-
-        //  Loop over all associated files
-        $.each(specfiles, function (ind) {
-            //  Identify files
-            let sfilepk = specfiles[ind]['pk'];
-            let sfilejd = specfiles[ind]['hjd'];
-            let dir = sfilejd;
-
-            //  Get file path
-            $.getJSON(
-                "/api/observations/specfiles/" + sfilepk + "/raw_path/",
-                function (path_list) {
-                    //  Add to file list
-                    for (let path of path_list) {
-                        rawfileList.push([name, dir, path]);
-                    }
-                });
-        });
-    });
-
-    //   Load Filesaver and jszip libs to facilitate download
-    $.getScript("/static/js/JsZip/FileSaver.js").done(function () {
-        $.getScript("/static/js/JsZip/jszip.js").done(async function () {
-
-            //  Create zip file
-            let zip = new JSZip();
-
-            //  Set time string for zip file name
-            let dt = new Date();
-            let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
-
-            //  Prepare promise
-            const Promises = rawfileList.map(async list_content => {
-                //  Set name, dir, path and filename
-                let name = list_content[0];
-                let dir = list_content[1];
-                let path = list_content[2];
-                let file = path.split('/').slice(-1);
-
-                //  Construct promise
-                return new Promise(function (resolve, reject) {
-                    $.get(path)
-                        .done(function (data) {
-                            resolve([name, dir, file, data]);
-                        })
-                        .fail(function () {
-                            reject("ERROR: File not found");
-                        });
-                });
-            });
-
-            //  Fill zip file
-            for (const prom of Promises) {
-                try {
-                    const cont = await prom;
-                    zip.file([cont[0], cont[1], cont[2]].join('/'), cont[3]);
-                } catch (err) {
-                    showError_raw(err);
-                    return
-                }
-            }
-
-            //  Generate zip file
-            zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
-                //  Update download progress
-                let msg = "            " + metadata.percent.toFixed(2) + " %           ";
-                showProgress_raw(msg);
-                updatePercent_raw(metadata.percent | 0);
-            })
-                .then(function callback(blob) {
-                    //  Save zip file
-                    saveAs(blob, "Raw_Data_" + timecode + ".zip");
-                    //  Reset download button
-                    $('#dl-button-raw').removeClass('disabled');
-                    showProgress_raw("Download Raw Data");
-                    $("#progress-bar-raw").hide();
-                }, function (e) {
-                    showError_raw(e);
-                });
-
-        });
+    $("#progress-bar-raw").show();
+    aotsStartBulkDownload({
+        projectId: $('#project-pk').attr('project'),
+        idList: spectrum_pks,
+        kind: 'raw',
+        onProgress: showProgress_raw,
+        onError: function (msg) {
+            showError_raw(msg);
+            $('#dl-button-raw').removeClass('disabled');
+        },
+        onComplete: function () {
+            $('#dl-button-raw').removeClass('disabled');
+            showProgress_raw('Download Raw Data');
+        },
     });
 }
 
@@ -639,59 +497,4 @@ function Toggledownloaddropdown() {
     if (otherdd.hasClass("show")) {
         otherdd.toggleClass("show");
     }
-}
-
-
-/**
- * Server-side bulk ZIP via Celery (requires Redis + worker).
- * Pass spectrum PKs; polls task status then triggers file download.
- */
-function bulk_download_spectra_api(spectrum_pks) {
-    const projectId = $('#project-pk').attr('project');
-    const starList = spectrum_pks.join(';');
-    showProgress('Preparing download…');
-    $('#dl-button').addClass('disabled');
-    $("#progress-bar").show();
-
-    $.ajax({
-        url: '/api/observations/bulk-download/start/',
-        method: 'POST',
-        headers: {
-            'Projectid': projectId,
-            'Staridlist': starList,
-        },
-        // X-CSRFToken: global $.ajaxSetup in base_js.js (getCsrfToken)
-    }).done(function (data) {
-        poll_bulk_download_task(data.task_id, projectId);
-    }).fail(function (xhr) {
-        showError(xhr.responseJSON && xhr.responseJSON.detail ? xhr.responseJSON.detail : 'Bulk download failed');
-        $('#dl-button').removeClass('disabled');
-    });
-}
-
-function poll_bulk_download_task(taskId, projectId) {
-    $.ajax({
-        url: '/api/observations/tasks/' + taskId + '/',
-        dataType: 'json',
-        xhrFields: {withCredentials: true},
-    }).done(function (status) {
-        if (!status.ready) {
-            showProgress('Building ZIP… ' + status.status);
-            setTimeout(function () {
-                poll_bulk_download_task(taskId, projectId);
-            }, 2000);
-            return;
-        }
-        if (status.status === 'SUCCESS') {
-            window.location = '/api/observations/bulk-download/' + taskId + '/file/';
-            $('#dl-button').removeClass('disabled');
-            showProgress('Download Spectra');
-            return;
-        }
-        showError(status.error || 'Bulk download failed');
-        $('#dl-button').removeClass('disabled');
-    }).fail(function (xhr) {
-        showError(xhr.responseJSON && xhr.responseJSON.detail ? xhr.responseJSON.detail : 'Bulk download status failed');
-        $('#dl-button').removeClass('disabled');
-    });
 }

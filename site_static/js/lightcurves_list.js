@@ -39,13 +39,13 @@ $(document).ready(function () {
     let ajax_kw;
     if (sessionStorage.getItem("selectedpks") === null) {
         ajax_kw = {
-            url: '/api/observations/lightcurves/?format=datatables&keep=telescope,href',
+            url: '/api/observations/lightcurves/?format=datatables&keep=pk,telescope,href',
             data: get_filter_keywords,
         }
     } else {
         console.log("Carryover!")
         ajax_kw = {
-            url: '/api/observations/lightcurves/?format=datatables&keep=telescope,href',
+            url: '/api/observations/lightcurves/?format=datatables&keep=pk,telescope,href',
             data: carryover,
         }
     }
@@ -339,81 +339,46 @@ function delete_lightcurves() {
     }
 }
 
-function download_lightcurves() {
-    //   Prevent impatient users from clicking again.
-    $('#dl-button').prop('disabled', true);
-    showProgress($("#dl-button"), "Be Patient...");
-    //   Prepare file list
-    let lcfilelist = [];
-    //   Get list of selected lightcurves
-    lightcurve_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
-        let lcfilepk = this.data()["pk"];
-        //    Get file path
-        $.getJSON(
-            "/api/observations/lightcurves/" + lcfilepk + "/path/",
-            function (path) {
-                //    Add to file list
-                lcfilelist.push(path);
-            });
+function selected_lightcurve_pks() {
+    let pks = [];
+    lightcurve_table.rows('.selected').every(function () {
+        let pk = this.data().pk;
+        if (pk !== undefined && pk !== null) {
+            pks.push(String(pk));
+        }
     });
-    console.log(lcfilelist);
+    return pks;
+}
 
-    //   Load Filesaver and jszip libs to facilitate download
-    $.getScript("/static/js/JsZip/FileSaver.js").done(function () {
-        $.getScript("/static/js/JsZip/jszip.js").done(async function () {
-            $.getScript("/static/js/JsZip/jszip-utils.js").done(async function () {
-
-                //  Create zip file
-                let zip = new JSZip();
-
-                //  Set time string for zip file name
-                let dt = new Date();
-                let timecode = dt.getHours() + "" + dt.getMinutes() + dt.getSeconds();
-
-                //  Get file using promises so that file assembly can wait until
-                //  download has finished
-                const getPromises = lcfilelist.map(async path => {
-                    let file = path.split('/').slice(-1);
-                    return new Promise(function (resolve, reject) {
-                        JSZipUtils.getBinaryContent(path, function (err, data) {
-                            if (err) {
-                                reject("ERROR: File not found");
-                            } else {
-                                resolve([file, data]);
-                            }
-                        })
-                    });
-                });
-
-                //  Fill zip file
-                for (const promise of getPromises) {
-                    try {
-                        const content = await promise;
-                        zip.file(content[0], content[1]);
-                    } catch (err) {
-                        showError(err);
-                        return
-                    }
-                }
-
-                //  Generate zip file
-                zip.generateAsync({type: "blob"}, function updateCallback(metadata) {
-                    //  Update download progress
-                    let msg = "            " + metadata.percent.toFixed(2) + " %           ";
-                    showProgress($("#dl-button"), msg);
-                    updatePercent($("#progress-bar"), metadata.percent | 0);
-                })
-                    .then(function callback(blob) {
-                        //  Save zip file
-                        saveAs(blob, "Lightcurves_" + timecode + ".zip");
-                        //  Reset download button
-                        $('#dl-button').prop('disabled', false);
-                        showProgress($("#dl-button"), "Download Lightcurve(s)");
-                    }, function (e) {
-                        showError(e);
-                    });
-            });
-        });
+function download_lightcurves() {
+    if ($('#dl-button').prop('disabled')) {
+        showProgress($("#dl-button"), 'Select light curves first.');
+        return;
+    }
+    const pks = selected_lightcurve_pks();
+    if (pks.length === 0) {
+        showProgress($("#dl-button"), 'No light curves selected.');
+        return;
+    }
+    $('#dl-button').prop('disabled', true);
+    $("#progress-bar").show();
+    aotsStartBulkDownload({
+        projectId: $('#project-pk').attr('project'),
+        idList: pks,
+        kind: 'lightcurves',
+        onProgress: function (msg) {
+            showProgress($("#dl-button"), msg);
+        },
+        onError: function (msg) {
+            showProgress($("#dl-button"), msg);
+            $('#dl-button').prop('disabled', false);
+            $("#progress-bar").hide();
+        },
+        onComplete: function () {
+            $('#dl-button').prop('disabled', false);
+            showProgress($("#dl-button"), 'Download selected');
+            $("#progress-bar").hide();
+        },
     });
 }
 

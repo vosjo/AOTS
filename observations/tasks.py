@@ -36,34 +36,41 @@ def process_lightcurve_task(self, lightcurve_pk):
 
 
 @shared_task(bind=True)
-def build_bulk_spectra_zip_task(self, project_pk, requested_stars, user_pk):
+def build_bulk_download_zip_task(self, project_pk, requested_ids, user_pk, kind='processed'):
     import shutil
 
     from django.contrib.auth import get_user_model
 
     from observations.services.bulk_download import (
+        BULK_DOWNLOAD_KINDS,
         bulk_download_artifact_path,
         build_zip_archive,
-        collect_download_files,
-        resolve_spectra_queryset,
+        collect_download_entries,
     )
     from stars.models import Project
 
-    logger.info('Bulk ZIP project=%s task_id=%s', project_pk, self.request.id)
+    if kind not in BULK_DOWNLOAD_KINDS:
+        return {'error': f'Invalid download kind: {kind}'}
+
+    logger.info(
+        'Bulk ZIP project=%s kind=%s task_id=%s',
+        project_pk,
+        kind,
+        self.request.id,
+    )
     user = get_user_model().objects.get(pk=user_pk)
     project = Project.objects.get(pk=project_pk)
-    spectra = resolve_spectra_queryset(project, requested_stars, user)
-    files_to_return, preferred_filenames = collect_download_files(spectra)
-    if not files_to_return:
+    file_entries = collect_download_entries(project, requested_ids, user, kind)
+    if not file_entries:
         return {'error': 'No files matched the selection.'}
 
-    zip_path, temp_directory = build_zip_archive(files_to_return, preferred_filenames)
+    zip_path, temp_directory = build_zip_archive(file_entries)
     dest = bulk_download_artifact_path(self.request.id)
     try:
         shutil.copy2(zip_path, dest)
     finally:
         shutil.rmtree(temp_directory, ignore_errors=True)
-    return {'task_id': self.request.id, 'file': dest, 'status': 'ready'}
+    return {'task_id': self.request.id, 'file': dest, 'status': 'ready', 'kind': kind}
 
 
 @shared_task(bind=True)

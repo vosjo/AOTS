@@ -10,7 +10,16 @@ import time
 from django.conf import settings
 
 from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
-from observations.models import Spectrum
+from analysis.models import DataSet
+from observations.models import LightCurve, RawSpecFile, Spectrum
+
+BULK_DOWNLOAD_KINDS = frozenset({
+    'processed',
+    'raw',
+    'rawspecfiles',
+    'lightcurves',
+    'datasets',
+})
 
 
 def bulk_download_directory():
@@ -45,34 +54,128 @@ def resolve_spectra_queryset(project, requested_stars, user):
         )
 
     return get_allowed_objects_to_view_for_user(
-        qs.prefetch_related('specfile_set', 'star'),
+        qs.prefetch_related('specfile_set__rawspecfile_set', 'star'),
         user,
     )
 
 
-def collect_download_files(spectra_qs):
-    files_to_return = []
-    preferred_filenames = []
+def resolve_rawspecfiles_queryset(project, requested_ids, user):
+    if not requested_ids:
+        return RawSpecFile.objects.none()
+
+    qs = RawSpecFile.objects.filter(
+        project=project,
+        pk__in=requested_ids,
+    )
+    return get_allowed_objects_to_view_for_user(qs, user)
+
+
+def collect_processed_download_entries(spectra_qs):
+    entries = []
     for spec in spectra_qs:
-        spfiles = list(spec.specfile_set.all())
         star_name = spec.star.name if spec.star else 'unknown'
-        for i, specfile in enumerate(spfiles):
-            files_to_return.append(specfile.specfile.path)
-            preferred_filenames.append(f'spec_{star_name}_{i}.fits')
-    return files_to_return, preferred_filenames
+        for i, specfile in enumerate(spec.specfile_set.all()):
+            entries.append((
+                specfile.specfile.path,
+                f'spec_{star_name}_{i}.fits',
+            ))
+    return entries
 
 
-def build_zip_archive(files_to_return, preferred_filenames):
+def collect_raw_spectra_download_entries(spectra_qs):
+    entries = []
+    for spec in spectra_qs:
+        star_name = (spec.star.name if spec.star else 'unknown').strip().replace(' ', '_')
+        for specfile in spec.specfile_set.all():
+            hjd = specfile.hjd
+            for raw in specfile.rawspecfile_set.all():
+                basename = os.path.basename(raw.rawfile.name)
+                entries.append((
+                    raw.rawfile.path,
+                    f'{star_name}/{hjd}/{basename}',
+                ))
+    return entries
+
+
+def collect_rawspecfile_download_entries(rawspecfile_qs):
+    entries = []
+    for raw in rawspecfile_qs:
+        basename = os.path.basename(raw.rawfile.name)
+        entries.append((raw.rawfile.path, basename))
+    return entries
+
+
+def resolve_lightcurves_queryset(project, requested_ids, user):
+    if not requested_ids:
+        return LightCurve.objects.none()
+
+    qs = LightCurve.objects.filter(
+        project=project,
+        pk__in=requested_ids,
+    )
+    return get_allowed_objects_to_view_for_user(qs, user)
+
+
+def resolve_datasets_queryset(project, requested_ids, user):
+    if not requested_ids:
+        return DataSet.objects.none()
+
+    qs = DataSet.objects.filter(
+        project=project,
+        pk__in=requested_ids,
+    )
+    return get_allowed_objects_to_view_for_user(qs, user)
+
+
+def collect_lightcurve_download_entries(lightcurve_qs):
+    entries = []
+    for lc in lightcurve_qs:
+        basename = os.path.basename(lc.lcfile.name)
+        entries.append((lc.lcfile.path, basename))
+    return entries
+
+
+def collect_dataset_download_entries(dataset_qs):
+    entries = []
+    for dataset in dataset_qs:
+        basename = os.path.basename(dataset.datafile.name)
+        entries.append((dataset.datafile.path, basename))
+    return entries
+
+
+def collect_download_entries(project, requested_ids, user, kind):
+    if kind == 'rawspecfiles':
+        rawspecfiles = resolve_rawspecfiles_queryset(project, requested_ids, user)
+        return collect_rawspecfile_download_entries(rawspecfiles)
+    if kind == 'lightcurves':
+        lightcurves = resolve_lightcurves_queryset(project, requested_ids, user)
+        return collect_lightcurve_download_entries(lightcurves)
+    if kind == 'datasets':
+        datasets = resolve_datasets_queryset(project, requested_ids, user)
+        return collect_dataset_download_entries(datasets)
+
+    spectra = resolve_spectra_queryset(project, requested_ids, user)
+    if kind == 'raw':
+        return collect_raw_spectra_download_entries(spectra)
+    return collect_processed_download_entries(spectra)
+
+
+def build_zip_archive(file_entries):
     """
     Copy files into a ZIP and return path to the zip file.
+    file_entries: iterable of (source_path, arcname_within_zip).
     Caller must delete the parent temp directory when done.
     """
     temp_directory = tempfile.mkdtemp(prefix='aots_bulk_')
     subdir = os.path.join(temp_directory, 'spec_dir')
-    os.mkdir(subdir)
+    os.makedirs(subdir, exist_ok=True)
 
-    for path, name in zip(files_to_return, preferred_filenames):
-        shutil.copy2(path, os.path.join(subdir, name))
+    for source_path, arcname in file_entries:
+        dest = os.path.join(subdir, arcname)
+        parent = os.path.dirname(dest)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        shutil.copy2(source_path, dest)
 
     zip_base = os.path.join(temp_directory, 'files')
     shutil.make_archive(zip_base, 'zip', subdir)

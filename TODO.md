@@ -5,18 +5,16 @@
 **Done:**
 
 - `POST /api/observations/bulk-download/start/` + `GET …/bulk-download/<task_id>/file/`
+- Download kinds: `processed`, `raw`, `rawspecfiles`, `lightcurves`, `datasets`
 - Task ownership + Redis cache in production (`CACHE_URL` / broker DB `1`)
-- `spectra_list.js`: Celery download when `AOTS_USE_CELERY_BULK_DOWNLOAD=True` (template flag)
-- JSZip fallback when flag is `false`
+- List UIs use shared `bulk_download.js` (no browser-side JSZip)
 - TTL: `BULK_DOWNLOAD_TTL_SECONDS`, `manage.py cleanup_bulk_downloads`, Celery Beat schedule
 - Delete ZIP after successful download when `BULK_DOWNLOAD_DELETE_AFTER_SEND=True`
-- Sync download deprecated: `GET api-spec-download/` returns **410** unless `?legacy_sync=1`
 - Bulk upload: `POST api-spec-upload/?async=1` enqueues `process_bulk_upload_task`
 
 **Optional later:**
 
-- Wire raw-spec bulk download the same way (`rawspecfiles_list.js`)
-- Frontend rewrite: unified progress UI
+- Frontend rewrite: unified progress UI across list pages
 
 ## Other
 

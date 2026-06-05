@@ -8,8 +8,8 @@ List endpoints use `?format=datatables`. The UI may request extra fields via `ke
 | `/api/observations/spectra/` | hjd, star, instrument, resolution, airmass, exptime | pk, specfiles, telescope, href | `SpectrumListSerializer` |
 | `/api/observations/specfiles/` | hjd, instrument, filetype, filename, added_on, star, spectrum, pk | — | `SpecFileListSerializer` |
 | `/api/observations/rawspecfiles/` | obs_date, instrument, filetype, exptime, filename, added_on, specfile, systems | pk | `RawSpecFileSerializer` |
-| `/api/observations/lightcurves/` | (see lightcurves_list.js) | telescope, href | `LightCurveSerializer` |
-| `/api/analysis/datasets/` | — | href, file_url | `DataSetListSerializer` |
+| `/api/observations/lightcurves/` | (see lightcurves_list.js) | pk, telescope, href | `LightCurveSerializer` |
+| `/api/analysis/datasets/` | — | pk, href, file_url | `DataSetListSerializer` |
 | `/api/observations/observatories/` | — | short_name, url | `ObservatorySerializer` |
 
 When changing serializers, run contract tests in `observations/tests/test_datatables_contract.py`.

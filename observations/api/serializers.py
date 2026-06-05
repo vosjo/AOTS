@@ -337,6 +337,7 @@ class LightCurveSerializer(ModelSerializer):
             'href',
         ]
         read_only_fields = ('pk',)
+        datatables_always_serialize = ('pk', 'telescope', 'href')
 
     def get_star(self, obj):
         if obj.star is None:

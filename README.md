@@ -394,40 +394,46 @@ sudo ufw allow 'Nginx Full'
 | Scripts / automation | Headers `HTTP_PUBLICAPIKEY` and `HTTP_SECRETAPIKEY` (no extra session required) |
 
 Bulk endpoints accept **either** session or API key. Headers: `Projectid`, `Staridlist`
-(semicolon-separated spectrum PKs or star names).
+(semicolon-separated PKs or star names; for `rawspecfiles`, raw-file PKs).
 
 | Action | Endpoint |
 |--------|----------|
-| Start download (Celery) | `POST /api/observations/bulk-download/start/` |
+| Start download (Celery) | `POST /api/observations/bulk-download/start/?kind=<kind>` |
 | Poll task | `GET /api/observations/tasks/<task_id>/` |
 | Download ZIP | `GET /api/observations/bulk-download/<task_id>/file/` |
 | Upload + process async | `POST /api/observations/api-spec-upload/?async=1` |
-| Legacy sync download | `GET /api/observations/api-spec-download/?legacy_sync=1` |
+
+Download `kind` query parameter:
+
+| `kind` | Use case | `Staridlist` contains |
+|--------|----------|------------------------|
+| `processed` (default) | Processed spectra FITS from spectra list | Spectrum PKs or star names |
+| `raw` | Raw calibration/exposure files for selected spectra | Spectrum PKs or star names |
+| `rawspecfiles` | Raw file list page | RawSpecFile PKs |
+| `lightcurves` | Light curve list page | LightCurve PKs |
+| `datasets` | Analysis dataset list page | DataSet PKs |
 
 See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for list API field contracts.
 
 ## Redis and background tasks (Celery)
 
 The codebase includes **Celery** and **Redis** configuration (`AOTS/celery.py`, `CELERY_*` in
-settings, optional `?async=1` on spectrum/specfile process endpoints). This is deliberately
-**preparation for later use**: day-to-day operation is unchanged — the web UI and most API calls
-do **not** need Redis or a Celery worker.
+settings). Redis is the message broker and result backend.
 
-Today, the only wired async path is opt-in FITS/spectrum **processing** via `?async=1`. The main
-**bulk spectrum downloads** also support Celery via `POST /api/observations/bulk-download/start/`
-(async by default). The legacy synchronous endpoint `api-spec-download/` remains for small
-exports; the browser may still use JSZip until the frontend is rebuilt.
+**Bulk downloads** in the UI (spectra, raw files, light curves, datasets) always use Celery
+(`POST /api/observations/bulk-download/start/`). Opt-in FITS/spectrum **processing** uses
+`?async=1` on process endpoints.
 
-Redis is the message broker and result backend when you do use Celery. Without Redis, processing
-and downloads behave as before (synchronously in Django/Gunicorn or in the browser).
+Without Redis and a Celery worker, bulk downloads from list pages will not work
+(unless `CELERY_TASK_ALWAYS_EAGER=True` for local development).
 
 ### When is Redis required?
 
 | Mode | Redis | Celery worker |
 |------|-------|---------------|
-| Normal operation (UI, bulk download API, sync process URLs) | No | No |
+| Sync process URLs (no `?async=1`) | No | No |
 | Opt-in async processing (`?async=1` on process URLs) | Yes | Yes |
-| Async bulk ZIP (`bulk-download/start/`) | Yes | Yes |
+| Bulk ZIP downloads (spectra/raw lists, bulk API) | Yes | Yes |
 | Tests / CI (`CELERY_TASK_ALWAYS_EAGER=True`) | No | No |
 
 Examples of optional async endpoints:
@@ -436,9 +442,8 @@ Examples of optional async endpoints:
 - `POST /api/observations/spectra/<pk>/process/?async=1`
 - `GET /api/observations/tasks/<task_id>/` — poll task status
 
-Without Redis, keep using the process URLs **without** `?async=1`, and use bulk download as
-today (synchronous API or browser-side ZIP). No Celery worker is needed until you adopt async
-processing or the planned Celery-based bulk downloads.
+Without Redis, keep using process URLs **without** `?async=1`. For bulk downloads during local
+development, set `CELERY_TASK_ALWAYS_EAGER=True` so tasks run inside Django/Gunicorn.
 
 ### Install Redis (Linux)
 
@@ -461,7 +466,6 @@ Copy and extend `AOTS/.env` from `AOTS/.env.example`. Relevant variables:
 CELERY_BROKER_URL=redis://localhost:6379/0
 # Optional; defaults to CELERY_BROKER_URL if omitted:
 # CELERY_RESULT_BACKEND=redis://localhost:6379/0
-AOTS_USE_CELERY_BULK_DOWNLOAD=True
 ```
 
 For a password-protected Redis instance (recommended in production):

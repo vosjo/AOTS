@@ -8,6 +8,7 @@ import tempfile
 import time
 
 from django.conf import settings
+from django.utils import timezone
 
 from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 from analysis.models import DataSet
@@ -20,6 +21,22 @@ BULK_DOWNLOAD_KINDS = frozenset({
     'lightcurves',
     'datasets',
 })
+
+BULK_DOWNLOAD_FILENAME_PREFIX = {
+    'processed': 'spectra',
+    'raw': 'raw_spectra',
+    'rawspecfiles': 'raw_files',
+    'lightcurves': 'lightcurves',
+    'datasets': 'datasets',
+}
+
+
+def bulk_download_filename(kind, at=None):
+    """Return a download filename like spectra_20260523_143052.zip."""
+    prefix = BULK_DOWNLOAD_FILENAME_PREFIX.get(kind, 'download')
+    moment = at or timezone.now()
+    stamp = moment.strftime('%Y%m%d_%H%M%S')
+    return f'{prefix}_{stamp}.zip'
 
 
 def bulk_download_directory():
@@ -218,10 +235,9 @@ def remove_bulk_download_artifact(task_id):
 class BulkDownloadFile:
     """File wrapper that removes the artifact when the response is closed."""
 
-    name = 'files.zip'
-
-    def __init__(self, task_id):
+    def __init__(self, task_id, download_filename='files.zip'):
         self.task_id = task_id
+        self.name = download_filename
         self.path = bulk_download_artifact_path(task_id)
         self._file = open(self.path, 'rb')
 

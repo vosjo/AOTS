@@ -44,6 +44,7 @@ def build_bulk_download_zip_task(self, project_pk, requested_ids, user_pk, kind=
     from observations.services.bulk_download import (
         BULK_DOWNLOAD_KINDS,
         bulk_download_artifact_path,
+        bulk_download_filename,
         build_zip_archive,
         collect_download_entries,
     )
@@ -70,7 +71,13 @@ def build_bulk_download_zip_task(self, project_pk, requested_ids, user_pk, kind=
         shutil.copy2(zip_path, dest)
     finally:
         shutil.rmtree(temp_directory, ignore_errors=True)
-    return {'task_id': self.request.id, 'file': dest, 'status': 'ready', 'kind': kind}
+    return {
+        'task_id': self.request.id,
+        'file': dest,
+        'status': 'ready',
+        'kind': kind,
+        'download_filename': bulk_download_filename(kind),
+    }
 
 
 @shared_task(bind=True)

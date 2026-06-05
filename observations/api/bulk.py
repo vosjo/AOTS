@@ -19,6 +19,7 @@ from observations.services.bulk_download import (
     BULK_DOWNLOAD_KINDS,
     BulkDownloadFile,
     bulk_download_artifact_path,
+    bulk_download_filename,
 )
 from observations.tasks import (
     build_bulk_download_zip_task,
@@ -206,10 +207,18 @@ def bulkDownloadFile(request, task_id):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    download_filename = bulk_download_filename('processed')
+    result = AsyncResult(task_id)
+    if result.successful() and isinstance(result.result, dict):
+        download_filename = result.result.get(
+            'download_filename',
+            bulk_download_filename(result.result.get('kind', 'processed')),
+        )
+
     return FileResponse(
-        BulkDownloadFile(task_id),
+        BulkDownloadFile(task_id, download_filename=download_filename),
         as_attachment=True,
-        filename='files.zip',
+        filename=download_filename,
     )
 
 

@@ -39,7 +39,7 @@ class SpectrumListSerializer(ModelSerializer):
             'airmass',
             'resolution',
         ]
-        datatables_always_serialize = ('specfiles', 'telescope', 'href')
+        datatables_always_serialize = ('pk', 'specfiles', 'telescope', 'href')
         read_only_fields = ('pk',)
 
     def get_star(self, obj):

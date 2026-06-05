@@ -32,12 +32,12 @@ $(document).ready(function () {
     let ajax_kw;
     if (sessionStorage.getItem("selectedpks") === null) {
         ajax_kw = {
-            url: '/api/observations/spectra/?format=datatables&keep=specfiles,telescope,href',
+            url: '/api/observations/spectra/?format=datatables&keep=pk,specfiles,telescope,href',
             data: get_filter_keywords
         }
     } else {
         ajax_kw = {
-            url: '/api/observations/spectra/?format=datatables&keep=specfiles,telescope,href',
+            url: '/api/observations/spectra/?format=datatables&keep=pk,specfiles,telescope,href',
             data: carryover
         }
     }
@@ -121,8 +121,8 @@ $(document).ready(function () {
             "<div class='dropdown-container'>" +
             "<button onclick='Toggledownloaddropdown()' class='dropbtn' id='download'><i class='material-icons button' title='Download Files'>download</i>Download Files</button>" +
             "<div id='downloaddropdown' class='dropdown-content'>" +
-            "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i>Download Spectra</a>" +
-            "<a id='dl-button-raw' class='tb-button disabled'><i class='material-icons button dropdownbtn'>raw_on</i>Download Raw Data</a>" +
+            "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i><span class='dl-btn-text'>Download Spectra</span></a>" +
+            "<a id='dl-button-raw' class='tb-button disabled'><i class='material-icons button dropdownbtn'>raw_on</i><span class='dl-btn-text'>Download Raw Data</span></a>" +
             "</div>" +
             "</div>" +
             '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
@@ -130,7 +130,7 @@ $(document).ready(function () {
         );
         $("#dl-button").click(download_specfiles);
         $("#delete-button").click(delete_all_selected_specfiles);
-        $("#dl-raw-button").click(download_rawfiles);
+        $("#dl-button-raw").click(download_rawfiles);
     }
 
     //   Reset check boxes when changing number of displayed objects in table
@@ -254,7 +254,7 @@ function select_row(row) {
         $('#select-all').text('check_box');
     }
     $('#dl-button').removeClass("disabled");
-    $('#dl-raw-button').removeClass("disabled");
+    $('#dl-button-raw').removeClass("disabled");
     $('#rm-button').removeClass("disabled");
     $('#delete-button').removeClass("disabled");
 }
@@ -265,7 +265,7 @@ function deselect_row(row) {
     if (spectra_table.rows('.selected').data().length === 0) {
         $('#select-all').text('check_box_outline_blank');
         $('#dl-button').addClass("disabled");
-        $('#dl-raw-button').addClass("disabled");
+        $('#dl-button-raw').addClass("disabled");
         $('#rm-button').addClass("disabled");
         $('#delete-button').addClass("disabled");
     } else {
@@ -366,34 +366,32 @@ function updatePercent_raw(percent) {
 
 //  Change download button text
 function showProgress(text) {
-    $("#progress-bar").show()
-    $("#dl-button")
-        .val(text);
+    $("#progress-bar").show();
+    $("#dl-button .dl-btn-text").text(text);
 }
 
 function showProgress_raw(text) {
-    $("#progress-bar-raw").show()
-    $("#dl-raw-button")
-        .val(text);
+    $("#progress-bar-raw").show();
+    $("#dl-button-raw .dl-btn-text").text(text);
 }
 
 //  Show Error message
 function showError(text) {
-    $("#dl-button")
-        .removeClass()
-        .addClass("alert")
-        .val(text);
+    $("#dl-button .dl-btn-text").text(text);
+    $("#progress-bar").hide();
 }
 
 function showError_raw(text) {
-    $("#dl-raw-button")
-        .removeClass()
-        .addClass("alert")
-        .val(text);
+    $("#dl-button-raw .dl-btn-text").text(text);
+    $("#progress-bar-raw").hide();
 }
 
 //  Download Spectra (Celery ZIP on server, or legacy JSZip in browser)
 function download_specfiles() {
+    if ($('#dl-button').hasClass('disabled')) {
+        showError('Select spectra first (checkbox column).');
+        return;
+    }
     if (window.AOTS_USE_CELERY_BULK_DOWNLOAD) {
         let spectrum_pks = [];
         spectra_table.rows('.selected').every(function () {
@@ -414,7 +412,7 @@ function download_specfiles() {
 
 function download_specfiles_jszip() {
     //   Prevent impatient users from clicking again.
-    $('#dl-button').prop('disabled', true);
+    $('#dl-button').addClass('disabled');
     showProgress("Be Patient...");
     //   Prepare file list
     let spfilelist = [];
@@ -485,7 +483,7 @@ function download_specfiles_jszip() {
                         //  Save zip file
                         saveAs(blob, "Spectra_" + timecode + ".zip");
                         //  Reset download button
-                        $('#dl-button').prop('disabled', false);
+                        $('#dl-button').removeClass('disabled');
                         showProgress("Download Spectra");
                         $("#progress-bar").hide();
                     }, function (e) {
@@ -500,7 +498,7 @@ function download_specfiles_jszip() {
 //  Download Raw Data
 function download_rawfiles() {
     //   Prevent impatient users from clicking again.
-    $('#dl-raw-button').prop('disabled', true);
+    $('#dl-button-raw').addClass('disabled');
     showProgress_raw("Be Patient...");
 
     //   Prepare file list
@@ -586,7 +584,7 @@ function download_rawfiles() {
                     //  Save zip file
                     saveAs(blob, "Raw_Data_" + timecode + ".zip");
                     //  Reset download button
-                    $('#dl-raw-button').prop('disabled', false);
+                    $('#dl-button-raw').removeClass('disabled');
                     showProgress_raw("Download Raw Data");
                     $("#progress-bar-raw").hide();
                 }, function (e) {
@@ -652,7 +650,7 @@ function bulk_download_spectra_api(spectrum_pks) {
     const projectId = $('#project-pk').attr('project');
     const starList = spectrum_pks.join(';');
     showProgress('Preparing download…');
-    $('#dl-button').prop('disabled', true);
+    $('#dl-button').addClass('disabled');
     $("#progress-bar").show();
 
     $.ajax({
@@ -667,7 +665,7 @@ function bulk_download_spectra_api(spectrum_pks) {
         poll_bulk_download_task(data.task_id, projectId);
     }).fail(function (xhr) {
         showError(xhr.responseJSON && xhr.responseJSON.detail ? xhr.responseJSON.detail : 'Bulk download failed');
-        $('#dl-button').prop('disabled', false);
+        $('#dl-button').removeClass('disabled');
     });
 }
 
@@ -686,14 +684,14 @@ function poll_bulk_download_task(taskId, projectId) {
         }
         if (status.status === 'SUCCESS') {
             window.location = '/api/observations/bulk-download/' + taskId + '/file/';
-            $('#dl-button').prop('disabled', false);
+            $('#dl-button').removeClass('disabled');
             showProgress('Download Spectra');
             return;
         }
         showError(status.error || 'Bulk download failed');
-        $('#dl-button').prop('disabled', false);
+        $('#dl-button').removeClass('disabled');
     }).fail(function (xhr) {
         showError(xhr.responseJSON && xhr.responseJSON.detail ? xhr.responseJSON.detail : 'Bulk download status failed');
-        $('#dl-button').prop('disabled', false);
+        $('#dl-button').removeClass('disabled');
     });
 }

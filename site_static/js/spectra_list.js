@@ -32,12 +32,12 @@ $(document).ready(function () {
     let ajax_kw;
     if (sessionStorage.getItem("selectedpks") === null) {
         ajax_kw = {
-            url: '/api/observations/spectra/?format=datatables&keep=pk,specfiles,telescope,href',
+            url: '/api/observations/spectra/?format=datatables&keep=pk,specfiles,has_raw_files,telescope,href',
             data: get_filter_keywords
         }
     } else {
         ajax_kw = {
-            url: '/api/observations/spectra/?format=datatables&keep=pk,specfiles,telescope,href',
+            url: '/api/observations/spectra/?format=datatables&keep=pk,specfiles,has_raw_files,telescope,href',
             data: carryover
         }
     }
@@ -245,6 +245,37 @@ function resolution_render(data, type, full, meta) {
 
 // Selection and Deselection of rows
 
+function row_has_raw_files(rowData) {
+    return rowData && rowData.has_raw_files === true;
+}
+
+function selection_has_raw_files() {
+    let found = false;
+    spectra_table.rows('.selected').every(function () {
+        if (row_has_raw_files(this.data())) {
+            found = true;
+        }
+    });
+    return found;
+}
+
+function update_download_buttons() {
+    const n = spectra_table.rows('.selected').count();
+    const noneSelected = n === 0;
+    $('#dl-button').toggleClass('disabled', noneSelected);
+    $('#delete-button').toggleClass('disabled', noneSelected);
+    $('#rm-button').toggleClass('disabled', noneSelected);
+    const rawAvailable = !noneSelected && selection_has_raw_files();
+    $('#dl-button-raw').toggleClass('disabled', !rawAvailable);
+    if (rawAvailable) {
+        $('#dl-button-raw').attr('title', '');
+    } else if (!noneSelected) {
+        $('#dl-button-raw').attr('title', 'No raw data linked to the selected spectra.');
+    } else {
+        $('#dl-button-raw').attr('title', '');
+    }
+}
+
 function select_row(row) {
     $(row.node()).find("i[class*=select]").text('check_box');
     $(row.node()).addClass('selected');
@@ -253,10 +284,7 @@ function select_row(row) {
     } else {
         $('#select-all').text('check_box');
     }
-    $('#dl-button').removeClass("disabled");
-    $('#dl-button-raw').removeClass("disabled");
-    $('#rm-button').removeClass("disabled");
-    $('#delete-button').removeClass("disabled");
+    update_download_buttons();
 }
 
 function deselect_row(row) {
@@ -264,13 +292,10 @@ function deselect_row(row) {
     $(row.node()).removeClass('selected');
     if (spectra_table.rows('.selected').data().length === 0) {
         $('#select-all').text('check_box_outline_blank');
-        $('#dl-button').addClass("disabled");
-        $('#dl-button-raw').addClass("disabled");
-        $('#rm-button').addClass("disabled");
-        $('#delete-button').addClass("disabled");
     } else {
         $('#select-all').text('indeterminate_check_box');
     }
+    update_download_buttons();
 }
 
 
@@ -427,12 +452,20 @@ function download_specfiles() {
 
 function download_rawfiles() {
     if ($('#dl-button-raw').hasClass('disabled')) {
-        showError_raw('Select spectra first (checkbox column).');
+        if (spectra_table.rows('.selected').count() > 0) {
+            showError_raw('No raw data for the selected spectra.');
+        } else {
+            showError_raw('Select spectra first (checkbox column).');
+        }
         return;
     }
     const spectrum_pks = selected_spectrum_pks();
     if (spectrum_pks.length === 0) {
         showError_raw('No spectra selected.');
+        return;
+    }
+    if (!selection_has_raw_files()) {
+        showError_raw('No raw data for the selected spectra.');
         return;
     }
     $('#dl-button-raw').addClass('disabled');
@@ -444,10 +477,10 @@ function download_rawfiles() {
         onProgress: showProgress_raw,
         onError: function (msg) {
             showError_raw(msg);
-            $('#dl-button-raw').removeClass('disabled');
+            update_download_buttons();
         },
         onComplete: function () {
-            $('#dl-button-raw').removeClass('disabled');
+            update_download_buttons();
             showProgress_raw('Download Raw Data');
         },
     });

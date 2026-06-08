@@ -5,7 +5,7 @@ List endpoints use `?format=datatables`. The UI may request extra fields via `ke
 | Endpoint | Visible columns (JS) | `keep=` fields | List serializer |
 |----------|----------------------|----------------|-----------------|
 | `/api/systems/stars/` | name, ra, dec, classification, vmag, nphot, datasets, tags, observing_status | nspec, nlc, ra_hms, dec_dms, observing_status_display | `StarListSerializer` |
-| `/api/observations/spectra/` | hjd, star, instrument, resolution, airmass, exptime | pk, specfiles, telescope, href | `SpectrumListSerializer` |
+| `/api/observations/spectra/` | hjd, star, instrument, resolution, airmass, exptime | pk, specfiles, has_raw_files, telescope, href | `SpectrumListSerializer` |
 | `/api/observations/specfiles/` | hjd, instrument, filetype, filename, added_on, star, spectrum, pk | — | `SpecFileListSerializer` |
 | `/api/observations/rawspecfiles/` | obs_date, instrument, filetype, exptime, filename, added_on, specfile, systems | pk | `RawSpecFileSerializer` |
 | `/api/observations/lightcurves/` | (see lightcurves_list.js) | pk, telescope, href | `LightCurveSerializer` |

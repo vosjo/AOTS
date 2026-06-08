@@ -63,7 +63,7 @@ def build_bulk_download_zip_task(self, project_pk, requested_ids, user_pk, kind=
     project = Project.objects.get(pk=project_pk)
     file_entries = collect_download_entries(project, requested_ids, user, kind)
     if not file_entries:
-        return {'error': 'No files matched the selection.'}
+        raise ValueError('No files matched the selection.')
 
     zip_path, temp_directory = build_zip_archive(file_entries)
     dest = bulk_download_artifact_path(self.request.id)

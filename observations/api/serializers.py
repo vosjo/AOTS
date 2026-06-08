@@ -21,6 +21,7 @@ class SpectrumListSerializer(ModelSerializer):
     star = SerializerMethodField()
     specfiles = SerializerMethodField()
     href = SerializerMethodField()
+    has_raw_files = SerializerMethodField()
 
     class Meta:
         model = Spectrum
@@ -35,11 +36,14 @@ class SpectrumListSerializer(ModelSerializer):
             'valid',
             'fluxcal',
             'specfiles',
+            'has_raw_files',
             'href',
             'airmass',
             'resolution',
         ]
-        datatables_always_serialize = ('pk', 'specfiles', 'telescope', 'href')
+        datatables_always_serialize = (
+            'pk', 'specfiles', 'has_raw_files', 'telescope', 'href',
+        )
         read_only_fields = ('pk',)
 
     def get_star(self, obj):
@@ -51,6 +55,12 @@ class SpectrumListSerializer(ModelSerializer):
     def get_specfiles(self, obj):
         specfiles = SimpleSpecFileSerializer(obj.specfile_set, many=True).data
         return specfiles
+
+    def get_has_raw_files(self, obj):
+        for specfile in obj.specfile_set.all():
+            if specfile.rawspecfile_set.all():
+                return True
+        return False
 
     def get_href(self, obj):
         return reverse('observations:spectrum_detail', kwargs={'project': obj.project.slug, 'spectrum_id': obj.pk})

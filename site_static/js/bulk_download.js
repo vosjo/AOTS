@@ -49,6 +49,10 @@ function aotsPollBulkDownloadTask(taskId, onProgress, onError, onComplete) {
             return;
         }
         if (status.status === 'SUCCESS') {
+            if (status.result && status.result.error) {
+                onError(status.result.error);
+                return;
+            }
             window.location = '/api/observations/bulk-download/' + taskId + '/file/';
             onComplete();
             return;

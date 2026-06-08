@@ -36,7 +36,7 @@ class SpectrumViewSet(
     viewsets.ModelViewSet,
 ):
     queryset = Spectrum.objects.select_related('project', 'star', 'observatory').prefetch_related(
-        'specfile_set',
+        'specfile_set__rawspecfile_set',
     )
     serializer_class = SpectrumSerializer
     default_ordering = ('hjd',)

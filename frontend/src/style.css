@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, sans-serif;
+    background-color: #0f172a;
+    color: #f1f5f9;
+  }
+
+  /* Fallback for controls without explicit component classes */
+  select,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  textarea {
+    color: #f8fafc;
+    background-color: #334155;
+    border: 1px solid #94a3b8;
+  }
+
+  select option {
+    background-color: #334155;
+    color: #f8fafc;
+  }
+
+  a {
+    color: #38bdf8;
+  }
+
+  a:hover {
+    color: #7dd3fc;
+  }
+}
+
+@layer components {
+  .aots-label {
+    @apply block text-sm font-medium text-slate-200 mb-1;
+  }
+
+  .aots-field {
+    @apply w-full rounded-md border border-slate-400 bg-slate-700 px-3 py-2 text-sm text-slate-50 shadow-sm;
+    @apply placeholder:text-slate-400;
+    @apply focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40;
+  }
+
+  .aots-field-sm {
+    @apply w-full rounded-md border border-slate-400 bg-slate-700 px-3 py-1.5 text-sm text-slate-50 shadow-sm;
+    @apply placeholder:text-slate-400;
+    @apply focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40;
+  }
+
+  .aots-select {
+    @apply w-full cursor-pointer rounded-md border border-slate-400 bg-slate-700 px-3 py-2 text-sm text-slate-50 shadow-sm;
+    @apply focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40;
+  }
+
+  .aots-btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .aots-btn-secondary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-400 bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-50 transition-colors;
+    @apply hover:border-slate-300 hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .aots-btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-sky-300 bg-sky-500 px-3 py-1.5 text-sm font-medium text-slate-950 transition-colors;
+    @apply hover:border-sky-200 hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .aots-btn-danger {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-red-400 bg-red-700 px-3 py-1.5 text-sm font-medium text-white transition-colors;
+    @apply hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .aots-btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors;
+    @apply hover:bg-slate-700/60 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .aots-panel {
+    @apply rounded-lg border border-slate-500 bg-slate-800/90 p-4 shadow-sm;
+  }
+
+  .aots-panel-compact {
+    @apply rounded-lg border border-slate-500 bg-slate-800/90 p-3 shadow-sm;
+  }
+
+  .aots-detail-header {
+    @apply relative flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg border border-slate-500 bg-slate-800/90 px-4 py-2;
+  }
+
+  .aots-kv-table {
+    @apply w-full text-xs;
+  }
+
+  .aots-kv-table th {
+    @apply py-0.5 pr-3 text-left align-top font-normal whitespace-nowrap text-slate-400;
+  }
+
+  .aots-kv-table td {
+    @apply py-0.5 font-mono text-slate-100;
+  }
+
+  .bokeh-plot-host {
+    @apply w-full max-w-full min-w-0 overflow-hidden;
+  }
+
+  .bokeh-plot-host .bk-root,
+  .bokeh-plot-host .bk-panel-models-tabs-Tabs {
+    @apply max-w-full;
+  }
+
+  .aots-param-table {
+    @apply w-full text-xs;
+  }
+
+  .aots-param-table th,
+  .aots-param-table td {
+    @apply px-2 py-1 text-left align-top border-b border-slate-700;
+  }
+
+  .aots-param-table thead th {
+    @apply font-medium text-slate-300 bg-slate-900/50;
+  }
+
+  .aots-obs-table {
+    @apply w-full text-xs;
+  }
+
+  .aots-obs-table th,
+  .aots-obs-table td {
+    @apply px-2 py-1 text-left whitespace-nowrap border-b border-slate-700;
+  }
+
+  .aots-obs-table thead th {
+    @apply font-medium text-slate-300 bg-slate-900/50;
+  }
+
+  .aots-table-wrap {
+    @apply overflow-x-auto rounded-lg border border-slate-500;
+  }
+
+  .aots-table {
+    @apply min-w-full text-sm text-slate-100;
+  }
+
+  .aots-table thead {
+    @apply bg-slate-700 text-slate-100;
+  }
+
+  .aots-table th {
+    @apply p-2 text-left font-medium;
+  }
+
+  .aots-table td {
+    @apply p-2;
+  }
+
+  .aots-table tbody tr {
+    @apply border-t border-slate-600 hover:bg-slate-700/40;
+  }
+
+  .classification-SP {
+    color: #006400;
+  }
+
+  .classification-PH {
+    color: #94a3b8;
+  }
+
+  .aots-tag-chip {
+    @apply inline-block rounded border px-1 py-0 text-[10px] leading-tight mr-0.5 mb-0.5;
+  }
+}

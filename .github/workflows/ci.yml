@@ -45,3 +45,14 @@ jobs:
 
       - name: Ruff
         run: ruff check AOTS stars observations analysis users dash --ignore E501
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build

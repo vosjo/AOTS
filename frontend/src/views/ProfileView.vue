@@ -1,0 +1,52 @@
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { api } from '@/api/client'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+const token = ref<string | null>(null)
+const apiKey = ref<string | null>(null)
+const apiSecret = ref<string | null>(null)
+
+onMounted(async () => {
+  await auth.fetchMe()
+  if (auth.isAuthenticated) {
+    const res = await api<{ token: string }>('/api/auth/token/')
+    token.value = res.token
+  }
+})
+
+async function regenerateToken() {
+  const res = await api<{ token: string }>('/api/auth/token/', { method: 'POST' })
+  token.value = res.token
+}
+
+async function regenerateApiKey() {
+  const res = await api<{ api_key: string; api_secret: string }>('/api/auth/api-key/', { method: 'POST' })
+  apiKey.value = res.api_key
+  apiSecret.value = res.api_secret
+  await auth.fetchMe()
+}
+</script>
+
+<template>
+  <div class="space-y-6 max-w-2xl">
+    <h1 class="text-2xl font-semibold">Your profile</h1>
+    <p v-if="auth.user?.username">Signed in as <strong>{{ auth.user.username }}</strong></p>
+
+    <section class="aots-panel space-y-2">
+      <h2 class="font-medium text-slate-50">DRF token</h2>
+      <code class="block break-all rounded-md border border-slate-500 bg-slate-700 p-2 text-sm text-slate-100">{{ token }}</code>
+      <button class="text-sm text-sky-400" @click="regenerateToken">Regenerate token</button>
+    </section>
+
+    <section class="aots-panel space-y-2">
+      <h2 class="font-medium">API key pair</h2>
+      <p class="text-sm text-slate-200">Public key: {{ auth.user?.api_key || '—' }}</p>
+      <button class="text-sm text-sky-400" @click="regenerateApiKey">Generate new API key</button>
+      <p v-if="apiSecret" class="text-amber-300 text-sm">Secret (shown once): {{ apiSecret }}</p>
+    </section>
+
+    <RouterLink to="/accounts/password_change/" class="text-sky-400">Change password</RouterLink>
+  </div>
+</template>

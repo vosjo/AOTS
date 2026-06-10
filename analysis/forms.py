@@ -72,7 +72,16 @@ class ParameterPlotterForm(forms.Form):
             return self.cleaned_data['yaxis']
 
     def get_parameters(self):
-        return {'xaxis': self.clean_xaxis(),
-                'yaxis': self.clean_yaxis(),
-                'size': self.cleaned_data['size'],
-                'color': self.cleaned_data['color'], }
+        if self.is_bound and self.is_valid():
+            return {
+                'xaxis': self.cleaned_data['xaxis'],
+                'yaxis': self.cleaned_data['yaxis'],
+                'size': self.cleaned_data.get('size', ''),
+                'color': self.cleaned_data.get('color', ''),
+            }
+        return {
+            'xaxis': self.initial['xaxis'],
+            'yaxis': self.initial['yaxis'],
+            'size': self.initial.get('size', ''),
+            'color': self.initial.get('color', ''),
+        }

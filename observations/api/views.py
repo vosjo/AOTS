@@ -24,6 +24,7 @@ from .processing import (
 )
 from .bulk import (
     bulkUploadSpectra,
+    bulkUploadLightCurves,
     bulkDownloadStart,
     bulkDownloadFile,
     getTaskStatus,
@@ -47,6 +48,7 @@ __all__ = [
     'getLightCurveHeader',
     'getLightCurvePath',
     'bulkUploadSpectra',
+    'bulkUploadLightCurves',
     'bulkDownloadStart',
     'bulkDownloadFile',
     'getTaskStatus',

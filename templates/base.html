@@ -36,6 +36,10 @@
 <!--           &mdash; -->
           <a class="title_line">{{ project.name }}<i class="site_title">  &mdash; {% block headertitle %}{% endblock %}</i></a>
           <div class="float_right">
+            <a href="/app{{ request.path }}" id="try_new_ui" title="Try the new Vue UI">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              Try new UI
+            </a>
             <a href="/" id="projects_a">
               <i class="fa-solid fa-diagram-project"></i>
               Projects

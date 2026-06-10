@@ -253,6 +253,104 @@ def invalid_form(request, redirect, project_slug, star_id=None):
         )
 
 
+def _simbad_colnames(row):
+    return list(row.colnames) if hasattr(row, 'colnames') else list(row.keys())
+
+
+def _simbad_field(row, *names):
+    colnames = _simbad_colnames(row)
+    lower_map = {col.lower(): col for col in colnames}
+    for name in names:
+        key = lower_map.get(name.lower())
+        if key is None:
+            continue
+        val = row[key]
+        if val is None or (isinstance(val, (float, np.floating)) and np.isnan(val)):
+            return ''
+        if isinstance(val, str):
+            return val.strip()
+        return val
+    return ''
+
+
+def _simbad_coords_deg(row):
+    ra_val = _simbad_field(row, 'ra', 'RA')
+    dec_val = _simbad_field(row, 'dec', 'DEC')
+    if isinstance(ra_val, (float, int, np.floating, np.integer)):
+        return float(ra_val), float(dec_val)
+    ra = Angle(str(ra_val).strip(), unit='hour').degree
+    dec = Angle(str(dec_val).strip(), unit='degree').degree
+    return ra, dec
+
+
+def format_ra_hms(ra_deg):
+    return Angle(ra_deg, unit='deg').to_string(
+        unit='hourangle', sep=':', precision=1, pad=True,
+    )
+
+
+def format_dec_dms(dec_deg):
+    return Angle(dec_deg, unit='deg').to_string(
+        unit='deg', sep=':', alwayssign=True, precision=1, pad=True,
+    )
+
+
+def _simbad_match_payload(row):
+    ra_deg, dec_deg = _simbad_coords_deg(row)
+    sp_type = str(_simbad_field(row, 'sp_type', 'SP_TYPE', 'sptype') or '').strip()
+    return {
+        'main_id': str(_simbad_field(row, 'main_id', 'MAIN_ID') or '').strip(),
+        'ra': str(format_ra_hms(ra_deg)),
+        'dec': str(format_dec_dms(dec_deg)),
+        'classification': sp_type,
+        'classification_type': Star.SPECTROSCOPIC if sp_type else Star.PHOTOMETRIC,
+    }
+
+
+def query_simbad_object(name):
+    custom = Simbad()
+    custom.add_votable_fields('sp_type')
+    try:
+        tbl = custom.query_object(name)
+    except Exception:
+        return None
+    if tbl is None or len(tbl) == 0:
+        return None
+    return tbl[0]
+
+
+def resolve_simbad_name(name):
+    name = (name or '').strip()
+    if not name:
+        return {'status': 'empty'}
+
+    esc = name.replace("'", "''")
+    tap_query = (
+        "SELECT DISTINCT TOP 25 b.oid, b.main_id, b.ra, b.dec, b.sp_type "
+        "FROM ident AS i JOIN basic AS b ON b.oid = i.oidref "
+        f"WHERE i.id = '{esc}'"
+    )
+    try:
+        tap = Simbad.query_tap(tap_query)
+    except Exception:
+        tap = None
+
+    if tap is not None and len(tap) == 1:
+        return {'status': 'unique', **_simbad_match_payload(tap[0])}
+
+    if tap is not None and len(tap) > 1:
+        return {
+            'status': 'ambiguous',
+            'matches': [_simbad_match_payload(row) for row in tap],
+        }
+
+    row = query_simbad_object(name)
+    if row is None:
+        return {'status': 'not_found'}
+
+    return {'status': 'unique', 'best_match': True, **_simbad_match_payload(row)}
+
+
 def populate_system(star, star_pk):
     """
         Analyse provided 'star' dictionary and create a Star object
@@ -271,20 +369,21 @@ def populate_system(star, star_pk):
     #   Set project
     project = sobj.project
 
+    simbad_main_id = ''
     #   Coordinates
     if check_vizier:
-        customSimbad = Simbad()
-        customSimbad.add_votable_fields('sptype')
-        simbad_tbl = customSimbad.query_object(star["main_id"])
-        if simbad_tbl is None:
+        row = query_simbad_object(star["main_id"])
+        if row is None:
             return False, "System ({}) not known by Simbad".format(
                 star["main_id"]
             )
-        ra = Angle(simbad_tbl[0]['RA'].strip(), unit='hour').degree
-        dec = Angle(simbad_tbl[0]['DEC'].strip(), unit='degree').degree
+        ra, dec = _simbad_coords_deg(row)
+        simbad_main_id = str(_simbad_field(row, 'main_id', 'MAIN_ID') or '').strip()
+        sp_type = str(_simbad_field(row, 'sp_type', 'SP_TYPE', 'sptype') or '').strip()
     else:
         ra = float(star['ra'])
         dec = float(star['dec'])
+        sp_type = star.get('sp_type', '')
 
     #   Set RA & DEC
     sobj.ra = ra
@@ -301,8 +400,8 @@ def populate_system(star, star_pk):
 
     #   Set spectral type
     if check_vizier:
-        sobj.classification = simbad_tbl[0]['SP_TYPE']
-        if simbad_tbl[0]['SP_TYPE'] != '':
+        sobj.classification = sp_type
+        if sp_type:
             sobj.classification_type = 'SP'
     else:
         sobj.classification = star['sp_type']
@@ -323,11 +422,11 @@ def populate_system(star, star_pk):
     #   Add default Simbad name if query occurred
     #   and if it is different compared to the provided name
     if check_vizier:
-        if star["main_id"].strip() != simbad_tbl[0]['MAIN_ID'].strip():
+        if simbad_main_id and star["main_id"].strip() != simbad_main_id:
             sobj.identifier_set.create(
-                name=simbad_tbl[0]['MAIN_ID'],
+                name=simbad_main_id,
                 href="https://simbad.u-strasbg.fr/simbad/"
-                     + "sim-id?Ident=" + simbad_tbl[0]['MAIN_ID']
+                     + "sim-id?Ident=" + simbad_main_id
                      .replace(" ", "").replace('+', "%2B"),
             )
 

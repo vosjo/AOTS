@@ -23,6 +23,12 @@ class SpectrumFilter(filters.FilterSet):
     exptime_min = filters.NumberFilter(field_name="exptime", lookup_expr='gte')
     exptime_max = filters.NumberFilter(field_name="exptime", lookup_expr='lte')
 
+    resolution_min = filters.NumberFilter(field_name="resolution", lookup_expr='gte')
+    resolution_max = filters.NumberFilter(field_name="resolution", lookup_expr='lte')
+
+    airmass_min = filters.NumberFilter(field_name="airmass", lookup_expr='gte')
+    airmass_max = filters.NumberFilter(field_name="airmass", lookup_expr='lte')
+
     instrument = filters.CharFilter(field_name="instrument", lookup_expr='icontains')
 
     telescope = filters.CharFilter(field_name="telescope", lookup_expr='icontains')
@@ -196,7 +202,12 @@ class LightCurveFilter(filters.FilterSet):
     hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
     hjd_max = filters.NumberFilter(field_name="hjd", lookup_expr='lte')
 
+    exptime_min = filters.NumberFilter(field_name="exptime", lookup_expr='gte')
+    exptime_max = filters.NumberFilter(field_name="exptime", lookup_expr='lte')
+
     instrument = filters.CharFilter(field_name="instrument", lookup_expr='icontains')
+
+    telescope = filters.CharFilter(field_name="telescope", lookup_expr='icontains')
 
     pk = filters.Filter(field_name="pk", method="star_pk_in")
 

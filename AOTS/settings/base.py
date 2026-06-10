@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_datatables',
     'django_filters',
     'simple_history',
@@ -79,12 +80,11 @@ REST_FRAMEWORK = {
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
     'DEFAULT_FILTER_BACKENDS': (
-        'rest_framework_datatables.filters.DatatablesFilterBackend',
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
     ),
-    'DEFAULT_PAGINATION_CLASS': (
-        'rest_framework_datatables.pagination.DatatablesPageNumberPagination'
-    ),
-    'PAGE_SIZE': 10,
+    'DEFAULT_PAGINATION_CLASS': 'AOTS.pagination.DualFormatPagination',
+    'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
@@ -96,6 +96,10 @@ SPECTACULAR_SETTINGS = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+# SPA: False = beta at /app/ only; True = SPA on production URLs (/w/, etc.)
+AOTS_SPA_CUTOVER = env.bool('AOTS_SPA_CUTOVER', default=False)
+VITE_DEV = env.bool('VITE_DEV', default=False)
 
 LOGIN_URL = '/accounts/login'
 LOGIN_REDIRECT_URL = '/'

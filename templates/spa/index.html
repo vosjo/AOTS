@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="{% static 'favicon.ico' %}" />
+  <title>AOTS</title>
+  <script>
+    window.__AOTS_BOOTSTRAP__ = { csrfToken: '{{ csrf_token }}' };
+  </script>
+  {% if vite_dev %}
+  <script type="module" src="http://localhost:5173/app/@vite/client"></script>
+  <script type="module" src="http://localhost:5173/app/src/main.ts"></script>
+  {% else %}
+  <link rel="stylesheet" href="{% static 'dist/assets/index.css' %}" />
+  <script type="module" src="{% static 'dist/assets/index.js' %}"></script>
+  {% endif %}
+</head>
+<body class="bg-slate-900 text-slate-50">
+  <div id="app"></div>
+</body>
+</html>

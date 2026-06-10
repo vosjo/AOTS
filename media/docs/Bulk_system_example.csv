@@ -5,7 +5,7 @@
 # ra : right ascension
 # dec : declination
 # main_type : Type of the Object, for Example: Star, V*, PM*, sdB ...
-# sp_type : Spectral Type of the Object
+# sp_type : Spectral classification of the Object
 # JNAME : JNAME
 # parallax : Parallax
 # parallax_error : Parallax error

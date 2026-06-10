@@ -1,0 +1,31 @@
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+import { api, type MeResponse } from '@/api/client'
+
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref<MeResponse | null>(null)
+  const loaded = ref(false)
+
+  const isAuthenticated = computed(() => user.value?.authenticated === true)
+
+  async function fetchMe() {
+    user.value = await api<MeResponse>('/api/me/')
+    loaded.value = true
+    return user.value
+  }
+
+  async function login(username: string, password: string) {
+    user.value = await api<MeResponse>('/api/auth/login/', {
+      method: 'POST',
+      body: { username, password },
+    })
+    return user.value
+  }
+
+  async function logout() {
+    await api('/api/auth/logout/', { method: 'POST' })
+    user.value = { authenticated: false }
+  }
+
+  return { user, loaded, isAuthenticated, fetchMe, login, logout }
+})

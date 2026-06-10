@@ -17,6 +17,7 @@ class ProjectListSerializer(ModelSerializer):
             'description',
             'slug',
             'pk',
+            'is_public',
         ]
         read_only_fields = ('pk',)
 

@@ -1,8 +1,9 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
+from rest_framework.filters import OrderingFilter
 
-from AOTS.api_mixins import DatatablesOrderingMixin, ProjectFilteredQuerysetMixin
+from AOTS.api_mixins import DualOrderingMixin, ProjectFilteredQuerysetMixin
 from AOTS.api_processing import run_process_view
 from AOTS.permissions_helpers import get_object_if_allowed
 from analysis.models import Method, DataSet, Parameter
@@ -17,15 +18,17 @@ from .serializers import MethodSerializer, DataSetListSerializer, ParameterListS
 
 class DatasetViewSet(
     ProjectFilteredQuerysetMixin,
-    DatatablesOrderingMixin,
+    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = DataSet.objects.select_related('project', 'star', 'method')
     serializer_class = DataSetListSerializer
     default_ordering = ('name',)
-    allowed_order_fields = frozenset({'pk', 'name', 'valid'})
+    ordering = ('name',)
+    ordering_fields = ['pk', 'name', 'valid']
+    allowed_order_fields = frozenset(ordering_fields)
 
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = DataSetFilter
 
 
@@ -35,15 +38,17 @@ class DatasetViewSet(
 
 class MethodViewSet(
     ProjectFilteredQuerysetMixin,
-    DatatablesOrderingMixin,
+    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = Method.objects.select_related('project')
     serializer_class = MethodSerializer
     default_ordering = ('name',)
-    allowed_order_fields = frozenset({'pk', 'name', 'slug'})
+    ordering = ('name',)
+    ordering_fields = ['pk', 'name', 'slug']
+    allowed_order_fields = frozenset(ordering_fields)
 
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = MethodFilter
 
 

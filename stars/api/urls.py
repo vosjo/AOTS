@@ -1,6 +1,18 @@
 from django.urls import include, path
 from rest_framework import routers
 
+from .plots import star_dataset_plots, star_sed_plot
+from .star_detail import star_detail_bootstrap, star_parameters_overview
+from .star_mutations import (
+    bulk_upload_stars,
+    create_star_from_form,
+    resolve_simbad,
+    star_editable_parameters,
+    star_fetch_photometry_vizier,
+    star_photometry_options,
+    star_update_parameters,
+    star_update_photometry,
+)
 from .views import (
     StarViewSet,  # star_remove_tag, star_add_tag,
     TagViewSet,
@@ -18,28 +30,48 @@ router.register(r'tags', TagViewSet)
 router.register(r'identifiers', IdentifierViewSet, basename='identifier')
 
 urlpatterns = [
-    # url(r'^stars', StarListAPIView.as_view(), name='star_list'),
-
-    # url(r'^', include(router.urls)),
-
-    ###re_path(r'^', include(router.urls)),
-
-    # url(r'^stars/(?P<star_pk>[\w-]+)/remove_tag/(?P<tag_pk>[\w-]+)/$', star_remove_tag,
-    # name='star_remove_tag'),
-    # url(r'^stars/(?P<star_pk>[\w-]+)/add_tag/(?P<tag_pk>[\w-]+)/$', star_add_tag,
-    # name='star_add_tag'),
-
-    # url(r'^tags$', TagListAPIView.as_view(), name='tag_list'),
-    # url(r'^tags/create/$', TagCreateAPIView.as_view(), name='tag_create'),
-    ##url(r'^tags/(?P<pk>[\w-]+)/$', TagDetailAPIView.as_view(), name='tag_detail'),
-    # url(r'^tags/(?P<pk>[\w-]+)/delete/$', TagDeleteAPIView.as_view(), name='tag_delete'),
-
-    # url(r'^identifiers$', IdentifierListAPIView.as_view(), name='identifier_list'),
-
-    path('', include(router.urls)),
+    # Static star paths must come before the router (otherwise e.g. resolve-simbad
+    # is captured as stars/<pk>/).
+    path('stars/resolve-simbad/', resolve_simbad, name='star-resolve-simbad'),
+    path('stars/create-from-form/', create_star_from_form, name='star-create-from-form'),
+    path('stars/bulk-upload/', bulk_upload_stars, name='star-bulk-upload'),
     path(
         'stars/<int:star_pk>/specfiles/',
         getStarSpecfiles,
         name='stars_specfiles',
     ),
+    path('stars/<int:pk>/sed/', star_sed_plot, name='star-sed-plot'),
+    path('stars/<int:pk>/dataset-plots/', star_dataset_plots, name='star-dataset-plots'),
+    path('stars/<int:pk>/detail/', star_detail_bootstrap, name='star-detail-bootstrap'),
+    path(
+        'stars/<int:pk>/parameters/',
+        star_parameters_overview,
+        name='star-parameters-overview',
+    ),
+    path(
+        'stars/<int:pk>/photometry/options/',
+        star_photometry_options,
+        name='star-photometry-options',
+    ),
+    path(
+        'stars/<int:pk>/photometry/',
+        star_update_photometry,
+        name='star-update-photometry',
+    ),
+    path(
+        'stars/<int:pk>/photometry/from-vizier/',
+        star_fetch_photometry_vizier,
+        name='star-fetch-photometry-vizier',
+    ),
+    path(
+        'stars/<int:pk>/parameters/editable/',
+        star_editable_parameters,
+        name='star-editable-parameters',
+    ),
+    path(
+        'stars/<int:pk>/parameters/edit/',
+        star_update_parameters,
+        name='star-update-parameters',
+    ),
+    path('', include(router.urls)),
 ]

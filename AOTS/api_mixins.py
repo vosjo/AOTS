@@ -46,3 +46,17 @@ class DatatablesOrderingMixin:
                 return queryset.order_by(*self.default_ordering)
 
         return queryset.order_by(order_name)
+
+
+class DualOrderingMixin:
+    """
+    DataTables ordering when format=datatables; otherwise DRF OrderingFilter applies.
+    """
+
+    default_ordering = ('pk',)
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        if self.request.query_params.get('format') == 'datatables':
+            return DatatablesOrderingMixin.apply_datatables_ordering(self, queryset)
+        return queryset

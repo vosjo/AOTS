@@ -16,12 +16,23 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views.generic import RedirectView, TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
+from AOTS.api_auth import (
+    auth_api_key,
+    auth_csrf,
+    auth_login,
+    auth_logout,
+    auth_token,
+    me,
+    password_change_api,
+)
+from AOTS.spa_views import spa_index
 from AOTS.views import health_check
+from dash.api_views import dashboard_bootstrap
 from stars import views as star_views
 from stars.api.views import ProjectViewSet
 
@@ -85,6 +96,19 @@ urlpatterns = [
                       name='swagger-ui',
                   ),
 
+                  path('api/me/', me, name='api-me'),
+                  path('api/auth/csrf/', auth_csrf, name='api-auth-csrf'),
+                  path('api/auth/login/', auth_login, name='api-auth-login'),
+                  path('api/auth/logout/', auth_logout, name='api-auth-logout'),
+                  path('api/auth/token/', auth_token, name='api-auth-token'),
+                  path('api/auth/api-key/', auth_api_key, name='api-auth-api-key'),
+                  path('api/auth/password-change/', password_change_api, name='api-password-change'),
+                  path(
+                      'api/dash/<slug:project_slug>/',
+                      dashboard_bootstrap,
+                      name='api-dashboard',
+                  ),
+
                   path('api/', include(router.urls), name='project-api'),
                   path(
                       'api/systems/',
@@ -140,3 +164,22 @@ urlpatterns = [
                   path('accounts/', include('django.contrib.auth.urls')),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if getattr(settings, 'AOTS_SPA_CUTOVER', False):
+    urlpatterns += [
+        re_path(
+            r'^app/(?P<path>.*)$',
+            RedirectView.as_view(url='/%(path)s', permanent=False),
+        ),
+        re_path(r'^w/.*$', spa_index),
+        re_path(r'^users/.*$', spa_index),
+        re_path(
+            r'^accounts/(login|password_change|password_change/done)/?$',
+            spa_index,
+        ),
+        re_path(r'^w/documentation/?$', spa_index),
+    ]
+else:
+    urlpatterns += [
+        re_path(r'^app/.*$', spa_index),
+    ]

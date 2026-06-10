@@ -2,9 +2,10 @@ from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
-from AOTS.api_mixins import DatatablesOrderingMixin, ProjectFilteredQuerysetMixin
+from AOTS.api_mixins import DualOrderingMixin, ProjectFilteredQuerysetMixin
 from AOTS.permissions_helpers import get_object_if_allowed
 from stars.models import Project, Star, Identifier, Tag
 from .filter import (
@@ -56,7 +57,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 class StarViewSet(
     ProjectFilteredQuerysetMixin,
-    DatatablesOrderingMixin,
+    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     """
@@ -67,11 +68,11 @@ class StarViewSet(
     queryset = Star.objects.select_related('project')
     serializer_class = StarSerializer
     default_ordering = ('name',)
-    allowed_order_fields = frozenset({
-        'pk', 'name', 'ra', 'dec', 'classification', 'observing_status',
-    })
+    ordering = ('name',)
+    ordering_fields = ['pk', 'name', 'ra', 'dec', 'classification', 'observing_status']
+    allowed_order_fields = frozenset(ordering_fields)
 
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = StarFilter
 
     def get_queryset(self):
@@ -114,14 +115,16 @@ def getStarSpecfiles(request, star_pk):
 
 class TagViewSet(
     ProjectFilteredQuerysetMixin,
-    DatatablesOrderingMixin,
+    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = Tag.objects.select_related('project')
     serializer_class = TagSerializer
     default_ordering = ('name',)
+    ordering = ('name',)
+    ordering_fields = ['pk', 'name', 'color']
 
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = TagFilter
 
 

@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
+from .plots import lightcurve_plot, spectrum_plot
 from .views import (
     SpectrumViewSet,
     UserInfoViewSet,
@@ -19,6 +20,7 @@ from .views import (
     getSpecfileRawPath,
     getLightCurvePath,
     bulkUploadSpectra,
+    bulkUploadLightCurves,
     bulkDownloadStart,
     bulkDownloadFile,
     getTaskStatus,
@@ -96,6 +98,11 @@ urlpatterns = [
         name='api-spec-upload',
     ),
     path(
+        'api-lc-upload/',
+        bulkUploadLightCurves,
+        name='api-lc-upload',
+    ),
+    path(
         'bulk-download/start/',
         bulkDownloadStart,
         name='bulk-download-start',
@@ -110,4 +117,6 @@ urlpatterns = [
         getTaskStatus,
         name='task-status',
     ),
+    path('spectra/<int:pk>/plot/', spectrum_plot, name='spectrum-plot'),
+    path('lightcurves/<int:pk>/plot/', lightcurve_plot, name='lightcurve-plot'),
 ]

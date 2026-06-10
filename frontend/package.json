@@ -1,0 +1,32 @@
+{
+  "name": "aots-frontend",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "aladin-lite": "^3.4.5",
+    "@headlessui/vue": "^1.7.23",
+    "@tanstack/vue-query": "^5.62.7",
+    "@tanstack/vue-table": "^8.20.5",
+    "lucide-vue-next": "^0.468.0",
+    "ofetch": "^1.4.1",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "tailwindcss": "^4.0.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8",
+    "vue-tsc": "^2.2.0"
+  }
+}

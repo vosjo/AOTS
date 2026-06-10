@@ -61,8 +61,13 @@ def plot_visibility(observation):
     Plot airmass and moondistance on the night of observations
     """
 
-    fig = bpl.figure(width=400, height=240, toolbar_location=None,
-                     y_range=(0, 90), x_axis_type="datetime")
+    fig = bpl.figure(
+        height=240,
+        sizing_mode='scale_width',
+        toolbar_location=None,
+        y_range=(0, 90),
+        x_axis_type="datetime",
+    )
 
     fig.toolbar.logo = None
     fig.title.align = 'center'
@@ -291,8 +296,11 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
         minf = np.max([np.min(flux) * 0.95, 0])
 
         #   Initialize figure
-        # , sizing_mode='scale_width'
-        fig = bpl.figure(width=1550, height=400, y_range=[minf, maxf])
+        fig = bpl.figure(
+            height=250,
+            sizing_mode='scale_width',
+            y_range=[minf, maxf],
+        )
 
         #   Plot spectrum
         fig.line(wave, flux, line_width=1, color="blue")
@@ -366,7 +374,7 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
         tabs.append(TabPanel(child=fig, title=specfile.filetype))
 
     #   Make figure from tabs list
-    return Tabs(tabs=tabs)
+    return Tabs(tabs=tabs, sizing_mode='scale_width')
 
 
 def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
@@ -374,7 +382,7 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
 
     time, flux, header = lightcurve.get_lightcurve()
 
-    fig1 = bpl.figure(width=1600, height=400)  # , sizing_mode='scale_width'
+    fig1 = bpl.figure(width=1600, height=400, sizing_mode='scale_width')
     fig1.line(time, flux, line_width=1, color="blue")
 
     fig1.toolbar.logo = None
@@ -384,7 +392,7 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
     fig1.xaxis.axis_label_text_font_size = '10pt'
     fig1.min_border = 5
 
-    fig2 = bpl.figure(width=1600, height=400)  # , sizing_mode='scale_width'
+    fig2 = bpl.figure(width=1600, height=400, sizing_mode='scale_width')
 
     if not period is None:
         # calculate phase and sort on phase

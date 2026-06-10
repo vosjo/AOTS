@@ -1,0 +1,81 @@
+const BOKEH_VERSION = '3.9.1'
+
+const BOKEH_SCRIPTS = [
+  `https://cdn.bokeh.org/bokeh/release/bokeh-${BOKEH_VERSION}.min.js`,
+  `https://cdn.bokeh.org/bokeh/release/bokeh-widgets-${BOKEH_VERSION}.min.js`,
+  `https://cdn.bokeh.org/bokeh/release/bokeh-gl-${BOKEH_VERSION}.min.js`,
+]
+
+let loadPromise: Promise<void> | null = null
+
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve()
+      return
+    }
+    const el = document.createElement('script')
+    el.src = src
+    el.onload = () => resolve()
+    el.onerror = () => reject(new Error(`Failed to load ${src}`))
+    document.head.appendChild(el)
+  })
+}
+
+export async function loadBokeh(): Promise<void> {
+  if (window.Bokeh) return
+  if (!loadPromise) {
+    loadPromise = (async () => {
+      for (const src of BOKEH_SCRIPTS) {
+        await loadScript(src)
+      }
+    })()
+  }
+  await loadPromise
+}
+
+/** Bokeh `components()` returns HTML with one or more script tags — not raw JS. */
+export function runBokehEmbedScript(scriptHtml: string): void {
+  const trimmed = scriptHtml.trim()
+  if (!trimmed) return
+
+  const run = (code: string) => {
+    const el = document.createElement('script')
+    el.textContent = code
+    document.body.appendChild(el)
+    document.body.removeChild(el)
+  }
+
+  if (!trimmed.startsWith('<')) {
+    run(trimmed)
+    return
+  }
+
+  const re = /<script[^>]*>([\s\S]*?)<\/script>/gi
+  let match: RegExpExecArray | null
+  while ((match = re.exec(scriptHtml)) !== null) {
+    run(match[1])
+  }
+}
+
+export function resizeBokehIn(host: HTMLElement): void {
+  const Bokeh = window.Bokeh
+  if (!Bokeh?.index) return
+  for (const el of host.querySelectorAll('[id]')) {
+    const doc = Bokeh.index[el.id]
+    if (doc && typeof doc.resize === 'function') {
+      doc.resize()
+    }
+  }
+}
+
+export async function embedBokehComponents(
+  host: HTMLElement,
+  divHtml: string,
+  scriptHtml: string,
+): Promise<void> {
+  await loadBokeh()
+  host.innerHTML = divHtml
+  runBokehEmbedScript(scriptHtml)
+  requestAnimationFrame(() => resizeBokehIn(host))
+}

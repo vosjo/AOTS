@@ -254,7 +254,7 @@ class UploadSystemDetailForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': '  ° : \' : \'\' or d.d°'}),
     )
 
-    #   Spectral type
+    #   Spectral classification type
     sp_type = forms.CharField(max_length=30, required=False)
     classification_type = forms.ChoiceField(
         choices=(

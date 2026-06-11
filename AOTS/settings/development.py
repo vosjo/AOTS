@@ -9,6 +9,13 @@ from .base import BASE_DIR, env
 DEBUG = True
 VITE_DEV = True
 
+# Local dev: run tasks in-process (no Celery worker or Redis broker required).
+# These override .env so bulk downloads and uploads work out of the box.
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_STORE_EAGER_RESULT = True
+CELERY_BROKER_URL = 'memory://'
+CELERY_RESULT_BACKEND = 'cache+memory://'
+
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 CSRF_TRUSTED_ORIGINS = [

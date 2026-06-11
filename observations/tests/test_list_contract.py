@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from analysis.models import Method
 from observations.models import Observatory, Spectrum
 from stars.models import Project, Star, Tag
 
@@ -16,8 +15,7 @@ LIST_ENDPOINTS = [
     ('/api/observations/rawspecfiles/', ('pk', 'instrument')),
     ('/api/observations/lightcurves/', ('pk', 'hjd', 'instrument')),
     ('/api/observations/observatories/', ('pk', 'name')),
-    ('/api/analysis/datasets/', ('pk', 'name')),
-    ('/api/analysis/methods/', ('pk', 'name', 'slug')),
+    ('/api/analysis/datasets/', ('pk', 'name', 'category', 'category_label')),
 ]
 
 
@@ -43,7 +41,6 @@ class RestListContractTests(TestCase):
             instrument='TEST',
         )
         Observatory.objects.create(project=self.project, name='Obs1', short_name='O1')
-        Method.objects.create(project=self.project, name='M1', slug='m1', color='#000')
 
     def test_rest_pagination_shape(self):
         for url, _keys in LIST_ENDPOINTS:

@@ -143,6 +143,7 @@ MEDIA_URL = '/media/'
 CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default=CELERY_BROKER_URL)
 CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=False)
+CELERY_TASK_STORE_EAGER_RESULT = env.bool('CELERY_TASK_STORE_EAGER_RESULT', default=True)
 CELERY_TASK_EAGER_PROPAGATES = True
 
 # Bulk download artifacts under MEDIA_ROOT/bulk_downloads/

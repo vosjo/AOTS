@@ -69,6 +69,15 @@ export function resizeBokehIn(host: HTMLElement): void {
   }
 }
 
+function scheduleBokehResize(host: HTMLElement): void {
+  const resize = () => resizeBokehIn(host)
+  requestAnimationFrame(() => {
+    resize()
+    requestAnimationFrame(resize)
+  })
+  window.setTimeout(resize, 100)
+}
+
 export async function embedBokehComponents(
   host: HTMLElement,
   divHtml: string,
@@ -77,5 +86,5 @@ export async function embedBokehComponents(
   await loadBokeh()
   host.innerHTML = divHtml
   runBokehEmbedScript(scriptHtml)
-  requestAnimationFrame(() => resizeBokehIn(host))
+  scheduleBokehResize(host)
 }

@@ -596,11 +596,11 @@
         <section class='data-section' id="dataset-{{ dataset.pk }}">
 
             <h3>
-                <a href={% url 'analysis:dataset_detail' project.slug dataset.pk %}>{{ dataset.method.name }}</a>
-                {% if dataset.valid %}
-                    (<i class="material-icons status-icon valid bold" title='Valid'></i>)
+                <a href={% url 'analysis:dataset_detail' project.slug dataset.pk %}>{{ dataset.get_category_display }} — {{ dataset.name }}</a>
+                {% if dataset.fit %}
+                    (<i class="material-icons status-icon valid bold" title='Fit'></i>)
                 {% else %}
-                    (<i class="material-icons status-icon invalid bold" title='Invalid'></i>)
+                    (<i class="material-icons status-icon invalid bold" title='No fit'></i>)
                 {% endif %}
             </h3>
 

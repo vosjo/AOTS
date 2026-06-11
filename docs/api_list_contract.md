@@ -37,4 +37,4 @@ During the parallel beta, `?format=datatables` still returns `{ draw, recordsTot
 | `/api/observations/lightcurves/` | `hjd` |
 | `/api/observations/observatories/` | `name` |
 | `/api/analysis/datasets/` | `name` |
-| `/api/analysis/methods/` | `name` |
+| `/api/analysis/categories/` | (static registry, not paginated) |

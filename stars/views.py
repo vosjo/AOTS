@@ -9,7 +9,6 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect, reverse
 
 from AOTS.custom_permissions import check_user_can_view_project
-from analysis.models import Method
 from observations.plotting import plot_sed
 from .auxil import (
     populate_system,
@@ -232,19 +231,11 @@ def star_detail(request, star_id, project=None, **kwargs):
 
     context["related_stars"] = related_stars
 
-    #   Add analysis methods
-    methods = Method.objects.filter(project__exact=project)
+    datasets = list(star.dataset_set.order_by('category', 'name'))
+    figures = [plot_sed(star.pk)]
 
-    datasets, figures = [], []
-
-    figures.append(plot_sed(star.pk))
-
-    for method in methods:
-        dataset = star.dataset_set.filter(method__exact=method)
-        if dataset:
-            dataset = dataset[0]
-            figures.append(dataset.make_figure())
-            datasets.append(dataset)
+    for dataset in datasets:
+        figures.append(dataset.make_figure())
 
     #   TODO: Switch to Bokeh Layouts (from bokeh.layouts import column)?
     if len(figures) > 0:

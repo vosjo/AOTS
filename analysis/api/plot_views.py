@@ -46,7 +46,7 @@ def parameter_plotter_api(request, project_slug):
 @permission_classes([AllowAny])
 def dataset_plots_api(request, pk):
     dataset = get_object_if_allowed(
-        DataSet, request, pk, select_related=('project', 'star', 'method'),
+        DataSet, request, pk, select_related=('project', 'star'),
     )
     fit = dataset.make_large_figure()
     oc = dataset.make_OC_figure()

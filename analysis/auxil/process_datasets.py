@@ -1,9 +1,7 @@
-import random
-
-from django.db.models import F, ExpressionWrapper, FloatField
-
-from analysis.models import DataSource, DataSet, Method, DerivedParameter
+from analysis.categories import CategorySource, resolve_category
+from analysis.models import DataSource, DataSet, DerivedParameter
 from stars.models import Star
+from django.db.models import F, ExpressionWrapper, FloatField
 from . import read_datasets
 
 
@@ -14,7 +12,6 @@ def create_parameters(analmethod, data):
     parameters = read_datasets.get_parameters(data)
     for name, value in parameters.items():
         if name == 't0':
-            # exception for t0 as this 0 ending might cause problems
             name = 't00'
 
         component = 0
@@ -31,16 +28,18 @@ def create_parameters(analmethod, data):
 
 def create_derived_parameters(analmethod):
     """
-    Adds the parameters that can be automatically derived for this method
+    Adds the parameters that can be automatically derived for this dataset category.
     """
+    from analysis.categories import category_derived_parameters
 
     try:
         ds = DataSource.objects.get(name__exact='AVG')
     except DataSource.DoesNotExist:
         ds = DataSource.objects.create(name='AVG')
 
-    params = analmethod.method.derived_parameters
-    if params.strip() == '': return 0
+    params = category_derived_parameters(analmethod.category)
+    if params.strip() == '':
+        return 0
 
     params = params.split(',')
     for p in params:
@@ -55,67 +54,38 @@ def create_derived_parameters(analmethod):
             pname = p
             pcomp = 0
 
-        p = DerivedParameter.objects.create(star=analmethod.star, name=pname,
-                                            component=pcomp, average=True,
-                                            data_source=ds)
-        print(p)
+        DerivedParameter.objects.create(star=analmethod.star, name=pname,
+                                      component=pcomp, average=True,
+                                      data_source=ds)
 
     return len(params)
 
 
-def sort_modified_created(model):
-    try:
-        return model.history.latest().history_date
-    except AttributeError:
-        return datetime.fromisoformat("19700101")
-
-
 def process_analysis_file(file_id):
-    #   analfile == dataset
     analfile = DataSet.objects.get(pk=file_id)
 
     try:
         data = analfile.get_data()
-    except Exception as e:
+    except Exception:
         return False, 'Not added, file has wrong format / file is unreadable'
 
-    # read the basic data
     try:
         systemname, ra, dec, name, note, reference, atype = read_datasets.get_basic_info(data)
     except Exception as e:
         print(e)
         return False, 'Not added, basic info unreadable'
 
-    #   Filter Method for project and slug
-    d_method = Method.objects.filter(slug__exact=atype)
-    d_method = d_method.filter(project__exact=analfile.project)
-
-    #   If there is an existing method, pick the first
-    message = ''
-    if d_method:
-        analfile.method = d_method[0]
-    else:
-        #   Random number function for color
-        r = lambda: random.randint(0, 255)
-
-        #   Create a new method
-        method = Method(
-            name=name,
-            project=analfile.project,
-            slug=atype,
-            color=f'#{r():02x}{r():02x}{r():02x}',
-        )
-        method.save()
-        analfile.method = method
-        message += f"Created new Method {method},"
-
+    category, category_source = resolve_category(atype)
+    analfile.category = category
+    analfile.category_source = category_source
+    analfile.file_type = atype or ''
     analfile.name = name
     analfile.note = note
     analfile.reference = reference
-
     analfile.save()
 
-    # -- try to find corresponding star
+    message = 'Validated the analysis file'
+
     if ra != 0.0 and dec != 0.0:
         star = Star.objects.filter(ra__range=(ra - 0.01, ra + 0.01),
                                    dec__range=(dec - 0.01, dec + 0.01),
@@ -126,24 +96,19 @@ def process_analysis_file(file_id):
             project__exact=analfile.project.pk,
         )
         if not star:
-            #   There is no way to add this star, cause no coordinates are
-            #   known.
             return False, "Not added, no system information present"
 
-    message += "Validated the analysis file"
     if star:
-        #   There is an existing star, pick the closest star
         star = star.annotate(
             distance=ExpressionWrapper(
                 ((F('ra') - ra) ** 2 + (F('dec') - dec) ** 2) ** (1. / 2.),
                 output_field=FloatField()
             )
         ).order_by('distance')[0]
-        star.dataset_set.add(analfile)
-        message += f", added to existing System {star} "
-        message += f"(_r = {star.distance})"
+        analfile.star = star
+        analfile.save()
+        message += f", added to existing System {star} (_r = {star.distance})"
     else:
-        #   Need to create a new star
         star = Star(
             name=systemname,
             project=analfile.project,
@@ -152,48 +117,19 @@ def process_analysis_file(file_id):
             classification='',
         )
         star.save()
-        star.dataset_set.add(analfile)
+        analfile.star = star
+        analfile.save()
         message += ", created new System {}".format(star)
 
-    # -- Add parameters
     try:
         npars = create_parameters(analfile, data)
         if npars == 0:
-            analfile.valid = False
+            analfile.fit = False
             analfile.save()
-            message += ", (No parameters included, default to invalid dataset)"
+            message += ", (No parameters included, no fit)"
         else:
             message += ", ({} parameters)".format(npars)
     except Exception as e:
         raise e
-        return False, 'Not added, error reading parameters'
-
-    ##-- add derived parameters
-    # npars = create_derived_parameters(analfile)
-    # if npars > 0: message += ", ({} derived parameters)".format(npars)
-
-    # -- Check if star already has this type of dataset, if so, replace
-    #   only do so at the end so only valid datasets can replace an old one.
-    similar = sorted(DataSet.objects.filter(
-        method__exact=analfile.method,
-        star__exact=star,
-        project__exact=analfile.project.pk,
-    ), key=sort_modified_created, reverse=True)
-
-    if len(similar) > 1:
-        #   Update old dataset entry
-        similar[0].name = analfile.name
-        similar[0].note = analfile.note
-        similar[0].reference = analfile.reference
-        similar[0].method = analfile.method
-        similar[0].datafile = analfile.datafile
-        similar[0].valid = analfile.valid
-        similar[0].history.latest().history_user.username = analfile.history.earliest().history_user.username
-        similar[0].save()
-
-        #   Remove new dataset since it is not needed
-        analfile.delete()
-
-        message += ", replaced older analysis method"
 
     return True, message

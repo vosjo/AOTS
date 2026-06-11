@@ -15,7 +15,7 @@ $(document).ready(function () {
             {data: 'star', render: star_render},
             {data: 'name', render: name_render},
             {data: 'note', render: note_render},
-            {data: 'method', render: method_render},
+            {data: 'category_label', render: category_render},
             {data: 'added_on'},
         ];
     } else {
@@ -23,7 +23,7 @@ $(document).ready(function () {
             {data: 'star', render: star_render},
             {data: 'name', render: name_render},
             {data: 'note', render: note_render},
-            {data: 'method', render: method_render},
+            {data: 'category_label', render: category_render},
             {data: 'added_on'},
         ];
     }
@@ -156,7 +156,7 @@ function get_filter_keywords(d) {
         "project": $('#project-pk').attr('project'),
         "system": $('#filter_system').val(),
         "name": $('#filter_name').val(),
-        "method": $('#filter_method').val(),
+        "category": $('#filter_category').val(),
     });
 
     return d
@@ -185,8 +185,12 @@ function note_render(data, type, full, meta) {
     return data
 }
 
-function method_render(data, type, full, meta) {
-    return "<div title='" + data.description + "'>" + data.name + "</div>";
+function category_render(data, type, full, meta) {
+    var color = full.category_color || '#757575';
+    var title = full.category_source === 'auto' && full.category === 'unknown'
+        ? 'Category could not be detected — please review'
+        : data;
+    return "<div title='" + title + "'><span class='circle block' style='background:" + color + ";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;'></span>" + data + "</div>";
 }
 
 

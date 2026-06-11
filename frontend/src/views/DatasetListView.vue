@@ -16,20 +16,17 @@ interface StarBrief {
   name: string
 }
 
-interface MethodBrief {
-  pk: number
-  name: string
-  description: string
-}
-
 interface DatasetRow {
   pk: number
   name: string
   note: string
-  valid: boolean
+  fit: boolean
   added_on: string
+  category: string
+  category_label: string
+  category_color: string
+  category_source: string
   star: StarBrief | Record<string, never>
-  method: MethodBrief | Record<string, never>
 }
 
 interface UploadMessage {
@@ -47,7 +44,7 @@ const filterOpen = ref(false)
 const { filters, clearFilters } = useListFilters({
   system: '',
   name: '',
-  method: '',
+  category: '',
 })
 
 const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } =
@@ -69,12 +66,6 @@ function starOf(row: DatasetRow): StarBrief | null {
   const star = row.star
   if (!star || !('pk' in star) || !star.pk) return null
   return star as StarBrief
-}
-
-function methodOf(row: DatasetRow): MethodBrief | null {
-  const method = row.method
-  if (!method || !('pk' in method) || !method.pk) return null
-  return method as MethodBrief
 }
 
 function truncateNote(note: string) {
@@ -146,7 +137,7 @@ async function deleteSelected() {
         { id: 'star', header: 'System' },
         { id: 'name', header: 'Name' },
         { id: 'note', header: 'Note' },
-        { id: 'method', header: 'Method' },
+        { id: 'category', header: 'Category' },
         { id: 'added_on', header: 'Creation date' },
       ]"
       :rows="rows"
@@ -215,11 +206,20 @@ async function deleteSelected() {
         <span :title="row.note || undefined">{{ truncateNote(row.note) }}</span>
       </template>
 
-      <template #cell-method="{ row }">
-        <span v-if="methodOf(row)" :title="methodOf(row)!.description">
-          {{ methodOf(row)!.name }}
+      <template #cell-category="{ row }">
+        <span
+          class="inline-flex items-center gap-1.5"
+          :class="row.category === 'unknown' ? 'text-amber-300' : ''"
+          :title="row.category_source === 'auto' && row.category === 'unknown'
+            ? 'Category could not be detected — please review'
+            : row.category_label"
+        >
+          <span
+            class="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+            :style="{ backgroundColor: row.category_color }"
+          />
+          {{ row.category_label }}
         </span>
-        <span v-else class="text-slate-400">—</span>
       </template>
     </DataTablePage>
 
@@ -231,7 +231,7 @@ async function deleteSelected() {
     >
       <input v-model="filters.system" placeholder="System" class="aots-field" />
       <input v-model="filters.name" placeholder="Name" class="aots-field" />
-      <input v-model="filters.method" placeholder="Method" class="aots-field" />
+      <input v-model="filters.category" placeholder="Category" class="aots-field" />
     </ListFilterPanel>
 
     <dialog

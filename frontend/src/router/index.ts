@@ -144,9 +144,7 @@ const router = createRouter({
     },
     {
       path: '/w/:projectSlug/analysis/methods',
-      name: 'methods',
-      component: () => import('@/views/MethodListView.vue'),
-      meta: { requiresProject: true },
+      redirect: (to) => `/w/${to.params.projectSlug}/analysis/datasets/`,
     },
     {
       path: '/w/:projectSlug/analysis/plotter',

@@ -118,19 +118,19 @@ function updateParameterValid(parameter_id, valid) {
     });
 }
 
-function toggleDatasetValid(cb) {
+function toggleDatasetFit(cb) {
     var dataset_id = cb.getAttribute('dataset_id');
-    var valid = cb.checked
+    var fit = cb.checked
 
-    updateDatasetValid(dataset_id, valid)
+    updateDatasetFit(dataset_id, fit)
 };
 
-function updateDatasetValid(dataset_id, valid) {
+function updateDatasetFit(dataset_id, fit) {
     $.ajax({
         url: "/api/analysis/datasets/" + dataset_id + '/',
         type: "PATCH",
         data: {
-            valid: valid,
+            fit: fit,
             modified_by: user_name
         },
 
@@ -140,7 +140,7 @@ function updateDatasetValid(dataset_id, valid) {
 
         error: function (xhr, errmsg, err) {
             console.log(xhr.status + ": " + xhr.responseText);
-            $('#dataset-valid-' + dataset_id).checked = !valid
+            $('#dataset-fit-' + dataset_id).checked = !fit
         }
     });
 };

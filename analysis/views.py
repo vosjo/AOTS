@@ -84,7 +84,7 @@ def dataset_detail(request, dataset_id, project=None, **kwargs):
 
     # make related datasets list
     related_datasets = dataset.star.dataset_set.all()
-    related_stars = DataSet.objects.filter(method__exact=dataset.method)
+    related_stars = DataSet.objects.filter(category=dataset.category).exclude(pk=dataset.pk)
 
     # make the main figure
     fit = dataset.make_large_figure()
@@ -121,9 +121,8 @@ def dataset_detail(request, dataset_id, project=None, **kwargs):
 
 @check_user_can_view_project
 def method_list(request, project=None, **kwargs):
-    project = get_object_or_404(Project, slug=project)
-
-    return render(request, 'analysis/method_list.html', {'project': project, })
+    from django.shortcuts import redirect
+    return redirect('analysis:dataset_list', project=project)
 
 
 @check_user_can_view_project

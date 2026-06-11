@@ -327,19 +327,18 @@ async function remove() {
             <p v-else class="text-xs text-slate-400">No files</p>
           </div>
 
-          <div class="border-t border-slate-600 pt-2">
-            <div class="flex justify-between items-center gap-2">
-              <h2 class="text-sm font-medium">Note</h2>
-              <button
-                v-if="auth.isAuthenticated"
-                type="button"
-                class="text-xs text-sky-400"
-                @click="noteEdit = !noteEdit"
-              >
-                Edit
-              </button>
-            </div>
-            <p v-if="!noteEdit" class="text-xs text-slate-300 mt-1 whitespace-pre-wrap">
+          <div class="border-t border-slate-600 pt-2 relative">
+            <h2 class="text-sm font-medium">Note</h2>
+            <button
+              v-if="auth.isAuthenticated"
+              type="button"
+              class="absolute top-2 right-0 p-1 text-slate-300 hover:text-sky-400"
+              title="Edit note"
+              @click="noteEdit = !noteEdit"
+            >
+              <Pencil class="w-4 h-4" />
+            </button>
+            <p v-if="!noteEdit" class="text-xs text-slate-300 mt-1 whitespace-pre-wrap pr-8">
               {{ lc.note || '—' }}
             </p>
             <div v-else class="mt-2 space-y-2">

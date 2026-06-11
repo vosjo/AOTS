@@ -2,37 +2,34 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.filters import OrderingFilter
+from rest_framework.response import Response
 
 from AOTS.api_mixins import DualOrderingMixin, ProjectFilteredQuerysetMixin
 from AOTS.api_processing import run_process_view
 from AOTS.permissions_helpers import get_object_if_allowed
-from analysis.models import Method, DataSet, Parameter
+from analysis.categories import choices_for_api
+from analysis.models import DataSet, Parameter
 from analysis.tasks import process_dataset_task
-from .filter import DataSetFilter, MethodFilter, ParameterFilter
+from .filter import DataSetFilter, ParameterFilter
 from .serializers import (
     DataSetDetailSerializer,
     DataSetListSerializer,
-    MethodSerializer,
     ParameterListSerializer,
 )
 
-
-# ===============================================================
-# DataSet
-# ===============================================================
 
 class DatasetViewSet(
     ProjectFilteredQuerysetMixin,
     DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
-    queryset = DataSet.objects.select_related('project', 'star', 'method').prefetch_related(
+    queryset = DataSet.objects.select_related('project', 'star').prefetch_related(
         'parameter_set',
     )
     serializer_class = DataSetListSerializer
     default_ordering = ('name',)
     ordering = ('name',)
-    ordering_fields = ['pk', 'name', 'valid']
+    ordering_fields = ['pk', 'name', 'fit', 'category']
     allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
@@ -44,30 +41,6 @@ class DatasetViewSet(
         return DataSetListSerializer
 
 
-# ===============================================================
-# Methods
-# ===============================================================
-
-class MethodViewSet(
-    ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
-    viewsets.ModelViewSet,
-):
-    queryset = Method.objects.select_related('project')
-    serializer_class = MethodSerializer
-    default_ordering = ('name',)
-    ordering = ('name',)
-    ordering_fields = ['pk', 'name', 'slug']
-    allowed_order_fields = frozenset(ordering_fields)
-
-    filter_backends = (DjangoFilterBackend, OrderingFilter)
-    filterset_class = MethodFilter
-
-
-# ===============================================================
-# Parameter
-# ===============================================================
-
 class ParameterViewSet(
     ProjectFilteredQuerysetMixin,
     viewsets.ModelViewSet,
@@ -78,6 +51,11 @@ class ParameterViewSet(
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ParameterFilter
+
+
+@api_view(['GET'])
+def dataset_categories_api(request):
+    return Response({'results': choices_for_api()})
 
 
 @api_view(['POST'])

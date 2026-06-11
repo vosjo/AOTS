@@ -50,6 +50,7 @@ def plot_generic(datafile):
     fig = bpl.figure(
         width=600,
         height=400,
+        sizing_mode='scale_width',
         toolbar_location=None,
         x_axis_type=xscale,
         y_axis_type=yscale,
@@ -145,6 +146,7 @@ def plot_generic_large(datafile):
     fig = bpl.figure(
         width=800,
         height=500,
+        sizing_mode='scale_width',
         toolbar_location="right",
         tools=TOOLS,
         x_axis_type=xscale,
@@ -268,6 +270,7 @@ def plot_generic_OC(datafile):
     fig = bpl.figure(
         width=800,
         height=200,
+        sizing_mode='scale_width',
         toolbar_location="right",
         tools=TOOLS,
         x_axis_type=xscale,
@@ -359,7 +362,9 @@ def plot_generic_hist(datafile):
 
             title = "{} = {:.2f} + {:.2f} - {:.2f}".format(name, value, emax, emin)
 
-            fig = bpl.figure(width=280, height=280, tools=[], title=title)
+            fig = bpl.figure(
+                width=280, height=280, sizing_mode='scale_width', tools=[], title=title,
+            )
 
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
@@ -423,7 +428,9 @@ def plot_generic_ci(datafile):
 
             title = "{} = {:.2f} + {:.2f} - {:.2f}".format(name, value, emax, emin)
 
-            fig = bpl.figure(width=280, height=280, tools=[], title=title)
+            fig = bpl.figure(
+                width=280, height=280, sizing_mode='scale_width', tools=[], title=title,
+            )
 
             fig.ray(
                 x=dataset["Chi2Val"]["x"],
@@ -462,7 +469,9 @@ def plot_generic_ci(datafile):
 
 
 def plot_error(width, height):
-    fig = bpl.figure(width=width, height=height, toolbar_location=None)
+    fig = bpl.figure(
+        width=width, height=height, sizing_mode='scale_width', toolbar_location=None,
+    )
 
     error_text = mpl.Label(
         x=width / 2.0,
@@ -480,7 +489,9 @@ def plot_error(width, height):
 
 
 def plot_error_large():
-    fig = bpl.figure(width=800, height=500, toolbar_location=None)
+    fig = bpl.figure(
+        width=800, height=500, sizing_mode='scale_width', toolbar_location=None,
+    )
 
     error_text = mpl.Label(
         x=400,
@@ -500,7 +511,7 @@ def plot_error_large():
 import traceback
 
 
-def plot_dataset(datafile, method):
+def plot_dataset(datafile, category=None):
     """
     General plotting function for analysis
     """
@@ -512,7 +523,7 @@ def plot_dataset(datafile, method):
         return plot_error(600, 400)
 
 
-def plot_dataset_large(datafile, method):
+def plot_dataset_large(datafile, category=None):
     """
     General plotting function for analysis, makes the large version plot for
     the detail pages including extra info when hovering over a figure
@@ -525,7 +536,7 @@ def plot_dataset_large(datafile, method):
         return plot_error_large()
 
 
-def plot_dataset_oc(datafile, method):
+def plot_dataset_oc(datafile, category=None):
     try:
         return plot_generic_OC(datafile)
     except Exception as e:
@@ -534,7 +545,7 @@ def plot_dataset_oc(datafile, method):
         return plot_error(800, 200)
 
 
-def plot_parameter_ci(datafile, method):
+def plot_parameter_ci(datafile, category=None):
     """
     General plotting function for the confidence intervals of the parameters.
     This will return a figure for each confidence interval (1D) that is included

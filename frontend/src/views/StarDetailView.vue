@@ -129,8 +129,11 @@ interface BokehEmbed {
 interface DatasetPlot {
   dataset_id: number
   dataset_name: string
-  method: string
-  valid: boolean
+  category: string
+  category_label: string
+  added_by: string
+  added_on: string
+  fit: boolean
   note: string
   parameters: {
     system: ParamRow[]
@@ -210,6 +213,17 @@ const { data: datasetPlots } = useQuery({
   queryKey: computed(() => ['star-dataset-plots', starId.value]),
   queryFn: () =>
     api<{ plots: DatasetPlot[] }>(`/api/systems/stars/${starId.value}/dataset-plots/`),
+})
+
+const groupedDatasetPlots = computed(() => {
+  const groups = new Map<string, DatasetPlot[]>()
+  for (const plot of datasetPlots.value?.plots ?? []) {
+    const key = plot.category_label || plot.category
+    const list = groups.get(key) ?? []
+    list.push(plot)
+    groups.set(key, list)
+  }
+  return [...groups.entries()].map(([label, plots]) => ({ label, plots }))
 })
 
 const { data: tags } = useQuery({
@@ -596,19 +610,18 @@ watch(editableParams, (data) => {
           </p>
         </section>
 
-        <section class="aots-panel-compact">
-          <div class="flex justify-between items-center gap-2 mb-1">
-            <h2 class="text-sm font-medium">Notes</h2>
-            <button
-              v-if="auth.isAuthenticated"
-              type="button"
-              class="text-xs text-sky-400"
-              @click="noteEdit = !noteEdit"
-            >
-              Edit
-            </button>
-          </div>
-          <p v-if="!noteEdit" class="text-xs text-slate-300 whitespace-pre-wrap">{{ star.note || '—' }}</p>
+        <section class="aots-panel-compact relative">
+          <h2 class="text-sm font-medium mb-1">Notes</h2>
+          <button
+            v-if="auth.isAuthenticated"
+            type="button"
+            class="absolute top-2 right-2 p-1 text-slate-300 hover:text-sky-400"
+            title="Edit note"
+            @click="noteEdit = !noteEdit"
+          >
+            <Pencil class="w-4 h-4" />
+          </button>
+          <p v-if="!noteEdit" class="text-xs text-slate-300 whitespace-pre-wrap pr-8">{{ star.note || '—' }}</p>
           <div v-else class="space-y-2">
             <textarea v-model="noteText" class="aots-field text-xs" rows="4" />
             <button type="button" class="aots-btn-primary text-xs" @click="saveNote">Save</button>
@@ -666,10 +679,11 @@ watch(editableParams, (data) => {
             <button
               v-if="auth.isAuthenticated"
               type="button"
-              class="text-xs text-sky-400"
+              class="p-1 text-slate-300 hover:text-sky-400"
+              title="Edit tags"
               @click="openTags"
             >
-              Edit
+              <Pencil class="w-4 h-4" />
             </button>
           </div>
           <div class="flex flex-wrap gap-1.5">
@@ -749,10 +763,11 @@ watch(editableParams, (data) => {
                   <button
                     v-if="auth.isAuthenticated && !photEdit"
                     type="button"
-                    class="text-xs text-sky-400"
+                    class="p-1 text-slate-300 hover:text-sky-400"
+                    title="Edit photometry"
                     @click="startPhotEdit"
                   >
-                    Edit
+                    <Pencil class="w-4 h-4" />
                   </button>
                   <template v-if="photEdit">
                     <div class="relative">
@@ -954,49 +969,56 @@ watch(editableParams, (data) => {
       </section>
 
       <section
-        v-for="plot in datasetPlots?.plots ?? []"
-        :key="plot.dataset_id"
-        class="aots-panel-compact"
+        v-for="group in groupedDatasetPlots"
+        :key="group.label"
+        class="space-y-3"
       >
-        <h2 class="text-sm font-medium mb-2 flex items-center gap-2 flex-wrap">
-          <RouterLink :to="`/w/${projectSlug}/analysis/datasets/${plot.dataset_id}/`">
-            {{ plot.method }}
-          </RouterLink>
-          <CheckCircle2 v-if="plot.valid" class="w-4 h-4 text-emerald-400" title="Valid" />
-          <XCircle v-else class="w-4 h-4 text-red-400" title="Invalid" />
-        </h2>
-        <div class="grid gap-3 xl:grid-cols-2">
-          <div class="min-w-0">
-            <h3 class="text-xs text-slate-400 mb-1 text-center">{{ plot.dataset_name }}</h3>
-            <BokehPlot compact :script="plot.embed.script" :div="plot.embed.div" />
+        <h2 class="text-base font-medium text-slate-200">{{ group.label }}</h2>
+        <article
+          v-for="plot in group.plots"
+          :key="plot.dataset_id"
+          class="aots-panel-compact"
+        >
+          <h3 class="text-sm font-medium mb-2 flex items-center gap-2 flex-wrap">
+            <RouterLink :to="`/w/${projectSlug}/analysis/datasets/${plot.dataset_id}/`">
+              {{ plot.dataset_name }}
+            </RouterLink>
+            <CheckCircle2 v-if="plot.fit" class="w-4 h-4 text-emerald-400" title="Fit" />
+            <XCircle v-else class="w-4 h-4 text-red-400" title="No fit" />
+            <span class="text-xs text-slate-400">{{ plot.added_by }} · {{ plot.added_on }}</span>
+          </h3>
+          <div class="grid gap-3 xl:grid-cols-2">
+            <div class="min-w-0">
+              <BokehPlot compact :script="plot.embed.script" :div="plot.embed.div" />
+            </div>
+            <div>
+              <h4 class="text-xs text-slate-400 mb-1">Parameters</h4>
+              <table class="aots-param-table mb-3">
+                <thead>
+                  <tr>
+                    <th>Parameter</th>
+                    <th v-if="plot.parameters.component.length">Prim.</th>
+                    <th v-if="plot.parameters.component.length">Sec.</th>
+                    <th v-else>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="p in plot.parameters.system" :key="`ds-${plot.dataset_id}-sys-${p.name}`">
+                    <th>{{ p.name }} ({{ p.unit }})</th>
+                    <td :colspan="plot.parameters.component.length ? 2 : 1">{{ p.value }}</td>
+                  </tr>
+                  <tr v-for="p in plot.parameters.component" :key="`ds-${plot.dataset_id}-cmp-${p.name}`">
+                    <th>{{ p.name }} ({{ p.unit }})</th>
+                    <td>{{ p.primary }}</td>
+                    <td>{{ p.secondary }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <h4 class="text-xs text-slate-400 mb-1">Description</h4>
+              <p class="text-xs text-slate-300 whitespace-pre-wrap">{{ plot.note || '—' }}</p>
+            </div>
           </div>
-          <div>
-            <h3 class="text-xs text-slate-400 mb-1">Parameters</h3>
-            <table class="aots-param-table mb-3">
-              <thead>
-                <tr>
-                  <th>Parameter</th>
-                  <th v-if="plot.parameters.component.length">Prim.</th>
-                  <th v-if="plot.parameters.component.length">Sec.</th>
-                  <th v-else>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="p in plot.parameters.system" :key="`ds-${plot.dataset_id}-sys-${p.name}`">
-                  <th>{{ p.name }} ({{ p.unit }})</th>
-                  <td :colspan="plot.parameters.component.length ? 2 : 1">{{ p.value }}</td>
-                </tr>
-                <tr v-for="p in plot.parameters.component" :key="`ds-${plot.dataset_id}-cmp-${p.name}`">
-                  <th>{{ p.name }} ({{ p.unit }})</th>
-                  <td>{{ p.primary }}</td>
-                  <td>{{ p.secondary }}</td>
-                </tr>
-              </tbody>
-            </table>
-            <h3 class="text-xs text-slate-400 mb-1">Description</h3>
-            <p class="text-xs text-slate-300 whitespace-pre-wrap">{{ plot.note || '—' }}</p>
-          </div>
-        </div>
+        </article>
       </section>
     </div>
 
@@ -1032,10 +1054,11 @@ watch(editableParams, (data) => {
             <button
               v-if="auth.isAuthenticated && !paramEdit"
               type="button"
-              class="text-xs text-sky-400"
+              class="p-1 text-slate-300 hover:text-sky-400"
+              title="Edit values"
               @click="startParamEdit"
             >
-              Edit values
+              <Pencil class="w-4 h-4" />
             </button>
             <template v-if="paramEdit">
               <button

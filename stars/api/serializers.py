@@ -118,11 +118,21 @@ class StarListSerializer(ModelSerializer):
         return tags
 
     def get_datasets(self, obj):
+        from analysis.categories import category_color, category_label
+
         try:
             datasets = obj.dataset_set.all()
-            return [{'name': d.name, 'color': d.method.color,
-                     'href': reverse('analysis:dataset_detail', kwargs={'project': d.project.slug, 'dataset_id': d.pk})}
-                    for d in datasets]
+            return [
+                {
+                    'name': f"{category_label(d.category)}: {d.name}" if d.name else category_label(d.category),
+                    'color': category_color(d.category),
+                    'href': reverse(
+                        'analysis:dataset_detail',
+                        kwargs={'project': d.project.slug, 'dataset_id': d.pk},
+                    ),
+                }
+                for d in datasets
+            ]
         except Exception as e:
             print(e)
             return []

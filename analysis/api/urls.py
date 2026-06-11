@@ -3,13 +3,12 @@ from rest_framework import routers
 
 from .plot_views import dataset_plots_api, parameter_plotter_api
 from .views import (
-    ParameterViewSet, DatasetViewSet, MethodViewSet, processDataSet,
+    ParameterViewSet, DatasetViewSet, processDataSet, dataset_categories_api,
 )
 
 app_name = 'analysis-api'
 
 router = routers.DefaultRouter()
-router.register(r'methods', MethodViewSet)
 router.register(r'datasets', DatasetViewSet)
 router.register(r'parameters', ParameterViewSet)
 
@@ -24,6 +23,7 @@ urlpatterns = [
         dataset_plots_api,
         name='dataset-plots-api',
     ),
+    re_path(r'^categories/$', dataset_categories_api, name='dataset-categories-api'),
     re_path(r'^', include(router.urls)),
     re_path(
         r'^datasets/(?P<pk>[\w-]+)/process/',

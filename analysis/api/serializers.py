@@ -1,38 +1,16 @@
-from datetime import datetime
-
 from astropy.time import Time
 from django.urls import reverse
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from analysis.models import Method, DataSet, Parameter
+from analysis.categories import category_color, category_label
+from analysis.models import DataSet, Parameter
 from stars.api.serializers import SimpleStarSerializer
-
-
-class MethodSerializer(ModelSerializer):
-    data_type_display = SerializerMethodField()
-
-    class Meta:
-        model = Method
-        fields = [
-            'pk',
-            'name',
-            'description',
-            'slug',
-            'color',
-            'data_type',
-            'data_type_display',
-            'derived_parameters',
-            'project'
-        ]
-        read_only_fields = ('pk',)
-
-    def get_data_type_display(self, obj):
-        return obj.get_data_type_display()
 
 
 class DataSetListSerializer(ModelSerializer):
     star = SerializerMethodField()
-    method = SerializerMethodField()
+    category_label = SerializerMethodField()
+    category_color = SerializerMethodField()
     href = SerializerMethodField()
     file_url = SerializerMethodField()
     added_on = SerializerMethodField()
@@ -44,17 +22,20 @@ class DataSetListSerializer(ModelSerializer):
             'pk',
             'name',
             'note',
-            'method',
-            'valid',
+            'category',
+            'category_label',
+            'category_color',
+            'category_source',
+            'file_type',
+            'fit',
             'project',
             'href',
             'file_url',
             'datafile',
             'added_on',
         ]
-        read_only_fields = ('pk', 'file_url',)
-        datatables_always_serialize = ('pk', 'href', 'file_url')
-
+        read_only_fields = ('pk', 'file_url', 'category_label', 'category_color')
+        datatables_always_serialize = ('pk', 'href', 'file_url', 'category', 'category_label')
 
     def get_added_on(self, obj):
         return Time(obj.history.earliest().history_date, precision=0).iso
@@ -62,14 +43,13 @@ class DataSetListSerializer(ModelSerializer):
     def get_star(self, obj):
         if obj.star:
             return SimpleStarSerializer(obj.star).data
-        else:
-            return {}
+        return {}
 
-    def get_method(self, obj):
-        if obj.method:
-            return MethodSerializer(obj.method).data
-        else:
-            return {}
+    def get_category_label(self, obj):
+        return category_label(obj.category)
+
+    def get_category_color(self, obj):
+        return category_color(obj.category)
 
     def get_href(self, obj):
         return reverse(
@@ -112,7 +92,7 @@ class DataSetDetailSerializer(DataSetListSerializer):
     reference_url = SerializerMethodField()
     parameters = SerializerMethodField()
     related_datasets = SerializerMethodField()
-    related_by_method = SerializerMethodField()
+    related_by_category = SerializerMethodField()
     added_by = SerializerMethodField()
     last_modified = SerializerMethodField()
     modified_by = SerializerMethodField()
@@ -123,7 +103,7 @@ class DataSetDetailSerializer(DataSetListSerializer):
             'reference_url',
             'parameters',
             'related_datasets',
-            'related_by_method',
+            'related_by_category',
             'added_by',
             'last_modified',
             'modified_by',
@@ -133,29 +113,35 @@ class DataSetDetailSerializer(DataSetListSerializer):
         return obj.get_reference_url()
 
     def get_parameters(self, obj):
-        return DatasetParameterSerializer(obj.parameter_set.order(), many=True).data
+        return DatasetParameterSerializer(obj.parameter_set.order_by(), many=True).data
 
     def get_related_datasets(self, obj):
         if not obj.star_id:
             return []
-        related = DataSet.objects.filter(star_id=obj.star_id).select_related('method')
+        related = DataSet.objects.filter(star_id=obj.star_id).order_by('category', 'name')
         return [
             {
                 'pk': item.pk,
-                'method_name': item.method.name if item.method else '',
+                'name': item.name,
+                'category': item.category,
+                'category_label': category_label(item.category),
                 'is_current': item.pk == obj.pk,
             }
             for item in related
         ]
 
-    def get_related_by_method(self, obj):
-        if not obj.method_id:
+    def get_related_by_category(self, obj):
+        if not obj.category:
             return []
-        related = DataSet.objects.filter(method_id=obj.method_id).select_related('star')
+        related = DataSet.objects.filter(
+            category=obj.category,
+            project_id=obj.project_id,
+        ).select_related('star').order_by('star__name', 'name')
         return [
             {
                 'pk': item.pk,
                 'star_name': item.star.name if item.star else '',
+                'name': item.name,
                 'is_current': item.pk == obj.pk,
             }
             for item in related
@@ -202,4 +188,3 @@ class ParameterListSerializer(ModelSerializer):
 
     def get_project(self, obj):
         return obj.star.project.name
-

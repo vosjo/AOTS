@@ -34,7 +34,6 @@ const nav = computed(() => {
     { to: `${base}/observations/lightcurves/`, label: 'Light curves', icon: Binoculars },
     { to: `${base}/observations/observatories/`, label: 'Observatories', icon: Binoculars },
     { to: `${base}/analysis/datasets/`, label: 'Datasets', icon: FlaskConical },
-    { to: `${base}/analysis/methods`, label: 'Methods', icon: FlaskConical },
     { to: `${base}/analysis/plotter`, label: 'Plotter', icon: BarChart3 },
   ]
 })

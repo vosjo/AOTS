@@ -6,12 +6,12 @@
 
     {% include "bokeh.html" %}
     <script type="text/javascript" src="{% static 'js/dataset_detail.js' %}"></script>
-    <title>Dataset: {{ dataset.star.name }} - {{ dataset.method.name }}</title>
+    <title>Dataset: {{ dataset.star.name }} - {{ dataset.get_category_display }}</title>
 
 {% endblock %}
 
 
-{% block headertitle %}Dataset: {{ dataset.star.name }} - {{ dataset.method.name }} {% endblock %}
+{% block headertitle %}Dataset: {{ dataset.star.name }} - {{ dataset.get_category_display }} {% endblock %}
 
 
 {% block content %}
@@ -28,12 +28,12 @@
                         {% for d in related_datasets %}
                             {% if d.id == dataset.id %}
                                 <li>
-                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %} class="active">-- {{ d.method.name }}
+                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %} class="active">-- {{ d.get_category_display }}
                                         --</a>
                                 </li>
                             {% else %}
                                 <li>
-                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %}>{{ d.method.name }}</a>
+                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %}>{{ d.get_category_display }} · {{ d.name }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
@@ -43,7 +43,7 @@
 
         {% if related_stars %}
             <div>
-                <h3 title="Other stars with same dataset type"> {{ dataset.method.name }} </h2>
+                <h3 title="Other datasets in the same category"> {{ dataset.get_category_display }} </h2>
                     <ul>
                         {% for d in related_stars %}
                             {% if d.id == dataset.id %}
@@ -53,7 +53,7 @@
                                 </li>
                             {% else %}
                                 <li>
-                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %}>{{ d.star.name }}</a>
+                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %}>{{ d.star.name }} · {{ d.name }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
@@ -83,7 +83,7 @@
 
             <div class='header-item'>
                 <p class="material-icons">build</p>
-                <h3>{{ dataset.method.name }}</h3>
+                <h3>{{ dataset.get_category_display }}</h3>
             </div>
 
             <div class='header-item'>
@@ -92,10 +92,10 @@
             </div>
 
             <div class='header-item'>
-                <input type="checkbox" id="dataset-valid-{{ dataset.pk }}" {% if dataset.valid %}
-                       checked="checked" {% endif %} onchange='toggleDatasetValid(this);' dataset_id="{{ dataset.pk }}"
+                <input type="checkbox" id="dataset-fit-{{ dataset.pk }}" {% if dataset.fit %}
+                       checked="checked" {% endif %} onchange='toggleDatasetFit(this);' dataset_id="{{ dataset.pk }}"
                         {% if not user.is_authenticated %} disabled {% endif %}>
-                <h3> Valid </h3>
+                <h3> Fit </h3>
             </div>
 
 

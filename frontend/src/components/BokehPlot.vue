@@ -33,11 +33,11 @@ onMounted(() => {
   render()
   const el = host.value
   if (!el) return
-  const observeTarget = el.parentElement ?? el
   resizeObserver = new ResizeObserver(() => {
     if (host.value) resizeBokehIn(host.value)
   })
-  resizeObserver.observe(observeTarget)
+  resizeObserver.observe(el)
+  if (el.parentElement) resizeObserver.observe(el.parentElement)
 })
 
 onUnmounted(() => {

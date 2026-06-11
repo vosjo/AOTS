@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { BookOpen, Pencil, Star, Wrench } from 'lucide-vue-next'
+import { BookOpen, Pencil, Star } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import BokehPlot from '@/components/BokehPlot.vue'
@@ -12,10 +12,10 @@ interface StarRef {
   name: string
 }
 
-interface MethodRef {
-  pk: number
-  name: string
-  description: string
+interface CategoryOption {
+  value: string
+  label: string
+  color: string
 }
 
 interface DatasetParameter {
@@ -29,13 +29,15 @@ interface DatasetParameter {
 
 interface RelatedDataset {
   pk: number
-  method_name: string
+  name: string
+  category_label: string
   is_current: boolean
 }
 
-interface RelatedByMethod {
+interface RelatedByCategory {
   pk: number
   star_name: string
+  name: string
   is_current: boolean
 }
 
@@ -45,16 +47,20 @@ interface DatasetDetail {
   note: string
   reference: string
   reference_url: string
-  valid: boolean
+  fit: boolean
   added_on: string
   added_by: string
   last_modified: string
   modified_by: string
   star: StarRef | Record<string, never>
-  method: MethodRef | Record<string, never>
+  category: string
+  category_label: string
+  category_color: string
+  category_source: string
+  file_type: string
   parameters: DatasetParameter[]
   related_datasets: RelatedDataset[]
-  related_by_method: RelatedByMethod[]
+  related_by_category: RelatedByCategory[]
 }
 
 interface BokehEmbed {
@@ -69,8 +75,10 @@ const pk = computed(() => route.params.id as string)
 
 const noteEdit = ref(false)
 const noteText = ref('')
-const nameEdit = ref(false)
+const detailsEdit = ref(false)
 const nameText = ref('')
+const categoryValue = ref('')
+const fitValue = ref(true)
 
 const { data: dataset, refetch } = useQuery({
   queryKey: computed(() => ['dataset', pk.value]),
@@ -82,21 +90,21 @@ const { data: plots } = useQuery({
   queryFn: () => api<Record<string, BokehEmbed>>(`/api/analysis/datasets/${pk.value}/plots/`),
 })
 
+const { data: categoryOptions } = useQuery({
+  queryKey: ['dataset-categories'],
+  queryFn: () => api<{ results: CategoryOption[] }>('/api/analysis/categories/'),
+})
+
 const star = computed(() => {
   const value = dataset.value?.star
   return value && 'pk' in value && value.pk ? (value as StarRef) : null
 })
 
-const method = computed(() => {
-  const value = dataset.value?.method
-  return value && 'pk' in value && value.pk ? (value as MethodRef) : null
-})
-
 const pageTitle = computed(() => {
   if (!dataset.value) return 'Dataset'
   const starName = star.value?.name ?? '—'
-  const methodName = method.value?.name ?? '—'
-  return `Dataset: ${starName} — ${methodName}`
+  const categoryName = dataset.value.category_label ?? '—'
+  return `${starName} — ${categoryName}`
 })
 
 const histPlotKeys = computed(() => {
@@ -108,6 +116,8 @@ watch(dataset, (value) => {
   if (!value) return
   noteText.value = value.note || ''
   nameText.value = value.name || ''
+  categoryValue.value = value.category || ''
+  fitValue.value = value.fit
 }, { immediate: true })
 
 function openNoteEdit() {
@@ -115,9 +125,11 @@ function openNoteEdit() {
   noteEdit.value = true
 }
 
-function openNameEdit() {
+function openDetailsEdit() {
   nameText.value = dataset.value?.name || ''
-  nameEdit.value = true
+  categoryValue.value = dataset.value?.category || ''
+  fitValue.value = dataset.value?.fit ?? true
+  detailsEdit.value = true
 }
 
 async function saveNote() {
@@ -129,25 +141,18 @@ async function saveNote() {
   await refetch()
 }
 
-async function saveName() {
+async function saveDetails() {
   await api(`/api/analysis/datasets/${pk.value}/`, {
     method: 'PATCH',
-    body: { name: nameText.value.trim() },
+    body: {
+      name: nameText.value.trim(),
+      category: categoryValue.value,
+      category_source: 'user',
+      fit: fitValue.value,
+    },
   })
-  nameEdit.value = false
+  detailsEdit.value = false
   await refetch()
-}
-
-async function toggleDatasetValid(valid: boolean) {
-  try {
-    await api(`/api/analysis/datasets/${pk.value}/`, {
-      method: 'PATCH',
-      body: { valid },
-    })
-    await refetch()
-  } catch {
-    await refetch()
-  }
 }
 
 async function toggleParameterValid(parameterPk: number, valid: boolean) {
@@ -166,7 +171,7 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
 <template>
   <div v-if="dataset" class="flex gap-4 items-start">
     <aside
-      v-if="dataset.related_datasets.length || dataset.related_by_method.length"
+      v-if="dataset.related_datasets.length || dataset.related_by_category.length"
       class="hidden xl:block w-52 shrink-0 aots-panel-compact text-xs sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto space-y-4"
     >
       <div v-if="dataset.related_datasets.length">
@@ -185,30 +190,29 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
               class="block rounded px-1 py-0.5 hover:bg-slate-700/60"
               :class="item.is_current ? 'bg-sky-900/40 text-sky-300' : ''"
             >
-              <template v-if="item.is_current">— {{ item.method_name }} —</template>
-              <template v-else>{{ item.method_name }}</template>
+              <template v-if="item.is_current">— {{ item.category_label }} —</template>
+              <template v-else>{{ item.category_label }} · {{ item.name }}</template>
             </RouterLink>
           </li>
         </ul>
       </div>
 
-      <div v-if="dataset.related_by_method.length">
+      <div v-if="dataset.related_by_category.length">
         <h3
-          v-if="method"
           class="text-slate-400 mb-1"
-          :title="'Other stars with same dataset type'"
+          :title="'Other datasets in the same category'"
         >
-          {{ method.name }}
+          {{ dataset.category_label }}
         </h3>
         <ul class="space-y-0.5">
-          <li v-for="item in dataset.related_by_method" :key="`method-${item.pk}`">
+          <li v-for="item in dataset.related_by_category" :key="`category-${item.pk}`">
             <RouterLink
               :to="`/w/${projectSlug}/analysis/datasets/${item.pk}/`"
               class="block rounded px-1 py-0.5 hover:bg-slate-700/60"
               :class="item.is_current ? 'bg-sky-900/40 text-sky-300' : ''"
             >
               <template v-if="item.is_current">— {{ item.star_name }} —</template>
-              <template v-else>{{ item.star_name }}</template>
+              <template v-else>{{ item.star_name }} · {{ item.name }}</template>
             </RouterLink>
           </li>
         </ul>
@@ -221,17 +225,15 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
           v-if="auth.isAuthenticated"
           type="button"
           class="absolute top-1 right-1 p-1 text-slate-300 hover:text-sky-400"
-          title="Edit name"
-          @click="openNameEdit"
+          title="Edit dataset"
+          @click="openDetailsEdit"
         >
           <Pencil class="w-4 h-4" />
         </button>
 
-        <h1 class="text-lg font-semibold m-0 w-full xl:w-auto">{{ pageTitle }}</h1>
-
-        <div class="w-full text-base font-medium text-slate-100">
-          {{ dataset.name }}
-        </div>
+        <h1 class="text-lg font-semibold m-0 w-full xl:w-auto">
+          {{ pageTitle }}<span v-if="dataset.name" class="font-medium text-slate-300"> ({{ dataset.name }})</span>
+        </h1>
 
         <div v-if="star" class="flex items-center gap-1.5">
           <Star class="w-4 h-4 text-amber-400 shrink-0" />
@@ -243,9 +245,17 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
           </RouterLink>
         </div>
 
-        <div v-if="method" class="flex items-center gap-1.5 text-sm">
-          <Wrench class="w-4 h-4 text-slate-400 shrink-0" />
-          <span :title="method.description">{{ method.name }}</span>
+        <div class="flex items-center gap-1.5 text-sm">
+          <span
+            class="inline-flex items-center gap-1.5"
+            :class="dataset.category === 'unknown' ? 'text-amber-300' : ''"
+          >
+            <span
+              class="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+              :style="{ backgroundColor: dataset.category_color }"
+            />
+            {{ dataset.category_label }}
+          </span>
         </div>
 
         <div v-if="dataset.reference" class="flex items-center gap-1.5 text-sm">
@@ -260,25 +270,25 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
           </a>
         </div>
 
-        <label class="flex items-center gap-2 text-sm cursor-pointer">
+        <div class="flex items-center gap-2 text-sm text-slate-300">
           <input
             type="checkbox"
-            class="accent-sky-400"
-            :checked="dataset.valid"
-            :disabled="!auth.isAuthenticated"
-            @change="toggleDatasetValid(($event.target as HTMLInputElement).checked)"
+            class="accent-sky-400 pointer-events-none"
+            :checked="dataset.fit"
+            tabindex="-1"
+            aria-hidden="true"
           />
-          <span>Valid</span>
-        </label>
+          <span>Fit</span>
+        </div>
       </div>
 
       <div class="grid gap-4 xl:grid-cols-2">
-        <section class="aots-panel-compact space-y-4 min-w-0">
-          <div v-if="plots?.fit">
-            <BokehPlot :script="plots.fit.script" :div="plots.fit.div" />
+        <section class="aots-panel-compact space-y-4 min-w-0 overflow-hidden">
+          <div v-if="plots?.fit" class="w-full max-w-full min-w-0">
+            <BokehPlot compact :script="plots.fit.script" :div="plots.fit.div" />
           </div>
-          <div v-if="plots?.oc">
-            <BokehPlot :script="plots.oc.script" :div="plots.oc.div" />
+          <div v-if="plots?.oc" class="w-full max-w-full min-w-0">
+            <BokehPlot compact :script="plots.oc.script" :div="plots.oc.div" />
           </div>
         </section>
 
@@ -356,6 +366,10 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
                   <th>Modified by</th>
                   <td>{{ dataset.modified_by }}</td>
                 </tr>
+                <tr v-if="dataset.file_type">
+                  <th>File type</th>
+                  <td>{{ dataset.file_type }}</td>
+                </tr>
               </tbody>
             </table>
           </section>
@@ -368,14 +382,16 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
           <div
             v-for="key in histPlotKeys"
             :key="key"
-            class="aots-panel-compact min-w-0"
+            class="aots-panel-compact min-w-0 overflow-hidden"
           >
-            <BokehPlot
-              v-if="plots?.[key]"
-              compact
-              :script="plots[key].script"
-              :div="plots[key].div"
-            />
+            <div class="w-full max-w-full min-w-0">
+              <BokehPlot
+                v-if="plots?.[key]"
+                compact
+                :script="plots[key].script"
+                :div="plots[key].div"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -398,17 +414,36 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
     </dialog>
 
     <dialog
-      v-if="nameEdit"
+      v-if="detailsEdit"
       open
       class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
-      @click.self="nameEdit = false"
+      @click.self="detailsEdit = false"
     >
-      <div class="aots-panel w-full max-w-lg">
-        <h3 class="font-medium mb-3">Edit dataset name</h3>
-        <textarea v-model="nameText" rows="2" class="aots-field w-full font-mono text-sm" />
-        <div class="flex gap-2 mt-4">
-          <button type="button" class="aots-btn-primary" @click="saveName">Update</button>
-          <button type="button" class="aots-btn-ghost" @click="nameEdit = false">Cancel</button>
+      <div class="aots-panel w-full max-w-lg space-y-4">
+        <h3 class="font-medium">Edit dataset</h3>
+        <label class="block space-y-1">
+          <span class="text-sm text-slate-300">Name</span>
+          <textarea v-model="nameText" rows="2" class="aots-field w-full font-mono text-sm" />
+        </label>
+        <label class="block space-y-1">
+          <span class="text-sm text-slate-300">Category</span>
+          <select v-model="categoryValue" class="aots-select w-full">
+            <option
+              v-for="option in categoryOptions?.results ?? []"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input v-model="fitValue" type="checkbox" class="accent-sky-400" />
+          <span>Fit (dataset contains fit results)</span>
+        </label>
+        <div class="flex gap-2">
+          <button type="button" class="aots-btn-primary" @click="saveDetails">Update</button>
+          <button type="button" class="aots-btn-ghost" @click="detailsEdit = false">Cancel</button>
         </div>
       </div>
     </dialog>

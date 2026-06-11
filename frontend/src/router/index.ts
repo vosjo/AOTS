@@ -75,15 +75,21 @@ const router = createRouter({
       meta: { requiresProject: true },
     },
     {
-      path: '/w/:projectSlug/observations/spectra/',
-      name: 'spectra',
-      component: () => import('@/views/SpectraListView.vue'),
+      path: '/w/:projectSlug/observations/spectra/raw/',
+      name: 'spectra-raw',
+      component: () => import('@/views/RawspecfileListView.vue'),
       meta: { requiresProject: true },
     },
     {
-      path: '/w/:projectSlug/observations/spectra/:id/',
-      name: 'spectrum-detail',
-      component: () => import('@/views/SpectrumDetailView.vue'),
+      path: '/w/:projectSlug/observations/spectra/files/',
+      name: 'spectra-files',
+      component: () => import('@/views/SpecfileListView.vue'),
+      meta: { requiresProject: true },
+    },
+    {
+      path: '/w/:projectSlug/observations/spectra/',
+      name: 'spectra',
+      component: () => import('@/views/SpectraListView.vue'),
       meta: { requiresProject: true },
     },
     {
@@ -93,16 +99,18 @@ const router = createRouter({
       meta: { requiresProject: true, requiresAuth: true },
     },
     {
-      path: '/w/:projectSlug/observations/specfiles/',
-      name: 'specfiles',
-      component: () => import('@/views/SpecfileListView.vue'),
+      path: '/w/:projectSlug/observations/spectra/:id/',
+      name: 'spectrum-detail',
+      component: () => import('@/views/SpectrumDetailView.vue'),
       meta: { requiresProject: true },
     },
     {
+      path: '/w/:projectSlug/observations/specfiles/',
+      redirect: (to) => `/w/${to.params.projectSlug}/observations/spectra/files/`,
+    },
+    {
       path: '/w/:projectSlug/observations/rawspecfiles/',
-      name: 'rawspecfiles',
-      component: () => import('@/views/RawspecfileListView.vue'),
-      meta: { requiresProject: true },
+      redirect: (to) => `/w/${to.params.projectSlug}/observations/spectra/raw/`,
     },
     {
       path: '/w/:projectSlug/observations/lightcurves/',

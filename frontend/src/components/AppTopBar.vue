@@ -31,8 +31,6 @@ const nav = computed(() => {
     { to: `${base}/systems/stars/`, label: 'Stars', icon: Star },
     { to: `${base}/systems/tags/`, label: 'Tags', icon: Star },
     { to: `${base}/observations/spectra/`, label: 'Spectra', icon: Binoculars },
-    { to: `${base}/observations/specfiles/`, label: 'Specfiles', icon: Binoculars },
-    { to: `${base}/observations/rawspecfiles/`, label: 'Raw', icon: Binoculars },
     { to: `${base}/observations/lightcurves/`, label: 'Light curves', icon: Binoculars },
     { to: `${base}/observations/observatories/`, label: 'Observatories', icon: Binoculars },
     { to: `${base}/analysis/datasets/`, label: 'Datasets', icon: FlaskConical },

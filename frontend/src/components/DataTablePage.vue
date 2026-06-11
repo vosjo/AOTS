@@ -3,7 +3,8 @@ import { computed } from 'vue'
 import type { ListColumn } from '@/composables/useDataTablePage'
 
 const props = defineProps<{
-  title: string
+  title?: string
+  hideTitle?: boolean
   columns: ListColumn<T>[]
   rows: T[]
   count: number
@@ -11,13 +12,17 @@ const props = defineProps<{
   pageSize: number
   loading?: boolean
   selected: Set<number>
+  selectable?: boolean
 }>()
+
+const selectable = computed(() => props.selectable !== false)
+const colSpan = computed(() => props.columns.length + (selectable.value ? 1 : 0))
 
 const emit = defineEmits<{
   'update:page': [number]
   'update:pageSize': [number]
   'update:ordering': [string]
-  toggleRow: [number]
+  toggleRow: [T]
   toggleAll: []
 }>()
 
@@ -27,8 +32,9 @@ const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.page
 <template>
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <h1 class="text-2xl font-semibold text-slate-50">{{ title }}</h1>
-      <div class="flex flex-wrap gap-2">
+      <h1 v-if="!hideTitle && title" class="text-2xl font-semibold text-slate-50">{{ title }}</h1>
+      <div v-else-if="!hideTitle" class="flex-1" />
+      <div class="flex flex-wrap gap-2" :class="{ 'ml-auto': hideTitle }">
         <slot name="actions" />
       </div>
     </div>
@@ -37,21 +43,23 @@ const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.page
       <table class="aots-table">
         <thead>
           <tr>
-            <th class="w-8"><input type="checkbox" class="accent-sky-400" @change="emit('toggleAll')" /></th>
+            <th v-if="selectable" class="w-8">
+              <input type="checkbox" class="accent-sky-400" @change="emit('toggleAll')" />
+            </th>
             <th v-for="col in columns" :key="col.id">{{ col.header }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="loading">
-            <td :colspan="columns.length + 1" class="p-4 text-center text-slate-300">Loading…</td>
+            <td :colspan="colSpan" class="p-4 text-center text-slate-300">Loading…</td>
           </tr>
           <tr v-for="row in rows" :key="row.pk">
-            <td>
+            <td v-if="selectable">
               <input
                 type="checkbox"
                 class="accent-sky-400"
                 :checked="selected.has(row.pk)"
-                @change="emit('toggleRow', row.pk)"
+                @change="emit('toggleRow', row)"
               />
             </td>
             <td v-for="col in columns" :key="col.id">

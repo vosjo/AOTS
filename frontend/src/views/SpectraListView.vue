@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
+import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
-import { useListFilters } from '@/composables/useListFilters'
+import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
@@ -18,6 +20,7 @@ interface SpectrumRow {
   airmass: number
   exptime: number
   has_raw_files: boolean
+  specfiles: { pk: number }[]
   star: { name: string; pk: number } | string
 }
 
@@ -27,7 +30,7 @@ const projectStore = useProjectStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const bulk = useBulkDownload()
 const filterOpen = ref(false)
-const { filters, clearFilters } = useListFilters(
+const { filters, clearFilters } = useSpectraSectionFilters(
   {
     target: '',
     telescope: '',
@@ -49,6 +52,7 @@ const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } 
   endpoint: '/api/observations/spectra/',
   projectSlug,
   filters,
+  spectraSectionSelection: 'spectra',
 })
 
 const rows = computed(() => query.data.value?.results ?? [])
@@ -78,9 +82,12 @@ function formatAirmass(value: number) {
 </script>
 
 <template>
-  <DataTablePage
-    title="Spectra"
-    :columns="[
+  <div class="space-y-4">
+    <SpectraSectionNav />
+
+    <DataTablePage
+      hide-title
+      :columns="[
       { id: 'hjd', header: 'HJD' },
       { id: 'star', header: 'Target' },
       { id: 'instrument', header: 'Instrument' },
@@ -101,7 +108,13 @@ function formatAirmass(value: number) {
   >
     <template #actions>
       <button class="aots-btn-secondary" @click="filterOpen = true">Filters</button>
-      <RouterLink :to="`/w/${projectSlug}/observations/spectra/upload`" class="aots-btn-secondary">Upload</RouterLink>
+      <RouterLink
+        :to="`/w/${projectSlug}/observations/spectra/upload`"
+        class="aots-btn-secondary inline-flex items-center gap-1.5"
+      >
+        <Plus class="w-4 h-4" />
+        Upload reduced spectra
+      </RouterLink>
       <template v-if="auth.isAuthenticated">
         <button
           class="aots-btn-secondary disabled:opacity-40"
@@ -168,4 +181,5 @@ function formatAirmass(value: number) {
       <option value="false">Flux calibration: no</option>
     </select>
   </ListFilterPanel>
+  </div>
 </template>

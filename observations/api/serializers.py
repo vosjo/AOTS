@@ -350,6 +350,7 @@ class SpecFileListSerializer(ModelSerializer):
     star = SerializerMethodField()
     spectrum = SerializerMethodField()
     spectrum_info = SerializerMethodField()
+    rawspecfiles = SerializerMethodField()
     added_on = SerializerMethodField()
     filename = SerializerMethodField()
 
@@ -360,6 +361,7 @@ class SpecFileListSerializer(ModelSerializer):
             'star',
             'spectrum',
             'spectrum_info',
+            'rawspecfiles',
             'hjd',
             'instrument',
             'filetype',
@@ -401,6 +403,9 @@ class SpecFileListSerializer(ModelSerializer):
             'target': target,
             'instrument': spectrum.instrument,
         }
+
+    def get_rawspecfiles(self, obj):
+        return list(obj.rawspecfile_set.values_list('pk', flat=True))
 
     def get_added_on(self, obj):
         return Time(obj.history.earliest().history_date, precision=0).iso
@@ -482,6 +487,7 @@ class SimpleSpecFileSerializer(ModelSerializer):
 
 class RawSpecFileSerializer(ModelSerializer):
     systems = SerializerMethodField()
+    spectra = SerializerMethodField()
     added_on = SerializerMethodField()
     filename = SerializerMethodField()
     added_by = SerializerMethodField()
@@ -493,6 +499,7 @@ class RawSpecFileSerializer(ModelSerializer):
             'specfile',
             'star',
             'systems',
+            'spectra',
             'hjd',
             'obs_date',
             'instrument',
@@ -529,6 +536,13 @@ class RawSpecFileSerializer(ModelSerializer):
             )
 
         return SystemDict
+
+    def get_spectra(self, obj):
+        spectrum_pks = set()
+        for sfile in obj.specfile.all():
+            if sfile.spectrum_id is not None:
+                spectrum_pks.add(sfile.spectrum_id)
+        return sorted(spectrum_pks)
 
     def get_added_on(self, obj):
         return Time(obj.history.earliest().history_date, precision=0).iso

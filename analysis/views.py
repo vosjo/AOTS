@@ -1,7 +1,7 @@
 from bokeh.embed import components
 from bokeh.resources import CDN
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, reverse
 
 from AOTS.custom_permissions import check_user_can_view_project
@@ -20,35 +20,46 @@ def dataset_list(request, project=None, **kwargs):
     if request.method == 'POST' and request.user.is_authenticated:
         upload_form = UploadAnalysisFileForm(request.POST, request.FILES)
         if upload_form.is_valid():
+            message_list = []
             files = request.FILES.getlist('datafile')
             for f in files:
-                # -- save the new specfile
                 new_dataset = DataSet(
                     datafile=f,
                     project=project,
                 )
                 new_dataset.save()
 
-                # -- now process it and add it to a system.
                 success, message = process_datasets.process_analysis_file(
                     new_dataset.id,
                 )
-                #   Add name of the file before message
                 message = str(f) + ': ' + message
 
-                if success:
-                    level = messages.SUCCESS
-                else:
-                    level = messages.ERROR
-                    #   Delete the dataset if it can't be successfully processed
+                if not success:
                     new_dataset.delete()
 
-                messages.add_message(request, level, message)
+                message_list.append([success, message])
 
-            return HttpResponseRedirect(reverse(
-                'analysis:dataset_list',
-                kwargs={'project': project.slug}
-            ))
+            return JsonResponse(
+                {'info': 'Data uploaded', 'messages': message_list},
+            )
+
+        return JsonResponse(
+            {
+                'messages': [
+                    [False, '; '.join(
+                        f'{field}: {", ".join(errors)}'
+                        for field, errors in upload_form.errors.items()
+                    ) or 'Invalid upload'],
+                ],
+            },
+            status=400,
+        )
+
+    elif request.method == 'POST' and not request.user.is_authenticated:
+        return JsonResponse(
+            {'messages': [[False, 'You need to login for that action!']]},
+            status=403,
+        )
 
     elif request.method != 'GET' and not request.user.is_authenticated:
         messages.add_message(

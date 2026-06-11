@@ -5,10 +5,11 @@ import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
+import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
 import { api } from '@/api/client'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
-import { useListFilters } from '@/composables/useListFilters'
+import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 
@@ -22,6 +23,7 @@ interface RawSpecfileRow {
   filename: string
   added_on: string
   specfile: number[]
+  spectra: number[]
   systems: Record<string, string>
 }
 
@@ -47,7 +49,7 @@ const projectSlug = computed(() => route.params.projectSlug as string)
 const bulk = useBulkDownload()
 const filterOpen = ref(false)
 
-const { filters, clearFilters } = useListFilters({
+const { filters, clearFilters } = useSpectraSectionFilters({
   systems: '',
   instrument: '',
   filename: '',
@@ -64,6 +66,7 @@ const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } 
     endpoint: '/api/observations/rawspecfiles/',
     projectSlug,
     filters,
+    spectraSectionSelection: 'rawspecfiles',
   })
 
 const rows = computed(() => query.data.value?.results ?? [])
@@ -280,6 +283,8 @@ async function updateLinkage() {
 
 <template>
   <div class="space-y-4">
+    <SpectraSectionNav />
+
     <ul v-if="uploadMessages.length && !uploadOpen" class="space-y-2">
       <li
         v-for="(msg, index) in uploadMessages"
@@ -294,7 +299,7 @@ async function updateLinkage() {
     </ul>
 
     <DataTablePage
-      title="Spectra: Raw file list"
+      hide-title
       :columns="[
         { id: 'obs_date', header: 'Observation date' },
         { id: 'instrument', header: 'Instrument' },
@@ -325,7 +330,7 @@ async function updateLinkage() {
           @click="openUploadDialog"
         >
           <Plus class="w-4 h-4" />
-          Add raw spectra
+          Upload raw spectra
         </button>
         <template v-if="auth.isAuthenticated">
           <button

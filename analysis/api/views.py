@@ -9,7 +9,12 @@ from AOTS.permissions_helpers import get_object_if_allowed
 from analysis.models import Method, DataSet, Parameter
 from analysis.tasks import process_dataset_task
 from .filter import DataSetFilter, MethodFilter, ParameterFilter
-from .serializers import MethodSerializer, DataSetListSerializer, ParameterListSerializer
+from .serializers import (
+    DataSetDetailSerializer,
+    DataSetListSerializer,
+    MethodSerializer,
+    ParameterListSerializer,
+)
 
 
 # ===============================================================
@@ -21,7 +26,9 @@ class DatasetViewSet(
     DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
-    queryset = DataSet.objects.select_related('project', 'star', 'method')
+    queryset = DataSet.objects.select_related('project', 'star', 'method').prefetch_related(
+        'parameter_set',
+    )
     serializer_class = DataSetListSerializer
     default_ordering = ('name',)
     ordering = ('name',)
@@ -30,6 +37,11 @@ class DatasetViewSet(
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = DataSetFilter
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return DataSetDetailSerializer
+        return DataSetListSerializer
 
 
 # ===============================================================

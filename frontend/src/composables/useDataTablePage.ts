@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch, type Ref } from 'vue'
 import { api, type PaginatedResponse } from '@/api/client'
+import {
+  useSpectraSectionSelection,
+  type SpectraSectionKind,
+} from '@/composables/useSpectraSectionSelection'
 import { useProjectStore } from '@/stores/project'
 
 export interface ListColumn<T> {
@@ -15,13 +19,19 @@ export interface UseDataTableOptions {
   filters?: Ref<Record<string, string | number | boolean | string[] | undefined>>
   ordering?: Ref<string>
   enabled?: Ref<boolean>
+  spectraSectionSelection?: SpectraSectionKind
 }
 
 export function useDataTablePage<T extends { pk: number }>(opts: UseDataTableOptions) {
   const projectStore = useProjectStore()
   const page = ref(1)
   const pageSize = ref(20)
-  const selected = ref(new Set<number>())
+  const sectionSelection = opts.spectraSectionSelection ? useSpectraSectionSelection() : null
+  const sectionKind = opts.spectraSectionSelection
+  const localSelected = ref(new Set<number>())
+  const selected = sectionSelection && sectionKind
+    ? computed(() => sectionSelection.getSelectedSet(sectionKind))
+    : localSelected
   const ordering = opts.ordering ?? ref('')
 
   const queryKey = computed(() => [
@@ -62,23 +72,44 @@ export function useDataTablePage<T extends { pk: number }>(opts: UseDataTableOpt
   })
 
   watch([page, pageSize, () => opts.filters?.value, ordering], () => {
-    selected.value = new Set()
+    if (!sectionSelection) localSelected.value = new Set()
   })
 
-  function toggleRow(pk: number) {
-    const next = new Set(selected.value)
+  watch(
+    () => query.data.value?.results,
+    (results) => {
+      if (sectionSelection && sectionKind && results?.length) {
+        sectionSelection.indexRows(sectionKind, results)
+      }
+    },
+    { immediate: true },
+  )
+
+  function toggleRow(pkOrRow: number | T, rows?: T[]) {
+    const pk = typeof pkOrRow === 'number' ? pkOrRow : pkOrRow.pk
+    const row = typeof pkOrRow === 'number' ? rows?.find((entry) => entry.pk === pk) : pkOrRow
+    if (sectionSelection && sectionKind) {
+      sectionSelection.toggle(sectionKind, pk, row)
+      return
+    }
+    const next = new Set(localSelected.value)
     if (next.has(pk)) next.delete(pk)
     else next.add(pk)
-    selected.value = next
+    localSelected.value = next
   }
 
   function toggleAll(rows: T[]) {
-    if (selected.value.size === rows.length) selected.value = new Set()
-    else selected.value = new Set(rows.map((r) => r.pk))
+    if (sectionSelection && sectionKind) {
+      sectionSelection.toggleAll(sectionKind, rows)
+      return
+    }
+    if (localSelected.value.size === rows.length) localSelected.value = new Set()
+    else localSelected.value = new Set(rows.map((r) => r.pk))
   }
 
   function clearSelection() {
-    selected.value = new Set()
+    if (sectionSelection) sectionSelection.clearAll()
+    else localSelected.value = new Set()
   }
 
   return { query, page, pageSize, ordering, selected, toggleRow, toggleAll, clearSelection }

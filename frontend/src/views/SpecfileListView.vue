@@ -3,8 +3,9 @@ import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
+import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
 import { useDataTablePage } from '@/composables/useDataTablePage'
-import { useListFilters } from '@/composables/useListFilters'
+import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters'
 
 interface SpectrumInfo {
   pk: number
@@ -23,12 +24,13 @@ interface SpecfileRow {
   star: Record<string, string> | string
   spectrum: string
   spectrum_info: SpectrumInfo | null
+  rawspecfiles: number[]
 }
 
 const route = useRoute()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const filterOpen = ref(false)
-const { filters, clearFilters } = useListFilters({
+const { filters, clearFilters } = useSpectraSectionFilters({
   target: '',
   instrument: '',
   filename: '',
@@ -41,6 +43,7 @@ const { query, page, pageSize, selected, toggleRow, toggleAll } = useDataTablePa
   endpoint: '/api/observations/specfiles/',
   projectSlug,
   filters,
+  spectraSectionSelection: 'specfiles',
 })
 const rows = computed(() => query.data.value?.results ?? [])
 
@@ -75,9 +78,12 @@ function spectrumLabel(info: SpectrumInfo) {
 </script>
 
 <template>
-  <DataTablePage
-    title="Specfiles"
-    :columns="[
+  <div class="space-y-4">
+    <SpectraSectionNav />
+
+    <DataTablePage
+      hide-title
+      :columns="[
       { id: 'hjd', header: 'HJD' },
       { id: 'instrument', header: 'Instrument' },
       { id: 'filetype', header: 'Filetype' },
@@ -153,4 +159,5 @@ function spectrumLabel(info: SpectrumInfo) {
       <input v-model="filters.hjd_max" placeholder="HJD max" class="aots-field-sm" />
     </div>
   </ListFilterPanel>
+  </div>
 </template>

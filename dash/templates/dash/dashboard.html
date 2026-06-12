@@ -56,14 +56,14 @@
                 {% endif %}
             </div>
             <div class="dash-square dash-upper-left dash-aly">
-                <a onclick="location.href='../../analysis/datasets'">
+                <a onclick="location.href='../../analysis/analyses'">
                     <span class="divlink">
                     </span>
                 </a>
-                <span class="dash-stats-title">Datasets</span>
-                <b class="counter">{{ stats.naly }}</b>
+                <span class="dash-stats-title">Analyses</span>
+                <b class="counter">{{ stats.nanalyses }}</b>
                 {% if stats.nlclw != 0 %}
-                    <span style="color: #228B22"> + <b>{{ stats.nalylw }}</b> last week</span>
+                    <span style="color: #228B22"> + <b>{{ stats.nanalyseslw }}</b> last week</span>
                 {% endif %}
             </div>
             <div class="dash-project-sky-preview-wrapper">
@@ -83,7 +83,7 @@
                 <button class="dash-button bottom-button left-button" onclick="location.href='../../observations/lightcurves'" type="button">
                     <i class="icon material-icons dash-icon">flare</i> Lightcurves
                 </button>
-                <button class="dash-button bottom-button right-button" onclick="location.href='../../analysis/datasets'" type="button">
+                <button class="dash-button bottom-button right-button" onclick="location.href='../../analysis/analyses'" type="button">
                     <i class="icon material-icons dash-icon">bar_chart</i> Analysis
                 </button>
             </div>
@@ -142,8 +142,8 @@
                                     {% if event.created %} created{% else %} modified {% endif %}</b><br>
                                 by<b class="dash-changelog-field-name">
                                 {% if event.user == 'unknown' %}unknown{% else %}<a href={% url 'users:foreigners_page' event.user.pk %}>{{ event.user.username }}</a>{% endif %}</b>, {{ event.date }}
-                            {% elif event.modeltype == "DataSet" and event.instance.star is not None %}
-                                <b class="dash-changelog-field-title"> A dataset for
+                            {% elif event.modeltype == "Analysis" and event.instance.star is not None %}
+                                <b class="dash-changelog-field-title"> An analysis for
                                     <a href={% url 'systems:star_detail' project.slug event.instance.star.pk %}>{{ event.instance.star.name }}</a> was
                                     {% if event.created %} created{% else %} modified {% endif %}</b><br>
                                 by<b class="dash-changelog-field-name">

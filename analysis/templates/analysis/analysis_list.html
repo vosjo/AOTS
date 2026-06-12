@@ -5,12 +5,12 @@
 
     {% include "datatables.html" %}
     <script type="text/javascript" src="{% static 'js/bulk_download.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/dataset_list.js' %}"></script>
-    <title>Analysis: Datasets</title>
+    <script type="text/javascript" src="{% static 'js/analysis_list.js' %}"></script>
+    <title>Analysis: Analyses</title>
 
 {% endblock %}
 
-{% block headertitle %} Datasets {% endblock %}
+{% block headertitle %} Analyses {% endblock %}
 
 {% block content %}
 
@@ -21,7 +21,7 @@
     <div id="filter-dashboard">
 
         <form method="get" action="/analysis/" class="table-filter" id="filter-form">
-            <h3 class="center"> Filter Datasets</h3>
+            <h3 class="center"> Filter Analyses</h3>
 
             <div class="table-filter-item">
                 <p class="filter-label">System:</p>
@@ -55,7 +55,7 @@
 
     <section>
         <!--    <h3> All uploaded data sets </h3> -->
-        <table id="datasettable" class="fullwidth">
+        <table id="analysistable" class="fullwidth">
             <thead>
             <tr>
                 {% if user.is_authenticated %}
@@ -86,14 +86,14 @@
 
     </section>
 
-    <div id="addDataset">
+    <div id="addAnalysis">
         <div id='bulk-add' class='bulk-system-upload'>
             <fieldset>
-                <legend>Add Dataset(s)</legend>
+                <legend>Add Analysis(es)</legend>
                 <div class="ui-controlgroup-horizontal">
 
-                    <form action="{% url "analysis:dataset_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload" id="dataset-upload-form">
-                        <h3> Upload new Dataset </h3>
+                    <form action="{% url "analysis:analysis_list" project.slug %}" method="post" enctype="multipart/form-data" class="upload" id="analysis-upload-form">
+                        <h3> Upload new Analysis </h3>
                         {% if user.is_authenticated %}
                             {% csrf_token %}
                             {% if upload_form.non_field_errors %}

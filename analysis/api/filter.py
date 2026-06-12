@@ -1,11 +1,11 @@
 from django_filters import rest_framework as filters
 
-from analysis.categories import CATEGORY_META, DatasetCategory
-from analysis.models import DataSet, Parameter
+from analysis.categories import CATEGORY_META, AnalysisCategory
+from analysis.models import Analysis, Parameter
 from stars.models import Project
 
 
-class DataSetFilter(filters.FilterSet):
+class AnalysisFilter(filters.FilterSet):
     system = filters.CharFilter(
         field_name="star",
         method="star_name_icontains",
@@ -29,10 +29,10 @@ class DataSetFilter(filters.FilterSet):
         ]
         if codes:
             return queryset.filter(category__in=codes)
-        return queryset.filter(category=DatasetCategory.UNKNOWN)
+        return queryset.filter(category=AnalysisCategory.UNKNOWN)
 
     class Meta:
-        model = DataSet
+        model = Analysis
         fields = ['project', ]
 
 

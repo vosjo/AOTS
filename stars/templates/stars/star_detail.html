@@ -591,13 +591,13 @@
 
     </section>
 
-    {% for figure, dataset in datasets %}
+    {% for figure, analysis in analyses %}
 
-        <section class='data-section' id="dataset-{{ dataset.pk }}">
+        <section class='data-section' id="analysis-{{ analysis.pk }}">
 
             <h3>
-                <a href={% url 'analysis:dataset_detail' project.slug dataset.pk %}>{{ dataset.get_category_display }} — {{ dataset.name }}</a>
-                {% if dataset.fit %}
+                <a href={% url 'analysis:analysis_detail' project.slug analysis.pk %}>{{ analysis.get_category_display }} — {{ analysis.name }}</a>
+                {% if analysis.fit %}
                     (<i class="material-icons status-icon valid bold" title='Fit'></i>)
                 {% else %}
                     (<i class="material-icons status-icon invalid bold" title='No fit'></i>)
@@ -607,7 +607,7 @@
             <div class="flex-data-container j-center">
 
                 <div class="block w600">
-                    <h3 class="center"> {{ dataset.name }} </h3>
+                    <h3 class="center"> {{ analysis.name }} </h3>
                     {{ figure|safe }}
                 </div>
 
@@ -622,13 +622,13 @@
                         </tr>
                         </thead>
                         <tbody class='mono'>
-                        {% for p in dataset.get_system_parameters %}
+                        {% for p in analysis.get_system_parameters %}
                             <tr>
                                 <th>{{ p.0 }} ({{ p.1 }})</th>
                                 <td colspan=2> {{ p.2|safe }} </td>
                             </tr>
                         {% endfor %}
-                        {% for p in dataset.get_component_parameters %}
+                        {% for p in analysis.get_component_parameters %}
                             <tr>
                                 <th>{{ p.0 }} ({{ p.1 }})</th>
                                 <td> {{ p.2|safe }} </td>
@@ -638,7 +638,7 @@
                         </tbody>
                     </table>
                     <h3 class="center"> Description </h3>
-                    <div>{{ dataset.note|linebreaks }}</div>
+                    <div>{{ analysis.note|linebreaks }}</div>
                 </div>
             </div>
             <hr>

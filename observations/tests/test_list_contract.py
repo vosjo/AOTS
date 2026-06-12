@@ -15,7 +15,7 @@ LIST_ENDPOINTS = [
     ('/api/observations/rawspecfiles/', ('pk', 'instrument')),
     ('/api/observations/lightcurves/', ('pk', 'hjd', 'instrument')),
     ('/api/observations/observatories/', ('pk', 'name')),
-    ('/api/analysis/datasets/', ('pk', 'name', 'category', 'category_label')),
+    ('/api/analysis/analyses/', ('pk', 'name', 'category', 'category_label')),
 ]
 
 

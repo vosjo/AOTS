@@ -511,7 +511,7 @@ def plot_error_large():
 import traceback
 
 
-def plot_dataset(datafile, category=None):
+def plot_analysis(datafile, category=None):
     """
     General plotting function for analysis
     """
@@ -523,7 +523,7 @@ def plot_dataset(datafile, category=None):
         return plot_error(600, 400)
 
 
-def plot_dataset_large(datafile, category=None):
+def plot_analysis_large(datafile, category=None):
     """
     General plotting function for analysis, makes the large version plot for
     the detail pages including extra info when hovering over a figure
@@ -536,7 +536,7 @@ def plot_dataset_large(datafile, category=None):
         return plot_error_large()
 
 
-def plot_dataset_oc(datafile, category=None):
+def plot_analysis_oc(datafile, category=None):
     try:
         return plot_generic_OC(datafile)
     except Exception as e:

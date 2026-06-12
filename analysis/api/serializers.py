@@ -3,11 +3,11 @@ from django.urls import reverse
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from analysis.categories import category_color, category_label
-from analysis.models import DataSet, Parameter
+from analysis.models import Analysis, Parameter
 from stars.api.serializers import SimpleStarSerializer
 
 
-class DataSetListSerializer(ModelSerializer):
+class AnalysisListSerializer(ModelSerializer):
     star = SerializerMethodField()
     category_label = SerializerMethodField()
     category_color = SerializerMethodField()
@@ -16,7 +16,7 @@ class DataSetListSerializer(ModelSerializer):
     added_on = SerializerMethodField()
 
     class Meta:
-        model = DataSet
+        model = Analysis
         fields = [
             'star',
             'pk',
@@ -53,15 +53,15 @@ class DataSetListSerializer(ModelSerializer):
 
     def get_href(self, obj):
         return reverse(
-            'analysis:dataset_detail',
-            kwargs={'project': obj.project.slug, 'dataset_id': obj.pk},
+            'analysis:analysis_detail',
+            kwargs={'project': obj.project.slug, 'analysis_id': obj.pk},
         )
 
     def get_file_url(self, obj):
         return obj.datafile.url
 
 
-class DatasetParameterSerializer(ModelSerializer):
+class AnalysisParameterSerializer(ModelSerializer):
     rvalue = SerializerMethodField()
     rerror = SerializerMethodField()
 
@@ -88,21 +88,21 @@ class DatasetParameterSerializer(ModelSerializer):
         return obj.rerror()
 
 
-class DataSetDetailSerializer(DataSetListSerializer):
+class AnalysisDetailSerializer(AnalysisListSerializer):
     reference_url = SerializerMethodField()
     parameters = SerializerMethodField()
-    related_datasets = SerializerMethodField()
+    related_analyses = SerializerMethodField()
     related_by_category = SerializerMethodField()
     added_by = SerializerMethodField()
     last_modified = SerializerMethodField()
     modified_by = SerializerMethodField()
 
-    class Meta(DataSetListSerializer.Meta):
-        fields = DataSetListSerializer.Meta.fields + [
+    class Meta(AnalysisListSerializer.Meta):
+        fields = AnalysisListSerializer.Meta.fields + [
             'reference',
             'reference_url',
             'parameters',
-            'related_datasets',
+            'related_analyses',
             'related_by_category',
             'added_by',
             'last_modified',
@@ -113,12 +113,12 @@ class DataSetDetailSerializer(DataSetListSerializer):
         return obj.get_reference_url()
 
     def get_parameters(self, obj):
-        return DatasetParameterSerializer(obj.parameter_set.order_by(), many=True).data
+        return AnalysisParameterSerializer(obj.parameter_set.order_by(), many=True).data
 
-    def get_related_datasets(self, obj):
+    def get_related_analyses(self, obj):
         if not obj.star_id:
             return []
-        related = DataSet.objects.filter(star_id=obj.star_id).order_by('category', 'name')
+        related = Analysis.objects.filter(star_id=obj.star_id).order_by('category', 'name')
         return [
             {
                 'pk': item.pk,
@@ -133,7 +133,7 @@ class DataSetDetailSerializer(DataSetListSerializer):
     def get_related_by_category(self, obj):
         if not obj.category:
             return []
-        related = DataSet.objects.filter(
+        related = Analysis.objects.filter(
             category=obj.category,
             project_id=obj.project_id,
         ).select_related('star').order_by('star__name', 'name')

@@ -43,7 +43,7 @@ class Parameter(models.Model):
     #   is deleted.
     star = models.ForeignKey(Star, on_delete=models.CASCADE, blank=True, null=True)
 
-    # -- a parameter can belong to a dataset or datatable, but doesn't have too.
+    # -- a parameter can belong to an analysis or external source, but doesn't have to.
     #   However, if it does belong to one, it has to be removed if the
     #   datasource is removed.
     data_source = models.ForeignKey(DataSource, on_delete=models.CASCADE, blank=True, null=True)
@@ -248,11 +248,8 @@ def average_parameter_bookkeeping(sender, **kwargs):
 
             except Parameter.DoesNotExist:
 
-                # -- first get the datasource containing the average parameters
-                try:
-                    ds = AverageDataSource.objects.get(project__exact=param.star.project)
-                except AverageDataSource.DoesNotExist:
-                    ds = AverageDataSource.objects.create(name='AVG', project=param.star.project)
+                from analysis.services.parameter_sources import get_or_create_avg_source
+                ds = get_or_create_avg_source(param.star.project)
 
                 ap = Parameter.objects.create(star=param.star,
                                               name=param.name,

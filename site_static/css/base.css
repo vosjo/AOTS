@@ -704,9 +704,9 @@ div.small-tag {
 
 /* --------------------------------------- */
 
-/* Dataset settings */
+/* Analysis badge settings */
 
-div.dataset {
+div.analysis {
     display: inline-block;
     line-height: 12px;
     font-size: 12px;
@@ -717,11 +717,11 @@ div.dataset {
     font-weight: bold;
 }
 
-.dataset a:link {
+.analysis a:link {
     color: white;
 }
 
-.dataset a:visited {
+.analysis a:visited {
     color: white;
 }
 

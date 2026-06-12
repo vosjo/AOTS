@@ -126,9 +126,9 @@ interface BokehEmbed {
   div: string
 }
 
-interface DatasetPlot {
-  dataset_id: number
-  dataset_name: string
+interface AnalysisPlot {
+  analysis_id: number
+  analysis_name: string
   category: string
   category_label: string
   added_by: string
@@ -209,15 +209,15 @@ const { data: sed, refetch: refetchSed } = useQuery({
   queryFn: () => api<BokehEmbed>(`/api/systems/stars/${starId.value}/sed/`),
 })
 
-const { data: datasetPlots } = useQuery({
-  queryKey: computed(() => ['star-dataset-plots', starId.value]),
+const { data: analysisPlots } = useQuery({
+  queryKey: computed(() => ['star-analysis-plots', starId.value]),
   queryFn: () =>
-    api<{ plots: DatasetPlot[] }>(`/api/systems/stars/${starId.value}/dataset-plots/`),
+    api<{ plots: AnalysisPlot[] }>(`/api/systems/stars/${starId.value}/analysis-plots/`),
 })
 
-const groupedDatasetPlots = computed(() => {
-  const groups = new Map<string, DatasetPlot[]>()
-  for (const plot of datasetPlots.value?.plots ?? []) {
+const groupedAnalysisPlots = computed(() => {
+  const groups = new Map<string, AnalysisPlot[]>()
+  for (const plot of analysisPlots.value?.plots ?? []) {
     const key = plot.category_label || plot.category
     const list = groups.get(key) ?? []
     list.push(plot)
@@ -969,19 +969,19 @@ watch(editableParams, (data) => {
       </section>
 
       <section
-        v-for="group in groupedDatasetPlots"
+        v-for="group in groupedAnalysisPlots"
         :key="group.label"
         class="space-y-3"
       >
         <h2 class="text-base font-medium text-slate-200">{{ group.label }}</h2>
         <article
           v-for="plot in group.plots"
-          :key="plot.dataset_id"
+          :key="plot.analysis_id"
           class="aots-panel-compact"
         >
           <h3 class="text-sm font-medium mb-2 flex items-center gap-2 flex-wrap">
-            <RouterLink :to="`/w/${projectSlug}/analysis/datasets/${plot.dataset_id}/`">
-              {{ plot.dataset_name }}
+            <RouterLink :to="`/w/${projectSlug}/analysis/analyses/${plot.analysis_id}/`">
+              {{ plot.analysis_name }}
             </RouterLink>
             <CheckCircle2 v-if="plot.fit" class="w-4 h-4 text-emerald-400" title="Fit" />
             <XCircle v-else class="w-4 h-4 text-red-400" title="No fit" />
@@ -1003,11 +1003,11 @@ watch(editableParams, (data) => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="p in plot.parameters.system" :key="`ds-${plot.dataset_id}-sys-${p.name}`">
+                  <tr v-for="p in plot.parameters.system" :key="`ds-${plot.analysis_id}-sys-${p.name}`">
                     <th>{{ p.name }} ({{ p.unit }})</th>
                     <td :colspan="plot.parameters.component.length ? 2 : 1">{{ p.value }}</td>
                   </tr>
-                  <tr v-for="p in plot.parameters.component" :key="`ds-${plot.dataset_id}-cmp-${p.name}`">
+                  <tr v-for="p in plot.parameters.component" :key="`ds-${plot.analysis_id}-cmp-${p.name}`">
                     <th>{{ p.name }} ({{ p.unit }})</th>
                     <td>{{ p.primary }}</td>
                     <td>{{ p.secondary }}</td>

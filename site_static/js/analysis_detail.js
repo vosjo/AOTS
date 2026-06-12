@@ -37,9 +37,9 @@ function openNoteEditBox() {
 
 function updateNote() {
     let user_name = $("#user-name").val();
-    var dataset_id = $('#noteEditButton').attr('dataset_id');
+    var analysis_id = $('#noteEditButton').attr('analysis_id');
     $.ajax({
-        url: "/api/analysis/datasets/" + dataset_id + '/',
+        url: "/api/analysis/analyses/" + analysis_id + '/',
         type: "PATCH",
         data: {
             note: $("#edit-note").val().trim(),
@@ -60,7 +60,7 @@ function updateNote() {
 
 function openNameEditBox() {
     edit_name_window = $("#nameEdit").dialog({
-        title: "Edit Dataset Name",
+        title: "Edit Analysis Name",
         buttons: {"Update": updateName},
         close: function () {
             edit_name_window.dialog("close");
@@ -72,9 +72,9 @@ function openNameEditBox() {
 };
 
 function updateName() {
-    var dataset_id = $('#nameEditButton').attr('dataset_id');
+    var analysis_id = $('#nameEditButton').attr('analysis_id');
     $.ajax({
-        url: "/api/analysis/datasets/" + dataset_id + '/',
+        url: "/api/analysis/analyses/" + analysis_id + '/',
         type: "PATCH",
         data: {
             name: $("#edit-name").val().trim(),
@@ -118,16 +118,16 @@ function updateParameterValid(parameter_id, valid) {
     });
 }
 
-function toggleDatasetFit(cb) {
-    var dataset_id = cb.getAttribute('dataset_id');
+function toggleAnalysisFit(cb) {
+    var analysis_id = cb.getAttribute('analysis_id');
     var fit = cb.checked
 
-    updateDatasetFit(dataset_id, fit)
+    updateAnalysisFit(analysis_id, fit)
 };
 
-function updateDatasetFit(dataset_id, fit) {
+function updateAnalysisFit(analysis_id, fit) {
     $.ajax({
-        url: "/api/analysis/datasets/" + dataset_id + '/',
+        url: "/api/analysis/analyses/" + analysis_id + '/',
         type: "PATCH",
         data: {
             fit: fit,
@@ -140,7 +140,7 @@ function updateDatasetFit(dataset_id, fit) {
 
         error: function (xhr, errmsg, err) {
             console.log(xhr.status + ": " + xhr.responseText);
-            $('#dataset-fit-' + dataset_id).checked = !fit
+            $('#analysis-fit-' + analysis_id).checked = !fit
         }
     });
 };

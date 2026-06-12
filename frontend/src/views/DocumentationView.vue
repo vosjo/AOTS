@@ -3,7 +3,7 @@
     <h1>Documentation</h1>
     <p>
       The Archive of Observations and Time Series (AOTS) stores stellar spectra,
-      light curves, and analysis datasets for collaborative research projects.
+      light curves, and analyses for collaborative research projects.
     </p>
     <h2>API</h2>
     <p>

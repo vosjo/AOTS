@@ -18,7 +18,7 @@ interface CategoryOption {
   color: string
 }
 
-interface DatasetParameter {
+interface AnalysisParameter {
   pk: number
   cname: string
   unit: string
@@ -27,7 +27,7 @@ interface DatasetParameter {
   valid: boolean
 }
 
-interface RelatedDataset {
+interface RelatedAnalysis {
   pk: number
   name: string
   category_label: string
@@ -41,7 +41,7 @@ interface RelatedByCategory {
   is_current: boolean
 }
 
-interface DatasetDetail {
+interface AnalysisDetail {
   pk: number
   name: string
   note: string
@@ -58,8 +58,8 @@ interface DatasetDetail {
   category_color: string
   category_source: string
   file_type: string
-  parameters: DatasetParameter[]
-  related_datasets: RelatedDataset[]
+  parameters: AnalysisParameter[]
+  related_analyses: RelatedAnalysis[]
   related_by_category: RelatedByCategory[]
 }
 
@@ -80,30 +80,30 @@ const nameText = ref('')
 const categoryValue = ref('')
 const fitValue = ref(true)
 
-const { data: dataset, refetch } = useQuery({
-  queryKey: computed(() => ['dataset', pk.value]),
-  queryFn: () => api<DatasetDetail>(`/api/analysis/datasets/${pk.value}/`),
+const { data: analysis, refetch } = useQuery({
+  queryKey: computed(() => ['analysis', pk.value]),
+  queryFn: () => api<AnalysisDetail>(`/api/analysis/analyses/${pk.value}/`),
 })
 
 const { data: plots } = useQuery({
-  queryKey: computed(() => ['dataset-plots', pk.value]),
-  queryFn: () => api<Record<string, BokehEmbed>>(`/api/analysis/datasets/${pk.value}/plots/`),
+  queryKey: computed(() => ['analysis-plots', pk.value]),
+  queryFn: () => api<Record<string, BokehEmbed>>(`/api/analysis/analyses/${pk.value}/plots/`),
 })
 
 const { data: categoryOptions } = useQuery({
-  queryKey: ['dataset-categories'],
+  queryKey: ['analysis-categories'],
   queryFn: () => api<{ results: CategoryOption[] }>('/api/analysis/categories/'),
 })
 
 const star = computed(() => {
-  const value = dataset.value?.star
+  const value = analysis.value?.star
   return value && 'pk' in value && value.pk ? (value as StarRef) : null
 })
 
 const pageTitle = computed(() => {
-  if (!dataset.value) return 'Dataset'
+  if (!analysis.value) return 'Analysis'
   const starName = star.value?.name ?? '—'
-  const categoryName = dataset.value.category_label ?? '—'
+  const categoryName = analysis.value.category_label ?? '—'
   return `${starName} — ${categoryName}`
 })
 
@@ -112,7 +112,7 @@ const histPlotKeys = computed(() => {
   return Object.keys(plots.value).filter((key) => key !== 'fit' && key !== 'oc')
 })
 
-watch(dataset, (value) => {
+watch(analysis, (value) => {
   if (!value) return
   noteText.value = value.note || ''
   nameText.value = value.name || ''
@@ -121,19 +121,19 @@ watch(dataset, (value) => {
 }, { immediate: true })
 
 function openNoteEdit() {
-  noteText.value = dataset.value?.note || ''
+  noteText.value = analysis.value?.note || ''
   noteEdit.value = true
 }
 
 function openDetailsEdit() {
-  nameText.value = dataset.value?.name || ''
-  categoryValue.value = dataset.value?.category || ''
-  fitValue.value = dataset.value?.fit ?? true
+  nameText.value = analysis.value?.name || ''
+  categoryValue.value = analysis.value?.category || ''
+  fitValue.value = analysis.value?.fit ?? true
   detailsEdit.value = true
 }
 
 async function saveNote() {
-  await api(`/api/analysis/datasets/${pk.value}/`, {
+  await api(`/api/analysis/analyses/${pk.value}/`, {
     method: 'PATCH',
     body: { note: noteText.value.trim() },
   })
@@ -142,7 +142,7 @@ async function saveNote() {
 }
 
 async function saveDetails() {
-  await api(`/api/analysis/datasets/${pk.value}/`, {
+  await api(`/api/analysis/analyses/${pk.value}/`, {
     method: 'PATCH',
     body: {
       name: nameText.value.trim(),
@@ -169,24 +169,24 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
 </script>
 
 <template>
-  <div v-if="dataset" class="flex gap-4 items-start">
+  <div v-if="analysis" class="flex gap-4 items-start">
     <aside
-      v-if="dataset.related_datasets.length || dataset.related_by_category.length"
+      v-if="analysis.related_analyses.length || analysis.related_by_category.length"
       class="hidden xl:block w-52 shrink-0 aots-panel-compact text-xs sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto space-y-4"
     >
-      <div v-if="dataset.related_datasets.length">
-        <h2 class="font-medium text-sm mb-2">Related datasets</h2>
+      <div v-if="analysis.related_analyses.length">
+        <h2 class="font-medium text-sm mb-2">Related analyses</h2>
         <h3
           v-if="star"
           class="text-slate-400 mb-1"
-          :title="'Other datasets for the same star'"
+          :title="'Other analyses for the same star'"
         >
           {{ star.name }}
         </h3>
         <ul class="space-y-0.5">
-          <li v-for="item in dataset.related_datasets" :key="item.pk">
+          <li v-for="item in analysis.related_analyses" :key="item.pk">
             <RouterLink
-              :to="`/w/${projectSlug}/analysis/datasets/${item.pk}/`"
+              :to="`/w/${projectSlug}/analysis/analyses/${item.pk}/`"
               class="block rounded px-1 py-0.5 hover:bg-slate-700/60"
               :class="item.is_current ? 'bg-sky-900/40 text-sky-300' : ''"
             >
@@ -197,17 +197,17 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
         </ul>
       </div>
 
-      <div v-if="dataset.related_by_category.length">
+      <div v-if="analysis.related_by_category.length">
         <h3
           class="text-slate-400 mb-1"
-          :title="'Other datasets in the same category'"
+          :title="'Other analyses in the same category'"
         >
-          {{ dataset.category_label }}
+          {{ analysis.category_label }}
         </h3>
         <ul class="space-y-0.5">
-          <li v-for="item in dataset.related_by_category" :key="`category-${item.pk}`">
+          <li v-for="item in analysis.related_by_category" :key="`category-${item.pk}`">
             <RouterLink
-              :to="`/w/${projectSlug}/analysis/datasets/${item.pk}/`"
+              :to="`/w/${projectSlug}/analysis/analyses/${item.pk}/`"
               class="block rounded px-1 py-0.5 hover:bg-slate-700/60"
               :class="item.is_current ? 'bg-sky-900/40 text-sky-300' : ''"
             >
@@ -225,14 +225,14 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
           v-if="auth.isAuthenticated"
           type="button"
           class="absolute top-1 right-1 p-1 text-slate-300 hover:text-sky-400"
-          title="Edit dataset"
+          title="Edit analysis"
           @click="openDetailsEdit"
         >
           <Pencil class="w-4 h-4" />
         </button>
 
         <h1 class="text-lg font-semibold m-0 w-full xl:w-auto">
-          {{ pageTitle }}<span v-if="dataset.name" class="font-medium text-slate-300"> ({{ dataset.name }})</span>
+          {{ pageTitle }}<span v-if="analysis.name" class="font-medium text-slate-300"> ({{ analysis.name }})</span>
         </h1>
 
         <div v-if="star" class="flex items-center gap-1.5">
@@ -248,25 +248,25 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
         <div class="flex items-center gap-1.5 text-sm">
           <span
             class="inline-flex items-center gap-1.5"
-            :class="dataset.category === 'unknown' ? 'text-amber-300' : ''"
+            :class="analysis.category === 'unknown' ? 'text-amber-300' : ''"
           >
             <span
               class="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-              :style="{ backgroundColor: dataset.category_color }"
+              :style="{ backgroundColor: analysis.category_color }"
             />
-            {{ dataset.category_label }}
+            {{ analysis.category_label }}
           </span>
         </div>
 
-        <div v-if="dataset.reference" class="flex items-center gap-1.5 text-sm">
+        <div v-if="analysis.reference" class="flex items-center gap-1.5 text-sm">
           <BookOpen class="w-4 h-4 text-slate-400 shrink-0" />
           <a
-            :href="dataset.reference_url"
+            :href="analysis.reference_url"
             target="_blank"
             rel="noopener noreferrer"
             class="text-sky-400 hover:text-sky-300"
           >
-            {{ dataset.reference }}
+            {{ analysis.reference }}
           </a>
         </div>
 
@@ -274,7 +274,7 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
           <input
             type="checkbox"
             class="accent-sky-400 pointer-events-none"
-            :checked="dataset.fit"
+            :checked="analysis.fit"
             tabindex="-1"
             aria-hidden="true"
           />
@@ -306,10 +306,10 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
                   </tr>
                 </thead>
                 <tbody class="font-mono">
-                  <tr v-if="!dataset.parameters.length">
+                  <tr v-if="!analysis.parameters.length">
                     <td colspan="4" class="text-slate-400">No data available</td>
                   </tr>
-                  <tr v-for="param in dataset.parameters" :key="param.pk">
+                  <tr v-for="param in analysis.parameters" :key="param.pk">
                     <th class="font-normal text-slate-200">
                       {{ param.cname }} ({{ param.unit }})
                     </th>
@@ -342,7 +342,7 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
               <Pencil class="w-4 h-4" />
             </button>
             <div class="text-sm text-slate-200 whitespace-pre-wrap pr-8">
-              {{ dataset.note || '—' }}
+              {{ analysis.note || '—' }}
             </div>
           </section>
 
@@ -352,23 +352,23 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
               <tbody>
                 <tr>
                   <th>Added by</th>
-                  <td>{{ dataset.added_by }}</td>
+                  <td>{{ analysis.added_by }}</td>
                 </tr>
                 <tr>
                   <th>Added on</th>
-                  <td>{{ dataset.added_on }}</td>
+                  <td>{{ analysis.added_on }}</td>
                 </tr>
                 <tr>
                   <th>Last modified</th>
-                  <td>{{ dataset.last_modified }}</td>
+                  <td>{{ analysis.last_modified }}</td>
                 </tr>
                 <tr>
                   <th>Modified by</th>
-                  <td>{{ dataset.modified_by }}</td>
+                  <td>{{ analysis.modified_by }}</td>
                 </tr>
-                <tr v-if="dataset.file_type">
+                <tr v-if="analysis.file_type">
                   <th>File type</th>
-                  <td>{{ dataset.file_type }}</td>
+                  <td>{{ analysis.file_type }}</td>
                 </tr>
               </tbody>
             </table>
@@ -420,7 +420,7 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
       @click.self="detailsEdit = false"
     >
       <div class="aots-panel w-full max-w-lg space-y-4">
-        <h3 class="font-medium">Edit dataset</h3>
+        <h3 class="font-medium">Edit analysis</h3>
         <label class="block space-y-1">
           <span class="text-sm text-slate-300">Name</span>
           <textarea v-model="nameText" rows="2" class="aots-field w-full font-mono text-sm" />
@@ -439,7 +439,7 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
         </label>
         <label class="flex items-center gap-2 text-sm cursor-pointer">
           <input v-model="fitValue" type="checkbox" class="accent-sky-400" />
-          <span>Fit (dataset contains fit results)</span>
+          <span>Fit (analysis contains fit results)</span>
         </label>
         <div class="flex gap-2">
           <button type="button" class="aots-btn-primary" @click="saveDetails">Update</button>

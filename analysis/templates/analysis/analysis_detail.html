@@ -5,13 +5,13 @@
 {% block head %}
 
     {% include "bokeh.html" %}
-    <script type="text/javascript" src="{% static 'js/dataset_detail.js' %}"></script>
-    <title>Dataset: {{ dataset.star.name }} - {{ dataset.get_category_display }}</title>
+    <script type="text/javascript" src="{% static 'js/analysis_detail.js' %}"></script>
+    <title>Analysis: {{ analysis.star.name }} - {{ analysis.get_category_display }}</title>
 
 {% endblock %}
 
 
-{% block headertitle %}Dataset: {{ dataset.star.name }} - {{ dataset.get_category_display }} {% endblock %}
+{% block headertitle %}Analysis: {{ analysis.star.name }} - {{ analysis.get_category_display }} {% endblock %}
 
 
 {% block content %}
@@ -19,21 +19,21 @@
     <i display="none" id="project-pk" project={{ project.pk }}></i>
 
     <div id="sidenav">
-        <h2> Related datasets </h2>
+        <h2> Related analyses </h2>
 
-        {% if related_datasets %}
+        {% if related_analyses %}
             <div>
-                <h3 title="Other datasets for the same star"> {{ dataset.star.name }} </h2>
+                <h3 title="Other analyses for the same star"> {{ analysis.star.name }} </h2>
                     <ul>
-                        {% for d in related_datasets %}
-                            {% if d.id == dataset.id %}
+                        {% for d in related_analyses %}
+                            {% if d.id == analysis.id %}
                                 <li>
-                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %} class="active">-- {{ d.get_category_display }}
+                                    <a href={% url 'analysis:analysis_detail' project.slug d.pk %} class="active">-- {{ d.get_category_display }}
                                         --</a>
                                 </li>
                             {% else %}
                                 <li>
-                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %}>{{ d.get_category_display }} · {{ d.name }}</a>
+                                    <a href={% url 'analysis:analysis_detail' project.slug d.pk %}>{{ d.get_category_display }} · {{ d.name }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
@@ -43,17 +43,17 @@
 
         {% if related_stars %}
             <div>
-                <h3 title="Other datasets in the same category"> {{ dataset.get_category_display }} </h2>
+                <h3 title="Other analyses in the same category"> {{ analysis.get_category_display }} </h2>
                     <ul>
                         {% for d in related_stars %}
-                            {% if d.id == dataset.id %}
+                            {% if d.id == analysis.id %}
                                 <li>
-                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %} class="active">-- {{ d.star.name }}
+                                    <a href={% url 'analysis:analysis_detail' project.slug d.pk %} class="active">-- {{ d.star.name }}
                                         --</a>
                                 </li>
                             {% else %}
                                 <li>
-                                    <a href={% url 'analysis:dataset_detail' project.slug d.pk %}>{{ d.star.name }} · {{ d.name }}</a>
+                                    <a href={% url 'analysis:analysis_detail' project.slug d.pk %}>{{ d.star.name }} · {{ d.name }}</a>
                                 </li>
                             {% endif %}
                         {% endfor %}
@@ -68,32 +68,32 @@
         <div class="main-container-h border">
 
             {% if user.is_authenticated %}
-                <i id="nameEditButton" class="material-icons button edit" title="edit name" dataset_id={{ dataset.pk }}>edit</i>
+                <i id="nameEditButton" class="material-icons button edit" title="edit name" analysis_id={{ analysis.pk }}>edit</i>
             {% endif %}
 
             <div class='header-item'>
-                <h3 id="nameField"> {{ dataset.name }}</h3>
+                <h3 id="nameField"> {{ analysis.name }}</h3>
             </div>
 
             <div class='header-item'>
                 <p class="material-icons">star</p>
-                <h3><a href={% url 'systems:star_detail' project.slug dataset.star.pk %}>{{ dataset.star.name }}</a>
+                <h3><a href={% url 'systems:star_detail' project.slug analysis.star.pk %}>{{ analysis.star.name }}</a>
                 </h3>
             </div>
 
             <div class='header-item'>
                 <p class="material-icons">build</p>
-                <h3>{{ dataset.get_category_display }}</h3>
+                <h3>{{ analysis.get_category_display }}</h3>
             </div>
 
             <div class='header-item'>
                 <p class="material-icons">book</p>
-                <h3><a target="_blank" href="{{ dataset.get_reference_url }}">{{ dataset.reference }}</a></h3>
+                <h3><a target="_blank" href="{{ analysis.get_reference_url }}">{{ analysis.reference }}</a></h3>
             </div>
 
             <div class='header-item'>
-                <input type="checkbox" id="dataset-fit-{{ dataset.pk }}" {% if dataset.fit %}
-                       checked="checked" {% endif %} onchange='toggleDatasetFit(this);' dataset_id="{{ dataset.pk }}"
+                <input type="checkbox" id="analysis-fit-{{ analysis.pk }}" {% if analysis.fit %}
+                       checked="checked" {% endif %} onchange='toggleAnalysisFit(this);' analysis_id="{{ analysis.pk }}"
                         {% if not user.is_authenticated %} disabled {% endif %}>
                 <h3> Fit </h3>
             </div>
@@ -137,8 +137,8 @@
                         </tr>
                         </thead>
                         <tbody class='mono'>
-                        {% if dataset.parameter_set.all %}
-                            {% for p in dataset.parameter_set.order %}
+                        {% if analysis.parameter_set.all %}
+                            {% for p in analysis.parameter_set.order %}
                                 <tr>
                                     <th>{{ p.cname }} ({{ p.unit }})</th>
                                     <td>{{ p.rvalue }}</td>
@@ -162,10 +162,10 @@
                     <h3>Notes</h3>
                     {% if user.is_authenticated %}
                         <i id="noteEditButton" class="material-icons button edit" title="edit note"
-                           dataset_id={{ dataset.pk }}>edit</i>
+                           analysis_id={{ analysis.pk }}>edit</i>
                     {% endif %}
                     <div id="noteField">
-                        {{ dataset.note|linebreaks }}
+                        {{ analysis.note|linebreaks }}
                     </div>
                 </div>
 
@@ -174,19 +174,19 @@
                     <table class="metatable">
                         <tr>
                             <th>Added by</th>
-                            <td>{{ dataset.history.earliest.history_user.first_name }} {{ dataset.history.earliest.history_user.last_name }}</td>
+                            <td>{{ analysis.history.earliest.history_user.first_name }} {{ analysis.history.earliest.history_user.last_name }}</td>
                         </tr>
                         <tr>
                             <th>Added on</th>
-                            <td>{{ dataset.history.earliest.history_date }}</td>
+                            <td>{{ analysis.history.earliest.history_date }}</td>
                         </tr>
                         <tr>
                             <th>Last modified</th>
-                            <td>{{ dataset.history.latest.history_date }}</td>
+                            <td>{{ analysis.history.latest.history_date }}</td>
                         </tr>
                         <tr>
                             <th>Modified by</th>
-                            <td id=modified_by>{{ dataset.last.history_user.username }}</td>
+                            <td id=modified_by>{{ analysis.last.history_user.username }}</td>
                         </tr>
                     </table>
                 </div>

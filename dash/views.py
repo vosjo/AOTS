@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils.timezone import make_aware
 
 from AOTS.custom_permissions import check_user_can_view_project
-from analysis.models import DataSet
+from analysis.models import Analysis
 from observations.models import Spectrum, LightCurve
 from stars.models import Project, Star
 from .forms import HRDPlotterForm
@@ -24,7 +24,7 @@ def sort_modified_created(model):
 
 
 def get_modeltype(instance):
-    for model, modelname in zip([Star, Spectrum, LightCurve, DataSet], ["Star", "Spectrum", "LightCurve", "DataSet"]):
+    for model, modelname in zip([Star, Spectrum, LightCurve, Analysis], ["Star", "Spectrum", "LightCurve", "Analysis"]):
         if isinstance(instance, model):
             return modelname
 
@@ -78,7 +78,7 @@ def dashboard(request, project=None, **kwargs):
     all_models = []
 
     # A warning for those who come after me: Do not try to optimize this further, it can only bring you despair.
-    for mod, modname in zip([Star, Spectrum, LightCurve, DataSet], ["nstars", "nspec", "nlc", "naly"]):
+    for mod, modname in zip([Star, Spectrum, LightCurve, Analysis], ["nstars", "nspec", "nlc", "nanalyses"]):
         all_mod_objs = mod.objects.filter(project=project)
         all_mod_hists = mod.history.filter(project=project)
 

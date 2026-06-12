@@ -1,15 +1,16 @@
 from analysis.categories import CategorySource, resolve_category
-from analysis.models import DataSource, DataSet, DerivedParameter
+from analysis.models import Analysis, DerivedParameter
+from analysis.services.parameter_sources import get_or_create_avg_source
 from stars.models import Star
 from django.db.models import F, ExpressionWrapper, FloatField
-from . import read_datasets
+from . import read_analyses
 
 
 def create_parameters(analmethod, data):
     """
     Adds all parameters from the analfile
     """
-    parameters = read_datasets.get_parameters(data)
+    parameters = read_analyses.get_parameters(data)
     for name, value in parameters.items():
         if name == 't0':
             name = 't00'
@@ -28,14 +29,11 @@ def create_parameters(analmethod, data):
 
 def create_derived_parameters(analmethod):
     """
-    Adds the parameters that can be automatically derived for this dataset category.
+    Adds the parameters that can be automatically derived for this analysis category.
     """
     from analysis.categories import category_derived_parameters
 
-    try:
-        ds = DataSource.objects.get(name__exact='AVG')
-    except DataSource.DoesNotExist:
-        ds = DataSource.objects.create(name='AVG')
+    ds = get_or_create_avg_source(analmethod.project)
 
     params = category_derived_parameters(analmethod.category)
     if params.strip() == '':
@@ -62,7 +60,7 @@ def create_derived_parameters(analmethod):
 
 
 def process_analysis_file(file_id):
-    analfile = DataSet.objects.get(pk=file_id)
+    analfile = Analysis.objects.get(pk=file_id)
 
     try:
         data = analfile.get_data()
@@ -70,7 +68,7 @@ def process_analysis_file(file_id):
         return False, 'Not added, file has wrong format / file is unreadable'
 
     try:
-        systemname, ra, dec, name, note, reference, atype = read_datasets.get_basic_info(data)
+        systemname, ra, dec, name, note, reference, atype = read_analyses.get_basic_info(data)
     except Exception as e:
         print(e)
         return False, 'Not added, basic info unreadable'

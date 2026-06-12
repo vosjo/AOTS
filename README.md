@@ -411,7 +411,7 @@ Download `kind` query parameter:
 | `raw` | Raw calibration/exposure files for selected spectra | Spectrum PKs or star names |
 | `rawspecfiles` | Raw file list page | RawSpecFile PKs |
 | `lightcurves` | Light curve list page | LightCurve PKs |
-| `datasets` | Analysis dataset list page | DataSet PKs |
+| `analyses` | Analysis list page | Analysis PKs |
 
 See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for list API field contracts.
 
@@ -420,7 +420,7 @@ See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for list 
 The codebase includes **Celery** and **Redis** configuration (`AOTS/celery.py`, `CELERY_*` in
 settings). Redis is the message broker and result backend.
 
-**Bulk downloads** in the UI (spectra, raw files, light curves, datasets) always use Celery
+**Bulk downloads** in the UI (spectra, raw files, light curves, analyses) always use Celery
 (`POST /api/observations/bulk-download/start/`). Opt-in FITS/spectrum **processing** uses
 `?async=1` on process endpoints.
 

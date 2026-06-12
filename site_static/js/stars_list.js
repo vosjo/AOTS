@@ -33,7 +33,7 @@ $(document).ready(function () {
             {data: 'classification', render: classification_render, searchable: false},
             {data: 'vmag', searchable: false, orderable: false},
             {data: 'nphot', render: nobs_render, searchable: false, orderable: false},
-            {data: 'datasets', render: dataset_render, searchable: false, orderable: false},
+            {data: 'analyses', render: analysis_render, searchable: false, orderable: false},
             {data: 'tags', render: tag_render, searchable: false, orderable: false},
             {
                 data: 'observing_status', render: status_render,
@@ -468,13 +468,13 @@ function dec_render(data, type, full, meta) {
     return full['dec_dms'];
 }
 
-function dataset_render(data, type, full, meta) {
+function analysis_render(data, type, full, meta) {
     // Render the tags as a list of divs with the correct color.
     var result = ""
     var ds = data[0];
     for (i = 0; i < data.length; i++) {
         ds = data[i];
-        result += "<div class='dataset' style='background-color:" + ds.color + "' title='" + ds.name + "'>" + "<a href='" + ds.href + "'>" + ds.name.charAt(0) + "</a></div>";
+        result += "<div class='analysis' style='background-color:" + ds.color + "' title='" + ds.name + "'>" + "<a href='" + ds.href + "'>" + ds.name.charAt(0) + "</a></div>";
     }
     return result;
 }

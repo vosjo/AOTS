@@ -231,11 +231,11 @@ def star_detail(request, star_id, project=None, **kwargs):
 
     context["related_stars"] = related_stars
 
-    datasets = list(star.dataset_set.order_by('category', 'name'))
+    analyses = list(star.analysis_set.order_by('category', 'name'))
     figures = [plot_sed(star.pk)]
 
-    for dataset in datasets:
-        figures.append(dataset.make_figure())
+    for analysis in analyses:
+        figures.append(analysis.make_figure())
 
     #   TODO: Switch to Bokeh Layouts (from bokeh.layouts import column)?
     if len(figures) > 0:
@@ -249,14 +249,14 @@ def star_detail(request, star_id, project=None, **kwargs):
             script_list.append(s)
             div_list.append(d)
 
-        # The first plot is the SED plot, the rest correspond to datasets
-        datasections = []
+        # The first plot is the SED plot, the rest correspond to analyses
+        analysis_sections = []
         if len(div_list) > 1:
-            for fig_div, dataset in zip(div_list[1:], datasets):
-                datasections.append((fig_div, dataset))
+            for fig_div, analysis in zip(div_list[1:], analyses):
+                analysis_sections.append((fig_div, analysis))
 
         # Add everything to the context for the Django template
-        context["datasets"] = datasections
+        context["analyses"] = analysis_sections
         context["sed_plot"] = div_list[0] if div_list else None
         context["script"] = "\n".join(script_list)
 

@@ -8,7 +8,7 @@ from AOTS.permissions_helpers import get_object_if_allowed
 from rest_framework.exceptions import PermissionDenied
 from analysis.auxil import plot_parameters
 from analysis.forms import ParameterPlotterForm
-from analysis.models import DataSet
+from analysis.models import Analysis
 from stars.models import Project
 
 
@@ -44,12 +44,12 @@ def parameter_plotter_api(request, project_slug):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def dataset_plots_api(request, pk):
-    dataset = get_object_if_allowed(
-        DataSet, request, pk, select_related=('project', 'star'),
+def analysis_plots_api(request, pk):
+    analysis = get_object_if_allowed(
+        Analysis, request, pk, select_related=('project', 'star'),
     )
-    fit = dataset.make_large_figure()
-    oc = dataset.make_OC_figure()
-    hist = dataset.make_parameter_hist_figures()
+    fit = analysis.make_large_figure()
+    oc = analysis.make_OC_figure()
+    hist = analysis.make_parameter_hist_figures()
     all_figs = dict(hist, **{'fit': fit, 'oc': oc})
     return Response(bokeh_embed_response(all_figs))

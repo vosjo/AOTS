@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from .plots import star_dataset_plots, star_sed_plot
+from .plots import star_analysis_plots, star_sed_plot
 from .star_detail import star_detail_bootstrap, star_parameters_overview
 from .star_mutations import (
     bulk_upload_stars,
@@ -41,7 +41,7 @@ urlpatterns = [
         name='stars_specfiles',
     ),
     path('stars/<int:pk>/sed/', star_sed_plot, name='star-sed-plot'),
-    path('stars/<int:pk>/dataset-plots/', star_dataset_plots, name='star-dataset-plots'),
+    path('stars/<int:pk>/analysis-plots/', star_analysis_plots, name='star-analysis-plots'),
     path('stars/<int:pk>/detail/', star_detail_bootstrap, name='star-detail-bootstrap'),
     path(
         'stars/<int:pk>/parameters/',

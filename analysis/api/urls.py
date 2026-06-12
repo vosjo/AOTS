@@ -1,15 +1,15 @@
 from django.urls import include, re_path
 from rest_framework import routers
 
-from .plot_views import dataset_plots_api, parameter_plotter_api
+from .plot_views import analysis_plots_api, parameter_plotter_api
 from .views import (
-    ParameterViewSet, DatasetViewSet, processDataSet, dataset_categories_api,
+    ParameterViewSet, AnalysisViewSet, processAnalysis, analysis_categories_api,
 )
 
 app_name = 'analysis-api'
 
 router = routers.DefaultRouter()
-router.register(r'datasets', DatasetViewSet)
+router.register(r'analyses', AnalysisViewSet)
 router.register(r'parameters', ParameterViewSet)
 
 urlpatterns = [
@@ -19,15 +19,15 @@ urlpatterns = [
         name='parameter-plotter-api',
     ),
     re_path(
-        r'^datasets/(?P<pk>[\w-]+)/plots/$',
-        dataset_plots_api,
-        name='dataset-plots-api',
+        r'^analyses/(?P<pk>[\w-]+)/plots/$',
+        analysis_plots_api,
+        name='analysis-plots-api',
     ),
-    re_path(r'^categories/$', dataset_categories_api, name='dataset-categories-api'),
+    re_path(r'^categories/$', analysis_categories_api, name='analysis-categories-api'),
     re_path(r'^', include(router.urls)),
     re_path(
-        r'^datasets/(?P<pk>[\w-]+)/process/',
-        processDataSet,
-        name='process_dataset',
+        r'^analyses/(?P<pk>[\w-]+)/process/',
+        processAnalysis,
+        name='process_analysis',
     ),
 ]

@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
-from analysis.models import DataSet
+from analysis.models import Analysis
 from observations.models import LightCurve, RawSpecFile, Spectrum
 
 BULK_DOWNLOAD_KINDS = frozenset({
@@ -19,7 +19,7 @@ BULK_DOWNLOAD_KINDS = frozenset({
     'raw',
     'rawspecfiles',
     'lightcurves',
-    'datasets',
+    'analyses',
 })
 
 BULK_DOWNLOAD_FILENAME_PREFIX = {
@@ -27,7 +27,7 @@ BULK_DOWNLOAD_FILENAME_PREFIX = {
     'raw': 'raw_spectra',
     'rawspecfiles': 'raw_files',
     'lightcurves': 'lightcurves',
-    'datasets': 'datasets',
+    'analyses': 'analyses',
 }
 
 
@@ -133,11 +133,11 @@ def resolve_lightcurves_queryset(project, requested_ids, user):
     return get_allowed_objects_to_view_for_user(qs, user)
 
 
-def resolve_datasets_queryset(project, requested_ids, user):
+def resolve_analyses_queryset(project, requested_ids, user):
     if not requested_ids:
-        return DataSet.objects.none()
+        return Analysis.objects.none()
 
-    qs = DataSet.objects.filter(
+    qs = Analysis.objects.filter(
         project=project,
         pk__in=requested_ids,
     )
@@ -152,11 +152,11 @@ def collect_lightcurve_download_entries(lightcurve_qs):
     return entries
 
 
-def collect_dataset_download_entries(dataset_qs):
+def collect_analysis_download_entries(analysis_qs):
     entries = []
-    for dataset in dataset_qs:
-        basename = os.path.basename(dataset.datafile.name)
-        entries.append((dataset.datafile.path, basename))
+    for analysis in analysis_qs:
+        basename = os.path.basename(analysis.datafile.name)
+        entries.append((analysis.datafile.path, basename))
     return entries
 
 
@@ -167,9 +167,9 @@ def collect_download_entries(project, requested_ids, user, kind):
     if kind == 'lightcurves':
         lightcurves = resolve_lightcurves_queryset(project, requested_ids, user)
         return collect_lightcurve_download_entries(lightcurves)
-    if kind == 'datasets':
-        datasets = resolve_datasets_queryset(project, requested_ids, user)
-        return collect_dataset_download_entries(datasets)
+    if kind == 'analyses':
+        analyses = resolve_analyses_queryset(project, requested_ids, user)
+        return collect_analysis_download_entries(analyses)
 
     spectra = resolve_spectra_queryset(project, requested_ids, user)
     if kind == 'raw':

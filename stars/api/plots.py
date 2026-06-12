@@ -7,20 +7,20 @@ from rest_framework.response import Response
 from AOTS.bokeh_embed import bokeh_embed_response
 from AOTS.permissions_helpers import get_object_if_allowed
 from analysis.categories import category_label
-from analysis.models import DataSet
+from analysis.models import Analysis
 from stars.api.star_detail import _param_display
 from stars.models import Star
 from observations.plotting import plot_sed
 
 
-def _dataset_parameters(dataset):
+def _analysis_parameters(analysis):
     system = [
         {
             'name': name,
             'unit': unit,
             'value': _param_display(value),
         }
-        for name, unit, value in dataset.get_system_parameters()
+        for name, unit, value in analysis.get_system_parameters()
     ]
     component = [
         {
@@ -29,7 +29,7 @@ def _dataset_parameters(dataset):
             'primary': _param_display(primary),
             'secondary': _param_display(secondary),
         }
-        for name, unit, primary, secondary in dataset.get_component_parameters()
+        for name, unit, primary, secondary in analysis.get_component_parameters()
     ]
     return {'system': system, 'component': component}
 
@@ -50,27 +50,27 @@ def star_sed_plot(request, pk):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def star_dataset_plots(request, pk):
+def star_analysis_plots(request, pk):
     star = get_object_if_allowed(Star, request, pk, select_related=('project',))
     project = star.project
     plots = []
-    datasets = star.dataset_set.select_related('project').order_by('category', 'name')
-    for dataset in datasets:
-        earliest = dataset.history.earliest()
+    analyses = star.analysis_set.select_related('project').order_by('category', 'name')
+    for analysis in analyses:
+        earliest = analysis.history.earliest()
         plots.append({
-            'dataset_id': dataset.pk,
-            'dataset_name': dataset.name,
-            'category': dataset.category,
-            'category_label': category_label(dataset.category),
-            'fit': dataset.fit,
-            'note': dataset.note,
+            'analysis_id': analysis.pk,
+            'analysis_name': analysis.name,
+            'category': analysis.category,
+            'category_label': category_label(analysis.category),
+            'fit': analysis.fit,
+            'note': analysis.note,
             'added_by': _history_user_display(earliest.history_user),
             'added_on': Time(earliest.history_date, precision=0).iso,
-            'parameters': _dataset_parameters(dataset),
+            'parameters': _analysis_parameters(analysis),
             'detail_href': reverse(
-                'analysis:dataset_detail',
-                kwargs={'project': project.slug, 'dataset_id': dataset.pk},
+                'analysis:analysis_detail',
+                kwargs={'project': project.slug, 'analysis_id': analysis.pk},
             ),
-            'embed': bokeh_embed_response(dataset.make_figure()),
+            'embed': bokeh_embed_response(analysis.make_figure()),
         })
     return Response({'plots': plots})

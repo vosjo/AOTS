@@ -5,8 +5,8 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 
-from analysis.auxil import plot_datasets
-from analysis.categories import CategorySource, DatasetCategory, category_label
+from analysis.auxil import plot_analyses
+from analysis.categories import AnalysisCategory, CategorySource, category_label
 from stars.models import Star, Project
 from .default_values import *
 
@@ -26,8 +26,8 @@ class DataSource(models.Model):
 
     def source(self):
         try:
-            return category_label(self.dataset.category)
-        except DataSet.DoesNotExist:
+            return category_label(self.analysis.category)
+        except Analysis.DoesNotExist:
             return self.reference if self.reference != '' else self.name
 
     def get_reference_url(self):
@@ -47,20 +47,13 @@ class AverageDataSource(DataSource):
         pass
 
 
-class DataTable(DataSource):
-    datafile = models.FileField(upload_to='datatables/', null=True)
-    columnnames = models.TextField(default='')
-    xdim = models.IntegerField(default=0)
-    ydim = models.IntegerField(default=0)
-
-
-class DataSet(DataSource):
+class Analysis(DataSource):
     star = models.ForeignKey(Star, on_delete=models.CASCADE, blank=True, null=True)
 
     category = models.CharField(
         max_length=32,
-        choices=DatasetCategory.choices,
-        default=DatasetCategory.UNKNOWN,
+        choices=AnalysisCategory.choices,
+        default=AnalysisCategory.UNKNOWN,
     )
     category_source = models.CharField(
         max_length=8,
@@ -75,23 +68,23 @@ class DataSet(DataSource):
     history = HistoricalRecords(cascade_delete_history=True)
 
     def get_data(self):
-        from analysis.services.dataset_io import read_dataset_data
-        return read_dataset_data(self)
+        from analysis.services.analysis_io import read_analysis_data
+        return read_analysis_data(self)
 
     def make_figure(self):
-        return plot_datasets.plot_dataset(self.datafile.path, self.category)
+        return plot_analyses.plot_analysis(self.datafile.path, self.category)
 
     def make_large_figure(self):
-        return plot_datasets.plot_dataset_large(self.datafile.path, self.category)
+        return plot_analyses.plot_analysis_large(self.datafile.path, self.category)
 
     def make_OC_figure(self):
-        return plot_datasets.plot_dataset_oc(self.datafile.path, self.category)
+        return plot_analyses.plot_analysis_oc(self.datafile.path, self.category)
 
     def make_parameter_hist_figures(self):
-        return plot_datasets.plot_generic_hist(self.datafile.path)
+        return plot_analyses.plot_generic_hist(self.datafile.path)
 
     def make_parameter_CI_figures(self):
-        return plot_datasets.plot_parameter_ci(self.datafile.path, self.category)
+        return plot_analyses.plot_parameter_ci(self.datafile.path, self.category)
 
     def get_system_parameters(self):
         parameters = self.parameter_set.filter(component__exact=SYSTEM)
@@ -128,10 +121,10 @@ class DataSet(DataSource):
         return pars
 
 
-@receiver(post_delete, sender=DataSet)
-def dataSet_post_delete_handler(sender, **kwargs):
-    analmethod = kwargs['instance']
-    same_datafile = DataSet.objects.all().filter(datafile=analmethod.datafile)
+@receiver(post_delete, sender=Analysis)
+def analysis_post_delete_handler(sender, **kwargs):
+    analysis = kwargs['instance']
+    same_datafile = Analysis.objects.all().filter(datafile=analysis.datafile)
     if not same_datafile:
-        storage, path = analmethod.datafile.storage, analmethod.datafile.path
+        storage, path = analysis.datafile.storage, analysis.datafile.path
         storage.delete(path)

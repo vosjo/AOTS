@@ -6,13 +6,13 @@ from django.shortcuts import get_object_or_404, render, reverse
 
 from AOTS.custom_permissions import check_user_can_view_project
 from stars.models import Project
-from .auxil import process_datasets, plot_parameters
+from .auxil import process_analyses, plot_parameters
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm
-from .models import DataSet
+from .models import Analysis
 
 
 @check_user_can_view_project
-def dataset_list(request, project=None, **kwargs):
+def analysis_list(request, project=None, **kwargs):
     project = get_object_or_404(Project, slug=project)
 
     upload_form = UploadAnalysisFileForm()
@@ -23,19 +23,19 @@ def dataset_list(request, project=None, **kwargs):
             message_list = []
             files = request.FILES.getlist('datafile')
             for f in files:
-                new_dataset = DataSet(
+                new_analysis = Analysis(
                     datafile=f,
                     project=project,
                 )
-                new_dataset.save()
+                new_analysis.save()
 
-                success, message = process_datasets.process_analysis_file(
-                    new_dataset.id,
+                success, message = process_analyses.process_analysis_file(
+                    new_analysis.id,
                 )
                 message = str(f) + ': ' + message
 
                 if not success:
-                    new_dataset.delete()
+                    new_analysis.delete()
 
                 message_list.append([success, message])
 
@@ -71,35 +71,28 @@ def dataset_list(request, project=None, **kwargs):
     context = {'upload_form': upload_form,
                'project': project, }
 
-    return render(request, 'analysis/dataset_list.html', context)
+    return render(request, 'analysis/analysis_list.html', context)
 
 
 @check_user_can_view_project
-def dataset_detail(request, dataset_id, project=None, **kwargs):
-    # show details dataset information
-
+def analysis_detail(request, analysis_id, project=None, **kwargs):
     project = get_object_or_404(Project, slug=project)
 
-    dataset = get_object_or_404(DataSet, pk=dataset_id)
+    analysis = get_object_or_404(Analysis, pk=analysis_id)
 
-    # make related datasets list
-    related_datasets = dataset.star.dataset_set.all()
-    related_stars = DataSet.objects.filter(category=dataset.category).exclude(pk=dataset.pk)
+    related_analyses = analysis.star.analysis_set.all()
+    related_stars = Analysis.objects.filter(category=analysis.category).exclude(pk=analysis.pk)
 
-    # make the main figure
-    fit = dataset.make_large_figure()
+    fit = analysis.make_large_figure()
 
-    oc = dataset.make_OC_figure()
+    oc = analysis.make_OC_figure()
 
-    #   Make the CI figures if they are available
-    hist = dataset.make_parameter_hist_figures()
+    hist = analysis.make_parameter_hist_figures()
 
-    #   Create necessary javascript
     histnames = hist.keys()
     all_figs = dict(hist, **{'fit': fit, 'oc': oc})
     script, figures = components(all_figs, CDN)
 
-    #   Get only histogram plots
     if not hist:
         hists = []
     else:
@@ -107,8 +100,8 @@ def dataset_detail(request, dataset_id, project=None, **kwargs):
 
     context = {
         'project': project,
-        'dataset': dataset,
-        'related_datasets': related_datasets,
+        'analysis': analysis,
+        'related_analyses': related_analyses,
         'related_stars': related_stars,
         'fit': figures['fit'],
         'oc': figures['oc'],
@@ -116,13 +109,13 @@ def dataset_detail(request, dataset_id, project=None, **kwargs):
         'script': script,
     }
 
-    return render(request, 'analysis/dataset_detail.html', context)
+    return render(request, 'analysis/analysis_detail.html', context)
 
 
 @check_user_can_view_project
 def method_list(request, project=None, **kwargs):
     from django.shortcuts import redirect
-    return redirect('analysis:dataset_list', project=project)
+    return redirect('analysis:analysis_list', project=project)
 
 
 @check_user_can_view_project

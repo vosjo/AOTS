@@ -1,5 +1,5 @@
-var dataset_table = null;
-var add_dataset_window = null;
+var analysis_table = null;
+var add_analysis_window = null;
 
 $(document).ready(function () {
     let columns;
@@ -28,12 +28,12 @@ $(document).ready(function () {
         ];
     }
 
-    dataset_table = $('#datasettable').DataTable({
+    analysis_table = $('#analysistable').DataTable({
         dom: 'l<"toolbar">frtip',
         autoWidth: false,
         serverSide: true,
         ajax: {
-            url: '/api/analysis/datasets/?format=datatables&keep=pk,href,file_url',
+            url: '/api/analysis/analyses/?format=datatables&keep=pk,href,file_url',
             data: get_filter_keywords
         },
         searching: false,
@@ -49,7 +49,7 @@ $(document).ready(function () {
     });
 
     //  Initialize add dataset window
-    add_dataset_window = $("#addDataset").dialog({
+    add_analysis_window = $("#addAnalysis").dialog({
         autoOpen: false,
         width: '875',
         modal: true,
@@ -61,29 +61,29 @@ $(document).ready(function () {
             "<div class='dropdown-container'>" +
             "<button onclick='Toggleeditdropdown()' class='dropbtn' id='editselected'><i class='material-icons button' title='Edit selected'>edit_note</i>Edit selected</button>" +
             "<div id='editdropdown' class='dropdown-content'>" +
-            "<a id='delete-button' class='tb-button disabled'><i class='material-icons button dropdownbtn'>delete</i>Delete Dataset</a>" +
+            "<a id='delete-button' class='tb-button disabled'><i class='material-icons button dropdownbtn'>delete</i>Delete Analysis</a>" +
             "</div>" +
             "</div>" +
             "<div class='dropdown-container'>" +
             "<button onclick='Toggledownloaddropdown()' class='dropbtn' id='download'><i class='material-icons button' title='Carry over selection'>download</i>Download Files</button>" +
             "<div id='downloaddropdown' class='dropdown-content'>" +
-            "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i><span class='dl-btn-text'>Download Dataset</span></a>" +
+            "<a id='dl-button'  class='tb-button disabled' ><i class='material-icons button dropdownbtn'>download_for_offline</i><span class='dl-btn-text'>Download Analysis</span></a>" +
             "</div>" +
             "</div>" +
-            "<button id='adddataset-button' class='tb-button'><i class='material-icons button' title='Add Datasets(s)'>add</i>Add Datasets(s)</button>" +
+            "<button id='addanalysis-button' class='tb-button'><i class='material-icons button' title='Add Analysis(es)'>add</i>Add Analysis(es)</button>" +
             "<div class='dropdown-container'>" +
             '<progress hidden id="progress-bar" value="0" max="100" class="progress-bar"></progress>' +
             '<progress hidden id="progress-bar-raw" value="0" max="100" class="progress-bar"></progress>'
         );
-        $("#dl-button").click(download_dataset);
-        $("#delete-button").click(delete_dataset);
-        $("#adddataset-button").click(openAddDatasetWindow);
+        $("#dl-button").click(download_analysis);
+        $("#delete-button").click(delete_analysis);
+        $("#addanalysis-button").click(openAddAnalysisWindow);
     }
 
     //  Check and uncheck tables rows
-    $('#datasettable tbody').on('click', 'td.select-control', function () {
+    $('#analysistable tbody').on('click', 'td.select-control', function () {
         var tr = $(this).closest('tr');
-        var row = dataset_table.row(tr);
+        var row = analysis_table.row(tr);
         if ($(row.node()).hasClass('selected')) {
             deselect_row(row);
         } else {
@@ -96,29 +96,29 @@ $(document).ready(function () {
             // deselect all
             $(this).text('check_box_outline_blank');
 
-            dataset_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            analysis_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
                 deselect_row(this); // Open this row
             });
         } else {
             // close all rows
             $(this).text('check_box');
 
-            dataset_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            analysis_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
                 select_row(this); // close the row
             });
         }
     });
 
     //   Reset check boxes when changing number of displayed objects in table
-    $('#datasettable_length').change(function () {
-        dataset_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+    $('#analysistable_length').change(function () {
+        analysis_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
             deselect_row(this);
         });
     });
 
     //   Reset check boxes when switching to the next table page
-    $('#datasettable_paginate').click(function () {
-        dataset_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+    $('#analysistable_paginate').click(function () {
+        analysis_table.rows().every(function (rowIdx, tableLoop, rowLoop) {
             deselect_row(this);
         });
     });
@@ -126,7 +126,7 @@ $(document).ready(function () {
     // Event listener to the two range filtering inputs to redraw on input
     $('#filter-form').submit(function (event) {
         event.preventDefault();
-        dataset_table.draw();
+        analysis_table.draw();
     });
 
     // Make the filter button open the filter menu
@@ -165,7 +165,7 @@ function get_filter_keywords(d) {
 
 //  Table renderers
 function selection_render(data, type, full, meta) {
-    if ($(dataset_table.row(meta['row']).node()).hasClass('selected')) {
+    if ($(analysis_table.row(meta['row']).node()).hasClass('selected')) {
         return '<i class="material-icons button select" title="Select">check_box</i>';
     } else {
         return '<i class="material-icons button select" title="Select">check_box_outline_blank</i>';
@@ -198,7 +198,7 @@ function category_render(data, type, full, meta) {
 function select_row(row) {
     $(row.node()).find("i[class*=select]").text('check_box');
     $(row.node()).addClass('selected');
-    if (dataset_table.rows('.selected').data().length < dataset_table.rows().data().length) {
+    if (analysis_table.rows('.selected').data().length < analysis_table.rows().data().length) {
         $('#select-all').text('indeterminate_check_box');
     } else {
         $('#select-all').text('check_box');
@@ -211,7 +211,7 @@ function select_row(row) {
 function deselect_row(row) {
     $(row.node()).find("i[class*=select]").text('check_box_outline_blank');
     $(row.node()).removeClass('selected');
-    if (dataset_table.rows('.selected').data().length === 0) {
+    if (analysis_table.rows('.selected').data().length === 0) {
         $('#select-all').text('check_box_outline_blank');
         $('#dl-button').addClass("disabled");
         $('#rm-button').addClass("disabled");
@@ -224,13 +224,13 @@ function deselect_row(row) {
 
 /*
 //  Process dataset
-function process_dataset(row, data) {
+function process_analysis(row, data) {
     $.ajax({
-        url: "/api/analysis/datasets/" + data['pk'] + "/process/",
+        url: "/api/analysis/analyses/" + data['pk'] + "/process/",
         type: "POST",
         success: function (json) {
             // remove the row from the table
-            dataset_table.row(row).data(json).draw('full-hold');
+            analysis_table.row(row).data(json).draw('full-hold');
             // show success message for 5 sec.
             var li = $("<li class='success'>Processed dataset " + json['name'] + "</li>");
             $("#messages").append(li);
@@ -245,11 +245,11 @@ function process_dataset(row, data) {
 
 
 //  Delete dataset
-function delete_dataset(row, data) {
-    if (confirm('Are you sure you want to remove these DataSets?') == true) {
+function delete_analysis(row, data) {
+    if (confirm('Are you sure you want to remove these Analyses?') == true) {
         let rows = [];
         //   Get list of selected spectra
-        dataset_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+        analysis_table.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
             rows.push(this);
         });
 
@@ -264,11 +264,11 @@ function delete_dataset(row, data) {
             p = p.then(async function () {
                 //  Ajax call to remove spec files
                 await $.ajax({
-                    url: "/api/analysis/datasets/" + pk + '/',
+                    url: "/api/analysis/analyses/" + pk + '/',
                     type: "DELETE",
                     success: function (json) {
                         //  Remove the whole spectrum from table
-                        dataset_table.row(row).remove().draw('full-hold');
+                        analysis_table.row(row).remove().draw('full-hold');
                     },
                     error: function (xhr, errmsg, err) {
                         if (xhr.status === 403) {
@@ -306,9 +306,9 @@ function showError(text) {
 }
 
 
-function selected_dataset_pks() {
+function selected_analysis_pks() {
     let pks = [];
-    dataset_table.rows('.selected').every(function () {
+    analysis_table.rows('.selected').every(function () {
         let pk = this.data().pk;
         if (pk !== undefined && pk !== null) {
             pks.push(String(pk));
@@ -319,14 +319,14 @@ function selected_dataset_pks() {
 
 
 //  Download functions
-function download_dataset() {
+function download_analysis() {
     if ($('#dl-button').hasClass('disabled')) {
-        showError('Select datasets first (checkbox column).');
+        showError('Select analyses first (checkbox column).');
         return;
     }
-    const pks = selected_dataset_pks();
+    const pks = selected_analysis_pks();
     if (pks.length === 0) {
-        showError('No datasets selected.');
+        showError('No analyses selected.');
         return;
     }
     $('#dl-button').addClass('disabled');
@@ -334,7 +334,7 @@ function download_dataset() {
     aotsStartBulkDownload({
         projectId: $('#project-pk').attr('project'),
         idList: pks,
-        kind: 'datasets',
+        kind: 'analyses',
         onProgress: showProgress,
         onError: function (msg) {
             showError(msg);
@@ -342,23 +342,23 @@ function download_dataset() {
         },
         onComplete: function () {
             $('#dl-button').removeClass('disabled');
-            showProgress('Download Dataset');
+            showProgress('Download Analysis');
         },
     });
 }
 
 
 // Open add dataset window
-function openAddDatasetWindow() {
-    add_dataset_window = $("#addDataset").dialog({
+function openAddAnalysisWindow() {
+    add_analysis_window = $("#addAnalysis").dialog({
         autoOpen: false,
-        title: "Add Dataset(s)",
+        title: "Add Analysis(es)",
         close: function () {
-            add_dataset_window.dialog("close");
+            add_analysis_window.dialog("close");
         },
     });
 
-    add_dataset_window.dialog("open");
+    add_analysis_window.dialog("open");
 }
 
 

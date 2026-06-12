@@ -81,7 +81,7 @@ class StarViewSet(
             nphot_count=Count('photometry', distinct=True),
             nspec_count=Count('spectrum', distinct=True),
             nlc_count=Count('lightcurve', distinct=True),
-        ).prefetch_related('tags', 'dataset_set', 'photometry_set')
+        ).prefetch_related('tags', 'analysis_set', 'photometry_set')
 
     def get_serializer_class(self):
         if self.action == 'list':

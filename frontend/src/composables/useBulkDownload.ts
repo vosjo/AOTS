@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import { api } from '@/api/client'
 
-export type BulkKind = 'processed' | 'raw' | 'rawspecfiles' | 'lightcurves' | 'datasets'
+export type BulkKind = 'processed' | 'raw' | 'rawspecfiles' | 'lightcurves' | 'analyses'
 
 export function useBulkDownload() {
   const state = reactive({

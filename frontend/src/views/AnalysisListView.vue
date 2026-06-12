@@ -16,7 +16,7 @@ interface StarBrief {
   name: string
 }
 
-interface DatasetRow {
+interface AnalysisRow {
   pk: number
   name: string
   note: string
@@ -48,8 +48,8 @@ const { filters, clearFilters } = useListFilters({
 })
 
 const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } =
-  useDataTablePage<DatasetRow>({
-    endpoint: '/api/analysis/datasets/',
+  useDataTablePage<AnalysisRow>({
+    endpoint: '/api/analysis/analyses/',
     projectSlug,
     filters,
   })
@@ -62,7 +62,7 @@ const uploadFiles = ref<FileList | null>(null)
 const uploadBusy = ref(false)
 const uploadMessages = ref<UploadMessage[]>([])
 
-function starOf(row: DatasetRow): StarBrief | null {
+function starOf(row: AnalysisRow): StarBrief | null {
   const star = row.star
   if (!star || !('pk' in star) || !star.pk) return null
   return star as StarBrief
@@ -82,7 +82,7 @@ function resetUploadDialog() {
   uploadMessages.value = []
 }
 
-async function uploadDatasets() {
+async function uploadAnalyses() {
   if (!uploadFiles.value?.length || !projectStore.currentProject) return
   uploadBusy.value = true
   uploadMessages.value = []
@@ -90,7 +90,7 @@ async function uploadDatasets() {
   for (const f of uploadFiles.value) fd.append('datafile', f)
   try {
     const res = await api<{ messages?: [boolean, string][] }>(
-      `/w/${projectSlug.value}/analysis/datasets/`,
+      `/w/${projectSlug.value}/analysis/analyses/`,
       { method: 'POST', body: fd },
     )
     uploadMessages.value = (res.messages ?? []).map(([ok, text]) => ({ ok, text }))
@@ -107,9 +107,9 @@ async function uploadDatasets() {
 }
 
 async function deleteSelected() {
-  if (!confirm('Are you sure you want to remove these DataSets?')) return
+  if (!confirm('Are you sure you want to remove these Analyses?')) return
   for (const pk of selectedIds.value) {
-    await api(`/api/analysis/datasets/${pk}/`, { method: 'DELETE' })
+    await api(`/api/analysis/analyses/${pk}/`, { method: 'DELETE' })
   }
   clearSelection()
   await query.refetch()
@@ -132,7 +132,7 @@ async function deleteSelected() {
     </ul>
 
     <DataTablePage
-      title="Datasets"
+      title="Analyses"
       :columns="[
         { id: 'star', header: 'System' },
         { id: 'name', header: 'Name' },
@@ -161,15 +161,15 @@ async function deleteSelected() {
           @click="uploadOpen = true"
         >
           <Plus class="w-4 h-4" />
-          Add dataset(s)
+          Add analysis(es)
         </button>
         <button
           v-if="auth.isAuthenticated"
           class="aots-btn-secondary disabled:opacity-40"
           :disabled="!selectedIds.length || bulk.busy"
-          @click="bulk.start('datasets', selectedIds, projectStore.currentProject!.pk)"
+          @click="bulk.start('analyses', selectedIds, projectStore.currentProject!.pk)"
         >
-          Download dataset
+          Download analysis
         </button>
         <button
           v-if="auth.isAuthenticated"
@@ -195,7 +195,7 @@ async function deleteSelected() {
 
       <template #cell-name="{ row }">
         <RouterLink
-          :to="`/w/${projectSlug}/analysis/datasets/${row.pk}/`"
+          :to="`/w/${projectSlug}/analysis/analyses/${row.pk}/`"
           class="text-sky-400 hover:text-sky-300"
         >
           {{ row.name || '—' }}
@@ -241,10 +241,10 @@ async function deleteSelected() {
       @click.self="uploadOpen = false"
     >
       <div class="aots-panel w-full max-w-md">
-        <h3 class="text-lg font-medium mb-1">Add dataset(s)</h3>
-        <p class="text-sm text-slate-400 mb-4">Upload new dataset</p>
+        <h3 class="text-lg font-medium mb-1">Add analysis(es)</h3>
+        <p class="text-sm text-slate-400 mb-4">Upload new analysis</p>
         <fieldset class="space-y-3">
-          <legend class="text-sm text-slate-300 mb-2">Select dataset files</legend>
+          <legend class="text-sm text-slate-300 mb-2">Select analysis files</legend>
           <input type="file" multiple class="aots-field w-full" @change="onUploadFilesChange" />
         </fieldset>
         <ul v-if="uploadMessages.length" class="mt-3 space-y-2">
@@ -264,7 +264,7 @@ async function deleteSelected() {
             type="button"
             class="aots-btn-primary"
             :disabled="uploadBusy || !uploadFiles?.length"
-            @click="uploadDatasets"
+            @click="uploadAnalyses"
           >
             Upload…
           </button>

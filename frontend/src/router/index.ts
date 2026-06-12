@@ -131,20 +131,20 @@ const router = createRouter({
       meta: { requiresProject: true },
     },
     {
-      path: '/w/:projectSlug/analysis/datasets/',
-      name: 'datasets',
-      component: () => import('@/views/DatasetListView.vue'),
+      path: '/w/:projectSlug/analysis/analyses/',
+      name: 'analyses',
+      component: () => import('@/views/AnalysisListView.vue'),
       meta: { requiresProject: true },
     },
     {
-      path: '/w/:projectSlug/analysis/datasets/:id/',
-      name: 'dataset-detail',
-      component: () => import('@/views/DatasetDetailView.vue'),
+      path: '/w/:projectSlug/analysis/analyses/:id/',
+      name: 'analysis-detail',
+      component: () => import('@/views/AnalysisDetailView.vue'),
       meta: { requiresProject: true },
     },
     {
       path: '/w/:projectSlug/analysis/methods',
-      redirect: (to) => `/w/${to.params.projectSlug}/analysis/datasets/`,
+      redirect: (to) => `/w/${to.params.projectSlug}/analysis/analyses/`,
     },
     {
       path: '/w/:projectSlug/analysis/plotter',

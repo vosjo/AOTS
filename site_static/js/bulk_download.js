@@ -1,5 +1,5 @@
 /**
- * Celery bulk ZIP download (spectra, raw files, light curves, datasets).
+ * Celery bulk ZIP download (spectra, raw files, light curves, analyses).
  */
 function aotsStartBulkDownload(options) {
     const projectId = options.projectId;

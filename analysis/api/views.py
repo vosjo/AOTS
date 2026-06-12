@@ -8,37 +8,37 @@ from AOTS.api_mixins import DualOrderingMixin, ProjectFilteredQuerysetMixin
 from AOTS.api_processing import run_process_view
 from AOTS.permissions_helpers import get_object_if_allowed
 from analysis.categories import choices_for_api
-from analysis.models import DataSet, Parameter
-from analysis.tasks import process_dataset_task
-from .filter import DataSetFilter, ParameterFilter
+from analysis.models import Analysis, Parameter
+from analysis.tasks import process_analysis_task
+from .filter import AnalysisFilter, ParameterFilter
 from .serializers import (
-    DataSetDetailSerializer,
-    DataSetListSerializer,
+    AnalysisDetailSerializer,
+    AnalysisListSerializer,
     ParameterListSerializer,
 )
 
 
-class DatasetViewSet(
+class AnalysisViewSet(
     ProjectFilteredQuerysetMixin,
     DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
-    queryset = DataSet.objects.select_related('project', 'star').prefetch_related(
+    queryset = Analysis.objects.select_related('project', 'star').prefetch_related(
         'parameter_set',
     )
-    serializer_class = DataSetListSerializer
+    serializer_class = AnalysisListSerializer
     default_ordering = ('name',)
     ordering = ('name',)
     ordering_fields = ['pk', 'name', 'fit', 'category']
     allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
-    filterset_class = DataSetFilter
+    filterset_class = AnalysisFilter
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return DataSetDetailSerializer
-        return DataSetListSerializer
+            return AnalysisDetailSerializer
+        return AnalysisListSerializer
 
 
 class ParameterViewSet(
@@ -54,13 +54,13 @@ class ParameterViewSet(
 
 
 @api_view(['GET'])
-def dataset_categories_api(request):
+def analysis_categories_api(request):
     return Response({'results': choices_for_api()})
 
 
 @api_view(['POST'])
-def processDataSet(request, pk):
-    dataset = get_object_if_allowed(DataSet, request, pk, require_edit=True)
+def processAnalysis(request, pk):
+    analysis = get_object_if_allowed(Analysis, request, pk, require_edit=True)
     return run_process_view(
-        request, dataset, process_dataset_task, DataSetListSerializer,
+        request, analysis, process_analysis_task, AnalysisListSerializer,
     )

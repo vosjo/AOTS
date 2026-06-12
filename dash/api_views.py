@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from AOTS.bokeh_embed import bokeh_embed_response
 from rest_framework.exceptions import PermissionDenied
-from analysis.models import DataSet
+from analysis.models import Analysis
 from dash.forms import HRDPlotterForm
 from dash.plotting import plot_hrd
 from dash.views import get_modeltype, sort_modified_created, wascreated
@@ -19,7 +19,7 @@ from stars.models import Project, Star
 
 def _recent_changes(project, aware_datetime):
     all_models = []
-    for mod in (Star, Spectrum, LightCurve, DataSet):
+    for mod in (Star, Spectrum, LightCurve, Analysis):
         all_mod_objs = mod.objects.filter(project=project)
         all_mod_hists = mod.history.filter(project=project)
         most_recent = all_mod_hists.order_by('-history_date')[:25]
@@ -73,8 +73,8 @@ def dashboard_bootstrap(request, project_slug):
     aware_datetime = make_aware(dtime_naive)
     stats = {}
     for mod, modname in zip(
-        [Star, Spectrum, LightCurve, DataSet],
-        ['nstars', 'nspec', 'nlc', 'naly'],
+        [Star, Spectrum, LightCurve, Analysis],
+        ['nstars', 'nspec', 'nlc', 'nanalyses'],
     ):
         all_mod_objs = mod.objects.filter(project=project)
         stats[modname] = all_mod_objs.count()

@@ -63,15 +63,15 @@ class BulkApiTests(TestCase):
         self.assertEqual(response.data['kind'], 'lightcurves')
 
     @patch('observations.api.bulk.run_task', return_value=(None, 'test-task-id'))
-    def test_bulk_download_start_accepts_datasets_kind(self, mock_run_task):
+    def test_bulk_download_start_accepts_analyses_kind(self, mock_run_task):
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
-            '/api/observations/bulk-download/start/?kind=datasets',
+            '/api/observations/bulk-download/start/?kind=analyses',
             HTTP_PROJECTID=str(self.project.pk),
             HTTP_STARIDLIST='1',
         )
         self.assertEqual(response.status_code, 202)
-        self.assertEqual(response.data['kind'], 'datasets')
+        self.assertEqual(response.data['kind'], 'analyses')
 
     @patch('observations.api.bulk.run_task', return_value=(None, 'test-task-id'))
     def test_bulk_download_start_accepts_raw_kind(self, mock_run_task):

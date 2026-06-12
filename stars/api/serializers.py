@@ -69,7 +69,7 @@ class SimpleTagSerializer(ModelSerializer):
 
 class StarListSerializer(ModelSerializer):
     tags = SerializerMethodField()
-    datasets = SerializerMethodField()
+    analyses = SerializerMethodField()
     vmag = SerializerMethodField()
     href = SerializerMethodField()
     nphot = SerializerMethodField()
@@ -101,7 +101,7 @@ class StarListSerializer(ModelSerializer):
             'observing_status_display',
             'note',
             'tags',
-            'datasets',
+            'analyses',
             'tag_ids',
             'vmag',
             'nphot',
@@ -117,21 +117,21 @@ class StarListSerializer(ModelSerializer):
         tags = TagSerializer(obj.tags, many=True).data
         return tags
 
-    def get_datasets(self, obj):
+    def get_analyses(self, obj):
         from analysis.categories import category_color, category_label
 
         try:
-            datasets = obj.dataset_set.all()
+            analyses = obj.analysis_set.all()
             return [
                 {
                     'name': f"{category_label(d.category)}: {d.name}" if d.name else category_label(d.category),
                     'color': category_color(d.category),
                     'href': reverse(
-                        'analysis:dataset_detail',
-                        kwargs={'project': d.project.slug, 'dataset_id': d.pk},
+                        'analysis:analysis_detail',
+                        kwargs={'project': d.project.slug, 'analysis_id': d.pk},
                     ),
                 }
-                for d in datasets
+                for d in analyses
             ]
         except Exception as e:
             print(e)

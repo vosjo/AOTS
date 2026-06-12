@@ -90,8 +90,12 @@ async function uploadAnalyses() {
   for (const f of uploadFiles.value) fd.append('datafile', f)
   try {
     const res = await api<{ messages?: [boolean, string][] }>(
-      `/w/${projectSlug.value}/analysis/analyses/`,
-      { method: 'POST', body: fd },
+      '/api/analysis/analyses/upload/',
+      {
+        method: 'POST',
+        body: fd,
+        headers: { Projectid: String(projectStore.currentProject.pk) },
+      },
     )
     uploadMessages.value = (res.messages ?? []).map(([ok, text]) => ({ ok, text }))
     if (uploadMessages.value.every((m) => m.ok)) {

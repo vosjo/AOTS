@@ -6,9 +6,10 @@ from django.shortcuts import get_object_or_404, render, reverse
 
 from AOTS.custom_permissions import check_user_can_view_project
 from stars.models import Project
-from .auxil import process_analyses, plot_parameters
+from .auxil import plot_parameters
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm
 from .models import Analysis
+from .services.analysis_upload import upload_analysis_files
 
 
 @check_user_can_view_project
@@ -20,24 +21,8 @@ def analysis_list(request, project=None, **kwargs):
     if request.method == 'POST' and request.user.is_authenticated:
         upload_form = UploadAnalysisFileForm(request.POST, request.FILES)
         if upload_form.is_valid():
-            message_list = []
             files = request.FILES.getlist('datafile')
-            for f in files:
-                new_analysis = Analysis(
-                    datafile=f,
-                    project=project,
-                )
-                new_analysis.save()
-
-                success, message = process_analyses.process_analysis_file(
-                    new_analysis.id,
-                )
-                message = str(f) + ': ' + message
-
-                if not success:
-                    new_analysis.delete()
-
-                message_list.append([success, message])
+            message_list = upload_analysis_files(project, files)
 
             return JsonResponse(
                 {'info': 'Data uploaded', 'messages': message_list},

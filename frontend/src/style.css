@@ -177,4 +177,8 @@
   .aots-tag-chip {
     @apply inline-block rounded border px-1 py-0 text-[10px] leading-tight mr-0.5 mb-0.5;
   }
+
+  .aots-analysis-badge {
+    @apply inline-block rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-tight text-white mr-0.5 mb-0.5 hover:opacity-90;
+  }
 }

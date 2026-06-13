@@ -24,13 +24,13 @@
 - **Stufe A.1:** Removed unused `DataTable` model
 - **Stufe A.2:** Unified AVG parameter sources on `AverageDataSource` per project (`get_or_create_avg_source`)
 
-**Stufe A.3 — optional, same release or follow-up:**
+**Stufe A.3:**
 
 - Rename `DataSource` → `ParameterSource` (or similar) to distinguish parameter provenance from HDF5 **Analyses**
 - Update `Parameter.data_source` FK name / related_name if renamed
 - Document: Gaia/catalog rows and AVG are *sources*, not analyses
 
-**Stufe B — larger refactor (backlog, not in initial rename PR):**
+**Stufe B — larger refactor:**
 
 - Drop multi-table inheritance: `Analysis` as standalone model (no `DataSource` parent)
 - `Parameter`: nullable `analysis` FK for values from HDF5 analyses; separate provenance for external catalogs and averages

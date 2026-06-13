@@ -18,6 +18,12 @@ interface TagRef {
   description?: string
 }
 
+interface AnalysisBadge {
+  name: string
+  color: string
+  href: string
+}
+
 interface StarRow {
   pk: number
   name: string
@@ -31,7 +37,12 @@ interface StarRow {
   nphot: number
   nspec: number
   nlc: number
+  analyses: AnalysisBadge[]
   tags: TagRef[]
+}
+
+function analysisInitial(name: string) {
+  return name.charAt(0) || '?'
 }
 
 const STATUS_OPTIONS = [
@@ -376,6 +387,7 @@ async function addSystem() {
       { id: 'nphot', header: 'Phot' },
       { id: 'nspec', header: 'Spec' },
       { id: 'nlc', header: 'LC' },
+      { id: 'analyses', header: 'Analyses' },
       { id: 'tags', header: 'Tags' },
       { id: 'observing_status', header: 'Status' },
     ]"
@@ -451,6 +463,20 @@ async function addSystem() {
       >
         {{ row.classification || '—' }}
       </span>
+    </template>
+
+    <template #cell-analyses="{ row }">
+      <span v-if="!row.analyses?.length" class="text-slate-500">—</span>
+      <RouterLink
+        v-for="(item, index) in row.analyses"
+        :key="`${row.pk}-${index}-${item.href}`"
+        :to="item.href"
+        class="aots-analysis-badge"
+        :style="{ backgroundColor: item.color }"
+        :title="item.name"
+      >
+        {{ analysisInitial(item.name) }}
+      </RouterLink>
     </template>
 
     <template #cell-tags="{ row }">

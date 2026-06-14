@@ -123,12 +123,12 @@ class Star(models.Model):
 
     # Generate .csv snippet of all parameters for specific source
     def parameter_csv(self):
-        from analysis.models import COMPONENT_CHOICES, DataSource
+        from analysis.models import COMPONENT_CHOICES, ParameterSource
 
         all_csv_dict = {}
 
-        for source in DataSource.objects.all():
-            params_from_source = self.parameter_set.filter(data_source__name__iexact=source.name)
+        for source in ParameterSource.objects.all():
+            params_from_source = self.parameter_set.filter(parameter_source__name__iexact=source.name)
 
             csv_dict = {}
             for p in params_from_source:

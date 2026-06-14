@@ -47,13 +47,15 @@ def _apply_parameter_updates(star, updates):
             continue
         name = param.name
         component = param.component
-        source = param.data_source
+        source = param.parameter_source
+        analysis = param.analysis
         unit = param.unit
         error = float(entry.get('error') or 0)
         param.delete()
         star.parameter_set.create(
             name=name,
-            data_source=source,
+            parameter_source=source,
+            analysis=analysis,
             component=component,
             unit=unit,
             value=float(value),
@@ -68,10 +70,13 @@ def _editable_parameters(star):
     for param in (
         star.parameter_set
         .filter(valid=True)
-        .select_related('data_source')
-        .order_by('component', 'name', 'data_source__name')
+        .select_related('parameter_source', 'analysis')
+        .order_by('component', 'name', 'parameter_source__name')
     ):
-        source_name = param.data_source.name if param.data_source else ''
+        source_name = (
+            param.parameter_source.name if param.parameter_source
+            else (param.analysis.name if param.analysis else '')
+        )
         comp_label = param.get_component_display()
         rows.append({
             'id': param.pk,

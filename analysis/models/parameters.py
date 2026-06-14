@@ -1,10 +1,13 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import pre_delete, post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from analysis.auxil import parameter_derivation
+from analysis.categories import category_label
 from stars.models import Star
-from .datasource import DataSource, AverageDataSource
+from .analysis_model import Analysis
+from .parameter_source import ParameterSource
 # -- all constants are the roud_value function are imported from default values
 from .default_values import *
 
@@ -43,10 +46,14 @@ class Parameter(models.Model):
     #   is deleted.
     star = models.ForeignKey(Star, on_delete=models.CASCADE, blank=True, null=True)
 
-    # -- a parameter can belong to an analysis or external source, but doesn't have to.
-    #   However, if it does belong to one, it has to be removed if the
-    #   datasource is removed.
-    data_source = models.ForeignKey(DataSource, on_delete=models.CASCADE, blank=True, null=True)
+    # -- a parameter belongs to an analysis or external source, but not both.
+    parameter_source = models.ForeignKey(
+        ParameterSource, on_delete=models.CASCADE, blank=True, null=True,
+    )
+    analysis = models.ForeignKey(
+        Analysis, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='parameter_set',
+    )
 
     # -- name of the variable measured in this parameter
     name = models.CharField(max_length=50)
@@ -90,6 +97,15 @@ class Parameter(models.Model):
     #   parameter is automatically created and updated upon saving a parameter
     average = models.BooleanField(default=False)
 
+    def clean(self):
+        if self.parameter_source_id and self.analysis_id:
+            raise ValidationError('A parameter cannot belong to both an analysis and a parameter source.')
+
+    def save(self, *args, **kwargs):
+        if self.parameter_source_id and self.analysis_id:
+            raise ValidationError('A parameter cannot belong to both an analysis and a parameter source.')
+        super().save(*args, **kwargs)
+
     # -- Rounded value and errors
     def rvalue(self):
         return round_value(self.value, self.name, self.error)
@@ -105,9 +121,17 @@ class Parameter(models.Model):
 
     # -- representation of self
     def __str__(self):
-        try:
-            ds = self.data_source.name[0:10]
-        except DataSource.DoesNotExist:
+        if self.analysis_id:
+            try:
+                ds = category_label(self.analysis.category)[0:10]
+            except Analysis.DoesNotExist:
+                ds = ''
+        elif self.parameter_source_id:
+            try:
+                ds = self.parameter_source.name[0:10]
+            except ParameterSource.DoesNotExist:
+                ds = ''
+        else:
             ds = ''
         return "{} = {} +- {} {} -{}- ({})".format(self.cname, self.rvalue(), self.rerror(),
                                                    self.unit, 'V' if self.valid else 'F', ds)
@@ -259,7 +283,7 @@ def average_parameter_bookkeeping(sender, **kwargs):
                                               unit=param.unit,
                                               average=True,
                                               valid=True,
-                                              data_source=ds)
+                                              parameter_source=ds)
 
 
 # ======================================================================================

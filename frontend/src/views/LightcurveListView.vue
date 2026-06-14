@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import { Plus, Trash2 } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
+import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useListFilters } from '@/composables/useListFilters'
@@ -160,7 +161,7 @@ async function uploadLightCurves() {
       >
         Delete selected
       </button>
-      <span v-if="bulk.status" class="text-xs text-slate-400">{{ bulk.status }}</span>
+      <BulkDownloadProgress :status="bulk.status" :busy="bulk.busy" />
     </template>
 
     <template #cell-hjd="{ row }">

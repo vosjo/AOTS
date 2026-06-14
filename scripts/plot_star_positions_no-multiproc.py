@@ -104,7 +104,7 @@ def get_star_data(star):
 
     # Restrict to DR3
     for p in parallaxes:
-        source_name = p.data_source.name
+        source_name = p.parameter_source.name
         if source_name == 'Gaia DR3':
             para = p.value
             break
@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
             #   Restrict to DR3
             for p in parallaxes:
-                source_name = p.data_source.name
+                source_name = p.parameter_source.name
                 if source_name == 'Gaia DR3':
                     para[i] = p.value
                     break

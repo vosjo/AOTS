@@ -9,7 +9,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import reverse, get_object_or_404
 
 from analysis import models as analModels
-from analysis.models import DataSource
+from analysis.models import ParameterSource
 from .models import Star
 
 #   'simbad_id':    ID of the catalog
@@ -520,12 +520,12 @@ def populate_system(star, star_pk):
         if len(gaia_data) != 0:
             #   Set data source
             try:
-                dsgaia = DataSource.objects.get(
+                dsgaia = ParameterSource.objects.get(
                     name__exact='Gaia DR3',
                     project=project,
                 )
-            except DataSource.DoesNotExist:
-                dsgaia = DataSource.objects.create(
+            except ParameterSource.DoesNotExist:
+                dsgaia = ParameterSource.objects.create(
                     name='Gaia DR3',
                     note='3nd Gaia data release',
                     reference='https://doi.org/10.1051/0004-6361/202243940',
@@ -536,7 +536,7 @@ def populate_system(star, star_pk):
             if (str(gaia_data[0]['Plx']) != '--' and
                     str(gaia_data[0]['e_Plx']) != '--'):
                 sobj.parameter_set.create(
-                    data_source=dsgaia,
+                    parameter_source=dsgaia,
                     name='parallax',
                     component=0,
                     value=gaia_data[0]['Plx'],
@@ -548,7 +548,7 @@ def populate_system(star, star_pk):
             if (str(gaia_data[0]['pmRA']) != '--' and
                     str(gaia_data[0]['e_pmRA']) != '--'):
                 sobj.parameter_set.create(
-                    data_source=dsgaia,
+                    parameter_source=dsgaia,
                     name='pmra',
                     component=0,
                     value=gaia_data[0]['pmRA'],
@@ -560,7 +560,7 @@ def populate_system(star, star_pk):
             if (str(gaia_data[0]['pmDE']) != '--' and
                     str(gaia_data[0]['e_pmDE']) != '--'):
                 sobj.parameter_set.create(
-                    data_source=dsgaia,
+                    parameter_source=dsgaia,
                     name='pmdec',
                     component=0,
                     value=gaia_data[0]['pmDE'],
@@ -573,12 +573,12 @@ def populate_system(star, star_pk):
                 star['pmdec_x'] != None):
 
             try:
-                dsgaia = DataSource.objects.get(
+                dsgaia = ParameterSource.objects.get(
                     name__exact='Gaia DR3',
                     project=project,
                 )
-            except DataSource.DoesNotExist:
-                dsgaia = DataSource.objects.create(
+            except ParameterSource.DoesNotExist:
+                dsgaia = ParameterSource.objects.create(
                     name='Gaia DR3',
                     note='3nd Gaia data release',
                     reference='https://doi.org/10.1051/0004-6361/202243940',
@@ -588,7 +588,7 @@ def populate_system(star, star_pk):
             #   Set parallax
             if star['parallax'] != None:
                 sobj.parameter_set.create(
-                    data_source=dsgaia,
+                    parameter_source=dsgaia,
                     name='parallax',
                     component=0,
                     value=star['parallax'],
@@ -599,7 +599,7 @@ def populate_system(star, star_pk):
             #   RA proper motion
             if star['pmra_x'] != None:
                 sobj.parameter_set.create(
-                    data_source=dsgaia,
+                    parameter_source=dsgaia,
                     name='pmra',
                     component=0,
                     value=star['pmra_x'],
@@ -610,7 +610,7 @@ def populate_system(star, star_pk):
             #   DEC proper motion
             if star['pmdec_x'] != None:
                 sobj.parameter_set.create(
-                    data_source=dsgaia,
+                    parameter_source=dsgaia,
                     name='pmdec',
                     component=0,
                     value=star['pmdec_x'],
@@ -692,8 +692,8 @@ def update_photometry(cleaned_data, project, star_id, from_vizier):
 def get_params(star_id):
     star = get_object_or_404(Star, pk=star_id)
     parameters = []
-    pSource_pks = star.parameter_set.values_list('data_source').distinct()
-    pSource = DataSource.objects.filter(id__in=pSource_pks).order_by('name')
+    pSource_pks = star.parameter_set.values_list('parameter_source').distinct()
+    pSource = ParameterSource.objects.filter(id__in=pSource_pks).order_by('name')
     component_names = {0: 'System', 1: 'Primary', 2: 'Secondary'}
     for comp in [analModels.SYSTEM, analModels.PRIMARY, analModels.SECONDARY]:
         pNames = star.parameter_set \
@@ -713,7 +713,7 @@ def get_params(star_id):
                 try:
                     p = allParameters.get(
                         name__exact=name,
-                        data_source__exact=source.pk,
+                        parameter_source__exact=source.pk,
                     )
                     values.append(r"{} &pm; {}".format(p.rvalue(), p.rerror()))
                     pinfo = p
@@ -727,9 +727,9 @@ def get_params(star_id):
 
 
 def pk_from_source_name(sname, star):
-    pSource_pks = star.parameter_set.values_list('data_source').distinct()
+    pSource_pks = star.parameter_set.values_list('parameter_source').distinct()
     for i in pSource_pks:
-        pSource = DataSource.objects.filter(id__in=i)
+        pSource = ParameterSource.objects.filter(id__in=i)
         if pSource[0].name == sname:
             return i, pSource[0]
 
@@ -744,12 +744,12 @@ def update_parameters(cleaned_data, project, star_id):
             errname = "_".join(errname)
             errval = cleaned_data[errname]
             spk, dSource = pk_from_source_name(source, star)
-            paramset = star.parameter_set.filter(name__exact=name, data_source__exact=spk)
+            paramset = star.parameter_set.filter(name__exact=name, parameter_source__exact=spk)
             if len(paramset) != 0:
                 paramset[0].delete()
             star.parameter_set.create(
                 name=name,
-                data_source=dSource,
+                parameter_source=dSource,
                 value=val,
                 error_l=errval,
                 error_u=errval

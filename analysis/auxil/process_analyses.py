@@ -22,7 +22,8 @@ def create_parameters(analmethod, data):
 
         analmethod.parameter_set.create(name=name, component=component, value=value[0],
                                         error_u=value[1], error_l=value[2],
-                                        unit=value[3], star=analmethod.star)
+                                        unit=value[3], star=analmethod.star,
+                                        analysis=analmethod)
 
     return len(parameters.keys())
 
@@ -54,7 +55,7 @@ def create_derived_parameters(analmethod):
 
         DerivedParameter.objects.create(star=analmethod.star, name=pname,
                                       component=pcomp, average=True,
-                                      data_source=ds)
+                                      parameter_source=ds)
 
     return len(params)
 

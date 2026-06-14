@@ -7,6 +7,15 @@ from analysis.models import Analysis, Parameter
 from stars.api.serializers import SimpleStarSerializer
 
 
+def _analysis_history_iso(obj, which):
+    """Return ISO timestamp from simple_history, or None if no rows exist."""
+    try:
+        record = getattr(obj.history, which)()
+    except obj.history.model.DoesNotExist:
+        return None
+    return Time(record.history_date, precision=0).iso
+
+
 class AnalysisListSerializer(ModelSerializer):
     star = SerializerMethodField()
     category_label = SerializerMethodField()
@@ -38,7 +47,7 @@ class AnalysisListSerializer(ModelSerializer):
         datatables_always_serialize = ('pk', 'href', 'file_url', 'category', 'category_label')
 
     def get_added_on(self, obj):
-        return Time(obj.history.earliest().history_date, precision=0).iso
+        return _analysis_history_iso(obj, 'earliest')
 
     def get_star(self, obj):
         if obj.star:
@@ -154,14 +163,20 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
         return full_name or user.username
 
     def get_added_by(self, obj):
-        earliest = obj.history.earliest()
+        try:
+            earliest = obj.history.earliest()
+        except obj.history.model.DoesNotExist:
+            return '—'
         return self._history_user_display(earliest.history_user)
 
     def get_last_modified(self, obj):
-        return Time(obj.history.latest().history_date, precision=0).iso
+        return _analysis_history_iso(obj, 'latest')
 
     def get_modified_by(self, obj):
-        latest = obj.history.latest()
+        try:
+            latest = obj.history.latest()
+        except obj.history.model.DoesNotExist:
+            return '—'
         if latest.history_user is None:
             return '—'
         return latest.history_user.username
@@ -169,6 +184,8 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
 
 class ParameterListSerializer(ModelSerializer):
     project = SerializerMethodField()
+    parameter_source = SerializerMethodField()
+    analysis = SerializerMethodField()
 
     class Meta:
         model = Parameter
@@ -183,8 +200,20 @@ class ParameterListSerializer(ModelSerializer):
             'unit',
             'valid',
             'project',
+            'parameter_source',
+            'analysis',
         ]
         read_only_fields = ('pk',)
 
     def get_project(self, obj):
         return obj.star.project.name
+
+    def get_parameter_source(self, obj):
+        if obj.parameter_source_id is None:
+            return None
+        return {'pk': obj.parameter_source_id, 'name': obj.parameter_source.name}
+
+    def get_analysis(self, obj):
+        if obj.analysis_id is None:
+            return None
+        return obj.analysis_id

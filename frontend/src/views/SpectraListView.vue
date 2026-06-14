@@ -5,6 +5,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
+import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters'
@@ -139,7 +140,7 @@ function formatAirmass(value: number) {
           Delete
         </button>
       </template>
-      <span v-if="bulk.status" class="text-xs text-slate-400">{{ bulk.status }}</span>
+      <BulkDownloadProgress :status="bulk.status" :busy="bulk.busy" />
     </template>
 
     <template #cell-hjd="{ row }">

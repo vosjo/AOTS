@@ -1,7 +1,8 @@
 import numpy as np
 from django.test import TestCase
 
-from analysis.models import Parameter, DerivedParameter, DataSource
+from analysis.models import Parameter, DerivedParameter, ParameterSource
+from analysis.services.parameter_sources import get_or_create_avg_source
 from stars.models import Star, Project
 
 
@@ -19,9 +20,9 @@ class CnameParameter(TestCase):
             dec=38.78368896,
         )
 
-        ds1 = DataSource.objects.create(name='tc 1', project=p)
+        ds1 = ParameterSource.objects.create(name='tc 1', project=p)
 
-        Parameter.objects.create(star=s, name='teff', component=1, value=30000, error=5000, unit='K', data_source=ds1)
+        Parameter.objects.create(star=s, name='teff', component=1, value=30000, error=5000, unit='K', parameter_source=ds1)
 
     def test_cname_on_creation(self):
         """
@@ -65,12 +66,12 @@ class AverageParameter(TestCase):
             dec=38.78368896,
         )
 
-        ds1 = DataSource.objects.create(name='tc 1', project=project)
-        ds2 = DataSource.objects.create(name='tc 2', project=project)
+        ds1 = ParameterSource.objects.create(name='tc 1', project=project)
+        ds2 = ParameterSource.objects.create(name='tc 2', project=project)
 
-        Parameter.objects.create(star=s, name='teff', component=1, value=30000, error=5000, unit='K', data_source=ds1)
+        Parameter.objects.create(star=s, name='teff', component=1, value=30000, error=5000, unit='K', parameter_source=ds1)
 
-        Parameter.objects.create(star=s, name='teff', component=1, value=35000, error=3000, unit='K', data_source=ds2)
+        Parameter.objects.create(star=s, name='teff', component=1, value=35000, error=3000, unit='K', parameter_source=ds2)
 
     def test_average_parameter_create(self):
         """
@@ -90,9 +91,9 @@ class AverageParameter(TestCase):
         """
         s = Star.objects.get(name__exact='Vega')
         project = Project.objects.get(name__exact='TestCase')
-        ds = DataSource.objects.create(name='tc 3', project=project)
+        ds = ParameterSource.objects.create(name='tc 3', project=project)
 
-        Parameter.objects.create(star=s, name='teff', component=1, value=32000, error=0, unit='K', data_source=ds)
+        Parameter.objects.create(star=s, name='teff', component=1, value=32000, error=0, unit='K', parameter_source=ds)
 
         p = Parameter.objects.get(name__exact='teff', average__exact=True)
 
@@ -174,16 +175,16 @@ class DeriveParameters(TestCase):
             dec=38.78368896,
         )
 
-        ds1 = DataSource.objects.create(name='tc 1', project=p)
-        ds2 = DataSource.objects.create(name='tc 2', project=p)
+        ds1 = ParameterSource.objects.create(name='tc 1', project=p)
+        ds2 = ParameterSource.objects.create(name='tc 2', project=p)
 
-        Parameter.objects.create(star=s, name='mass', component=1, value=0.47, error=0.05, unit='Msol', data_source=ds1)
+        Parameter.objects.create(star=s, name='mass', component=1, value=0.47, error=0.05, unit='Msol', parameter_source=ds1)
 
-        Parameter.objects.create(star=s, name='K', component=1, value=5.5, error=0.5, unit='km s-1', data_source=ds1)
+        Parameter.objects.create(star=s, name='K', component=1, value=5.5, error=0.5, unit='km s-1', parameter_source=ds1)
 
-        Parameter.objects.create(star=s, name='K', component=2, value=13.8, error=1.2, unit='km s-1', data_source=ds1)
+        Parameter.objects.create(star=s, name='K', component=2, value=13.8, error=1.2, unit='km s-1', parameter_source=ds1)
 
-        Parameter.objects.create(star=s, name='logg', component=1, value=5.80, error=0.20, unit='cgs', data_source=ds2)
+        Parameter.objects.create(star=s, name='logg', component=1, value=5.80, error=0.20, unit='cgs', parameter_source=ds2)
 
     def test_derived_parameter_create(self):
         """
@@ -191,12 +192,9 @@ class DeriveParameters(TestCase):
         """
         s = Star.objects.get(name__exact='Vega')
 
-        try:
-            ds = DataSource.objects.get(name__exact='AVG')
-        except DataSource.DoesNotExist:
-            ds = DataSource.objects.create(name='AVG')
+        ds = get_or_create_avg_source(s.project)
 
-        p = DerivedParameter.objects.create(star=s, name='q', data_source=ds,
+        p = DerivedParameter.objects.create(star=s, name='q', parameter_source=ds,
                                             average=True, component=0)
 
         source = p.source_parameters.all()
@@ -214,12 +212,9 @@ class DeriveParameters(TestCase):
         """
         s = Star.objects.get(name__exact='Vega')
 
-        try:
-            ds = DataSource.objects.get(name__exact='AVG')
-        except DataSource.DoesNotExist:
-            ds = DataSource.objects.create(name='AVG')
+        ds = get_or_create_avg_source(s.project)
 
-        DerivedParameter.objects.create(star=s, name='q', data_source=ds,
+        DerivedParameter.objects.create(star=s, name='q', parameter_source=ds,
                                         average=True, component=0)
 
         k1 = Parameter.objects.get(star__exact=s, name__exact='K',
@@ -243,12 +238,9 @@ class DeriveParameters(TestCase):
         """
         s = Star.objects.get(name__exact='Vega')
 
-        try:
-            ds = DataSource.objects.get(name__exact='AVG')
-        except DataSource.DoesNotExist:
-            ds = DataSource.objects.create(name='AVG')
+        ds = get_or_create_avg_source(s.project)
 
-        DerivedParameter.objects.create(star=s, name='q', data_source=ds,
+        DerivedParameter.objects.create(star=s, name='q', parameter_source=ds,
                                         average=True, component=0)
 
         k1 = Parameter.objects.get(star__exact=s, name__exact='K',
@@ -257,5 +249,5 @@ class DeriveParameters(TestCase):
 
         with self.assertRaises(DerivedParameter.DoesNotExist,
                                msg="Derived parameter on parameter delete: should be deleted."):
-            p = DerivedParameter.objects.get(star__exact=s,
-                                             name__exact='q', average__exact=True, component__exact=0)
+            DerivedParameter.objects.get(star__exact=s,
+                                         name__exact='q', average__exact=True, component__exact=0)

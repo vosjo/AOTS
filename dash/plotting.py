@@ -61,7 +61,11 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
     g_mag_abs_errs = []
 
     for star in star_list:
-        pset = list(star.parameter_set.values_list("name", "data_source", "value", "error_l", "error_u"))
+        pset = list(
+            star.parameter_set.values_list(
+                "name", "parameter_source__name", "value", "error_l", "error_u",
+            )
+        )
         photset = list(star.photometry_set.values_list("band", "measurement", "error"))
 
         mag = None
@@ -95,8 +99,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         g_mag_abs = None
         g_mag_abs_err = None
 
-        for name, data_source, val, err_l, err_u in pset:
-            if data_source != "AVG" and name != 'absolute_g_mag':
+        for name, source_name, val, err_l, err_u in pset:
+            if source_name != "AVG" and name != 'absolute_g_mag':
                 continue
             if name == "teff":
                 teff = val

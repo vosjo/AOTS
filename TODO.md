@@ -12,38 +12,21 @@
 - Delete ZIP after successful download when `BULK_DOWNLOAD_DELETE_AFTER_SEND=True`
 - Bulk upload: `POST api-spec-upload/?async=1` enqueues `process_bulk_upload_task`
 
-**Optional later:**
+- Frontend rewrite: unified progress UI across list pages (`BulkDownloadProgress.vue` + `useBulkDownload`)
 
-- Frontend rewrite: unified progress UI across list pages
+## Analysis model refactor
 
-## Analysis model refactor (planned release)
-
-**Done (dataset → analysis rename):**
+**Done:**
 
 - Renamed `DataSet` → `Analysis` (API `/api/analysis/analyses/`, SPA, legacy UI, bulk kind `analyses`)
-- **Stufe A.1:** Removed unused `DataTable` model
-- **Stufe A.2:** Unified AVG parameter sources on `AverageDataSource` per project (`get_or_create_avg_source`)
+- Removed unused `DataTable` model
+- Unified AVG parameter sources on `AverageParameterSource` per project (`get_or_create_avg_source`)
+- **Stufe A.3:** `DataSource` → `ParameterSource`, `AverageDataSource` → `AverageParameterSource`; `Parameter.parameter_source` replaces `data_source`
+- **Stufe B:** `Analysis` is a standalone model (no MTI); HDF5 parameters use `Parameter.analysis`; catalog/AVG parameters use `Parameter.parameter_source`
 
-**Stufe A.3:**
+**Breaking API changes (release):**
 
-- Rename `DataSource` → `ParameterSource` (or similar) to distinguish parameter provenance from HDF5 **Analyses**
-- Update `Parameter.data_source` FK name / related_name if renamed
-- Document: Gaia/catalog rows and AVG are *sources*, not analyses
-
-**Stufe B — larger refactor:**
-
-- Drop multi-table inheritance: `Analysis` as standalone model (no `DataSource` parent)
-- `Parameter`: nullable `analysis` FK for values from HDF5 analyses; separate provenance for external catalogs and averages
-- Revisit average/derived-parameter wiring after MTI removal
-- Migration path for existing `Parameter.data_source` pointers to analysis rows vs plain sources
-
-**Pre-release check (DataTable):**
-
-```bash
-python manage.py shell -c "from analysis.models import DataTable; print('DataTable count:', DataTable.objects.count())"
-```
-
-Or SQL: `SELECT COUNT(*) FROM analysis_datatable;` — must be `0` before `DeleteModel('DataTable')`.
+- Parameter responses expose `parameter_source` (object with `pk`, `name`) and `analysis` (pk) instead of `data_source`
 
 ## Other
 

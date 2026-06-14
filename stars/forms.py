@@ -482,7 +482,11 @@ class UpdateParamsForm(forms.Form):
                 paramset_pinfo = paramset["pinfo"]
                 if paramset_pinfo:
                     name = paramset_pinfo.name
-                    source = paramset_pinfo.data_source.name
+                    source = (
+                        paramset_pinfo.parameter_source.name
+                        if paramset_pinfo.parameter_source
+                        else (paramset_pinfo.analysis.name if paramset_pinfo.analysis else '')
+                    )
                     paramset_values = paramset["values"]
                     #   Loop over parameter set values to identify missing values
                     for i, paramset_value in enumerate(paramset_values):

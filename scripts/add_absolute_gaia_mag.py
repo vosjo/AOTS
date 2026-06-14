@@ -18,7 +18,7 @@ import django
 django.setup()
 
 from stars.models import Project
-from analysis.models import DataSource
+from analysis.models import ParameterSource
 
 ############################################################################
 ####                               Main                                 ####
@@ -43,7 +43,7 @@ if __name__ == '__main__':
             parallaxes = star.parameter_set.filter(name__exact='parallax')
             conti = False
             for para in parallaxes:
-                source_name = para.data_source.name
+                source_name = para.parameter_source.name
                 if source_name == 'Gaia DR3':
                     conti = True
                     dr3_para = para
@@ -86,14 +86,14 @@ if __name__ == '__main__':
                 print('\t\tDelete old absolute Gaia magnitude entry')
                 old.delete()
 
-            dsgaia = DataSource.objects.get(
+            dsgaia = ParameterSource.objects.get(
                 name__exact='Gaia DR3',
                 project=pro,
             )
 
             print('\t\tAdd new absolute Gaia magnitude entry')
             star.parameter_set.create(
-                data_source=dsgaia,
+                parameter_source=dsgaia,
                 name='absolute_g_mag',
                 component=0,
                 value=gmag_abs,

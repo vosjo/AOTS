@@ -18,7 +18,7 @@ import django
 django.setup()
 
 from stars.models import Project
-from analysis.models import DataSource
+from analysis.models import ParameterSource
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -63,7 +63,7 @@ if __name__ == '__main__':
             old_parall = star.parameter_set.filter(name__exact='parallax')
             # conti = False
             # for old in old_parall:
-            #     source_name = old.data_source.name
+            #     source_name = old.parameter_source.name
             #     if source_name == 'Gaia DR3':
             #         conti = True
             # if conti:
@@ -98,12 +98,12 @@ if __name__ == '__main__':
 
                 print('\tUpdate/Add parallax and proper motion')
                 try:
-                    dsgaia = DataSource.objects.get(
+                    dsgaia = ParameterSource.objects.get(
                         name__exact='Gaia DR3',
                         project=pro,
                     )
-                except DataSource.DoesNotExist:
-                    dsgaia = DataSource.objects.create(
+                except ParameterSource.DoesNotExist:
+                    dsgaia = ParameterSource.objects.create(
                         name='Gaia DR3',
                         note='3nd Gaia data release',
                         reference='https://doi.org/10.1051/0004-6361/202243940',
@@ -120,13 +120,13 @@ if __name__ == '__main__':
                             old.delete()
                         else:
                             #   Delete existing DR3 entries
-                            source_name = old.data_source.name
+                            source_name = old.parameter_source.name
                             if source_name == 'Gaia DR3':
                                 old.delete()
 
                     print('\t\tAdd new parallax entry')
                     star.parameter_set.create(
-                        data_source=dsgaia,
+                        parameter_source=dsgaia,
                         name='parallax',
                         component=0,
                         value=gaia_data[0]['Plx'],
@@ -145,13 +145,13 @@ if __name__ == '__main__':
                             old.delete()
                         else:
                             #   Delete existing DR3 entries
-                            source_name = old.data_source.name
+                            source_name = old.parameter_source.name
                             if source_name == 'Gaia DR3':
                                 old.delete()
 
                     print('\t\tAdd new pmra entry')
                     star.parameter_set.create(
-                        data_source=dsgaia,
+                        parameter_source=dsgaia,
                         name='pmra',
                         component=0,
                         value=gaia_data[0]['pmRA'],
@@ -170,13 +170,13 @@ if __name__ == '__main__':
                             old.delete()
                         else:
                             #   Delete existing DR3 entries
-                            source_name = old.data_source.name
+                            source_name = old.parameter_source.name
                             if source_name == 'Gaia DR3':
                                 old.delete()
 
                     print('\t\tAdd new pmdec entry')
                     star.parameter_set.create(
-                        data_source=dsgaia,
+                        parameter_source=dsgaia,
                         name='pmdec',
                         component=0,
                         value=gaia_data[0]['pmDE'],
@@ -189,7 +189,7 @@ if __name__ == '__main__':
             #   Sleep for 5s to avoid hitting the Vizier-Server too often
             time.sleep(5.)
         # try:
-        #     dsgaia_old = DataSource.objects.get(
+        #     dsgaia_old = ParameterSource.objects.get(
         #         name__exact='Gaia EDR3',
         #         project=pro,
         #     )

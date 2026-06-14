@@ -39,7 +39,7 @@ Gate for Phase 5a sign-off. Each item must pass in the Vue SPA at `/app/…`.
 
 ## Analysis
 
-- [ ] Datasets: filters, bulk DL, detail plots, category edit
+- [ ] Analyses: filters, bulk DL, detail plots, category edit
 - [ ] Parameter plotter: form + statistics
 
 ## Profile

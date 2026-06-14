@@ -11,43 +11,16 @@ from stars.models import Star, Project
 from .default_values import *
 
 
-class DataSource(models.Model):
-    """
-    Super class for any object that has parameters attached.
-    """
+class Analysis(models.Model):
+    """HDF5 analysis result (RV, SED fit, etc.) — standalone, not a parameter source."""
 
+    id = models.AutoField(primary_key=True, db_column='datasource_ptr_id')
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False)
     name = models.TextField(default='')
     note = models.TextField(default='')
     reference = models.TextField(default='')
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=False)
-
-    history = HistoricalRecords(cascade_delete_history=True)
-
-    def source(self):
-        try:
-            return category_label(self.analysis.category)
-        except Analysis.DoesNotExist:
-            return self.reference if self.reference != '' else self.name
-
-    def get_reference_url(self):
-        if self.reference != '':
-            return 'http://adsabs.harvard.edu/abs/' + self.reference
-        else:
-            return ''
-
-    def __str__(self):
-        return "{} {}".format(self.name, '({})'.format(self.reference) if self.reference else '')
-
-
-class AverageDataSource(DataSource):
-    datafile = models.FileField(upload_to='datatables/', null=True)
-
-    def save_parameters_as_csv(self):
-        pass
-
-
-class Analysis(DataSource):
     star = models.ForeignKey(Star, on_delete=models.CASCADE, blank=True, null=True)
 
     category = models.CharField(
@@ -66,6 +39,20 @@ class Analysis(DataSource):
     fit = models.BooleanField(default=True)
 
     history = HistoricalRecords(cascade_delete_history=True)
+
+    class Meta:
+        db_table = 'analysis_analysis'
+
+    def get_category_display(self):
+        return category_label(self.category)
+
+    def get_reference_url(self):
+        if self.reference != '':
+            return 'http://adsabs.harvard.edu/abs/' + self.reference
+        return ''
+
+    def __str__(self):
+        return "{} {}".format(self.name, '({})'.format(self.reference) if self.reference else '')
 
     def get_data(self):
         from analysis.services.analysis_io import read_analysis_data
@@ -87,7 +74,8 @@ class Analysis(DataSource):
         return plot_analyses.plot_parameter_ci(self.datafile.path, self.category)
 
     def get_system_parameters(self):
-        parameters = self.parameter_set.filter(component__exact=SYSTEM)
+        from .parameters import Parameter
+        parameters = Parameter.objects.filter(analysis=self, component__exact=SYSTEM)
         pars = []
         for p in parameters.order_by('name'):
             prec = PARAMETER_DECIMALS.get(p.name, 3)
@@ -96,14 +84,16 @@ class Analysis(DataSource):
         return pars
 
     def get_component_parameters(self):
+        from .parameters import Parameter
         parameters = set(
-            self.parameter_set.filter(
-                component__in=STELLAR_PARAMETERS
+            Parameter.objects.filter(
+                analysis=self,
+                component__in=STELLAR_PARAMETERS,
             ).values_list('name', flat=True)
         )
         pars = []
         for pname in parameters:
-            qset = self.parameter_set.filter(name__exact=pname)
+            qset = Parameter.objects.filter(analysis=self, name__exact=pname)
 
             line = [pname, qset[0].unit]
             for comp in STELLAR_PARAMETERS:
@@ -124,7 +114,7 @@ class Analysis(DataSource):
 @receiver(post_delete, sender=Analysis)
 def analysis_post_delete_handler(sender, **kwargs):
     analysis = kwargs['instance']
-    same_datafile = Analysis.objects.all().filter(datafile=analysis.datafile)
-    if not same_datafile:
+    same_datafile = Analysis.objects.filter(datafile=analysis.datafile)
+    if not same_datafile.exists():
         storage, path = analysis.datafile.storage, analysis.datafile.path
         storage.delete(path)

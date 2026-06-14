@@ -413,6 +413,16 @@ Download `kind` query parameter:
 | `lightcurves` | Light curve list page | LightCurve PKs |
 | `analyses` | Analysis list page | Analysis PKs |
 
+### Glossary: Analysis vs parameter source
+
+| Concept | Model | Examples |
+| --- | --- | --- |
+| HDF5 analysis result | `Analysis` | RV solution, SED fit |
+| External / catalog provenance | `ParameterSource` | Gaia DR3, manual entry |
+| Project average container | `AverageParameterSource` | `name='AVG'` per project |
+
+Parameters from HDF5 uploads link via `Parameter.analysis`. Catalog, script, and averaged parameters link via `Parameter.parameter_source` (including derived parameters on the project AVG source).
+
 See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for list API field contracts.
 
 ## Redis and background tasks (Celery)

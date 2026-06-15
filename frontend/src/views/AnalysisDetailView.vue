@@ -112,6 +112,12 @@ const pageTitle = computed(() => {
   return `${starName} — ${categoryName}`
 })
 
+const deriveButtonLabel = computed(() => {
+  if (deriveBusy.value) return 'Calculating…'
+  if (analysis.value?.derived_parameters.length) return 'Recalculate parameters'
+  return 'Calculate additional parameters'
+})
+
 const histPlotKeys = computed(() => {
   if (!plots.value) return []
   return Object.keys(plots.value).filter((key) => key !== 'fit' && key !== 'oc')
@@ -368,7 +374,7 @@ async function deriveParameters() {
                 :disabled="deriveBusy"
                 @click="deriveParameters"
               >
-                {{ deriveBusy ? 'Calculating…' : 'Calculate additional parameters' }}
+                {{ deriveButtonLabel }}
               </button>
             </div>
             <p v-if="deriveMessage" class="text-xs text-slate-400 mb-2">{{ deriveMessage }}</p>

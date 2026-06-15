@@ -82,6 +82,14 @@ class Parameter(models.Model):
     def save(self, *args, **kwargs):
         if self.parameter_source_id and self.analysis_id:
             raise ValidationError('A parameter cannot belong to both an analysis and a parameter source.')
+        if self.star_id:
+            from AOTS.project_scoping import require_same_project
+            if self.analysis_id:
+                require_same_project(self.star.project, self.analysis, 'Analysis')
+                if self.analysis.star_id and self.star_id != self.analysis.star_id:
+                    raise ValidationError('Parameter star must match the linked analysis star.')
+            if self.parameter_source_id:
+                require_same_project(self.star.project, self.parameter_source, 'Parameter source')
         self.cname = combine_parameter_name(self.name, self.component)
         super().save(*args, **kwargs)
 

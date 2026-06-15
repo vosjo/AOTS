@@ -130,7 +130,7 @@ def plot_visibility(observation):
     return fig
 
 
-def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
+def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
     '''
     Plot spectrum
 
@@ -150,7 +150,9 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
     '''
 
     #   Load spectrum, individual spectra (specfiles), and instrument
-    spectrum = Spectrum.objects.get(pk=spectrum_id)
+    spectrum = Spectrum.objects.select_related('project').get(pk=spectrum_id)
+    from AOTS.project_scoping import assert_plot_belongs_to_project
+    assert_plot_belongs_to_project(spectrum, project)
     specfiles = spectrum.specfile_set.order_by('filetype')
     instrument = spectrum.instrument
 
@@ -377,8 +379,10 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3):
     return Tabs(tabs=tabs, sizing_mode='scale_width')
 
 
-def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
-    lightcurve = LightCurve.objects.get(pk=lightcurve_id)
+def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None):
+    lightcurve = LightCurve.objects.select_related('project').get(pk=lightcurve_id)
+    from AOTS.project_scoping import assert_plot_belongs_to_project
+    assert_plot_belongs_to_project(lightcurve, project)
 
     time, flux, header = lightcurve.get_lightcurve()
 
@@ -428,9 +432,11 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01):
     return fig1, fig2
 
 
-def plot_sed(star_id):
+def plot_sed(star_id, project=None):
 
-    star = Star.objects.get(pk=star_id)
+    star = Star.objects.select_related('project').get(pk=star_id)
+    from AOTS.project_scoping import assert_plot_belongs_to_project
+    assert_plot_belongs_to_project(star, project)
     photometry = star.photometry_set.all()
 
     data = []

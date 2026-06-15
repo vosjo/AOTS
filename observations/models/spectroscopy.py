@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 from astropy.io import fits
 from django.db import models
-from django.db.models.signals import pre_delete, post_delete
+from django.db.models.signals import m2m_changed, post_delete, pre_delete
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 
@@ -85,6 +85,14 @@ class Spectrum(models.Model):
 
     # -- bookkeeping
     history = HistoricalRecords(cascade_delete_history=True)
+
+    def save(self, *args, **kwargs):
+        from AOTS.project_scoping import require_same_project
+        if self.star_id:
+            require_same_project(self.project, self.star, 'Star')
+        if self.observatory_id:
+            require_same_project(self.project, self.observatory, 'Observatory')
+        super().save(*args, **kwargs)
 
     # -- function to get the spectrum
     def get_spectrum(self):
@@ -177,6 +185,14 @@ class UserInfo(models.Model):
     #   Bookkeeping
     history = HistoricalRecords(cascade_delete_history=True)
 
+    def save(self, *args, **kwargs):
+        from AOTS.project_scoping import require_same_project
+        if self.spectrum_id:
+            require_same_project(self.project, self.spectrum, 'Spectrum')
+        if self.observatory_id:
+            require_same_project(self.project, self.observatory, 'Observatory')
+        super().save(*args, **kwargs)
+
 
 ###
 #   SpecFile
@@ -225,6 +241,12 @@ class SpecFile(models.Model):
 
     #   Bookkeeping
     history = HistoricalRecords(cascade_delete_history=True)
+
+    def save(self, *args, **kwargs):
+        from AOTS.project_scoping import require_same_project
+        if self.spectrum_id:
+            require_same_project(self.project, self.spectrum, 'Spectrum')
+        super().save(*args, **kwargs)
 
     def get_spectrum(self):
         from observations.services import fits_io
@@ -301,6 +323,31 @@ class RawSpecFile(models.Model):
             self.instrument,
             self.obs_date,
         )
+
+
+@receiver(m2m_changed, sender=RawSpecFile.star.through)
+def rawspecfile_stars_project_check(sender, instance, action, reverse, pk_set, **kwargs):
+    if reverse or action not in ('post_add', 'post_set') or not pk_set:
+        return
+    from AOTS.project_scoping import require_queryset_same_project
+    require_queryset_same_project(
+        instance.project,
+        Star.objects.filter(pk__in=pk_set),
+        'Star',
+    )
+
+
+@receiver(m2m_changed, sender=RawSpecFile.specfile.through)
+def rawspecfile_specfiles_project_check(sender, instance, action, reverse, pk_set, **kwargs):
+    if reverse or action not in ('post_add', 'post_set') or not pk_set:
+        return
+    from AOTS.project_scoping import require_queryset_same_project
+    require_queryset_same_project(
+        instance.project,
+        SpecFile.objects.filter(pk__in=pk_set),
+        'SpecFile',
+    )
+
 
 ###
 #   Deletion handlers

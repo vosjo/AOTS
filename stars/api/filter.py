@@ -3,6 +3,7 @@ from astroquery.simbad import Simbad
 from django.db.models import Count
 from django_filters import rest_framework as filters
 
+from AOTS.filter_scoping import project_id_from_mapping, project_pk_filter
 from stars.models import Star, Tag
 
 
@@ -16,6 +17,8 @@ class StarFilter(filters.FilterSet):
         - the filter order matters -> Gmag filter needs to come last,
           because it breaks other filter for some reason
     """
+    project = project_pk_filter()
+
     #   Name filter
     name = filters.CharFilter(
         field_name="name",
@@ -70,7 +73,30 @@ class StarFilter(filters.FilterSet):
     )
 
     #   Tag filter
-    tags = filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all())
+    tags = filters.CharFilter(method='filter_by_tags')
+
+    def filter_by_tags(self, queryset, name, value):
+        request_data = getattr(self, 'data', None)
+        if request_data is None:
+            return queryset
+        if hasattr(request_data, 'getlist'):
+            tag_ids = request_data.getlist('tags')
+        else:
+            raw = request_data.get('tags', [])
+            tag_ids = raw if isinstance(raw, list) else [raw]
+        try:
+            tag_ids = [int(tag_id) for tag_id in tag_ids if str(tag_id).strip()]
+        except (TypeError, ValueError):
+            return queryset.none()
+        if not tag_ids:
+            return queryset
+        project_id = project_id_from_mapping(request_data)
+        tag_qs = Tag.objects.filter(pk__in=tag_ids)
+        if project_id:
+            tag_qs = tag_qs.filter(project_id=project_id)
+        if not tag_qs.exists():
+            return queryset.none()
+        return queryset.filter(tags__in=tag_qs).distinct()
 
     #   Filter for # of photometry measurements, spectra, light curves
     nphot_min = filters.NumberFilter(
@@ -209,7 +235,7 @@ class StarFilter(filters.FilterSet):
 
     class Meta:
         model = Star
-        fields = ['project']
+        fields = []
 
 
 # ===============================================================
@@ -217,6 +243,8 @@ class StarFilter(filters.FilterSet):
 # ===============================================================
 
 class TagFilter(filters.FilterSet):
+    project = project_pk_filter()
+
     class Meta:
         model = Tag
-        fields = ['project', ]
+        fields = []

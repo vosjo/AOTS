@@ -22,13 +22,15 @@ wavelengths = {'GALEX.FUV': 1529,
                '2MASS.Ks': 21639, }
 
 
-def plot_photometry(star_id):
+def plot_photometry(star_id, project=None):
     """
     Plot the photometry belonging to the given star ID
     """
 
     # -- obtain all photometry
-    star = Star.objects.get(pk=star_id)
+    star = Star.objects.select_related('project').get(pk=star_id)
+    from AOTS.project_scoping import assert_plot_belongs_to_project
+    assert_plot_belongs_to_project(star, project)
     photometry = []
     for p in star.photometry_set.all():
         if p.measurement <= 0:

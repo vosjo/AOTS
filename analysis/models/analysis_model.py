@@ -50,6 +50,12 @@ class Analysis(models.Model):
             return 'http://adsabs.harvard.edu/abs/' + self.reference
         return ''
 
+    def save(self, *args, **kwargs):
+        if self.star_id:
+            from AOTS.project_scoping import require_same_project
+            require_same_project(self.project, self.star, 'Star')
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return "{} {}".format(self.name, '({})'.format(self.reference) if self.reference else '')
 

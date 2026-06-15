@@ -67,6 +67,14 @@ class LightCurve(models.Model):
     # -- bookkeeping
     history = HistoricalRecords(cascade_delete_history=True)
 
+    def save(self, *args, **kwargs):
+        from AOTS.project_scoping import require_same_project
+        if self.star_id:
+            require_same_project(self.project, self.star, 'Star')
+        if self.observatory_id:
+            require_same_project(self.project, self.observatory, 'Observatory')
+        super().save(*args, **kwargs)
+
     # -- function to get the lightcurve
     def get_lightcurve(self):
         from observations.services import fits_io

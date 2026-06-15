@@ -140,6 +140,14 @@ class IsAllowedOnProjectTests(TestCase):
         )
         self.assertTrue(self.permission.has_permission(request, None))
 
+    def test_readwrite_user_can_create_when_only_star_is_given(self):
+        request = self._drf_request(
+            'post',
+            self.readwrite_user,
+            data={'star': self.star.pk},
+        )
+        self.assertTrue(self.permission.has_permission(request, None))
+
     def test_readonly_user_cannot_create_in_project(self):
         request = self._drf_request(
             'post',

@@ -1,5 +1,6 @@
 from django_filters import rest_framework as filters
 
+from AOTS.filter_scoping import project_pk_filter
 from observations.models import (
     Spectrum,
     UserInfo,
@@ -15,6 +16,8 @@ from observations.models import (
 # ===============================================================
 
 class SpectrumFilter(filters.FilterSet):
+    project = project_pk_filter()
+
     target = filters.CharFilter(field_name="target", method="star_name_icontains", lookup_expr='icontains')
 
     hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
@@ -46,10 +49,12 @@ class SpectrumFilter(filters.FilterSet):
 
     class Meta:
         model = Spectrum
-        fields = ['project', ]
+        fields = []
 
 
 class UserInfoFilter(filters.FilterSet):
+    project = project_pk_filter()
+
     target = filters.CharFilter(
         field_name="target",
         method="star_name_icontains",
@@ -79,7 +84,7 @@ class UserInfoFilter(filters.FilterSet):
 
     class Meta:
         model = UserInfo
-        fields = ['project', ]
+        fields = []
 
 
 # ===============================================================
@@ -87,6 +92,8 @@ class UserInfoFilter(filters.FilterSet):
 # ===============================================================
 
 class SpecFileFilter(filters.FilterSet):
+    project = project_pk_filter()
+
     #   Target filter
     target = filters.CharFilter(
         field_name="target",
@@ -127,7 +134,7 @@ class SpecFileFilter(filters.FilterSet):
 
     class Meta:
         model = SpecFile
-        fields = ['project', ]
+        fields = []
 
 
 # ===============================================================
@@ -135,6 +142,8 @@ class SpecFileFilter(filters.FilterSet):
 # ===============================================================
 
 class RawSpecFileFilter(filters.FilterSet):
+    project = project_pk_filter()
+
     #   System filter
     systems = filters.CharFilter(
         field_name="star",
@@ -189,7 +198,7 @@ class RawSpecFileFilter(filters.FilterSet):
 
     class Meta:
         model = RawSpecFile
-        fields = ['project', ]
+        fields = []
 
 
 # ===============================================================
@@ -197,6 +206,8 @@ class RawSpecFileFilter(filters.FilterSet):
 # ===============================================================
 
 class LightCurveFilter(filters.FilterSet):
+    project = project_pk_filter()
+
     target = filters.CharFilter(field_name="target", method="star_name_icontains", lookup_expr='icontains')
 
     hjd_min = filters.NumberFilter(field_name="hjd", lookup_expr='gte')
@@ -220,7 +231,7 @@ class LightCurveFilter(filters.FilterSet):
 
     class Meta:
         model = LightCurve
-        fields = ['project', ]
+        fields = []
 
 
 # ===============================================================
@@ -228,8 +239,10 @@ class LightCurveFilter(filters.FilterSet):
 # ===============================================================
 
 class ObservatoryFilter(filters.FilterSet):
+    project = project_pk_filter()
+
     name = filters.CharFilter(field_name="name", lookup_expr='icontains')
 
     class Meta:
         model = Observatory
-        fields = ['latitude', 'longitude', 'altitude', 'project']
+        fields = ['latitude', 'longitude', 'altitude']

@@ -44,13 +44,40 @@ class IsAllowedOnProject(permissions.BasePermission):
 
 
 def _get_project_from_request(request):
-    project_id = request.data.get('project')
-    if project_id is None:
-        return None
-    try:
-        return Project.objects.get(pk=project_id)
-    except (Project.DoesNotExist, ValueError, TypeError):
-        return None
+    data = getattr(request, 'data', None) or {}
+
+    project_id = data.get('project')
+    if project_id is not None:
+        try:
+            return Project.objects.get(pk=project_id)
+        except (Project.DoesNotExist, ValueError, TypeError):
+            return None
+
+    star_id = data.get('star')
+    if star_id is not None:
+        from stars.models import Star
+        try:
+            return Star.objects.select_related('project').get(pk=star_id).project
+        except (Star.DoesNotExist, ValueError, TypeError):
+            return None
+
+    analysis_id = data.get('analysis')
+    if analysis_id is not None:
+        from analysis.models import Analysis
+        try:
+            return Analysis.objects.select_related('project').get(pk=analysis_id).project
+        except (Analysis.DoesNotExist, ValueError, TypeError):
+            return None
+
+    spectrum_id = data.get('spectrum')
+    if spectrum_id is not None:
+        from observations.models import Spectrum
+        try:
+            return Spectrum.objects.select_related('project').get(pk=spectrum_id).project
+        except (Spectrum.DoesNotExist, ValueError, TypeError):
+            return None
+
+    return None
 
 
 def get_allowed_objects_to_view_for_user(qs, user, parameter_switch=False):

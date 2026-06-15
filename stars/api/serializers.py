@@ -1,5 +1,6 @@
 import numpy as np
 from django.urls import reverse
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField
 
 from stars.models import Project, Star, Tag, Identifier
@@ -67,6 +68,41 @@ class SimpleTagSerializer(ModelSerializer):
 # STARS
 # ===============================================================
 
+def _tag_queryset_for_serializer(serializer):
+    project = None
+    instance = getattr(serializer, 'instance', None)
+    if isinstance(instance, Star):
+        project = instance.project
+    elif isinstance(instance, list) and instance:
+        stars = [item for item in instance if isinstance(item, Star)]
+        if stars:
+            project_ids = {star.project_id for star in stars}
+            if len(project_ids) == 1:
+                project = stars[0].project
+    if project is None:
+        initial = getattr(serializer, 'initial_data', None) or {}
+        project_pk = initial.get('project') if isinstance(initial, dict) else None
+        if project_pk is not None:
+            try:
+                project = Project.objects.get(pk=int(project_pk))
+            except (Project.DoesNotExist, TypeError, ValueError):
+                project = None
+    if project is None:
+        return Tag.objects.none()
+    return Tag.objects.filter(project=project)
+
+
+def _scope_star_tag_ids_queryset(serializer):
+    if 'tag_ids' not in serializer.fields:
+        return
+    queryset = _tag_queryset_for_serializer(serializer)
+    field = serializer.fields['tag_ids']
+    if isinstance(field, serializers.ManyRelatedField):
+        field.child_relation.queryset = queryset
+    else:
+        field.queryset = queryset
+
+
 class StarListSerializer(ModelSerializer):
     tags = SerializerMethodField()
     analyses = SerializerMethodField()
@@ -79,10 +115,14 @@ class StarListSerializer(ModelSerializer):
     observing_status_display = SerializerMethodField()
     tag_ids = PrimaryKeyRelatedField(
         many=True,
-        queryset=Tag.objects.all(),
+        queryset=Tag.objects.none(),
         read_only=False,
         source='tags',
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _scope_star_tag_ids_queryset(self)
 
     class Meta:
         model = Star
@@ -165,12 +205,24 @@ class StarListSerializer(ModelSerializer):
     def get_observing_status_display(self, obj):
         return obj.get_observing_status_display()
 
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        project = attrs.get('project') or (self.instance.project if self.instance else None)
+        tags = attrs.get('tags')
+        if project is not None and tags is not None:
+            invalid = [tag.pk for tag in tags if tag.project_id != project.pk]
+            if invalid:
+                raise serializers.ValidationError({
+                    'tag_ids': 'Tags must belong to the same project as the star.',
+                })
+        return attrs
+
 
 class StarSerializer(ModelSerializer):
     tags = SerializerMethodField()
     tag_ids = PrimaryKeyRelatedField(
         many=True,
-        queryset=Tag.objects.all(),
+        queryset=Tag.objects.none(),
         read_only=False,
         source='tags',
     )
@@ -178,6 +230,10 @@ class StarSerializer(ModelSerializer):
     href = SerializerMethodField()
     classification_type_display = SerializerMethodField()
     observing_status_display = SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _scope_star_tag_ids_queryset(self)
 
     class Meta:
         model = Star
@@ -221,6 +277,18 @@ class StarSerializer(ModelSerializer):
 
     def get_observing_status_display(self, obj):
         return obj.get_observing_status_display()
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        project = attrs.get('project') or (self.instance.project if self.instance else None)
+        tags = attrs.get('tags')
+        if project is not None and tags is not None:
+            invalid = [tag.pk for tag in tags if tag.project_id != project.pk]
+            if invalid:
+                raise serializers.ValidationError({
+                    'tag_ids': 'Tags must belong to the same project as the star.',
+                })
+        return attrs
 
 
 class SimpleStarSerializer(ModelSerializer):

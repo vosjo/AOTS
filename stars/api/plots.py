@@ -46,7 +46,7 @@ def _history_user_display(user):
 @permission_classes([AllowAny])
 def star_sed_plot(request, pk):
     star = get_object_if_allowed(Star, request, pk, select_related=('project',))
-    return Response(bokeh_embed_response(plot_sed(star.pk)))
+    return Response(bokeh_embed_response(plot_sed(star.pk, project=star.project)))
 
 
 @api_view(['GET'])

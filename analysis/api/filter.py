@@ -1,11 +1,13 @@
 from django_filters import rest_framework as filters
 
+from AOTS.filter_scoping import project_pk_filter
 from analysis.categories import CATEGORY_META, AnalysisCategory
 from analysis.models import Analysis, Parameter
-from stars.models import Project
 
 
 class AnalysisFilter(filters.FilterSet):
+    project = project_pk_filter()
+
     system = filters.CharFilter(
         field_name="star",
         method="star_name_icontains",
@@ -33,15 +35,11 @@ class AnalysisFilter(filters.FilterSet):
 
     class Meta:
         model = Analysis
-        fields = ['project', ]
+        fields = []
 
 
 class ParameterFilter(filters.FilterSet):
-    project = filters.ModelChoiceFilter(
-        queryset=Project.objects.all(),
-        field_name="star__project",
-        lookup_expr='exact',
-    )
+    project = project_pk_filter(field_name='star__project')
 
     star_pk = filters.NumberFilter(
         field_name="star",

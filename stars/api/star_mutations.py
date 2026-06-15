@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
+from analysis.services import parameter_io
 from stars.auxil import (
     passbands,
     photnames,
@@ -43,24 +44,13 @@ def _apply_parameter_updates(star, updates):
             raise ValueError(f'Unknown parameter id: {entry.get("id")}')
         value = entry.get('value')
         if value is None:
-            param.delete()
+            parameter_io.delete_measurement(param)
             continue
-        name = param.name
-        component = param.component
-        source = param.parameter_source
-        analysis = param.analysis
-        unit = param.unit
-        error = float(entry.get('error') or 0)
-        param.delete()
-        star.parameter_set.create(
-            name=name,
-            parameter_source=source,
-            analysis=analysis,
-            component=component,
-            unit=unit,
+        parameter_io.replace_measurement(
+            param,
             value=float(value),
-            error_l=error,
-            error_u=error,
+            error_l=float(entry.get('error') or 0),
+            error_u=float(entry.get('error') or 0),
         )
     return True, 'Parameters updated'
 

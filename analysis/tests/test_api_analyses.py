@@ -4,7 +4,8 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from analysis.categories import AnalysisCategory
-from analysis.models import Analysis, DerivedParameter, Parameter, ParameterSource
+from analysis.models import Analysis, Parameter, ParameterSource
+from analysis.services import parameter_io
 from analysis.services.parameter_sources import get_or_create_avg_source
 from stars.models import Project, Star
 
@@ -51,27 +52,26 @@ class AnalysisApiTests(TestCase):
         avg = get_or_create_avg_source(self.project)
         src = ParameterSource.objects.create(name='src', project=self.project)
         for comp, val in ((1, 5.0), (2, 10.0)):
-            Parameter.objects.create(
-                star=self.star, name='K', component=comp, value=val, error=0.5,
-                unit='km/s', average=True, parameter_source=avg,
+            parameter_io.create_measurement(
+                star=self.star, name='K', component=comp, value=val,
+                error_l=0.5, error_u=0.5, unit='km/s', average=True, parameter_source=avg,
+                run_after=False,
             )
-            Parameter.objects.create(
-                star=self.star, name='K', component=comp, value=val, error=0.5,
-                unit='km/s', average=False, parameter_source=src,
+            parameter_io.create_measurement(
+                star=self.star, name='K', component=comp, value=val,
+                error_l=0.5, error_u=0.5, unit='km/s', average=False, parameter_source=src,
+                run_after=False,
             )
-        Parameter.objects.create(
-            star=self.star, name='p', component=0, value=10.0, error=0.1,
-            unit='d', average=True, parameter_source=avg,
+        for name, val in (('p', 10.0), ('e', 0.0)):
+            parameter_io.create_measurement(
+                star=self.star, name=name, component=0, value=val,
+                error_l=0.1 if name == 'p' else 0.01, error_u=0.1 if name == 'p' else 0.01,
+                unit='d' if name == 'p' else '', average=True, parameter_source=avg,
+                run_after=False,
+            )
+        parameter_io.create_derived_record(
+            star=self.star, project=self.project, name='q', component=0,
         )
-        Parameter.objects.create(
-            star=self.star, name='e', component=0, value=0.0, error=0.01,
-            unit='', average=True, parameter_source=avg,
-        )
-        dpar = DerivedParameter.objects.create(
-            star=self.star, name='q', component=0, average=True, parameter_source=avg,
-        )
-        from analysis.services import parameter_derivation
-        parameter_derivation.refresh_derived_parameter(dpar)
 
         response = self.client.get(f'/api/analysis/analyses/{self.analysis.pk}/')
         self.assertEqual(response.status_code, 200)
@@ -86,21 +86,21 @@ class AnalysisApiTests(TestCase):
         self.analysis.category = AnalysisCategory.RV_SOLUTION
         self.analysis.save()
         avg = get_or_create_avg_source(self.project)
-        Parameter.objects.create(
-            star=self.star, name='K', component=1, value=5.0, error=0.5,
-            unit='km/s', average=True, parameter_source=avg,
+        for comp, val, err in ((1, 5.0, 0.5), (2, 10.0, 1.0)):
+            parameter_io.create_measurement(
+                star=self.star, name='K', component=comp, value=val,
+                error_l=err, error_u=err, unit='km/s', average=True, parameter_source=avg,
+                run_after=False,
+            )
+        parameter_io.create_measurement(
+            star=self.star, name='p', component=0, value=10.0,
+            error_l=0.1, error_u=0.1, unit='d', average=True, parameter_source=avg,
+            run_after=False,
         )
-        Parameter.objects.create(
-            star=self.star, name='K', component=2, value=10.0, error=1.0,
-            unit='km/s', average=True, parameter_source=avg,
-        )
-        Parameter.objects.create(
-            star=self.star, name='p', component=0, value=10.0, error=0.1,
-            unit='d', average=True, parameter_source=avg,
-        )
-        Parameter.objects.create(
-            star=self.star, name='e', component=0, value=0.0, error=0.01,
-            unit='', average=True, parameter_source=avg,
+        parameter_io.create_measurement(
+            star=self.star, name='e', component=0, value=0.0,
+            error_l=0.01, error_u=0.01, unit='', average=True, parameter_source=avg,
+            run_after=False,
         )
 
         self.client.force_authenticate(user=user)

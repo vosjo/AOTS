@@ -24,6 +24,7 @@ def calculate_average(params):
 
 def delete_orphan_average(param):
     from analysis.models.parameters import Parameter
+    from analysis.services import parameter_io
     try:
         ap = Parameter.objects.get(
             name__exact=param.name,
@@ -32,7 +33,7 @@ def delete_orphan_average(param):
             valid__exact=True,
             average__exact=True,
         )
-        ap.delete()
+        parameter_io.delete_measurement(ap)
     except Parameter.DoesNotExist:
         pass
 
@@ -76,9 +77,12 @@ def sync_average_for(param):
         ap.value = value
         ap.error = error
         ap.save()
+        if ap.derived_parameters.exists():
+            from analysis.services.parameter_derivation import refresh_derived_for
+            refresh_derived_for(ap)
     except Parameter.DoesNotExist:
         ds = get_or_create_avg_source(param.star.project)
-        Parameter.objects.create(
+        ap = Parameter.objects.create(
             star=param.star,
             name=param.name,
             component=param.component,
@@ -89,6 +93,9 @@ def sync_average_for(param):
             valid=True,
             parameter_source=ds,
         )
+        if ap.derived_parameters.exists():
+            from analysis.services.parameter_derivation import refresh_derived_for
+            refresh_derived_for(ap)
 
 
 def sync_averages_for_star(star):

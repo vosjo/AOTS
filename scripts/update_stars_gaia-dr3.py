@@ -19,6 +19,7 @@ django.setup()
 
 from stars.models import Project
 from analysis.models import ParameterSource
+from analysis.services import parameter_io
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -115,21 +116,24 @@ if __name__ == '__main__':
                         #   Delete old entries is requested
                         if rm_old_para:
                             print('\t\tDelete old parallax entry')
-                            old.delete()
+                            parameter_io.delete_measurement(old, run_after=False)
                         else:
                             #   Delete existing DR3 entries
                             source_name = old.parameter_source.name
                             if source_name == 'Gaia DR3':
-                                old.delete()
+                                parameter_io.delete_measurement(old, run_after=False)
 
                     print('\t\tAdd new parallax entry')
-                    star.parameter_set.create(
+                    parameter_io.create_measurement(
+                        star=star,
                         parameter_source=dsgaia,
                         name='parallax',
                         component=0,
                         value=gaia_data[0]['Plx'],
-                        error=gaia_data[0]['e_Plx'],
+                        error_l=gaia_data[0]['e_Plx'],
+                        error_u=gaia_data[0]['e_Plx'],
                         unit='mas',
+                        run_after=False,
                     )
 
                 #   RA proper motion
@@ -140,21 +144,24 @@ if __name__ == '__main__':
                         #   Delete old entries is requested
                         if rm_old_para:
                             print('\t\tDelete old pmra entry')
-                            old.delete()
+                            parameter_io.delete_measurement(old, run_after=False)
                         else:
                             #   Delete existing DR3 entries
                             source_name = old.parameter_source.name
                             if source_name == 'Gaia DR3':
-                                old.delete()
+                                parameter_io.delete_measurement(old, run_after=False)
 
                     print('\t\tAdd new pmra entry')
-                    star.parameter_set.create(
+                    parameter_io.create_measurement(
+                        star=star,
                         parameter_source=dsgaia,
                         name='pmra',
                         component=0,
                         value=gaia_data[0]['pmRA'],
-                        error=gaia_data[0]['e_pmRA'],
+                        error_l=gaia_data[0]['e_pmRA'],
+                        error_u=gaia_data[0]['e_pmRA'],
                         unit='mas',
+                        run_after=False,
                     )
 
                 #   DEC proper motion
@@ -165,23 +172,27 @@ if __name__ == '__main__':
                         #   Delete old entries is requested
                         if rm_old_para:
                             print('\t\tDelete old pmdec entry')
-                            old.delete()
+                            parameter_io.delete_measurement(old, run_after=False)
                         else:
                             #   Delete existing DR3 entries
                             source_name = old.parameter_source.name
                             if source_name == 'Gaia DR3':
-                                old.delete()
+                                parameter_io.delete_measurement(old, run_after=False)
 
                     print('\t\tAdd new pmdec entry')
-                    star.parameter_set.create(
+                    parameter_io.create_measurement(
+                        star=star,
                         parameter_source=dsgaia,
                         name='pmdec',
                         component=0,
                         value=gaia_data[0]['pmDE'],
-                        error=gaia_data[0]['e_pmDE'],
+                        error_l=gaia_data[0]['e_pmDE'],
+                        error_u=gaia_data[0]['e_pmDE'],
                         unit='mas',
+                        run_after=False,
                     )
 
+                parameter_io.after_star_parameters_batch(star)
                 print()
 
             #   Sleep for 5s to avoid hitting the Vizier-Server too often

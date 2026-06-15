@@ -19,6 +19,7 @@ django.setup()
 
 from stars.models import Project
 from analysis.models import ParameterSource
+from analysis.services import parameter_io
 
 ############################################################################
 ####                               Main                                 ####
@@ -84,7 +85,7 @@ if __name__ == '__main__':
             old_abs_mag = star.parameter_set.filter(name__exact='absolute_g_mag')
             for old in old_abs_mag:
                 print('\t\tDelete old absolute Gaia magnitude entry')
-                old.delete()
+                parameter_io.delete_measurement(old, run_after=False)
 
             dsgaia = ParameterSource.objects.get(
                 name__exact='Gaia DR3',
@@ -92,12 +93,16 @@ if __name__ == '__main__':
             )
 
             print('\t\tAdd new absolute Gaia magnitude entry')
-            star.parameter_set.create(
+            parameter_io.create_measurement(
+                star=star,
                 parameter_source=dsgaia,
                 name='absolute_g_mag',
                 component=0,
                 value=gmag_abs,
-                error=gmag_abs_err,
+                error_l=gmag_abs_err,
+                error_u=gmag_abs_err,
                 unit='mag',
+                run_after=False,
             )
+            parameter_io.after_star_parameters_batch(star)
 

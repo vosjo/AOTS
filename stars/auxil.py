@@ -10,6 +10,7 @@ from django.shortcuts import reverse, get_object_or_404
 
 from analysis import models as analModels
 from analysis.models import ParameterSource
+from analysis.services import parameter_io
 from .models import Star
 
 #   'simbad_id':    ID of the catalog
@@ -535,37 +536,46 @@ def populate_system(star, star_pk):
             #   Set parallax
             if (str(gaia_data[0]['Plx']) != '--' and
                     str(gaia_data[0]['e_Plx']) != '--'):
-                sobj.parameter_set.create(
+                parameter_io.create_measurement(
+                    star=sobj,
                     parameter_source=dsgaia,
                     name='parallax',
                     component=0,
                     value=gaia_data[0]['Plx'],
-                    error=gaia_data[0]['e_Plx'],
+                    error_l=gaia_data[0]['e_Plx'],
+                    error_u=gaia_data[0]['e_Plx'],
                     unit='',
+                    run_after=False,
                 )
 
             #   RA proper motion
             if (str(gaia_data[0]['pmRA']) != '--' and
                     str(gaia_data[0]['e_pmRA']) != '--'):
-                sobj.parameter_set.create(
+                parameter_io.create_measurement(
+                    star=sobj,
                     parameter_source=dsgaia,
                     name='pmra',
                     component=0,
                     value=gaia_data[0]['pmRA'],
-                    error=gaia_data[0]['e_pmRA'],
+                    error_l=gaia_data[0]['e_pmRA'],
+                    error_u=gaia_data[0]['e_pmRA'],
                     unit='mas',
+                    run_after=False,
                 )
 
             #   DEC proper motion
             if (str(gaia_data[0]['pmDE']) != '--' and
                     str(gaia_data[0]['e_pmDE']) != '--'):
-                sobj.parameter_set.create(
+                parameter_io.create_measurement(
+                    star=sobj,
                     parameter_source=dsgaia,
                     name='pmdec',
                     component=0,
                     value=gaia_data[0]['pmDE'],
-                    error=gaia_data[0]['e_pmDE'],
+                    error_l=gaia_data[0]['e_pmDE'],
+                    error_u=gaia_data[0]['e_pmDE'],
                     unit='mas',
+                    run_after=False,
                 )
     else:
         if (star['parallax'] != None or
@@ -587,37 +597,47 @@ def populate_system(star, star_pk):
 
             #   Set parallax
             if star['parallax'] != None:
-                sobj.parameter_set.create(
+                parameter_io.create_measurement(
+                    star=sobj,
                     parameter_source=dsgaia,
                     name='parallax',
                     component=0,
                     value=star['parallax'],
-                    error=star['parallax_error'],
+                    error_l=star['parallax_error'],
+                    error_u=star['parallax_error'],
                     unit='',
+                    run_after=False,
                 )
 
             #   RA proper motion
             if star['pmra_x'] != None:
-                sobj.parameter_set.create(
+                parameter_io.create_measurement(
+                    star=sobj,
                     parameter_source=dsgaia,
                     name='pmra',
                     component=0,
                     value=star['pmra_x'],
-                    error=star['pmra_error'],
+                    error_l=star['pmra_error'],
+                    error_u=star['pmra_error'],
                     unit='mas',
+                    run_after=False,
                 )
 
             #   DEC proper motion
             if star['pmdec_x'] != None:
-                sobj.parameter_set.create(
+                parameter_io.create_measurement(
+                    star=sobj,
                     parameter_source=dsgaia,
                     name='pmdec',
                     component=0,
                     value=star['pmdec_x'],
-                    error=star['pmdec_error'],
+                    error_l=star['pmdec_error'],
+                    error_u=star['pmdec_error'],
                     unit='mas',
+                    run_after=False,
                 )
 
+    parameter_io.after_star_parameters_batch(sobj)
     sobj.save()
 
     return True, "New system ({}) created".format(star["main_id"])
@@ -746,12 +766,15 @@ def update_parameters(cleaned_data, project, star_id):
             spk, dSource = pk_from_source_name(source, star)
             paramset = star.parameter_set.filter(name__exact=name, parameter_source__exact=spk)
             if len(paramset) != 0:
-                paramset[0].delete()
-            star.parameter_set.create(
+                parameter_io.delete_measurement(paramset[0], run_after=False)
+            parameter_io.create_measurement(
+                star=star,
                 name=name,
                 parameter_source=dSource,
                 value=val,
                 error_l=errval,
-                error_u=errval
+                error_u=errval,
+                run_after=False,
             )
+    parameter_io.after_star_parameters_batch(star)
     return True, ""

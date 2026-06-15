@@ -13,11 +13,9 @@ def refresh_derived_for(param):
     """Recalculate derived parameters that depend on param."""
     if not param.derived_parameters.exists():
         return
-    for derived in param.derived_parameters.all():
-        if not derived.update():
+    for derived in list(param.derived_parameters.all()):
+        if not refresh_derived_parameter(derived):
             derived.delete()
-        else:
-            derived.save()
 
 
 def delete_dependent_derived(param):

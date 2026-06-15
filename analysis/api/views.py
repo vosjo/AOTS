@@ -14,6 +14,7 @@ from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
 from analysis.categories import choices_for_api, has_category_derived_parameters
 from analysis.forms import UploadAnalysisFileForm
 from analysis.models import Analysis, Parameter
+from analysis.services import parameter_io
 from analysis.services.analysis_upload import upload_analysis_files
 from analysis.services.parameter_derivation import sync_derived_for_analysis
 from analysis.tasks import process_analysis_task
@@ -65,6 +66,17 @@ class ParameterViewSet(
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ParameterFilter
+
+    def perform_create(self, serializer):
+        param = serializer.save()
+        parameter_io.after_measurement_saved(param)
+
+    def perform_update(self, serializer):
+        param = serializer.save()
+        parameter_io.after_measurement_saved(param)
+
+    def perform_destroy(self, instance):
+        parameter_io.delete_measurement(instance)
 
 
 UPLOAD_AUTH = [SessionAuthentication, APIKeyAuthentication]

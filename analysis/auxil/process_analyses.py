@@ -1,6 +1,5 @@
 from analysis.categories import category_derived_parameters, parse_derived_parameter_specs
-from analysis.models import DerivedParameter
-from analysis.services.parameter_sources import get_or_create_avg_source
+from analysis.services import parameter_io
 from . import read_analyses
 
 
@@ -16,48 +15,39 @@ def create_parameters(analmethod, data):
             component = int(name[-1])
             name = name[:-1]
 
-        analmethod.parameter_set.create(
+        parameter_io.create_measurement(
+            star=analmethod.star,
             name=name,
             component=component,
             value=value[0],
             error_u=value[1],
             error_l=value[2],
             unit=value[3],
-            star=analmethod.star,
             analysis=analmethod,
+            run_after=False,
         )
+
+    if analmethod.star_id:
+        parameter_io.after_star_parameters_batch(analmethod.star)
 
     return len(parameters.keys())
 
 
 def create_derived_parameters(analmethod):
     """Adds category-configured derived parameters for the analysis star."""
-    from analysis.categories import category_derived_parameters
-
-    ds = get_or_create_avg_source(analmethod.project)
-
     params = category_derived_parameters(analmethod.category)
     if params.strip() == '':
         return 0
 
     created = 0
     for pname, pcomp in parse_derived_parameter_specs(params):
-        if DerivedParameter.objects.filter(
+        if parameter_io.create_derived_record(
             star=analmethod.star,
+            project=analmethod.project,
             name=pname,
             component=pcomp,
-            average=True,
-        ).exists():
-            continue
-
-        DerivedParameter.objects.create(
-            star=analmethod.star,
-            name=pname,
-            component=pcomp,
-            average=True,
-            parameter_source=ds,
-        )
-        created += 1
+        ):
+            created += 1
 
     return created
 

@@ -31,7 +31,8 @@
 ## Analysis cleanup (architecture)
 
 - [x] **Release 1:** plotting/ingestion services, `calculate_r` fix, project scoping, tests
-- [x] **Release 2:** `parameter_averaging` / `parameter_derivation` services, thin signals, `analysis_history`, `read_analyses` imports
+- [x] **Release 2:** `parameter_averaging` / `parameter_derivation` services, `analysis_history`, `read_analyses` imports
+- [x] **Parameter I/O:** domain bookkeeping (AVG sync, derived refresh) via `analysis/services/parameter_io.py` at API, ingestion, star edit, and scripts — not Django signals on `Parameter`/`DerivedParameter`
 - [x] **Release 3:** PK column `id`, flatten AVG MTI (`ParameterSource.kind`), upload path `analyses/`, `relocate_analysis_files` + `cleanup_orphan_analysis_sources` commands
 - [ ] **Release 4:** remove legacy analysis views/templates/JS — gated on [frontend parity checklist](docs/frontend_parity_checklist.md) Analysis section
 

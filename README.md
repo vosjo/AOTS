@@ -430,7 +430,9 @@ Use-cases live in `analysis/services/`; models hold schema and simple display he
 | Layer | Modules | Responsibility |
 | --- | --- | --- |
 | API / legacy views | `analysis/api/`, `analysis/views.py` | HTTP, permissions, serialization |
-| Services | `analysis_ingestion`, `analysis_plotting`, `analysis_display`, `parameter_averaging`, `parameter_derivation`, `parameter_sources`, `analysis_history`, `analysis_upload` | Upload pipeline, plots, averages, derived params |
+| Services | `analysis_ingestion`, `analysis_plotting`, `analysis_display`, `parameter_io`, `parameter_averaging`, `parameter_derivation`, `parameter_sources`, `analysis_history`, `analysis_upload` | Upload pipeline, plots, averages, derived params |
+
+**Parameter writes** go through `analysis/services/parameter_io.py` (create/update/delete measurements, derived records, batch sync). Direct `Parameter.objects.create()` / `.save()` in the Django shell or ad-hoc scripts does **not** sync project averages or derived parameters — use `parameter_io` helpers instead.
 | Models | `Analysis`, `ParameterSource`, `Parameter`, `DerivedParameter` | ORM schema, `__str__`, reference URLs |
 | Auxil | `read_analyses`, `plot_analyses`, `plot_parameters`, `fileio` | Pure functions on files and arrays |
 

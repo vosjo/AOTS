@@ -7,6 +7,7 @@ from django.db.models import F, ExpressionWrapper, FloatField
 
 from observations.models import LightCurve
 from stars.models import Star
+from stars.services import star_io
 from . import instrument_headers
 
 
@@ -161,8 +162,12 @@ def process_lightcurve(lightcurve_id, create_new_star=True):
             return False, message
 
         # need to make a new star
-        star = Star(name=lightcurve.objectname, ra=lightcurve.ra, dec=lightcurve.dec, project=lightcurve.project)
-        star.save()
+        star = star_io.create_star(
+            name=lightcurve.objectname,
+            ra=lightcurve.ra,
+            dec=lightcurve.dec,
+            project=lightcurve.project,
+        )
         star.lightcurve_set.add(lightcurve)
 
         message += ", added to new System {}".format(star)

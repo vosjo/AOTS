@@ -2,8 +2,6 @@
 
 from astropy.coordinates.angles import Angle
 from django.db import models
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 
 from .project import Project
@@ -184,31 +182,7 @@ class Identifier(models.Model):
     def __str__(self):
         return "{} = {} ; {}".format(self.star.name, self.name, self.href)
 
-
-@receiver(post_save, sender=Star)
-def identifier_bookkeeping(sender, **kwargs):
-    """
-    Add identifiers when stars are created or star names are changed.
-    For now identifiers are never automatically removed
-    """
-
-    if kwargs.get('raw', False):
-        return
-
-    star = kwargs['instance']
-
-    # -- create an identifier with the same name as the star if non exist
-    try:
-        Identifier.objects.get(name__exact=star.name, star__exact=star)
-    except Identifier.DoesNotExist:
-        Identifier.objects.create(name=star.name, star=star)
-
-
-@receiver(pre_save, sender=Identifier)
-def identifier_add_project(sender, **kwargs):
-    """
-    Add the project of the star this belongs to to the identifier
-    """
-
-    identifier = kwargs['instance']
-    identifier.project = identifier.star.project
+    def save(self, *args, **kwargs):
+        if self.star_id:
+            self.project = self.star.project
+        super().save(*args, **kwargs)

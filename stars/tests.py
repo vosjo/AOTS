@@ -3,6 +3,7 @@ from http import HTTPStatus
 from django.test import TestCase
 
 from stars.models import Star, Project
+from stars.services import star_io
 
 
 class IdentifierBookkeeping(TestCase):
@@ -12,7 +13,7 @@ class IdentifierBookkeeping(TestCase):
             name='TestCase',
             description='TestCase_description',
         )
-        s = Star.objects.create(
+        star_io.create_star(
             name='Vega',
             project=p,
             ra=279.23473479,
@@ -33,7 +34,7 @@ class IdentifierBookkeeping(TestCase):
         s = Star.objects.get(name__exact='Vega')
 
         s.name = 'alf Lyr'
-        s.save()
+        star_io.save_star(s)
 
         # i = s.identifier_set.filter(name__exact='Vega')
         # self.assertEqual(len(i), 0,

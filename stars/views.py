@@ -26,6 +26,7 @@ from .forms import (
     UpdateParamsForm,
 )
 from .models import Star, Tag, Project
+from stars.services import star_io
 
 
 # from .plotting import plot_photometry
@@ -85,13 +86,12 @@ def star_list(request, project=None, **kwargs):
                     systems = csv.DictReader(io.TextIOWrapper(f.file))
                     for star in systems:
                         #   Initialize star model
-                        sobj = Star(
+                        sobj = star_io.create_star(
                             name=star["main_id"],
                             project=project,
                             ra=0.0,
                             dec=0.0,
                         )
-                        sobj.save()
 
                         try:
                             success, message = populate_system(star, sobj.pk)
@@ -130,13 +130,12 @@ def star_list(request, project=None, **kwargs):
                 star = upload_form_detail.cleaned_data
 
                 #   Initialize star model
-                sobj = Star(
+                sobj = star_io.create_star(
                     name=star["main_id"],
                     project=project,
                     ra=0.0,
                     dec=0.0,
                 )
-                sobj.save()
 
                 try:
                     success, message = populate_system(star, sobj.pk)

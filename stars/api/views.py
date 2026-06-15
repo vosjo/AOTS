@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from AOTS.api_mixins import DualOrderingMixin, ProjectFilteredQuerysetMixin
 from AOTS.permissions_helpers import get_object_if_allowed
 from stars.models import Project, Star, Identifier, Tag
+from stars.services import star_io
 from .filter import (
     StarFilter,
     TagFilter,
@@ -89,6 +90,14 @@ class StarViewSet(
         if self.action == 'retrieve':
             return StarSerializer
         return StarSerializer
+
+    def perform_create(self, serializer):
+        star = serializer.save()
+        star_io.after_star_saved(star)
+
+    def perform_update(self, serializer):
+        star = serializer.save()
+        star_io.after_star_saved(star)
 
 
 @api_view(['GET'])

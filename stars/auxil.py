@@ -11,6 +11,7 @@ from django.shortcuts import reverse, get_object_or_404
 from analysis import models as analModels
 from analysis.models import ParameterSource
 from analysis.services import parameter_io
+from stars.services import star_io
 from .models import Star
 
 #   'simbad_id':    ID of the catalog
@@ -638,7 +639,7 @@ def populate_system(star, star_pk):
                 )
 
     parameter_io.after_star_parameters_batch(sobj)
-    sobj.save()
+    star_io.save_star(sobj)
 
     return True, "New system ({}) created".format(star["main_id"])
 

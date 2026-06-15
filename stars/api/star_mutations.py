@@ -17,6 +17,7 @@ from stars.auxil import (
     update_photometry,
 )
 from stars.models import Project, Star, Tag
+from stars.services import star_io
 
 PHOTNAME_BY_BAND = dict(zip(passbands, photnames))
 
@@ -204,8 +205,7 @@ def create_star_from_form(request):
     except PermissionDenied:
         return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
 
-    sobj = Star(name=name, project=project, ra=0.0, dec=0.0)
-    sobj.save()
+    sobj = star_io.create_star(name=name, project=project, ra=0.0, dec=0.0)
 
     star_dict = _populate_star_dict({**request.data, 'name': name})
     tag_ids = request.data.get('tag_ids') or []
@@ -262,8 +262,7 @@ def bulk_upload_stars(request):
             main_id = (row.get('main_id') or '').strip()
             if not main_id:
                 continue
-            sobj = Star(name=main_id, project=project, ra=0.0, dec=0.0)
-            sobj.save()
+            sobj = star_io.create_star(name=main_id, project=project, ra=0.0, dec=0.0)
             try:
                 success, message = populate_system(row, sobj.pk)
                 if success:

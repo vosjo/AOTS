@@ -6,6 +6,7 @@ from analysis.auxil import process_analyses, read_analyses
 from analysis.categories import CategorySource, category_derived_parameters, resolve_category, valid_category_codes
 from analysis.models import Analysis
 from stars.models import Star
+from stars.services import star_io
 
 
 @dataclass
@@ -75,14 +76,13 @@ def ingest_analysis_file(analysis_id, category_override=None) -> IngestResult:
         analfile.save()
         message += f", added to existing System {star} (_r = {star.distance})"
     else:
-        star = Star(
+        star = star_io.create_star(
             name=systemname,
             project=analfile.project,
             ra=ra,
             dec=dec,
             classification='',
         )
-        star.save()
         analfile.star = star
         analfile.save()
         message += f", created new System {star}"

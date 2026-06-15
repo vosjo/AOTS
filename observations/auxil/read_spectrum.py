@@ -13,6 +13,7 @@ from observations.models import (
     Observatory,
 )
 from stars.models import Star
+from stars.services import star_io
 from . import instrument_headers
 
 
@@ -316,17 +317,17 @@ def process_specfile(specfile_id, create_new_star=True,
             return False, message
 
         #     Need to make a new star
-        star = Star(
+        fields = dict(
             name=spectrum.objectname,
             ra=spectrum.ra,
             dec=spectrum.dec,
             project=spectrum.project,
         )
         if 'classification' in user_info.keys():
-            star.classification = user_info['classification']
+            fields['classification'] = user_info['classification']
         if 'classification_type' in user_info.keys():
-            star.classification_type = user_info['classification_type']
-        star.save()
+            fields['classification_type'] = user_info['classification_type']
+        star = star_io.create_star(**fields)
 
         star.spectrum_set.add(spectrum)
 
@@ -509,13 +510,12 @@ def add_and_process_science_raw_spec(raw_file_id, create_new_star=True):
                     return False, message, True, None, None
 
                 #     Need to make a new star
-                star = Star(
+                star = star_io.create_star(
                     name=object_name,
                     ra=ra,
                     dec=dec,
                     project=raw_file.project,
                 )
-                star.save()
 
                 star.rawspecfile_set.add(raw_file)
 

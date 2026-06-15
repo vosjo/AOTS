@@ -219,16 +219,20 @@ def derived_parameter_update_on_save(sender, **kwargs):
 @receiver(post_save, sender=DerivedParameter)
 def derived_parameter_find_sources_on_create(sender, **kwargs):
     """
-    When a new Derived parameter is created, find all necessary parameters
-    to derive it from
+    When a new Derived parameter is created, find sources, calculate, and persist.
     """
-    param = kwargs['instance']
+    if kwargs.get('raw', False):
+        return
 
-    # -- if the derived paramter is newly created, search for the needed parameters
-    #   to calculate it.
-    if kwargs['created']:
-        param.create()
-        param.save()
+    if not kwargs['created']:
+        return
+
+    param = kwargs['instance']
+    from analysis.services import parameter_derivation as derivation_service
+    if derivation_service.setup_derived_on_create(param):
+        param.save(update_fields=['value', 'error_l', 'error_u', 'unit', 'average', 'cname'])
+    else:
+        DerivedParameter.objects.filter(pk=param.pk).delete()
 
 
 # @receiver(post_delete, sender=Parameter)

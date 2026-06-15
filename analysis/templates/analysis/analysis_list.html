@@ -105,6 +105,12 @@
                                 {{ upload_form.datafile }}
                             </p>
 
+                            <p>
+                                <label for="{{ upload_form.category.id_for_label }}">Category</label>
+                                {{ upload_form.category.errors }}
+                                {{ upload_form.category }}
+                            </p>
+
                             <input type="submit" class="upload-button" value="Upload..."/>
                         {% else %}
                             <p> Log in to upload files! </p>

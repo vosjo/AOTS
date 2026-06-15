@@ -59,6 +59,9 @@ interface AnalysisDetail {
   category_source: string
   file_type: string
   parameters: AnalysisParameter[]
+  derived_parameters: AnalysisParameter[]
+  has_derived_definitions: boolean
+  can_edit: boolean
   related_analyses: RelatedAnalysis[]
   related_by_category: RelatedByCategory[]
 }
@@ -79,6 +82,8 @@ const detailsEdit = ref(false)
 const nameText = ref('')
 const categoryValue = ref('')
 const fitValue = ref(true)
+const deriveBusy = ref(false)
+const deriveMessage = ref('')
 
 const { data: analysis, refetch } = useQuery({
   queryKey: computed(() => ['analysis', pk.value]),
@@ -164,6 +169,29 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
     await refetch()
   } catch {
     await refetch()
+  }
+}
+
+async function deriveParameters() {
+  if (!analysis.value?.has_derived_definitions || !analysis.value.can_edit) return
+  deriveBusy.value = true
+  deriveMessage.value = ''
+  try {
+    const res = await api<{
+      created: number
+      updated: number
+      failed: string[]
+    }>(`/api/analysis/analyses/${pk.value}/derive-parameters/`, { method: 'POST' })
+    const parts: string[] = []
+    if (res.created) parts.push(`${res.created} created`)
+    if (res.updated) parts.push(`${res.updated} updated`)
+    if (res.failed.length) parts.push(`failed: ${res.failed.join(', ')}`)
+    deriveMessage.value = parts.length ? parts.join('; ') : 'Derived parameters up to date'
+    await refetch()
+  } catch (e) {
+    deriveMessage.value = e instanceof Error ? e.message : String(e)
+  } finally {
+    deriveBusy.value = false
   }
 }
 </script>
@@ -324,6 +352,51 @@ async function toggleParameterValid(parameterPk: number, valid: boolean) {
                         @change="toggleParameterValid(param.pk, ($event.target as HTMLInputElement).checked)"
                       />
                     </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section v-if="analysis.has_derived_definitions" class="aots-panel-compact">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <h2 class="text-sm font-medium m-0">Derived parameters</h2>
+              <button
+                v-if="analysis.can_edit && star"
+                type="button"
+                class="aots-btn-secondary text-xs"
+                :disabled="deriveBusy"
+                @click="deriveParameters"
+              >
+                {{ deriveBusy ? 'Calculating…' : 'Calculate additional parameters' }}
+              </button>
+            </div>
+            <p v-if="deriveMessage" class="text-xs text-slate-400 mb-2">{{ deriveMessage }}</p>
+            <p class="text-xs text-slate-500 mb-2">
+              Star-level averages for this category (not stored on the analysis file itself).
+            </p>
+            <div class="overflow-x-auto">
+              <table class="aots-param-table">
+                <thead>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                    <th>Error</th>
+                  </tr>
+                </thead>
+                <tbody class="font-mono">
+                  <tr v-if="!analysis.derived_parameters.length">
+                    <td colspan="3" class="text-slate-400">
+                      Not calculated yet
+                      <template v-if="analysis.can_edit"> — use the button above</template>
+                    </td>
+                  </tr>
+                  <tr v-for="param in analysis.derived_parameters" :key="param.pk">
+                    <th class="font-normal text-slate-200">
+                      {{ param.cname }} ({{ param.unit }})
+                    </th>
+                    <td>{{ param.rvalue }}</td>
+                    <td>{{ param.rerror }}</td>
                   </tr>
                 </tbody>
               </table>

@@ -1,5 +1,6 @@
 from django import forms
 
+from analysis.categories import upload_category_choices
 from analysis.models import Parameter
 
 
@@ -23,6 +24,15 @@ class MultipleFileField(forms.FileField):
 
 class UploadAnalysisFileForm(forms.Form):
     datafile = MultipleFileField(label='Select a file')
+    category = forms.ChoiceField(
+        label='Category',
+        required=False,
+        choices=upload_category_choices,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['category'].choices = upload_category_choices()
 
 
 class ParameterPlotterForm(forms.Form):

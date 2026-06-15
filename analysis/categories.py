@@ -43,6 +43,7 @@ CATEGORY_META: dict[str, CategoryMeta] = {
         color='#1e88e5',
         data_type=GENERIC,
         file_type_aliases=frozenset({'RV', 'rv', 'rv_solution'}),
+        derived_parameters='q,msini1,msini2,asini1,asini2',
     ),
     AnalysisCategory.RV_CURVE: CategoryMeta(
         label='RV curve',
@@ -138,6 +139,36 @@ def category_derived_parameters(code: str | None) -> str:
     return meta.derived_parameters if meta else ''
 
 
+def has_category_derived_parameters(code: str | None) -> bool:
+    return bool(category_derived_parameters(code).strip())
+
+
+def parse_derived_parameter_specs(spec: str) -> list[tuple[str, int]]:
+    """Parse comma-separated derived parameter names (e.g. q, msini1, r_2)."""
+    if not spec.strip():
+        return []
+    parsed: list[tuple[str, int]] = []
+    for entry in spec.split(','):
+        entry = entry.strip()
+        if not entry:
+            continue
+        if '_' in entry:
+            pname = entry.split('_')[-2]
+            pcomp = int(entry.split('_')[-1])
+        elif entry[-1] in ['0', '1', '2']:
+            pname = entry[:-1]
+            pcomp = int(entry[-1])
+        else:
+            pname = entry
+            pcomp = 0
+        parsed.append((pname, pcomp))
+    return parsed
+
+
+def category_derived_parameter_specs(code: str | None) -> list[tuple[str, int]]:
+    return parse_derived_parameter_specs(category_derived_parameters(code))
+
+
 def choices_for_api() -> list[dict[str, str]]:
     return [
         {
@@ -160,3 +191,10 @@ def choices_for_api() -> list[dict[str, str]]:
 
 def valid_category_codes() -> Iterable[str]:
     return CATEGORY_META.keys()
+
+
+def upload_category_choices() -> list[tuple[str, str]]:
+    """Choices for upload forms: empty value = derive from HDF5 file type."""
+    return [('', 'Derive from file')] + [
+        (item['value'], item['label']) for item in choices_for_api()
+    ]

@@ -89,3 +89,15 @@ def sync_average_for(param):
             valid=True,
             parameter_source=ds,
         )
+
+
+def sync_averages_for_star(star):
+    """Ensure average rows exist for all valid non-average parameters on a star."""
+    from analysis.models.parameters import Parameter
+    seen = set()
+    for param in Parameter.objects.filter(star=star, average=False, valid=True):
+        key = (param.name.lower(), param.component)
+        if key in seen:
+            continue
+        seen.add(key)
+        sync_average_for(param)

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useQuery } from '@tanstack/vue-query'
 import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
@@ -35,6 +36,12 @@ interface UploadMessage {
   text: string
 }
 
+interface CategoryOption {
+  value: string
+  label: string
+  color: string
+}
+
 const route = useRoute()
 const auth = useAuthStore()
 const projectStore = useProjectStore()
@@ -60,8 +67,14 @@ const selectedIds = computed(() => [...selected.value])
 
 const uploadOpen = ref(false)
 const uploadFiles = ref<FileList | null>(null)
+const uploadCategory = ref('')
 const uploadBusy = ref(false)
 const uploadMessages = ref<UploadMessage[]>([])
+
+const { data: categoryOptions } = useQuery({
+  queryKey: ['analysis-categories'],
+  queryFn: () => api<{ results: CategoryOption[] }>('/api/analysis/categories/'),
+})
 
 function starOf(row: AnalysisRow): StarBrief | null {
   const star = row.star
@@ -80,6 +93,7 @@ function onUploadFilesChange(event: Event) {
 
 function resetUploadDialog() {
   uploadFiles.value = null
+  uploadCategory.value = ''
   uploadMessages.value = []
 }
 
@@ -89,6 +103,7 @@ async function uploadAnalyses() {
   uploadMessages.value = []
   const fd = new FormData()
   for (const f of uploadFiles.value) fd.append('datafile', f)
+  if (uploadCategory.value) fd.append('category', uploadCategory.value)
   try {
     const res = await api<{ messages?: [boolean, string][] }>(
       '/api/analysis/analyses/upload/',
@@ -251,6 +266,23 @@ async function deleteSelected() {
         <fieldset class="space-y-3">
           <legend class="text-sm text-slate-300 mb-2">Select analysis files</legend>
           <input type="file" multiple class="aots-field w-full" @change="onUploadFilesChange" />
+          <label class="block text-sm text-slate-300">
+            Category
+            <select v-model="uploadCategory" class="aots-select w-full mt-1">
+              <option value="">Derive from file</option>
+              <option
+                v-for="option in categoryOptions?.results ?? []"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
+          <p class="text-xs text-slate-500">
+            Choose a category when the file type is not detected automatically
+            (e.g. to create derived parameters for RV solutions).
+          </p>
         </fieldset>
         <ul v-if="uploadMessages.length" class="mt-3 space-y-2">
           <li

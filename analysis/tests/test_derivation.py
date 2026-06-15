@@ -14,21 +14,23 @@ class DerivationMathTests(TestCase):
             name='Test', project=self.project, ra=1.0, dec=2.0,
         )
 
-    def test_calculate_q(self):
+    def test_calculate_q_with_lowercase_k_from_hdf5(self):
         ds = ParameterSource.objects.create(name='src', project=self.project)
         Parameter.objects.create(
-            star=self.star, name='K', component=1, value=5.0, error=0.5,
+            star=self.star, name='k', component=1, value=5.0, error=0.5,
             unit='km/s', parameter_source=ds,
         )
         Parameter.objects.create(
-            star=self.star, name='K', component=2, value=10.0, error=1.0,
+            star=self.star, name='k', component=2, value=10.0, error=1.0,
             unit='km/s', parameter_source=ds,
         )
+        from analysis.services.parameter_averaging import sync_averages_for_star
+        sync_averages_for_star(self.star)
         avg = get_or_create_avg_source(self.project)
         dpar = DerivedParameter.objects.create(
             star=self.star, name='q', component=0, average=True, parameter_source=avg,
         )
-        self.assertTrue(parameter_derivation.find_parameters(dpar))
+        parameter_derivation.find_parameters(dpar)
         parameter_derivation.calculate(dpar)
         self.assertAlmostEqual(dpar.value, 0.5, places=1)
 

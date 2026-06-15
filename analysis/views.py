@@ -23,7 +23,11 @@ def analysis_list(request, project=None, **kwargs):
         upload_form = UploadAnalysisFileForm(request.POST, request.FILES)
         if upload_form.is_valid():
             files = request.FILES.getlist('datafile')
-            message_list = upload_analysis_files(project, files)
+            message_list = upload_analysis_files(
+                project,
+                files,
+                category=upload_form.cleaned_data.get('category'),
+            )
 
             return JsonResponse(
                 {'info': 'Data uploaded', 'messages': message_list},

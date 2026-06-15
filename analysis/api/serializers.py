@@ -1,8 +1,8 @@
 from django.urls import reverse
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from analysis.categories import category_color, category_label
-from analysis.models import Analysis, Parameter
+from analysis.categories import category_color, category_label, category_derived_parameter_specs, has_category_derived_parameters
+from analysis.models import Analysis, DerivedParameter, Parameter
 from analysis.services.analysis_history import (
     added_by_display,
     earliest_iso,
@@ -96,6 +96,9 @@ class AnalysisParameterSerializer(ModelSerializer):
 class AnalysisDetailSerializer(AnalysisListSerializer):
     reference_url = SerializerMethodField()
     parameters = SerializerMethodField()
+    derived_parameters = SerializerMethodField()
+    has_derived_definitions = SerializerMethodField()
+    can_edit = SerializerMethodField()
     related_analyses = SerializerMethodField()
     related_by_category = SerializerMethodField()
     added_by = SerializerMethodField()
@@ -107,6 +110,9 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
             'reference',
             'reference_url',
             'parameters',
+            'derived_parameters',
+            'has_derived_definitions',
+            'can_edit',
             'related_analyses',
             'related_by_category',
             'added_by',
@@ -119,6 +125,28 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
 
     def get_parameters(self, obj):
         return AnalysisParameterSerializer(obj.parameter_set.order_by(), many=True).data
+
+    def get_derived_parameters(self, obj):
+        if not obj.star_id or not has_category_derived_parameters(obj.category):
+            return []
+        specs = set(category_derived_parameter_specs(obj.category))
+        derived = DerivedParameter.objects.filter(
+            star_id=obj.star_id,
+            average=True,
+        ).order_by('name', 'component')
+        return AnalysisParameterSerializer(
+            [dpar for dpar in derived if (dpar.name, dpar.component) in specs],
+            many=True,
+        ).data
+
+    def get_has_derived_definitions(self, obj):
+        return has_category_derived_parameters(obj.category)
+
+    def get_can_edit(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return request.user.can_edit(obj)
 
     def get_related_analyses(self, obj):
         if not obj.star_id:

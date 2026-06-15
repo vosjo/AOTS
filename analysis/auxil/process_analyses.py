@@ -1,3 +1,4 @@
+from analysis.categories import category_derived_parameters, parse_derived_parameter_specs
 from analysis.models import DerivedParameter
 from analysis.services.parameter_sources import get_or_create_avg_source
 from . import read_analyses
@@ -39,20 +40,8 @@ def create_derived_parameters(analmethod):
     if params.strip() == '':
         return 0
 
-    params = params.split(',')
     created = 0
-    for p in params:
-        p = p.strip()
-        if '_' in p:
-            pname = p.split('_')[-2]
-            pcomp = int(p.split('_')[-1])
-        elif p[-1] in ['0', '1', '2']:
-            pname = p[:-1]
-            pcomp = int(p[-1])
-        else:
-            pname = p
-            pcomp = 0
-
+    for pname, pcomp in parse_derived_parameter_specs(params):
         if DerivedParameter.objects.filter(
             star=analmethod.star,
             name=pname,

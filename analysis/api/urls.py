@@ -4,7 +4,7 @@ from rest_framework import routers
 from .plot_views import analysis_plots_api, parameter_plotter_api
 from .views import (
     ParameterViewSet, AnalysisViewSet, processAnalysis, analysis_categories_api,
-    upload_analyses_api,
+    upload_analyses_api, derive_analysis_parameters_api,
 )
 
 app_name = 'analysis-api'
@@ -26,6 +26,11 @@ urlpatterns = [
     ),
     re_path(r'^categories/$', analysis_categories_api, name='analysis-categories-api'),
     re_path(r'^analyses/upload/$', upload_analyses_api, name='analysis-upload-api'),
+    re_path(
+        r'^analyses/(?P<pk>[\w-]+)/derive-parameters/$',
+        derive_analysis_parameters_api,
+        name='analysis-derive-parameters-api',
+    ),
     re_path(r'^', include(router.urls)),
     re_path(
         r'^analyses/(?P<pk>[\w-]+)/process/',

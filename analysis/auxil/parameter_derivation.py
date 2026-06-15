@@ -1,6 +1,26 @@
 import numpy as np
 
 
+def _average_on_star(star, name, component):
+    """Average parameter for a star; name match is case-insensitive (k vs K)."""
+    from analysis.models import Parameter
+    return Parameter.objects.get(
+        star=star,
+        name__iexact=name,
+        component=component,
+        average=True,
+        valid=True,
+    )
+
+
+def _linked_source(dpar, name, component):
+    return dpar.source_parameters.filter(
+        name__iexact=name,
+        component=component,
+        average=True,
+    ).get()
+
+
 # { Main functions to be called from the Parameter Class
 
 def find_parameters(dpar, **kwargs):
@@ -18,12 +38,10 @@ def find_parameters(dpar, **kwargs):
 
     try:
         for n, c in zip(names, components):
-            p = dpar.star.parameter_set.get(name__exact=n, component__exact=c,
-                                            average__exact=True)
+            p = _average_on_star(dpar.star, n, c)
             dpar.source_parameters.add(p)
         return True
-    except Exception as e:
-        print(e)
+    except Exception:
         return False
 
 
@@ -83,8 +101,7 @@ def parameters_for_q(dpar, **kwargs):
     """
     Mass ratio is calculated from the two amplitudes K1 and K2
     """
-    return ['K', 'K'], \
-        [1, 2]
+    return ['k', 'k'], [1, 2]
 
 
 def calculate_q(dpar, *args, **kwargs):
@@ -92,8 +109,8 @@ def calculate_q(dpar, *args, **kwargs):
     Mass ratio is just K2 / K1
     """
 
-    k1 = dpar.source_parameters.get(name__exact='K', component__exact=1, average__exact=True)
-    k2 = dpar.source_parameters.get(name__exact='K', component__exact=2, average__exact=True)
+    k1 = _linked_source(dpar, 'k', 1)
+    k2 = _linked_source(dpar, 'k', 2)
 
     q_, eq_ = q(k1, k2)
 
@@ -120,8 +137,7 @@ def parameters_for_msini(dpar, **kwargs):
     """
     Msini is calculated from the two amplitudes K1 and K2 and period
     """
-    return ['K', 'K', 'p', 'e'], \
-        [1, 2, 0, 0]
+    return ['k', 'k', 'p', 'e'], [1, 2, 0, 0]
 
 
 def calculate_msini(dpar, *args, **kwargs):
@@ -129,10 +145,10 @@ def calculate_msini(dpar, *args, **kwargs):
     Msini = (1.0361e-7) * (1-e**2)**(3/2) * (k1+k2)**2 * k2 * P
     """
 
-    k1 = dpar.source_parameters.get(name__exact='K', component__exact=1, average__exact=True)
-    k2 = dpar.source_parameters.get(name__exact='K', component__exact=2, average__exact=True)
-    p = dpar.source_parameters.get(name__exact='p', component__exact=0, average__exact=True)
-    e = dpar.source_parameters.get(name__exact='e', component__exact=0, average__exact=True)
+    k1 = _linked_source(dpar, 'k', 1)
+    k2 = _linked_source(dpar, 'k', 2)
+    p = _linked_source(dpar, 'p', 0)
+    e = _linked_source(dpar, 'e', 0)
 
     val, err = msini(p, e, k1, k2) if dpar.component == 1 else msini(p, e, k2, k1)
 
@@ -157,11 +173,10 @@ def asini(p, e, k):
 
 def parameters_for_asini(dpar, **kwargs):
     """
-    Msini is calculated from the two amplitudes K1 and K2 and period
+    asini is calculated from K, period, and eccentricity for one component.
     """
     c = dpar.component
-    return ['K', 'p', 'e'], \
-        [c, 0, 0]
+    return ['k', 'p', 'e'], [c, 0, 0]
 
 
 def calculate_asini(dpar, *args, **kwargs):
@@ -170,9 +185,9 @@ def calculate_asini(dpar, *args, **kwargs):
     """
     c = dpar.component
 
-    k = dpar.source_parameters.get(name__exact='K', component__exact=c, average__exact=True)
-    p = dpar.source_parameters.get(name__exact='p', component__exact=0, average__exact=True)
-    e = dpar.source_parameters.get(name__exact='e', component__exact=0, average__exact=True)
+    k = _linked_source(dpar, 'k', c)
+    p = _linked_source(dpar, 'p', 0)
+    e = _linked_source(dpar, 'e', 0)
 
     val, err = asini(p, e, k)
 
@@ -198,8 +213,8 @@ def calculate_r(dpar, *args, **kwargs):
     radius is calculate as sqrt(G M / g)
     """
 
-    M = dpar.source_parameters.get(name__exact='m', component__exact=dpar.component)
-    g = dpar.source_parameters.get(name__exact='logg', component__exact=dpar.component)
+    M = _linked_source(dpar, 'm', dpar.component)
+    g = _linked_source(dpar, 'logg', dpar.component)
 
     G = 6.673839999999998e-05
     M = np.random.normal(M.value, M.error, 512)

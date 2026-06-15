@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from django.db.models import F, ExpressionWrapper, FloatField
 
 from analysis.auxil import process_analyses, read_analyses
-from analysis.categories import CategorySource, category_derived_parameters, resolve_category
+from analysis.categories import CategorySource, category_derived_parameters, resolve_category, valid_category_codes
 from analysis.models import Analysis
 from stars.models import Star
 
@@ -14,7 +14,7 @@ class IngestResult:
     message: str
 
 
-def ingest_analysis_file(analysis_id) -> IngestResult:
+def ingest_analysis_file(analysis_id, category_override=None) -> IngestResult:
     """Validate HDF5, match star, create parameters and category-derived parameters."""
     try:
         analfile = Analysis.objects.get(pk=analysis_id)
@@ -32,7 +32,14 @@ def ingest_analysis_file(analysis_id) -> IngestResult:
         print(e)
         return IngestResult(False, 'Not added, basic info unreadable')
 
-    category, category_source = resolve_category(atype)
+    category_override = (category_override or '').strip() or None
+    if category_override:
+        if category_override not in valid_category_codes():
+            return IngestResult(False, f'Unknown category: {category_override}')
+        category = category_override
+        category_source = CategorySource.USER
+    else:
+        category, category_source = resolve_category(atype)
     analfile.category = category
     analfile.category_source = category_source
     analfile.file_type = atype or ''

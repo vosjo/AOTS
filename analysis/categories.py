@@ -193,6 +193,31 @@ def valid_category_codes() -> Iterable[str]:
     return CATEGORY_META.keys()
 
 
+def _is_sed_hdf5_layout(data: dict) -> bool:
+    """True when the file uses the legacy SED-fit HDF5 layout (info/results/master)."""
+    results = data.get('results')
+    if isinstance(results, dict) and (
+        'igrid_search' in results or 'iminimize' in results
+    ):
+        return True
+    return 'master' in data
+
+
+def category_for_hdf5(data: dict) -> str:
+    """Infer analysis category from HDF5 layout and optional root ``type`` field."""
+    if _is_sed_hdf5_layout(data):
+        return AnalysisCategory.SED_FIT
+    category, _ = resolve_category(data.get('type'))
+    if category != AnalysisCategory.UNKNOWN:
+        return category
+    return AnalysisCategory.GENERIC
+
+
+def uses_sed_hdf5_reader(data: dict) -> bool:
+    """Whether basic info / parameters should use the SED HDF5 reader."""
+    return category_data_type(category_for_hdf5(data)) == SED
+
+
 def upload_category_choices() -> list[tuple[str, str]]:
     """Choices for upload forms: empty value = derive from HDF5 file type."""
     return [('', 'Derive from file')] + [

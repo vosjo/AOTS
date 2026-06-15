@@ -1,6 +1,7 @@
 from astropy import units as u
 from astropy.coordinates.angles import Angle
 
+from analysis.categories import uses_sed_hdf5_reader
 from analysis.models.default_values import DEFAULT_PARAMETERS, PARAMETER_ALIASES, UNIT_ALIASES
 
 
@@ -82,12 +83,10 @@ def get_basic_info(data):
              - type code of analysis method: 'RV', 'RC', 'SF', 'GF', 'XF', '??'
     """
 
-    if ('results' in data and ('igrid_search' in data['results'] or 'iminimize' in data['results'])) or (
-            'master' in data):
+    if uses_sed_hdf5_reader(data):
         return basic_info_special_sedfit(data)
 
-    else:
-        return basic_info_generic(data)
+    return basic_info_generic(data)
 
 
 # ==============================================================================================
@@ -254,8 +253,7 @@ def get_parameters(data):
     { parname: [value, error_l, error_u, unit],}
     """
 
-    if 'results' in data and ('igrid_search' in data['results'] or 'iminimize' in data['results']):
+    if uses_sed_hdf5_reader(data):
         return get_parameters_special_sedfit(data)
 
-    else:
-        return get_parameters_generic(data)
+    return get_parameters_generic(data)

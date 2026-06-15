@@ -9,7 +9,7 @@ from astropy.time import Time
 from bokeh import models as mpl
 from bokeh import plotting as bpl
 from bokeh.models import TabPanel, Tabs
-from specutils import Spectrum1D
+from specutils import Spectrum as SpecutilsSpectrum
 
 from observations.auxil import tools as spectools
 from stars.models import Star
@@ -218,9 +218,9 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
 
                 #   Loop over each order
                 for i, w in enumerate(wave):
-                    #   Create Spectrum1D objects
+                    #   Create Spectrum objects
                     orders.append(
-                        Spectrum1D(
+                        SpecutilsSpectrum(
                             spectral_axis=w * u.AA,
                             flux=flux[i] * funit,
                         )
@@ -238,8 +238,8 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
         else:
             #   Normalize & merge spectra
             if normalize:
-                #   Create Spectrum1D objects
-                spec = Spectrum1D(spectral_axis=wave * u.AA, flux=flux * funit)
+                #   Create Spectrum object
+                spec = SpecutilsSpectrum(spectral_axis=wave * u.AA, flux=flux * funit)
 
                 #   Normalize spectrum
                 spec, std = spectools.norm_spectrum(spec, order=porder)
@@ -270,9 +270,9 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
                             wave_seg = wave[i_old - overlap:i + overlap]
                         i_old = i
 
-                        #   Create Spectrum1D objects for the segments
+                        #   Create Spectrum objects for the segments
                         segments.append(
-                            Spectrum1D(
+                            SpecutilsSpectrum(
                                 spectral_axis=wave_seg * u.AA,
                                 flux=flux_seg * funit,
                             )

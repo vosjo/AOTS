@@ -3,7 +3,7 @@ from astropy import units as u
 from astropy.modeling import models, fitting
 from astropy.stats import sigma_clip, mad_std
 from scipy import interpolate, optimize
-from specutils import Spectrum1D
+from specutils import Spectrum
 from specutils.fitting import fit_generic_continuum
 from specutils.spectra import SpectralRegion
 
@@ -177,7 +177,7 @@ def norm_spectrum(spec, median_window=3, order=3):
 
     Parameters:
     -----------
-    spec:           specutils.Spectrum1D
+    spec:           specutils.Spectrum
         Spectrum to normalize
     median_window:  int()
         Window in Pixel used in median smoothing
@@ -186,7 +186,7 @@ def norm_spectrum(spec, median_window=3, order=3):
 
     Returns:
     --------
-    norm_spec:      specutils.Spectrum1D
+    norm_spec:      specutils.Spectrum
         Normalized spectrum
 
     '''
@@ -231,7 +231,7 @@ def norm_spectrum(spec, median_window=3, order=3):
     mask = np.invert(clip_flux.recordmask)
 
     #   Make new spectrum
-    spec_mask = Spectrum1D(
+    spec_mask = Spectrum(
         spectral_axis=spec.spectral_axis[mask],
         flux=spec.flux[mask],
     )
@@ -428,7 +428,7 @@ def merge_norm(spec_list):
 
     Parameters:
     -----------
-    spec_list       List of specutils.Spectrum1D
+    spec_list       List of specutils.Spectrum
         List with normalized spectra
 
     Returns:
@@ -484,7 +484,7 @@ def norm_merge_spectra(spectra, median_window=3, order=3):
 
     Parameters:
     -----------
-    spectra:        List of specutils.Spectrum1D
+    spectra:        List of specutils.Spectrum
         Spectra to normalize and merge
     median_window:  int()
         Window in Pixel used in median smoothing

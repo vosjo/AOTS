@@ -20,13 +20,20 @@
 
 - Renamed `DataSet` → `Analysis` (API `/api/analysis/analyses/`, SPA, legacy UI, bulk kind `analyses`)
 - Removed unused `DataTable` model
-- Unified AVG parameter sources on `AverageParameterSource` per project (`get_or_create_avg_source`)
-- **Stufe A.3:** `DataSource` → `ParameterSource`, `AverageDataSource` → `AverageParameterSource`; `Parameter.parameter_source` replaces `data_source`
+- Unified AVG parameter sources on `ParameterSource` with `kind=average` per project (`get_or_create_avg_source`)
+- **Stufe A.3:** `DataSource` → `ParameterSource`; `Parameter.parameter_source` replaces `data_source`
 - **Stufe B:** `Analysis` is a standalone model (no MTI); HDF5 parameters use `Parameter.analysis`; catalog/AVG parameters use `Parameter.parameter_source`
 
 **Breaking API changes (release):**
 
 - Parameter responses expose `parameter_source` (object with `pk`, `name`) and `analysis` (pk) instead of `data_source`
+
+## Analysis cleanup (architecture)
+
+- [x] **Release 1:** plotting/ingestion services, `calculate_r` fix, project scoping, tests
+- [x] **Release 2:** `parameter_averaging` / `parameter_derivation` services, thin signals, `analysis_history`, `read_analyses` imports
+- [x] **Release 3:** PK column `id`, flatten AVG MTI (`ParameterSource.kind`), upload path `analyses/`, `relocate_analysis_files` + `cleanup_orphan_analysis_sources` commands
+- [ ] **Release 4:** remove legacy analysis views/templates/JS — gated on [frontend parity checklist](docs/frontend_parity_checklist.md) Analysis section
 
 ## Other
 

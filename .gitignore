@@ -16,6 +16,7 @@ MANIFEST
 media/spectra
 media/lightcurves
 media/datasets
+media/analyses
 media/projects
 media/raw_spectra
 media/aitoff_projections

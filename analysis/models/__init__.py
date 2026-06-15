@@ -1,5 +1,5 @@
 from .analysis_model import Analysis
-from .parameter_source import AverageParameterSource, ParameterSource
+from .parameter_source import ParameterSource, ParameterSourceKind
 from .default_values import SYSTEM, PRIMARY, SECONDARY, CBDISK, \
     COMPONENT_CHOICES, STELLAR_PARAMETERS, \
     PARAMETER_DECIMALS, PARAMETER_ORDER, \

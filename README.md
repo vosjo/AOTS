@@ -418,10 +418,25 @@ Download `kind` query parameter:
 | Concept | Model | Examples |
 | --- | --- | --- |
 | HDF5 analysis result | `Analysis` | RV solution, SED fit |
-| External / catalog provenance | `ParameterSource` | Gaia DR3, manual entry |
-| Project average container | `AverageParameterSource` | `name='AVG'` per project |
+| External / catalog provenance | `ParameterSource` (`kind=catalog`) | Gaia DR3, manual entry |
+| Project average container | `ParameterSource` (`kind=average`, `name='AVG'`) | per-project AVG row |
 
 Parameters from HDF5 uploads link via `Parameter.analysis`. Catalog, script, and averaged parameters link via `Parameter.parameter_source` (including derived parameters on the project AVG source).
+
+### Analysis app architecture
+
+Use-cases live in `analysis/services/`; models hold schema and simple display helpers; `analysis/auxil/` holds stateless HDF5 and plotting I/O.
+
+| Layer | Modules | Responsibility |
+| --- | --- | --- |
+| API / legacy views | `analysis/api/`, `analysis/views.py` | HTTP, permissions, serialization |
+| Services | `analysis_ingestion`, `analysis_plotting`, `analysis_display`, `parameter_averaging`, `parameter_derivation`, `parameter_sources`, `analysis_history`, `analysis_upload` | Upload pipeline, plots, averages, derived params |
+| Models | `Analysis`, `ParameterSource`, `Parameter`, `DerivedParameter` | ORM schema, `__str__`, reference URLs |
+| Auxil | `read_analyses`, `plot_analyses`, `plot_parameters`, `fileio` | Pure functions on files and arrays |
+
+**Upload flow:** `ingest_analysis_file` validates HDF5, matches the star, creates `Parameter` rows, then `create_derived_parameters` when the analysis category defines derived fields.
+
+**Deploy (migrations 0016–0020):** after `migrate`, run `python manage.py relocate_analysis_files` on staging/production (with media backup) to move existing files from `datasets/` to `analyses/`. Optional: `cleanup_orphan_analysis_sources` on PostgreSQL to remove leftover MTI parent `ParameterSource` rows.
 
 See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for list API field contracts.
 

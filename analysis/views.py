@@ -6,7 +6,8 @@ from django.shortcuts import get_object_or_404, render, reverse
 
 from AOTS.custom_permissions import check_user_can_view_project
 from stars.models import Project
-from .auxil import plot_parameters
+from analysis.auxil import plot_parameters
+from analysis.services.analysis_plotting import plot_analysis_detail_figures
 from .forms import UploadAnalysisFileForm, ParameterPlotterForm
 from .models import Analysis
 from .services.analysis_upload import upload_analysis_files
@@ -68,17 +69,13 @@ def analysis_detail(request, analysis_id, project=None, **kwargs):
     related_analyses = analysis.star.analysis_set.all()
     related_stars = Analysis.objects.filter(category=analysis.category).exclude(pk=analysis.pk)
 
-    fit = analysis.make_large_figure()
+    fit = plot_analysis_detail_figures(analysis)
 
-    oc = analysis.make_OC_figure()
-
-    hist = analysis.make_parameter_hist_figures()
-
-    histnames = hist.keys()
-    all_figs = dict(hist, **{'fit': fit, 'oc': oc})
+    histnames = [k for k in fit.keys() if k not in ('fit', 'oc')]
+    all_figs = fit
     script, figures = components(all_figs, CDN)
 
-    if not hist:
+    if not histnames:
         hists = []
     else:
         hists = [figures[name] for name in histnames]
@@ -110,13 +107,13 @@ def parameter_plotter(request, project=None, **kwargs):
     parameters = {}
 
     if request.method == 'GET':
-        form = ParameterPlotterForm(request.GET)
+        form = ParameterPlotterForm(request.GET, project=project)
         if form.is_valid():
             parameters = form.get_parameters()
     else:
-        form = ParameterPlotterForm()
+        form = ParameterPlotterForm(project=project)
 
-    figure, statistics = plot_parameters.plot_parameters(parameters)
+    figure, statistics = plot_parameters.plot_parameters(parameters, project=project)
 
     script, figure = components(figure, CDN)
 

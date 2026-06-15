@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load conversion_tags %}
+{% load analysis_display_tags %}
 
 {% block head %}
     {% include "bokeh.html" %}
@@ -622,13 +623,15 @@
                         </tr>
                         </thead>
                         <tbody class='mono'>
-                        {% for p in analysis.get_system_parameters %}
+                        {% analysis_system_parameters analysis as system_parameters %}
+                        {% for p in system_parameters %}
                             <tr>
                                 <th>{{ p.0 }} ({{ p.1 }})</th>
                                 <td colspan=2> {{ p.2|safe }} </td>
                             </tr>
                         {% endfor %}
-                        {% for p in analysis.get_component_parameters %}
+                        {% analysis_component_parameters analysis as component_parameters %}
+                        {% for p in component_parameters %}
                             <tr>
                                 <th>{{ p.0 }} ({{ p.1 }})</th>
                                 <td> {{ p.2|safe }} </td>

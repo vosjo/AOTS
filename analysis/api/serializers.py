@@ -1,19 +1,15 @@
-from astropy.time import Time
 from django.urls import reverse
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from analysis.categories import category_color, category_label
 from analysis.models import Analysis, Parameter
+from analysis.services.analysis_history import (
+    added_by_display,
+    earliest_iso,
+    latest_iso,
+    modified_by_username,
+)
 from stars.api.serializers import SimpleStarSerializer
-
-
-def _analysis_history_iso(obj, which):
-    """Return ISO timestamp from simple_history, or None if no rows exist."""
-    try:
-        record = getattr(obj.history, which)()
-    except obj.history.model.DoesNotExist:
-        return None
-    return Time(record.history_date, precision=0).iso
 
 
 class AnalysisListSerializer(ModelSerializer):
@@ -47,7 +43,7 @@ class AnalysisListSerializer(ModelSerializer):
         datatables_always_serialize = ('pk', 'href', 'file_url', 'category', 'category_label')
 
     def get_added_on(self, obj):
-        return _analysis_history_iso(obj, 'earliest')
+        return earliest_iso(obj)
 
     def get_star(self, obj):
         if obj.star:
@@ -156,30 +152,14 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
             for item in related
         ]
 
-    def _history_user_display(self, user):
-        if user is None:
-            return '—'
-        full_name = f'{user.first_name} {user.last_name}'.strip()
-        return full_name or user.username
-
     def get_added_by(self, obj):
-        try:
-            earliest = obj.history.earliest()
-        except obj.history.model.DoesNotExist:
-            return '—'
-        return self._history_user_display(earliest.history_user)
+        return added_by_display(obj)
 
     def get_last_modified(self, obj):
-        return _analysis_history_iso(obj, 'latest')
+        return latest_iso(obj)
 
     def get_modified_by(self, obj):
-        try:
-            latest = obj.history.latest()
-        except obj.history.model.DoesNotExist:
-            return '—'
-        if latest.history_user is None:
-            return '—'
-        return latest.history_user.username
+        return modified_by_username(obj)
 
 
 class ParameterListSerializer(ModelSerializer):

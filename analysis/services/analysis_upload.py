@@ -1,4 +1,4 @@
-from analysis.auxil import process_analyses
+from analysis.services.analysis_ingestion import ingest_analysis_file
 from analysis.models import Analysis
 
 
@@ -12,8 +12,9 @@ def upload_analysis_files(project, files):
         )
         new_analysis.save()
 
-        success, message = process_analyses.process_analysis_file(new_analysis.id)
-        message = str(f) + ': ' + message
+        result = ingest_analysis_file(new_analysis.id)
+        success = result.success
+        message = str(f) + ': ' + result.message
 
         if not success:
             new_analysis.delete()

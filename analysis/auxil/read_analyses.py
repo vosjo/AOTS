@@ -1,8 +1,7 @@
 from astropy import units as u
 from astropy.coordinates.angles import Angle
 
-from analysis.models import DEFAULT_PARAMETERS, PARAMETER_ALIASES, \
-    UNIT_ALIASES
+from analysis.models.default_values import DEFAULT_PARAMETERS, PARAMETER_ALIASES, UNIT_ALIASES
 
 
 # ==============================================================================================

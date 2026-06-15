@@ -38,10 +38,14 @@ class ParameterPlotterForm(forms.Form):
     color = forms.ChoiceField(label="color ", required=False,
                               widget=forms.Select())
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, project=None, **kwargs):
+        self.project = project
         super().__init__(*args, **kwargs)
 
-        parameterNames = sorted(Parameter.objects.values_list('cname', 'cname').distinct())
+        param_qs = Parameter.objects.all()
+        if project is not None:
+            param_qs = param_qs.filter(star__project=project)
+        parameterNames = sorted(param_qs.values_list('cname', 'cname').distinct())
 
         self.fields['xaxis'].choices = parameterNames
         self.fields['yaxis'].choices = parameterNames

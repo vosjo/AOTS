@@ -7,6 +7,7 @@ from AOTS.bokeh_embed import bokeh_embed_response
 from AOTS.permissions_helpers import get_object_if_allowed
 from rest_framework.exceptions import PermissionDenied
 from analysis.auxil import plot_parameters
+from analysis.services.analysis_plotting import plot_analysis_detail_figures
 from analysis.forms import ParameterPlotterForm
 from analysis.models import Analysis
 from stars.models import Project
@@ -21,12 +22,12 @@ def parameter_plotter_api(request, project_slug):
     if not request.user.is_anonymous and not request.user.can_read(project):
         raise PermissionDenied()
 
-    form = ParameterPlotterForm(request.GET) if request.GET else ParameterPlotterForm()
+    form = ParameterPlotterForm(request.GET, project=project) if request.GET else ParameterPlotterForm(project=project)
     if request.GET:
         form.is_valid()
     parameters = form.get_parameters()
 
-    figure, statistics = plot_parameters.plot_parameters(parameters)
+    figure, statistics = plot_parameters.plot_parameters(parameters, project=project)
 
     return Response({
         'plot': bokeh_embed_response(figure),
@@ -48,8 +49,5 @@ def analysis_plots_api(request, pk):
     analysis = get_object_if_allowed(
         Analysis, request, pk, select_related=('project', 'star'),
     )
-    fit = analysis.make_large_figure()
-    oc = analysis.make_OC_figure()
-    hist = analysis.make_parameter_hist_figures()
-    all_figs = dict(hist, **{'fit': fit, 'oc': oc})
+    all_figs = plot_analysis_detail_figures(analysis)
     return Response(bokeh_embed_response(all_figs))

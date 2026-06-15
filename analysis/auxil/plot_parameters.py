@@ -27,7 +27,7 @@ def plot_errorbars(fig, x, y, xerr=None, yerr=None, **kwargs):
         fig.multi_line(err_xs, err_ys, **kwargs)
 
 
-def get_data(parameters):
+def get_data(parameters, project=None):
     """
     Returns array with data for the requested parameters
     """
@@ -36,8 +36,12 @@ def get_data(parameters):
     pnames.discard('')
 
     params = Parameter.objects.filter(cname__in=pnames, average=True)
+    if project is not None:
+        params = params.filter(star__project=project)
     stars = params.values_list('star', flat=True).distinct()
     stars = Star.objects.filter(pk__in=stars)
+    if project is not None:
+        stars = stars.filter(project=project)
 
     # -- get the parameter values
     parameter_table = {'system': [s.name for s in stars]}
@@ -45,7 +49,6 @@ def get_data(parameters):
         values, errors = [], []
         for star in stars:
             try:
-                print(pname, star.name)
                 p = params.get(cname__exact=pname, star__exact=star.pk, average__exact=True)
                 values.append(p.value)
                 errors.append(p.error)
@@ -74,14 +77,14 @@ def get_parameter_statistics(data, parameters):
         return "No statistics calculated"
 
 
-def plot_parameters(parameters, **kwargs):
+def plot_parameters(parameters, project=None, **kwargs):
     """
     Makes a simple plot of the given parameters
     """
     xpar = parameters.get('xaxis', 'p')
     ypar = parameters.get('yaxis', 'e')
 
-    data, parameters = get_data(parameters)
+    data, parameters = get_data(parameters, project=project)
     statistics = get_parameter_statistics(data, parameters)
 
     # -- datasource for bokeh

@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from AOTS.bokeh_embed import bokeh_embed_response
 from AOTS.permissions_helpers import get_object_if_allowed
 from analysis.categories import category_label
-from analysis.models import Analysis
+from analysis.services.analysis_display import get_component_parameters, get_system_parameters
+from analysis.services.analysis_plotting import plot_analysis_figure
 from stars.api.star_detail import _param_display
 from stars.models import Star
 from observations.plotting import plot_sed
@@ -20,7 +21,7 @@ def _analysis_parameters(analysis):
             'unit': unit,
             'value': _param_display(value),
         }
-        for name, unit, value in analysis.get_system_parameters()
+        for name, unit, value in get_system_parameters(analysis)
     ]
     component = [
         {
@@ -29,7 +30,7 @@ def _analysis_parameters(analysis):
             'primary': _param_display(primary),
             'secondary': _param_display(secondary),
         }
-        for name, unit, primary, secondary in analysis.get_component_parameters()
+        for name, unit, primary, secondary in get_component_parameters(analysis)
     ]
     return {'system': system, 'component': component}
 
@@ -71,6 +72,6 @@ def star_analysis_plots(request, pk):
                 'analysis:analysis_detail',
                 kwargs={'project': project.slug, 'analysis_id': analysis.pk},
             ),
-            'embed': bokeh_embed_response(analysis.make_figure()),
+            'embed': bokeh_embed_response(plot_analysis_figure(analysis)),
         })
     return Response({'plots': plots})

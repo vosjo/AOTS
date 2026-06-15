@@ -198,14 +198,14 @@ def calculate_r(dpar, *args, **kwargs):
     radius is calculate as sqrt(G M / g)
     """
 
-    M = self.source_parameters.get(name__exact='m', component__exact=dpar.component)
-    g = self.source_parameters.get(name__exact='logg', component__exact=dpar.component)
+    M = dpar.source_parameters.get(name__exact='m', component__exact=dpar.component)
+    g = dpar.source_parameters.get(name__exact='logg', component__exact=dpar.component)
 
     G = 6.673839999999998e-05
     M = np.random.normal(M.value, M.error, 512)
     g = np.random.normal(g.value, g.error, 512)
     r = np.sqrt(G * M * 1.988547e+30 / 10 ** g) / 69550800000.0
 
-    self.value = np.average(r)
-    self.error = np.std(r)
-    self.unit = 'Rsol'
+    dpar.value = np.average(r)
+    dpar.error = np.std(r)
+    dpar.unit = 'Rsol'

@@ -127,7 +127,7 @@ class Star(models.Model):
 
         all_csv_dict = {}
 
-        for source in ParameterSource.objects.all():
+        for source in ParameterSource.objects.filter(project=self.project):
             params_from_source = self.parameter_set.filter(parameter_source__name__iexact=source.name)
 
             csv_dict = {}

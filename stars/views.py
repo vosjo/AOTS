@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, render, redirect, reverse
 
 from AOTS.custom_permissions import check_user_can_view_project
 from observations.plotting import plot_sed
+from analysis.services.analysis_plotting import plot_analysis_figure
 from .auxil import (
     populate_system,
     invalid_form,
@@ -235,7 +236,7 @@ def star_detail(request, star_id, project=None, **kwargs):
     figures = [plot_sed(star.pk)]
 
     for analysis in analyses:
-        figures.append(analysis.make_figure())
+        figures.append(plot_analysis_figure(analysis))
 
     #   TODO: Switch to Bokeh Layouts (from bokeh.layouts import column)?
     if len(figures) > 0:

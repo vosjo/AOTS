@@ -12,4 +12,11 @@ List endpoints use `?format=datatables`. The UI may request extra fields via `ke
 | `/api/analysis/analyses/` | — | pk, href, file_url | `AnalysisListSerializer` |
 | `/api/observations/observatories/` | — | short_name, url | `ObservatorySerializer` |
 
-When changing serializers, run contract tests in `observations/tests/test_datatables_contract.py`.
+### Parameter list (`/api/analysis/parameters/`)
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `parameter_source` | object or null | `{ pk, name }` catalog/AVG provenance (`ParameterSource`) |
+| `analysis` | int or null | PK of linked `Analysis` when the parameter came from an HDF5 upload |
+
+When changing serializers, run contract tests in `observations/tests/test_datatables_contract.py` and `analysis/tests/test_api_analyses.py`.

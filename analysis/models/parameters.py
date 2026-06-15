@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.signals import pre_delete, post_delete, post_save, pre_save
 from django.dispatch import receiver
 
-from analysis.auxil import parameter_derivation
+from analysis.services.parameter_averaging import sync_average_for
 from analysis.categories import category_label
 from stars.models import Star
 from .analysis_model import Analysis
@@ -145,26 +145,17 @@ class DerivedParameter(Parameter):
     source_parameters = models.ManyToManyField(Parameter, blank=True, related_name='derived_parameters')
 
     def create(self):
-        success = parameter_derivation.find_parameters(self)
-        # try:
-        # names, components = parameter_derivation.find_parameters(self)
-        # for n, c in zip(names, components):
-        # p = Parameter.objects.get(star__exact=self.star, name__exact=n,
-        # component__exact=c, average__exact=True)
-        # self.source_parameters.add(p)
-
-        # except Exception as e:
-        # print (e)
+        from analysis.services import parameter_derivation as derivation_service
+        return derivation_service.find_sources(self)
 
     def update(self):
+        from analysis.services import parameter_derivation as derivation_service
         try:
-            parameter_derivation.calculate(self)
+            derivation_service.calculate(self)
             self.average = True
-
             return True
         except Exception as e:
             print(e)
-
             return False
 
     # -- representation of self
@@ -193,97 +184,15 @@ def set_cname(sender, **kwargs):
 
 
 # ======================================================================================
-# AVERAGE parameter handling
+# AVERAGE parameter handling (delegates to analysis.services.parameter_averaging)
 # ======================================================================================
-
-def calculate_average(params):
-    """
-    Calculates the average value and error based on the given parameters
-    params needs to be a queryset
-    """
-    values = np.array(params.values_list('value', flat=True))
-
-    # -- work with 1D average errors
-    errors_l = np.array(params.values_list('error_l', flat=True))
-    errors_u = np.array(params.values_list('error_u', flat=True))
-    errors = (errors_l + errors_u) / 2.0
-
-    # -- if the error is zero, assume a 10% error when calculating the average,
-    #   if also the value is zero, assume an error of 1.
-    errors = np.where(errors == 0, values / 10., errors)
-    errors = np.where(errors == 0, 1., errors)
-
-    error = np.sqrt(np.sum(errors ** 2)) / len(errors)
-
-    return np.average(values, weights=1. / errors), error
-
 
 @receiver(post_delete, sender=Parameter)
 @receiver(post_save, sender=Parameter)
 def average_parameter_bookkeeping(sender, **kwargs):
-    """
-    Create, update and delete average parameters when parameters
-    are added, updated, or deleted.
-    """
-
     if kwargs.get('raw', False):
         return
-
-    param = kwargs['instance']
-
-    try:
-        s = param.star
-    except Star.DoesNotExist:
-        # -- this star is being deleted along with all related parameters, do nothing
-        return
-
-    if not param.average:
-        p = Parameter.objects.filter(name__exact=param.name,
-                                     component__exact=param.component,
-                                     star__exact=param.star,
-                                     valid__exact=True,
-                                     average__exact=False)
-
-        if len(p) == 0:
-            # There are no parameters left: delete the average
-            try:
-                ap = Parameter.objects.get(name__exact=param.name,
-                                           component__exact=param.component,
-                                           star__exact=param.star,
-                                           valid__exact=True,
-                                           average__exact=True)
-                ap.delete()
-            except Exception as e:
-                pass
-
-        else:
-            # We need to update the average, or possible create a new one
-            value, error = calculate_average(p)
-
-            try:
-                ap = Parameter.objects.get(name__exact=param.name,
-                                           component__exact=param.component,
-                                           star__exact=param.star,
-                                           valid__exact=True,
-                                           average__exact=True)
-                ap.value = value
-                ap.error = error
-                ap.save()
-
-            except Parameter.DoesNotExist:
-
-                from analysis.services.parameter_sources import get_or_create_avg_source
-                ds = get_or_create_avg_source(param.star.project)
-
-                ap = Parameter.objects.create(star=param.star,
-                                              name=param.name,
-                                              component=param.component,
-                                              value=value,
-                                              error=error,
-                                              unit=param.unit,
-                                              average=True,
-                                              valid=True,
-                                              parameter_source=ds)
+    sync_average_for(kwargs['instance'])
 
 
 # ======================================================================================
@@ -335,9 +244,8 @@ def derived_parameter_bookkeeping_on_update(sender, **kwargs):
     param = kwargs['instance']
 
     if param.derived_parameters.exists():
-        # Update derived parameters if there are any
-        for p in param.derived_parameters.all():
-            p.save()
+        from analysis.services import parameter_derivation as derivation_service
+        derivation_service.refresh_derived_for(param)
 
 
 @receiver(pre_delete, sender=Parameter)
@@ -352,6 +260,5 @@ def derived_parameter_bookkeeping_on_delete(sender, **kwargs):
     param = kwargs['instance']
 
     if param.derived_parameters.exists():
-        # Update derived parameters if there are any
-        for p in param.derived_parameters.all():
-            p.delete()
+        from analysis.services import parameter_derivation as derivation_service
+        derivation_service.delete_dependent_derived(param)

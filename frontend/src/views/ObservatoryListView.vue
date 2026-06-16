@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { useQuery } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { CheckCircle2, Pencil, Plus, Trash2, XCircle } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
+import ObservatoryWorldMap from '@/components/ObservatoryWorldMap.vue'
 import { useDataTablePage } from '@/composables/useDataTablePage'
-import { api } from '@/api/client'
+import { api, type PaginatedResponse } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 
@@ -58,6 +60,28 @@ const { query, page, pageSize, selected, toggleRow, toggleAll } = useDataTablePa
   projectSlug,
 })
 const rows = computed(() => query.data.value?.results ?? [])
+
+const mapQuery = useQuery({
+  queryKey: computed(() => ['observatories-map', projectStore.currentProject?.pk]),
+  queryFn: async () => {
+    const project = projectStore.currentProject
+    if (!project) return { count: 0, next: null, previous: null, results: [] as ObservatoryRow[] }
+    const params = new URLSearchParams({
+      project: String(project.pk),
+      page_size: '1000',
+    })
+    return api<PaginatedResponse<ObservatoryRow>>(`/api/observations/observatories/?${params}`)
+  },
+  enabled: computed(() => !!projectStore.currentProject),
+})
+
+const groundObservatories = computed(() =>
+  (mapQuery.data.value?.results ?? []).filter((row) => !row.space_craft),
+)
+
+async function refreshObservatories() {
+  await Promise.all([query.refetch(), mapQuery.refetch()])
+}
 
 const columns = computed(() => {
   const cols = [
@@ -162,7 +186,7 @@ async function saveObservatory() {
       })
     }
     closeDialog()
-    await query.refetch()
+    await refreshObservatories()
   } catch (e) {
     formError.value = e instanceof Error ? e.message : 'Save failed'
   } finally {
@@ -174,7 +198,7 @@ async function deleteObservatory(row: ObservatoryRow) {
   if (!confirm('Are you sure you want to delete this Observatory? This cannot be undone')) return
   try {
     await api(`/api/observations/observatories/${row.pk}/`, { method: 'DELETE' })
-    await query.refetch()
+    await refreshObservatories()
   } catch (e) {
     const status = (e as { statusCode?: number })?.statusCode
     if (status === 500) {
@@ -185,20 +209,25 @@ async function deleteObservatory(row: ObservatoryRow) {
 </script>
 
 <template>
-  <DataTablePage
-    title="Observatories"
-    :columns="columns"
-    :rows="rows"
-    :count="query.data.value?.count ?? 0"
-    :page="page"
-    :page-size="pageSize"
-    :loading="query.isFetching.value"
-    :selected="selected"
-    @update:page="page = $event"
-    @update:page-size="pageSize = $event"
-    @toggle-row="toggleRow"
-    @toggle-all="toggleAll(rows)"
-  >
+  <div class="space-y-4">
+    <h1 class="text-2xl font-semibold text-slate-50">Observatories</h1>
+
+    <div class="grid min-w-0 items-start gap-6 lg:grid-cols-2">
+      <div class="min-w-0">
+        <DataTablePage
+          hide-title
+          :columns="columns"
+          :rows="rows"
+          :count="query.data.value?.count ?? 0"
+          :page="page"
+          :page-size="pageSize"
+          :loading="query.isFetching.value"
+          :selected="selected"
+          @update:page="page = $event"
+          @update:page-size="pageSize = $event"
+          @toggle-row="toggleRow"
+          @toggle-all="toggleAll(rows)"
+        >
     <template v-if="auth.isAuthenticated" #actions>
       <button type="button" class="aots-btn-primary inline-flex items-center gap-1.5" @click="openAdd">
         <Plus class="w-4 h-4" />
@@ -251,8 +280,16 @@ async function deleteObservatory(row: ObservatoryRow) {
           <Trash2 class="w-4 h-4" />
         </button>
       </div>
-    </template>
-  </DataTablePage>
+        </template>
+        </DataTablePage>
+      </div>
+
+      <section class="aots-panel min-w-0 self-start lg:sticky lg:top-20">
+        <h2 class="mb-3 font-medium text-slate-50">Ground observatories</h2>
+        <ObservatoryWorldMap :observatories="groundObservatories" />
+      </section>
+    </div>
+  </div>
 
   <dialog
     v-if="dialogOpen"

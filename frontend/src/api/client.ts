@@ -53,6 +53,14 @@ export interface ProjectSummary {
   slug: string
   is_public: boolean
   description?: string
+  logo?: string | null
+  preview_starmap?: string | null
+}
+
+const DEFAULT_PROJECT_LOGO = '/static/images/default_logo.png'
+
+export function projectLogoUrl(project: Pick<ProjectSummary, 'logo' | 'preview_starmap'>): string {
+  return project.logo || project.preview_starmap || DEFAULT_PROJECT_LOGO
 }
 
 export interface MeResponse {

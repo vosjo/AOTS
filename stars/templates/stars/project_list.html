@@ -19,6 +19,12 @@
 
 {% block content %}
 
+    {% if test_installation %}
+        <p class="aots-test-installation-banner" role="status">
+            This is a test installation. Data may be incomplete or reset at any time.
+        </p>
+    {% endif %}
+
     {% if private_projects %}
         <section class='data-section' id="private_projects">
 

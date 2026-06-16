@@ -150,3 +150,6 @@ CELERY_TASK_EAGER_PROPAGATES = True
 BULK_DOWNLOAD_TTL_SECONDS = env.int('BULK_DOWNLOAD_TTL_SECONDS', default=86400)
 BULK_DOWNLOAD_DELETE_AFTER_SEND = env.bool('BULK_DOWNLOAD_DELETE_AFTER_SEND', default=True)
 # UI: spectra list uses Celery bulk download when true (see spectra_list.html)
+
+# SPA: show test-installation banner on the project list when true
+AOTS_TEST_INSTALLATION = env.bool('AOTS_TEST_INSTALLATION', default=False)

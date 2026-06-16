@@ -69,8 +69,12 @@ async function deleteSelected() {
   await query.refetch()
 }
 
+function starOf(row: SpectrumRow): { name: string; pk: number } | null {
+  return typeof row.star === 'object' && row.star ? row.star : null
+}
+
 function starName(row: SpectrumRow) {
-  return typeof row.star === 'object' ? row.star.name : row.star
+  return starOf(row)?.name ?? (typeof row.star === 'string' ? row.star : '—')
 }
 
 function formatResolution(value: number) {
@@ -90,7 +94,7 @@ function formatAirmass(value: number) {
       hide-title
       :columns="[
       { id: 'hjd', header: 'HJD' },
-      { id: 'star', header: 'Target' },
+      { id: 'star', header: 'System' },
       { id: 'instrument', header: 'Instrument' },
       { id: 'resolution', header: 'Resolution' },
       { id: 'airmass', header: 'Airmass' },
@@ -146,7 +150,16 @@ function formatAirmass(value: number) {
     <template #cell-hjd="{ row }">
       <RouterLink :to="`/w/${projectSlug}/observations/spectra/${row.pk}/`">{{ row.hjd }}</RouterLink>
     </template>
-    <template #cell-star="{ row }">{{ starName(row) }}</template>
+    <template #cell-star="{ row }">
+      <RouterLink
+        v-if="starOf(row)"
+        :to="`/w/${projectSlug}/systems/stars/${starOf(row)!.pk}`"
+        class="text-sky-400 hover:text-sky-300"
+      >
+        {{ starOf(row)!.name }}
+      </RouterLink>
+      <span v-else>{{ starName(row) }}</span>
+    </template>
     <template #cell-resolution="{ row }">{{ formatResolution(row.resolution) }}</template>
     <template #cell-airmass="{ row }">{{ formatAirmass(row.airmass) }}</template>
   </DataTablePage>

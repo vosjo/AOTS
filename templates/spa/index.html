@@ -7,7 +7,10 @@
   <link rel="icon" href="{% static 'favicon.ico' %}" />
   <title>AOTS</title>
   <script>
-    window.__AOTS_BOOTSTRAP__ = { csrfToken: '{{ csrf_token }}' };
+    window.__AOTS_BOOTSTRAP__ = {
+      csrfToken: '{{ csrf_token }}',
+      testInstallation: {{ test_installation|yesno:"true,false" }},
+    };
   </script>
   {% if vite_dev %}
   <script type="module" src="http://localhost:5173/app/@vite/client"></script>

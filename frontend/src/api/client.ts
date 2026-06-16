@@ -10,7 +10,10 @@ export function getCsrfToken(): string {
 export async function ensureCsrfToken(): Promise<void> {
   if (getCsrfToken()) return
   const data = await api<{ csrfToken: string }>('/api/auth/csrf/')
-  window.__AOTS_BOOTSTRAP__ = { csrfToken: data.csrfToken }
+  window.__AOTS_BOOTSTRAP__ = {
+    ...window.__AOTS_BOOTSTRAP__,
+    csrfToken: data.csrfToken,
+  }
 }
 
 export function formatApiError(error: unknown): string {

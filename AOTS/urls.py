@@ -22,6 +22,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
 from AOTS.api_auth import (
+    app_bootstrap,
     auth_api_key,
     auth_csrf,
     auth_login,
@@ -97,6 +98,7 @@ urlpatterns = [
                   ),
 
                   path('api/me/', me, name='api-me'),
+                  path('api/bootstrap/', app_bootstrap, name='api-bootstrap'),
                   path('api/admin/', include('AOTS.admin_api.urls')),
                   path('api/auth/csrf/', auth_csrf, name='api-auth-csrf'),
                   path('api/auth/login/', auth_login, name='api-auth-login'),

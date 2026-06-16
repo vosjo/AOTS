@@ -2,6 +2,7 @@
 
 interface AOTSBootstrap {
   csrfToken: string
+  testInstallation?: boolean
 }
 
 interface Window {

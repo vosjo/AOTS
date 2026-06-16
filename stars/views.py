@@ -6,6 +6,7 @@ from bokeh.resources import CDN
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
+from django.conf import settings
 from django.shortcuts import get_object_or_404, render, redirect, reverse
 
 from AOTS.custom_permissions import check_user_can_view_project
@@ -54,6 +55,7 @@ def project_list(request):
     context = {
         "public_projects": public_projects,
         "private_projects": private_projects,
+        "test_installation": settings.AOTS_TEST_INSTALLATION,
     }
 
     return render(request, "stars/project_list.html", context)

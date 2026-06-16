@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password
+from django.conf import settings
 from django.middleware.csrf import get_token
 from django.utils.crypto import get_random_string
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -38,6 +39,16 @@ def me(request):
 @ensure_csrf_cookie
 def auth_csrf(request):
     return Response({'csrfToken': get_token(request)})
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def app_bootstrap(request):
+    return Response({
+        'csrfToken': get_token(request),
+        'testInstallation': getattr(settings, 'AOTS_TEST_INSTALLATION', False),
+    })
 
 
 @api_view(['POST'])

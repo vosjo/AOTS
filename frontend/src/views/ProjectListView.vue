@@ -2,9 +2,11 @@
 import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { projectLogoUrl } from '@/api/client'
+import { useAppBootstrap } from '@/composables/useAppBootstrap'
 import { useProjectStore } from '@/stores/project'
 
 const projectStore = useProjectStore()
+const { testInstallation } = useAppBootstrap()
 
 const sections = computed(() => [
   {
@@ -22,6 +24,14 @@ onMounted(() => projectStore.fetchProjects())
 
 <template>
   <div class="space-y-6">
+    <div
+      v-if="testInstallation"
+      class="rounded-lg border border-amber-500/60 bg-amber-500/15 px-4 py-2.5 text-center text-sm text-amber-100"
+      role="status"
+    >
+      This is a test installation. Data may be incomplete or reset at any time.
+    </div>
+
     <h1 class="text-2xl font-semibold">Projects</h1>
 
     <section

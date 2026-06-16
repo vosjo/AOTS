@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { CheckCircle2, Download, Pencil, Star, XCircle } from 'lucide-vue-next'
+import { CheckCircle2, Download, Pencil, Star, Trash2, XCircle } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import BokehPlot from '@/components/BokehPlot.vue'
@@ -353,7 +353,7 @@ async function remove() {
             class="text-xs text-red-400 hover:text-red-300"
             @click="remove"
           >
-            Delete light curve
+            Delete light curve <Trash2 class="w-3 h-3 inline-block ml-1" />
           </button>
         </section>
       </div>

@@ -108,12 +108,17 @@
   }
 
   .bokeh-plot-host {
-    @apply w-full max-w-full min-w-0;
+    @apply w-full max-w-full min-w-0 overflow-hidden;
+  }
+
+  .bokeh-plot-host .bokeh-plot {
+    @apply overflow-hidden;
   }
 
   .bokeh-plot-host .bk-root,
   .bokeh-plot-host .bk-panel-models-tabs-Tabs {
-    @apply w-full max-w-full;
+    @apply max-w-full;
+    width: 100% !important;
   }
 
   .aots-param-table {

@@ -36,16 +36,16 @@ class UploadAnalysisFileForm(forms.Form):
 
 
 class ParameterPlotterForm(forms.Form):
-    xaxis = forms.ChoiceField(label="x-axis ", required=False,
+    xaxis = forms.ChoiceField(label="X-axis ", required=False,
                               widget=forms.Select())
 
-    yaxis = forms.ChoiceField(label="y-axis ", required=False,
+    yaxis = forms.ChoiceField(label="Y-axis ", required=False,
                               widget=forms.Select())
 
-    size = forms.ChoiceField(label="size ", required=False,
+    size = forms.ChoiceField(label="Size ", required=False,
                              widget=forms.Select())
 
-    color = forms.ChoiceField(label="color ", required=False,
+    color = forms.ChoiceField(label="Color ", required=False,
                               widget=forms.Select())
 
     def __init__(self, *args, project=None, **kwargs):
@@ -63,11 +63,18 @@ class ParameterPlotterForm(forms.Form):
         self.fields['size'].choices = parameterNames
         self.fields['color'].choices = parameterNames
 
-        inix = 'p' if ('p', 'p') in parameterNames else parameterNames[0][0]
-        if len(parameterNames) > 1:
-            iniy = 'q' if ('q', 'q') in parameterNames else parameterNames[1][0]
-        else:
-            iniy = parameterNames[0][1]
+        choice_values = [name for name, _ in parameterNames]
+
+        def pick(names, preferred, fallback_index=0):
+            if preferred in names:
+                return preferred
+            if not names:
+                return ''
+            idx = min(fallback_index, len(names) - 1)
+            return names[idx]
+
+        inix = pick(choice_values, 'parallax')
+        iniy = pick(choice_values, 'pmdec', 1)
         self.initial['xaxis'] = inix
         self.initial['yaxis'] = iniy
         self.initial['size'] = ''

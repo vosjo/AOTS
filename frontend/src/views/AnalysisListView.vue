@@ -4,6 +4,7 @@ import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import DataTablePage from '@/components/DataTablePage.vue'
+import AnalysesSectionNav from '@/components/AnalysesSectionNav.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { useBulkDownload } from '@/composables/useBulkDownload'
@@ -138,6 +139,8 @@ async function deleteSelected() {
 
 <template>
   <div class="space-y-4">
+    <AnalysesSectionNav />
+
     <ul v-if="uploadMessages.length && !uploadOpen" class="space-y-2">
       <li
         v-for="(msg, index) in uploadMessages"
@@ -152,12 +155,12 @@ async function deleteSelected() {
     </ul>
 
     <DataTablePage
-      title="Analyses"
+      hide-title
       :columns="[
         { id: 'star', header: 'System' },
         { id: 'name', header: 'Name' },
-        { id: 'note', header: 'Note' },
         { id: 'category', header: 'Category' },
+        { id: 'note', header: 'Note' },
         { id: 'added_on', header: 'Creation date' },
       ]"
       :rows="rows"
@@ -222,10 +225,6 @@ async function deleteSelected() {
         </RouterLink>
       </template>
 
-      <template #cell-note="{ row }">
-        <span :title="row.note || undefined">{{ truncateNote(row.note) }}</span>
-      </template>
-
       <template #cell-category="{ row }">
         <span
           class="inline-flex items-center gap-1.5"
@@ -240,6 +239,10 @@ async function deleteSelected() {
           />
           {{ row.category_label }}
         </span>
+      </template>
+
+      <template #cell-note="{ row }">
+        <span :title="row.note || undefined">{{ truncateNote(row.note) }}</span>
       </template>
     </DataTablePage>
 

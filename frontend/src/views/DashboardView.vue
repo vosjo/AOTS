@@ -1,9 +1,32 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
+import { useElementHeight } from '@/composables/useElementHeight'
+
+/** HRD figure dimensions from dash/plotting.py plot_hrd(). */
+const HRD_ASPECT = 1150 / 475
+
+interface DashboardStats {
+  nstars: number
+  nstarslw: number
+  nspec: number
+  nspeclw: number
+  nlc: number
+  nlclw: number
+  nanalyses: number
+  nanalyseslw: number
+}
+
+interface StatCard {
+  key: string
+  label: string
+  count: number
+  delta: number
+  to: string
+}
 
 const route = useRoute()
 const slug = computed(() => route.params.projectSlug as string)
@@ -14,65 +37,168 @@ const { data, isFetching, refetch } = useQuery({
   queryFn: async () => {
     const params = new URLSearchParams(hrdParams.value)
     return api<{
-      stats: Record<string, number>
+      stats: DashboardStats
       recent_changes: Array<{ modeltype: string; date: string; user: string; label: string; created: boolean }>
       hrd: { script: string; div: string }
-      hrd_form: { fields: string[]; values: Record<string, string>; choices: Record<string, [string, string][]> }
+      hrd_form: {
+        fields: string[]
+        labels: Record<string, string>
+        values: Record<string, string>
+        choices: Record<string, [string, string][]>
+      }
       starmap: { preview_url: string | null; full_url: string | null }
     }>(`/api/dash/${slug.value}/?${params}`)
   },
 })
 
+const statCards = computed((): StatCard[] => {
+  const stats = data.value?.stats
+  if (!stats) return []
+  const base = `/w/${slug.value}`
+  return [
+    {
+      key: 'systems',
+      label: 'Systems',
+      count: stats.nstars,
+      delta: stats.nstarslw,
+      to: `${base}/systems/stars/`,
+    },
+    {
+      key: 'spectra',
+      label: 'Spectra',
+      count: stats.nspec,
+      delta: stats.nspeclw,
+      to: `${base}/observations/spectra/`,
+    },
+    {
+      key: 'lightcurves',
+      label: 'Light curves',
+      count: stats.nlc,
+      delta: stats.nlclw,
+      to: `${base}/observations/lightcurves/`,
+    },
+    {
+      key: 'analyses',
+      label: 'Analyses',
+      count: stats.nanalyses,
+      delta: stats.nanalyseslw,
+      to: `${base}/analysis/analyses/`,
+    },
+  ]
+})
+
 const form = computed(() => data.value?.hrd_form)
+const hrdFormValues = reactive<Record<string, string>>({})
 const starmapOpen = ref(false)
 
+watch(
+  data,
+  (d) => {
+    if (d?.hrd_form?.values) {
+      Object.assign(hrdFormValues, d.hrd_form.values)
+    }
+  },
+  { immediate: true },
+)
+
+const hrdControlsRef = ref<HTMLElement | null>(null)
+const { height: hrdControlsHeight } = useElementHeight(hrdControlsRef)
+const isLg = ref(false)
+
+onMounted(() => {
+  const mq = window.matchMedia('(min-width: 1024px)')
+  const update = () => {
+    isLg.value = mq.matches
+  }
+  update()
+  mq.addEventListener('change', update)
+  onUnmounted(() => mq.removeEventListener('change', update))
+})
+
+/** On desktop, size the plot frame to match the controls panel height. */
+const hrdPlotFrameStyle = computed(() => {
+  if (!isLg.value || !hrdControlsHeight.value) return undefined
+  const h = hrdControlsHeight.value
+  return {
+    height: `${h}px`,
+    maxHeight: `${h}px`,
+    width: `min(100%, ${h * HRD_ASPECT}px)`,
+  }
+})
+
 function updateHrd() {
-  if (form.value) hrdParams.value = { ...form.value.values }
+  hrdParams.value = { ...hrdFormValues }
   refetch()
 }
 </script>
 
 <template>
   <div v-if="isFetching && !data" class="text-slate-300">Loading dashboard…</div>
-  <div v-else-if="data" class="space-y-6">
+  <div v-else-if="data" class="min-w-0 space-y-6">
     <h1 class="text-2xl font-semibold">Dashboard</h1>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <div v-for="(val, key) in data.stats" :key="key" class="aots-panel">
-        <div class="text-2xl font-semibold">{{ val }}</div>
-        <div class="text-xs font-medium uppercase text-slate-300">{{ key }}</div>
-      </div>
+    <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+      <RouterLink
+        v-for="card in statCards"
+        :key="card.key"
+        :to="card.to"
+        class="group flex min-h-0 items-center justify-between gap-2 rounded-lg border border-slate-600 bg-slate-800/90 px-3 py-2 transition hover:border-sky-500/70 hover:bg-slate-700/90"
+      >
+        <div class="min-w-0">
+          <div class="truncate text-xs font-medium text-slate-400 group-hover:text-slate-300">
+            {{ card.label }}
+          </div>
+          <div class="text-xl font-semibold tabular-nums leading-tight text-slate-50 sm:text-2xl">
+            {{ card.count }}
+          </div>
+        </div>
+        <div
+          v-if="card.delta > 0"
+          class="shrink-0 text-right text-xs leading-snug text-emerald-400"
+        >
+          <span class="font-semibold">+{{ card.delta }}</span>
+          <span class="block text-[0.65rem] font-normal text-slate-500">last week</span>
+        </div>
+      </RouterLink>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-3">
-      <section class="aots-panel space-y-3">
-        <h2 class="font-medium">HRD controls</h2>
-        <div v-if="form" class="space-y-2 text-sm">
-          <label v-for="field in form.fields" :key="field" class="block">
-            <span class="aots-label capitalize">{{ field }}</span>
-            <select
-              v-model="form.values[field]"
-              class="aots-select"
-            >
-              <option v-for="[val, label] in form.choices[field]" :key="String(val)" :value="val ?? ''">{{ label }}</option>
-            </select>
-          </label>
-          <button class="aots-btn-primary" @click="updateHrd">Update Figure</button>
+    <div class="grid min-w-0 items-start gap-6 lg:grid-cols-3">
+      <section class="aots-panel min-w-0">
+        <div ref="hrdControlsRef" class="space-y-3">
+          <h2 class="font-medium">HRD controls</h2>
+          <div v-if="form" class="min-w-0 space-y-2 text-sm">
+            <label v-for="field in form.fields" :key="field" class="block">
+              <span class="aots-label">{{ form.labels[field] ?? field }}</span>
+              <select
+                v-model="hrdFormValues[field]"
+                class="aots-select"
+              >
+                <option v-for="[val, label] in form.choices[field]" :key="String(val)" :value="val ?? ''">{{ label }}</option>
+              </select>
+            </label>
+            <button class="aots-btn-primary" @click="updateHrd">Update Figure</button>
+          </div>
         </div>
       </section>
 
-      <section class="aots-panel lg:col-span-2">
-        <BokehPlot v-if="data.hrd" :script="data.hrd.script" :div="data.hrd.div" />
+      <section class="aots-panel min-w-0 lg:col-span-2">
+        <div
+          class="min-w-0 overflow-hidden"
+          :class="hrdPlotFrameStyle ? 'mx-auto' : ''"
+          :style="hrdPlotFrameStyle"
+        >
+          <BokehPlot v-if="data.hrd" fill :script="data.hrd.script" :div="data.hrd.div" />
+        </div>
       </section>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-      <section v-if="data.starmap.preview_url" class="aots-panel">
+    <div class="grid min-w-0 gap-6 lg:grid-cols-2">
+      <section v-if="data.starmap.preview_url" class="aots-panel min-w-0">
         <h2 class="font-medium mb-2">Starmap</h2>
         <img
           :src="data.starmap.preview_url"
           alt="Starmap preview"
-          class="cursor-pointer max-h-64 rounded"
+          class="block w-full max-w-full cursor-pointer rounded object-contain"
           @click="starmapOpen = true"
         />
       </section>

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import {
-  BarChart3,
-  Binoculars,
+  ChartScatter,
+  ChartSpline,
   FlaskConical,
   LayoutDashboard,
   Menu,
+  Shield,
   Star,
+  Telescope,
   User,
+  type LucideIcon,
 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
@@ -26,17 +29,21 @@ const inProject = computed(() => !!slug.value)
 const nav = computed(() => {
   if (!slug.value) return []
   const base = `/w/${slug.value}`
-  return [
+  const items: { to: string; label: string; icon: LucideIcon; activePrefix?: string }[] = [
     { to: `${base}/dash/`, label: 'Dashboard', icon: LayoutDashboard },
-    { to: `${base}/systems/stars/`, label: 'Stars', icon: Star },
-    { to: `${base}/systems/tags/`, label: 'Tags', icon: Star },
-    { to: `${base}/observations/spectra/`, label: 'Spectra', icon: Binoculars },
-    { to: `${base}/observations/lightcurves/`, label: 'Light curves', icon: Binoculars },
-    { to: `${base}/observations/observatories/`, label: 'Observatories', icon: Binoculars },
-    { to: `${base}/analysis/analyses/`, label: 'Analyses', icon: FlaskConical },
-    { to: `${base}/analysis/plotter`, label: 'Plotter', icon: BarChart3 },
+    { to: `${base}/systems/stars/`, label: 'Systems', icon: Star, activePrefix: `${base}/systems` },
+    { to: `${base}/observations/spectra/`, label: 'Spectra', icon: ChartSpline, activePrefix: `${base}/observations/spectra` },
+    { to: `${base}/observations/lightcurves/`, label: 'Light curves', icon: ChartScatter },
+    { to: `${base}/observations/observatories/`, label: 'Observatories', icon: Telescope },
+    { to: `${base}/analysis/analyses/`, label: 'Analyses', icon: FlaskConical, activePrefix: `${base}/analysis/analyses` },
   ]
+  return items
 })
+
+function navActive(item: { to: string; activePrefix?: string }) {
+  const prefix = item.activePrefix ?? item.to
+  return route.path.startsWith(prefix)
+}
 
 async function logout() {
   await auth.logout()
@@ -67,7 +74,7 @@ async function logout() {
           :key="item.to"
           :to="item.to"
           class="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700 hover:text-white"
-          :class="{ 'bg-slate-700 text-white ring-1 ring-slate-500': route.path.startsWith(item.to) }"
+          :class="{ 'bg-slate-700 text-white ring-1 ring-slate-500': navActive(item) }"
           :title="item.label"
         >
           <component :is="item.icon" class="h-4 w-4" />
@@ -76,6 +83,15 @@ async function logout() {
       </nav>
 
       <div class="ml-auto flex items-center gap-2">
+        <RouterLink
+          v-if="auth.isSuperuser"
+          to="/admin/"
+          class="hidden items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700 hover:text-white sm:inline-flex"
+          title="Administration"
+        >
+          <Shield class="h-4 w-4" />
+          Admin
+        </RouterLink>
         <a :href="toClassic()" class="aots-btn-secondary text-xs">Classic UI</a>
         <RouterLink
           v-if="auth.isAuthenticated"

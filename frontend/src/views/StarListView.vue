@@ -5,6 +5,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Plus } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
+import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
 import { saveCarryOver } from '@/composables/useCarryOver'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { api } from '@/api/client'
@@ -377,8 +378,11 @@ async function addSystem() {
 </script>
 
 <template>
-  <DataTablePage
-    title="Systems"
+  <div class="space-y-4">
+    <SystemsSectionNav />
+
+    <DataTablePage
+      hide-title
     :columns="[
       { id: 'name', header: 'Name' },
       { id: 'ra_hms', header: 'RA' },
@@ -780,4 +784,5 @@ async function addSystem() {
       <p v-if="addError" class="text-sm text-slate-400 whitespace-pre-wrap">{{ addError }}</p>
     </div>
   </dialog>
+  </div>
 </template>

@@ -26,15 +26,25 @@ def parameter_plotter_api(request, project_slug):
     if request.GET:
         form.is_valid()
     parameters = form.get_parameters()
+    show_regression = request.GET.get('show_regression', '') in ('1', 'true', 'on')
 
-    figure, statistics = plot_parameters.plot_parameters(parameters, project=project)
+    figure, statistics = plot_parameters.plot_parameters(
+        parameters, project=project, show_regression=show_regression,
+    )
 
     return Response({
         'plot': bokeh_embed_response(figure),
         'statistics': statistics,
         'form': {
             'fields': ['xaxis', 'yaxis', 'size', 'color'],
-            'values': parameters,
+            'labels': {
+                name: str(form.fields[name].label).strip()
+                for name in ('xaxis', 'yaxis', 'size', 'color')
+            },
+            'values': {
+                **parameters,
+                'show_regression': '1' if show_regression else '0',
+            },
             'choices': {
                 name: [{'value': v, 'label': label} for v, label in field.choices]
                 for name, field in form.fields.items()

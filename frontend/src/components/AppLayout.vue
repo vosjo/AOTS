@@ -10,7 +10,7 @@ onMounted(() => projectStore.fetchProjects())
 <template>
   <div class="min-h-screen flex flex-col">
     <AppTopBar />
-    <main class="flex-1 mx-auto w-full max-w-[1600px] px-4 py-6">
+    <main class="mx-auto min-w-0 flex-1 w-full max-w-[1600px] overflow-x-hidden px-4 py-6">
       <slot />
     </main>
   </div>

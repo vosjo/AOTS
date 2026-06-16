@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
+import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -111,8 +112,11 @@ async function deleteTag(row: TagRow) {
 </script>
 
 <template>
-  <DataTablePage
-    title="Tags"
+  <div class="space-y-4">
+    <SystemsSectionNav />
+
+    <DataTablePage
+      hide-title
     :columns="columns"
     :rows="rows"
     :count="query.data.value?.count ?? 0"
@@ -207,4 +211,5 @@ async function deleteTag(row: TagRow) {
       </div>
     </div>
   </dialog>
+  </div>
 </template>

@@ -51,6 +51,10 @@ const router = createRouter({
       meta: { requiresProject: true },
     },
     {
+      path: '/w/:projectSlug/systems/',
+      redirect: (to) => `/w/${to.params.projectSlug}/systems/stars/`,
+    },
+    {
       path: '/w/:projectSlug/systems/stars/',
       name: 'stars',
       component: () => import('@/views/StarListView.vue'),
@@ -147,10 +151,30 @@ const router = createRouter({
       redirect: (to) => `/w/${to.params.projectSlug}/analysis/analyses/`,
     },
     {
-      path: '/w/:projectSlug/analysis/plotter',
-      name: 'plotter',
+      path: '/w/:projectSlug/analysis/analyses/plotter',
+      name: 'analysis-plotter',
       component: () => import('@/views/ParameterPlotterView.vue'),
       meta: { requiresProject: true },
+    },
+    {
+      path: '/w/:projectSlug/analysis/plotter',
+      redirect: (to) => `/w/${to.params.projectSlug}/analysis/analyses/plotter`,
+    },
+    {
+      path: '/admin',
+      component: () => import('@/views/admin/AdminLayout.vue'),
+      meta: { requiresAuth: true, requiresSuperuser: true },
+      children: [
+        { path: '', name: 'admin-home', component: () => import('@/views/admin/AdminHomeView.vue') },
+        { path: 'users', name: 'admin-users', component: () => import('@/views/admin/AdminUserListView.vue') },
+        { path: 'users/:id', name: 'admin-user-edit', component: () => import('@/views/admin/AdminUserFormView.vue') },
+        { path: 'projects', name: 'admin-projects', component: () => import('@/views/admin/AdminProjectListView.vue') },
+        { path: 'projects/:id', name: 'admin-project-edit', component: () => import('@/views/admin/AdminProjectFormView.vue') },
+        { path: 'groups', name: 'admin-groups', component: () => import('@/views/admin/AdminGroupListView.vue') },
+        { path: 'groups/:id', name: 'admin-group-edit', component: () => import('@/views/admin/AdminGroupFormView.vue') },
+        { path: 'tokens', name: 'admin-tokens', component: () => import('@/views/admin/AdminTokenListView.vue') },
+        { path: 'log', name: 'admin-log', component: () => import('@/views/admin/AdminLogListView.vue') },
+      ],
     },
     {
       path: '/:pathMatch(.*)*',
@@ -167,6 +191,10 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login', query: { next: to.fullPath } }
+  }
+
+  if (to.meta.requiresSuperuser && !auth.isSuperuser) {
+    return { name: 'not-found' }
   }
 
   if (to.meta.requiresProject && to.params.projectSlug) {

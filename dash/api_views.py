@@ -89,6 +89,10 @@ def dashboard_bootstrap(request, project_slug):
         'hrd': bokeh_embed_response(figure),
         'hrd_form': {
             'fields': ['nsys', 'xaxis', 'yaxis', 'size', 'color'],
+            'labels': {
+                name: str(form.fields[name].label).strip()
+                for name in ('nsys', 'xaxis', 'yaxis', 'size', 'color')
+            },
             'values': parameters or dict(form.initial),
             'choices': {
                 name: list(field.choices) for name, field in form.fields.items()

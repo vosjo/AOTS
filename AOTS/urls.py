@@ -97,6 +97,7 @@ urlpatterns = [
                   ),
 
                   path('api/me/', me, name='api-me'),
+                  path('api/admin/', include('AOTS.admin_api.urls')),
                   path('api/auth/csrf/', auth_csrf, name='api-auth-csrf'),
                   path('api/auth/login/', auth_login, name='api-auth-login'),
                   path('api/auth/logout/', auth_logout, name='api-auth-logout'),

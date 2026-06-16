@@ -46,3 +46,12 @@ Gate for Phase 5a sign-off. Each item must pass in the Vue SPA at `/app/…`.
 
 - [ ] DRF token regenerate
 - [ ] API key pair generate
+
+## Admin (superuser only)
+
+- [ ] Admin link visible only for superusers
+- [ ] Users: list, filter, search, create, edit, delete, password set
+- [ ] Projects: list, create, edit, delete, file uploads, role M2M
+- [ ] Groups: list, create, edit, delete, permission picker
+- [ ] DRF tokens: list, create, revoke
+- [ ] Admin log: read-only list and search

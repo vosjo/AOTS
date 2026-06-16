@@ -741,7 +741,7 @@ function updateLinkage() {
 
     //  Check if specfiles or systems are selected
     if (systems.length != 0) {
-        //  Loop over Stars, get 'pk'
+        //  Loop over Systems, get 'pk'
         let pk_list_systems = [];
         systems.map(function (index) {
             //  Get system 'pk's

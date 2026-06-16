@@ -188,7 +188,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
 
     tools = [mpl.PanTool(), mpl.WheelZoomTool(),
              mpl.BoxZoomTool(), mpl.ResetTool()]
-    fig = bpl.figure(width=840, height=475, tools=tools)
+    fig = bpl.figure(width=1150, height=475, tools=tools, sizing_mode='scale_width')
 
     # fig.circle(wave, meas)
     # fig.circle('bp_rp', 'mag', size=8, color='white', alpha=0.1, name='hover', source=starsource)
@@ -202,11 +202,11 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         gaia_mag = gaia_data['g_mag_abs'].value.astype(np.float16)
         gaia_color = gaia_data['bp_rp'].value.astype(np.float16)
 
-        fig.dot(
+        fig.scatter(
             x=gaia_color,
             y=gaia_mag,
             size=10,
-            # color="#cccccc",
+            marker='dot',
             color="#9db3d1",
         )
 
@@ -221,12 +221,11 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
 
-        main_plot = fig.scatter(source=starsource,
+        main_plot = fig.circle(source=starsource,
                                 name="main",
                                 x=xstr,
                                 y=ystr,
                                 radius="norm_" + rstr,
-                                marker="circle",
                                 alpha=.7,
                                 fill_color=colors,
                                 line_color=colors)
@@ -243,12 +242,11 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
 
-        main_plot = fig.scatter(source=starsource,
+        main_plot = fig.circle(source=starsource,
                                 name="main",
                                 x=xstr,
                                 y=ystr,
                                 radius="norm_" + rstr,
-                                marker="circle",
                                 alpha=.7)
 
     elif cstr is not None:
@@ -262,11 +260,10 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
 
-        main_plot = fig.scatter(source=starsource,
+        main_plot = fig.circle(source=starsource,
                                 name="main",
                                 x=xstr,
                                 y=ystr,
-                                marker="circle",
                                 radius=.03,
                                 alpha=.7,
                                 fill_color=colors,
@@ -284,13 +281,12 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         fig.multi_line(x_errcoords, empty_y)
         fig.multi_line(empty_x, y_errcoords)
 
-        main_plot = fig.scatter(source=starsource,
+        main_plot = fig.circle(source=starsource,
                                 name="main",
                                 x=xstr,
                                 y=ystr,
                                 radius=.03,
-                                marker="circle",
-                                alpha=.7, )
+                                alpha=.7)
 
     # fig.circle(x=xstr, y=ystr, source=starsource, size=5)
 

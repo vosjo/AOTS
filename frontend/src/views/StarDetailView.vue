@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/vue-query'
 import {
   CheckCircle2,
+  Copy,
   Eye,
   EyeOff,
   Pencil,
@@ -749,72 +750,74 @@ watch(editableParams, (data) => {
             </div>
 
             <div>
-              <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
+              <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <h3 class="text-xs font-medium text-slate-300">Photometry</h3>
-                <div class="flex flex-wrap items-center gap-2">
-                  <button
-                    v-if="!photEdit && detail.photometry.length"
-                    type="button"
-                    class="text-xs text-sky-400"
-                    @click="copyPhotDialog = true"
-                  >
-                    Copy
-                  </button>
-                  <button
-                    v-if="auth.isAuthenticated && !photEdit"
-                    type="button"
-                    class="p-1 text-slate-300 hover:text-sky-400"
-                    title="Edit photometry"
-                    @click="startPhotEdit"
-                  >
-                    <Pencil class="w-4 h-4" />
-                  </button>
-                  <template v-if="photEdit">
-                    <div class="relative">
+                <div class="flex flex-wrap items-center justify-end gap-2">
+                <button
+                  v-if="!photEdit && detail.photometry.length"
+                  type="button"
+                  class="text-xs aots-btn-secondary inline-flex items-center gap-1"
+                  @click="copyPhotDialog = true"
+                >
+                  <Copy class="w-3.5 h-3.5" />
+                  Copy
+                </button>
+                <button
+                  v-if="auth.isAuthenticated"
+                  type="button"
+                  class="text-xs aots-btn-secondary inline-flex items-center gap-1"
+                  :disabled="photVizierLoading || photEdit"
+                  @click="fetchPhotometryVizier"
+                >
+                  <Loader2 v-if="photVizierLoading" class="w-3.5 h-3.5 animate-spin" />
+                  <Sparkles v-else class="w-3.5 h-3.5" />
+                  {{ photVizierLoading ? 'Fetching…' : 'Fetch from VizieR' }}
+                </button>
+                <button
+                  v-if="auth.isAuthenticated && !photEdit"
+                  type="button"
+                  class="text-xs aots-btn-secondary inline-flex items-center gap-1"
+                  @click="startPhotEdit"
+                >
+                  <Pencil class="w-3.5 h-3.5" />
+                  Edit
+                </button>
+                <template v-if="photEdit">
+                  <div class="relative">
+                    <button
+                      type="button"
+                      class="text-xs aots-btn-secondary"
+                      @click="addBandOpen = !addBandOpen"
+                    >
+                      Add band
+                    </button>
+                    <div
+                      v-if="addBandOpen"
+                      class="absolute right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded border border-slate-500 bg-slate-800 py-1 shadow-lg min-w-[10rem]"
+                    >
                       <button
+                        v-for="b in availableBands"
+                        :key="b.band"
                         type="button"
-                        class="text-xs aots-btn-secondary"
-                        @click="addBandOpen = !addBandOpen"
+                        class="block w-full px-3 py-1 text-left text-xs hover:bg-slate-700"
+                        @click="addPhotBand(b.band)"
                       >
-                        Add band
+                        {{ b.band }}
                       </button>
-                      <div
-                        v-if="addBandOpen"
-                        class="absolute right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded border border-slate-500 bg-slate-800 py-1 shadow-lg min-w-[10rem]"
-                      >
-                        <button
-                          v-for="b in availableBands"
-                          :key="b.band"
-                          type="button"
-                          class="block w-full px-3 py-1 text-left text-xs hover:bg-slate-700"
-                          @click="addPhotBand(b.band)"
-                        >
-                          {{ b.band }}
-                        </button>
-                      </div>
                     </div>
-                    <button
-                      type="button"
-                      class="text-xs aots-btn-secondary inline-flex items-center gap-1"
-                      :disabled="photVizierLoading"
-                      @click="fetchPhotometryVizier"
-                    >
-                      <Loader2 v-if="photVizierLoading" class="w-3.5 h-3.5 animate-spin" />
-                      <Sparkles v-else class="w-3.5 h-3.5" />
-                      {{ photVizierLoading ? 'Fetching…' : 'Get from VizieR' }}
-                    </button>
-                    <button
-                      type="button"
-                      class="text-xs aots-btn-primary"
-                      :disabled="photSaving"
-                      @click="savePhotometry"
-                    >
-                      Save
-                    </button>
-                    <button type="button" class="text-xs aots-btn-ghost" @click="cancelPhotEdit">
-                      Cancel
-                    </button>
-                  </template>
+                  </div>
+                  <button
+                    type="button"
+                    class="text-xs aots-btn-primary"
+                    :disabled="photSaving"
+                    @click="savePhotometry"
+                  >
+                    Save
+                  </button>
+                  <button type="button" class="text-xs aots-btn-ghost" @click="cancelPhotEdit">
+                    Cancel
+                  </button>
+                </template>
                 </div>
               </div>
               <p v-if="photError" class="text-xs text-red-400 mb-2">{{ photError }}</p>

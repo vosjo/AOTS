@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import AppAlert from '@/components/AppAlert.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
@@ -30,6 +31,6 @@ async function submit() {
       <input v-model="password" type="password" class="aots-field" placeholder="Password" />
       <button type="submit" class="aots-btn-primary w-full">Sign in</button>
     </form>
-    <p v-if="error" class="text-red-400 text-sm">{{ error }}</p>
+    <AppAlert v-if="error" kind="error">{{ error }}</AppAlert>
   </div>
 </template>

@@ -4,6 +4,7 @@ import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import DataTablePage from '@/components/DataTablePage.vue'
+import AppAlert from '@/components/AppAlert.vue'
 import AnalysesSectionNav from '@/components/AnalysesSectionNav.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
@@ -141,18 +142,15 @@ async function deleteSelected() {
   <div class="space-y-4">
     <AnalysesSectionNav />
 
-    <ul v-if="uploadMessages.length && !uploadOpen" class="space-y-2">
-      <li
+    <div v-if="uploadMessages.length && !uploadOpen" class="space-y-2">
+      <AppAlert
         v-for="(msg, index) in uploadMessages"
         :key="index"
-        class="rounded-md border px-3 py-2 text-sm"
-        :class="msg.ok
-          ? 'border-emerald-500/40 bg-emerald-950/40 text-emerald-100'
-          : 'border-red-500/40 bg-red-950/40 text-red-100'"
+        :kind="msg.ok ? 'success' : 'error'"
       >
         {{ msg.text }}
-      </li>
-    </ul>
+      </AppAlert>
+    </div>
 
     <DataTablePage
       hide-title
@@ -287,18 +285,15 @@ async function deleteSelected() {
             (e.g. to create derived parameters for RV solutions).
           </p>
         </fieldset>
-        <ul v-if="uploadMessages.length" class="mt-3 space-y-2">
-          <li
+        <div v-if="uploadMessages.length" class="mt-3 space-y-2">
+          <AppAlert
             v-for="(msg, index) in uploadMessages"
             :key="index"
-            class="rounded-md border px-3 py-2 text-sm"
-            :class="msg.ok
-              ? 'border-emerald-500/40 bg-emerald-950/40 text-emerald-100'
-              : 'border-red-500/40 bg-red-950/40 text-red-100'"
+            :kind="msg.ok ? 'success' : 'error'"
           >
             {{ msg.text }}
-          </li>
-        </ul>
+          </AppAlert>
+        </div>
         <div class="flex gap-2 mt-4">
           <button
             type="button"

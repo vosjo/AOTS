@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import AppAlert from '@/components/AppAlert.vue'
 import { api } from '@/api/client'
 
 const oldPassword = ref('')
@@ -30,6 +31,6 @@ async function submit() {
       <input v-model="newPassword2" type="password" class="aots-field" placeholder="Confirm new password" />
       <button type="submit" class="aots-btn-primary">Update</button>
     </form>
-    <p v-if="message" class="text-green-400">{{ message }}</p>
+    <AppAlert v-if="message" kind="success">{{ message }}</AppAlert>
   </div>
 </template>

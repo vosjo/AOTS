@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { Plus } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
+import AppAlert from '@/components/AppAlert.vue'
 import { api, formatApiError, type PaginatedResponse } from '@/api/client'
 import { useAdminList } from '@/composables/useAdminList'
 
@@ -123,7 +124,7 @@ async function deleteToken(pk: number) {
           {{ user.username }}
         </option>
       </select>
-      <p v-if="formError" class="text-sm text-red-400">{{ formError }}</p>
+      <AppAlert v-if="formError" kind="error">{{ formError }}</AppAlert>
       <div class="flex justify-end gap-2">
         <button type="button" class="aots-btn-secondary" @click="dialogOpen = false">Cancel</button>
         <button type="button" class="aots-btn-primary" :disabled="creating" @click="createToken">

@@ -4,6 +4,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import BokehPlot from '@/components/BokehPlot.vue'
 import AnalysesSectionNav from '@/components/AnalysesSectionNav.vue'
+import AppAlert from '@/components/AppAlert.vue'
 import { api, formatApiError } from '@/api/client'
 
 interface FormChoice {
@@ -63,9 +64,9 @@ function updateFigure() {
   <div class="space-y-4">
     <AnalysesSectionNav />
 
-    <p v-if="isError" class="text-sm text-red-400">
+    <AppAlert v-if="isError" kind="error">
       {{ formatApiError(error) }}
-    </p>
+    </AppAlert>
 
     <div class="grid min-w-0 items-start gap-6 lg:grid-cols-3">
       <section v-if="data?.form" class="aots-panel min-w-0 space-y-3">

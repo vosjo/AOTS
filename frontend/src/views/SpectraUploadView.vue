@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { AlertCircle, AlertTriangle, CheckCircle2, Info } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import AppAlert from '@/components/AppAlert.vue'
 import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 import {
   parseUploadFeedback,
-  uploadFeedbackIconClass,
-  uploadFeedbackPanelClass,
   type UploadFeedbackItem,
 } from '@/utils/uploadFeedback'
 
@@ -99,19 +97,6 @@ const form = ref<UploadForm>(emptyForm())
 const uploadFeedback = ref<UploadFeedbackItem[]>([])
 const uploading = ref(false)
 const busy = ref(false)
-
-function feedbackIcon(kind: UploadFeedbackItem['kind']) {
-  switch (kind) {
-    case 'success':
-      return CheckCircle2
-    case 'warning':
-      return AlertTriangle
-    case 'error':
-      return AlertCircle
-    default:
-      return Info
-  }
-}
 
 const headerEnabled = computed(() => form.value.add_info)
 const classificationEnabled = computed(() => form.value.add_info && form.value.create_new_star)
@@ -531,30 +516,19 @@ async function upload() {
         <p v-if="uploading" class="text-sm text-slate-400">Uploading and processing files…</p>
 
         <div v-if="uploadFeedback.length" class="space-y-3">
-          <div
+          <AppAlert
             v-for="(item, index) in uploadFeedback"
             :key="index"
-            class="rounded-md border px-4 py-3 text-sm"
-            :class="uploadFeedbackPanelClass(item.kind)"
-            role="alert"
+            :kind="item.kind"
+            :title="item.title"
           >
-            <div class="flex gap-3 items-start">
-              <component
-                :is="feedbackIcon(item.kind)"
-                class="w-5 h-5 shrink-0 mt-0.5"
-                :class="uploadFeedbackIconClass(item.kind)"
-              />
-              <div class="min-w-0">
-                <p class="font-medium">{{ item.title }}</p>
-                <p v-if="item.filename" class="font-mono text-xs mt-1.5 break-all opacity-90">
-                  {{ item.filename }}
-                </p>
-                <p v-if="item.detail" class="mt-1.5 leading-relaxed opacity-90">
-                  {{ item.detail }}
-                </p>
-              </div>
-            </div>
-          </div>
+            <p v-if="item.filename" class="font-mono text-xs break-all opacity-90">
+              {{ item.filename }}
+            </p>
+            <p v-if="item.detail" class="leading-relaxed opacity-90">
+              {{ item.detail }}
+            </p>
+          </AppAlert>
         </div>
       </div>
     </template>

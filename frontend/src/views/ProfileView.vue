@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import AppAlert from '@/components/AppAlert.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 
@@ -44,7 +45,9 @@ async function regenerateApiKey() {
       <h2 class="font-medium">API key pair</h2>
       <p class="text-sm text-slate-200">Public key: {{ auth.user?.api_key || '—' }}</p>
       <button class="text-sm text-sky-400" @click="regenerateApiKey">Generate new API key</button>
-      <p v-if="apiSecret" class="text-amber-300 text-sm">Secret (shown once): {{ apiSecret }}</p>
+      <AppAlert v-if="apiSecret" kind="warning">
+        Secret (shown once): {{ apiSecret }}
+      </AppAlert>
     </section>
 
     <RouterLink to="/accounts/password_change/" class="text-sky-400">Change password</RouterLink>

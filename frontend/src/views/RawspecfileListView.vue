@@ -4,6 +4,7 @@ import { CheckCircle2, Plus, XCircle } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import DataTablePage from '@/components/DataTablePage.vue'
+import AppAlert from '@/components/AppAlert.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
 import { api } from '@/api/client'
@@ -286,18 +287,15 @@ async function updateLinkage() {
   <div class="space-y-4">
     <SpectraSectionNav />
 
-    <ul v-if="uploadMessages.length && !uploadOpen" class="space-y-2">
-      <li
+    <div v-if="uploadMessages.length && !uploadOpen" class="space-y-2">
+      <AppAlert
         v-for="(msg, index) in uploadMessages"
         :key="index"
-        class="rounded-md border px-3 py-2 text-sm"
-        :class="msg.ok
-          ? 'border-emerald-500/40 bg-emerald-950/40 text-emerald-100'
-          : 'border-red-500/40 bg-red-950/40 text-red-100'"
+        :kind="msg.ok ? 'success' : 'error'"
       >
         {{ msg.text }}
-      </li>
-    </ul>
+      </AppAlert>
+    </div>
 
     <DataTablePage
       hide-title
@@ -520,18 +518,15 @@ async function updateLinkage() {
           <input type="file" multiple class="aots-field w-full" @change="(e) => uploadFiles = (e.target as HTMLInputElement).files" />
         </fieldset>
 
-        <ul v-if="uploadMessages.length" class="space-y-2">
-          <li
+        <div v-if="uploadMessages.length" class="space-y-2">
+          <AppAlert
             v-for="(msg, index) in uploadMessages"
             :key="index"
-            class="rounded-md border px-3 py-2 text-sm"
-            :class="msg.ok
-              ? 'border-emerald-500/40 bg-emerald-950/40 text-emerald-100'
-              : 'border-red-500/40 bg-red-950/40 text-red-100'"
+            :kind="msg.ok ? 'success' : 'error'"
           >
             {{ msg.text }}
-          </li>
-        </ul>
+          </AppAlert>
+        </div>
 
         <button
           type="button"
@@ -613,7 +608,7 @@ async function updateLinkage() {
         </div>
       </fieldset>
 
-      <p v-if="linkageError" class="text-sm text-red-400">{{ linkageError }}</p>
+      <AppAlert v-if="linkageError" kind="error">{{ linkageError }}</AppAlert>
 
       <button
         type="button"

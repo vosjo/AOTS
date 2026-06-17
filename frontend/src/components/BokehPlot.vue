@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue'
+import AppAlert from '@/components/AppAlert.vue'
 import { embedBokehComponents, resizeBokehIn } from '@/composables/useBokeh'
 
 const props = withDefaults(
@@ -58,6 +59,6 @@ onUnmounted(() => {
       class="bokeh-plot min-h-0 w-full"
       :class="fill ? 'h-full flex-1' : compact ? 'min-h-0' : 'min-h-[200px]'"
     />
-    <p v-if="error" class="text-sm text-red-400 mt-2">{{ error }}</p>
+    <AppAlert v-if="error" kind="error" class="mt-2">{{ error }}</AppAlert>
   </div>
 </template>

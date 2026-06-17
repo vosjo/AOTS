@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import AppAlert from '@/components/AppAlert.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -67,7 +68,7 @@ onUnmounted(() => {
       class="aladin-map__viewport w-full rounded-lg border border-slate-500 overflow-hidden relative"
       :class="compact ? 'h-44' : 'h-80'"
     />
-    <p v-if="error" class="text-sm text-red-400 mt-2">{{ error }}</p>
+    <AppAlert v-if="error" kind="error" class="mt-2">{{ error }}</AppAlert>
   </div>
 </template>
 

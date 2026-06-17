@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
+import AppAlert from '@/components/AppAlert.vue'
 import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { api } from '@/api/client'
@@ -199,7 +200,7 @@ async function deleteTag(row: TagRow) {
           <input v-model="formColor" type="color" class="h-9 w-14 cursor-pointer rounded border border-slate-500 bg-transparent" />
           <span class="font-mono text-sm text-slate-300">{{ formColor }}</span>
         </div>
-        <p v-if="formError" class="text-sm text-red-400">{{ formError }}</p>
+        <AppAlert v-if="formError" kind="error">{{ formError }}</AppAlert>
       </div>
       <div class="flex gap-2 mt-4">
         <button type="button" class="aots-btn-primary" :disabled="saving" @click="saveTag">

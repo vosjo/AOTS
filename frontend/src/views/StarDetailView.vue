@@ -14,6 +14,7 @@ import {
 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import AppAlert from '@/components/AppAlert.vue'
 import AladinMap from '@/components/AladinMap.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
@@ -820,7 +821,7 @@ watch(editableParams, (data) => {
                 </template>
                 </div>
               </div>
-              <p v-if="photError" class="text-xs text-red-400 mb-2">{{ photError }}</p>
+              <AppAlert v-if="photError" kind="error" class="mb-2">{{ photError }}</AppAlert>
               <div class="overflow-x-auto">
                 <table class="aots-obs-table">
                   <thead>

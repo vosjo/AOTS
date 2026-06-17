@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Plus } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
+import AppAlert from '@/components/AppAlert.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
 import { saveCarryOver } from '@/composables/useCarryOver'
@@ -11,6 +12,7 @@ import { useDataTablePage } from '@/composables/useDataTablePage'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
+import type { AlertKind } from '@/utils/alertStyles'
 
 interface TagRef {
   pk: number
@@ -117,6 +119,7 @@ const newStatus = ref('')
 const statusError = ref('')
 const tagError = ref('')
 const addError = ref('')
+const addErrorKind = ref<AlertKind>('error')
 const addBusy = ref(false)
 const csvFile = ref<FileList | null>(null)
 
@@ -321,6 +324,7 @@ function openAddDialog() {
   }
   csvFile.value = null
   addError.value = ''
+  addErrorKind.value = 'error'
   resetSimbadResolveState()
   addDialog.value = true
 }
@@ -335,15 +339,18 @@ async function uploadCsv() {
   if (!csvFile.value?.length || !projectStore.currentProject) return
   addBusy.value = true
   addError.value = ''
+  addErrorKind.value = 'error'
   const fd = new FormData()
   fd.append('project', String(projectStore.currentProject.pk))
   for (const f of csvFile.value) fd.append('system', f)
   try {
     const res = await api<string>('/api/systems/stars/bulk-upload/', { method: 'POST', body: fd })
     addError.value = typeof res === 'string' ? res : 'Upload complete.'
+    addErrorKind.value = 'success'
     await query.refetch()
   } catch (e) {
     addError.value = e instanceof Error ? e.message : String(e)
+    addErrorKind.value = 'error'
   } finally {
     addBusy.value = false
   }
@@ -353,6 +360,7 @@ async function addSystem() {
   if (!projectStore.currentProject) return
   addBusy.value = true
   addError.value = ''
+  addErrorKind.value = 'error'
   try {
     await api('/api/systems/stars/create-from-form/', {
       method: 'POST',
@@ -608,7 +616,7 @@ async function addSystem() {
           </label>
         </li>
       </ul>
-      <p v-if="tagError" class="text-sm text-red-400 mt-2">{{ tagError }}</p>
+      <AppAlert v-if="tagError" kind="error" class="mt-2">{{ tagError }}</AppAlert>
       <div class="flex gap-2 mt-4">
         <button type="button" class="aots-btn-primary" @click="saveTags">Update</button>
         <button type="button" class="aots-btn-ghost" @click="tagDialog = false">Cancel</button>
@@ -632,7 +640,7 @@ async function addSystem() {
           </label>
         </li>
       </ul>
-      <p v-if="statusError" class="text-sm text-red-400 mt-2">{{ statusError }}</p>
+      <AppAlert v-if="statusError" kind="error" class="mt-2">{{ statusError }}</AppAlert>
       <div class="flex gap-2 mt-4">
         <button type="button" class="aots-btn-primary" @click="saveStatus">Update</button>
         <button type="button" class="aots-btn-ghost" @click="statusDialog = false">Cancel</button>
@@ -697,14 +705,14 @@ async function addSystem() {
               </button>
             </div>
           </label>
-          <p
+          <AppAlert
             v-if="addForm.get_simbad && (simbadMessage || simbadResolving)"
-            class="text-sm sm:col-span-2"
-            :class="simbadAmbiguous.length ? 'text-amber-300' : 'text-slate-400'"
+            :kind="simbadAmbiguous.length ? 'warning' : 'info'"
+            class="sm:col-span-2"
           >
             <template v-if="simbadResolving">Looking up name in Simbad…</template>
             <template v-else>{{ simbadMessage }}</template>
-          </p>
+          </AppAlert>
           <ul
             v-if="addForm.get_simbad && simbadAmbiguous.length"
             class="sm:col-span-2 space-y-1 max-h-40 overflow-y-auto rounded border border-slate-600 p-2 text-sm"
@@ -781,7 +789,7 @@ async function addSystem() {
         </button>
       </section>
 
-      <p v-if="addError" class="text-sm text-slate-400 whitespace-pre-wrap">{{ addError }}</p>
+      <AppAlert v-if="addError" :kind="addErrorKind" class="whitespace-pre-wrap">{{ addError }}</AppAlert>
     </div>
   </dialog>
   </div>

@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { CheckCircle2, Pencil, Plus, Trash2, XCircle } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
+import AppAlert from '@/components/AppAlert.vue'
 import ObservatoryWorldMap from '@/components/ObservatoryWorldMap.vue'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { api, type PaginatedResponse } from '@/api/client'
@@ -342,7 +343,7 @@ async function deleteObservatory(row: ObservatoryRow) {
           <span class="aots-label">Weather URL</span>
           <input v-model="form.weatherurl" type="text" class="aots-field w-full" maxlength="150" />
         </label>
-        <p v-if="formError" class="text-sm text-red-400">{{ formError }}</p>
+        <AppAlert v-if="formError" kind="error">{{ formError }}</AppAlert>
       </div>
       <div class="flex gap-2 mt-4">
         <button type="button" class="aots-btn-primary" :disabled="saving" @click="saveObservatory">

@@ -115,7 +115,7 @@
   --aots-text-faint: #888888;
 
   --aots-link: #5b80b2;
-  --aots-link-hover: #4169a8;
+  --aots-link-hover: #2a4f7a;
   --aots-brand: #5b80b2;
 
   --aots-header-bg: rgba(64, 117, 144, 0.15);
@@ -209,6 +209,8 @@
 
   a {
     color: var(--aots-link);
+    text-decoration: none;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
   }
 
   a:hover {
@@ -473,10 +475,14 @@
   .aots-btn-link {
     @apply inline-flex items-center gap-1 text-sm transition-colors;
     color: var(--aots-link);
+    cursor: pointer;
   }
 
   .aots-btn-link:hover {
     color: var(--aots-link-hover);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--aots-link-hover);
   }
 
   .aots-panel {
@@ -589,6 +595,26 @@
 
   .aots-table tbody tr:hover {
     background-color: var(--aots-surface-row-hover);
+  }
+
+  .aots-table a:not(.aots-analysis-badge),
+  .aots-kv-table a,
+  .aots-param-table a,
+  .aots-obs-table a {
+    color: var(--aots-link);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  }
+
+  .aots-table a:not(.aots-analysis-badge):hover,
+  .aots-kv-table a:hover,
+  .aots-param-table a:hover,
+  .aots-obs-table a:hover {
+    color: var(--aots-link-hover);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--aots-link-hover);
   }
 
   .aots-section-nav {

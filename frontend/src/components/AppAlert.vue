@@ -35,7 +35,6 @@ const role = computed(() => (props.kind === 'error' || props.kind === 'warning' 
 
 <template>
   <div
-    class="rounded-md border px-3 py-2 text-sm"
     :class="[alertPanelClass(kind), centered ? 'text-center' : '']"
     :role="role"
     aria-live="polite"

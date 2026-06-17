@@ -190,13 +190,13 @@ async function remove() {
         All light curves for <span class="whitespace-nowrap">{{ star.name }}</span>
       </h2>
       <div v-for="group in lc.related_lightcurves" :key="group.instrument" class="mb-3">
-        <h3 class="text-slate-400 font-medium mb-1">{{ group.instrument }}</h3>
+        <h3 class="text-aots-muted font-medium mb-1">{{ group.instrument }}</h3>
         <ul class="space-y-0.5">
           <li v-for="item in group.lightcurves" :key="item.pk">
             <RouterLink
               :to="`/w/${projectSlug}/observations/lightcurves/${item.pk}/`"
-              class="block rounded px-1 py-0.5 hover:bg-slate-700/60"
-              :class="item.is_current ? 'bg-sky-900/40 text-sky-300' : ''"
+              class="block rounded px-1 py-0.5 hover:bg-aots-surface-muted/60"
+              :class="item.is_current ? 'bg-aots-highlight text-aots-brand' : ''"
             >
               {{ item.hjd.toFixed(3) }} — {{ item.hjd_date }}
             </RouterLink>
@@ -292,7 +292,7 @@ async function remove() {
           <div class="min-h-[180px] w-full max-w-full min-w-0 overflow-hidden">
             <div
               v-if="visibilityLoading && !visibilityPlot?.visibility"
-              class="h-[180px] rounded bg-slate-700/40 animate-pulse"
+              class="h-[180px] rounded bg-aots-surface-muted/40 animate-pulse"
             />
             <BokehPlot
               v-else-if="visibilityPlot?.visibility"
@@ -321,10 +321,10 @@ async function remove() {
                 </AppButton>
               </li>
             </ul>
-            <p v-else class="text-xs text-slate-400">No files</p>
+            <p v-else class="text-xs text-aots-muted">No files</p>
           </div>
 
-          <div class="border-t border-slate-600 pt-2 relative">
+          <div class="border-t border-aots pt-2 relative">
             <h2 class="text-sm font-medium">Note</h2>
             <AppButton
               v-if="auth.isAuthenticated"
@@ -335,7 +335,7 @@ async function remove() {
             >
               <Pencil class="w-4 h-4" />
             </AppButton>
-            <p v-if="!noteEdit" class="text-xs text-slate-300 mt-1 whitespace-pre-wrap pr-8">
+            <p v-if="!noteEdit" class="text-xs text-aots-muted mt-1 whitespace-pre-wrap pr-8">
               {{ lc.note || '—' }}
             </p>
             <div v-else class="mt-2 space-y-2">
@@ -360,7 +360,7 @@ async function remove() {
         <div class="w-full max-w-full min-w-0 overflow-hidden">
           <div
             v-if="timeLoading && !timePlot?.lc_time"
-            class="h-[220px] sm:h-[320px] rounded bg-slate-700/40 animate-pulse"
+            class="h-[220px] sm:h-[320px] rounded bg-aots-surface-muted/40 animate-pulse"
           />
           <BokehPlot
             v-else-if="timePlot?.lc_time"
@@ -374,7 +374,7 @@ async function remove() {
       <section class="aots-panel-compact space-y-3">
         <form class="text-xs flex flex-wrap items-end gap-x-4 gap-y-2" @submit.prevent="updatePhasePlot">
           <label class="flex flex-col gap-1">
-            <span class="text-slate-400">Period (hours)</span>
+            <span class="text-aots-muted">Period (hours)</span>
             <input
               v-model="formPeriod"
               type="number"
@@ -383,7 +383,7 @@ async function remove() {
             />
           </label>
           <label class="flex flex-col gap-1">
-            <span class="text-slate-400">Phase bins size</span>
+            <span class="text-aots-muted">Phase bins size</span>
             <input
               v-model="formBinsize"
               type="number"
@@ -401,7 +401,7 @@ async function remove() {
         <div class="w-full max-w-full min-w-0 overflow-hidden">
           <div
             v-if="phaseLoading && !phasePlot?.lc_phase"
-            class="h-[220px] sm:h-[320px] rounded bg-slate-700/40 animate-pulse"
+            class="h-[220px] sm:h-[320px] rounded bg-aots-surface-muted/40 animate-pulse"
           />
           <BokehPlot
             v-else-if="phasePlot?.lc_phase"
@@ -416,7 +416,7 @@ async function remove() {
     <dialog
       v-if="headerDialog"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="headerDialog = false"
     >
       <div class="aots-panel max-h-[90vh] w-full max-w-2xl overflow-hidden flex flex-col">
@@ -427,11 +427,11 @@ async function remove() {
           </AppButton>
         </div>
         <div class="overflow-y-auto text-xs font-mono">
-          <p v-if="headerLoading" class="text-slate-400">Loading…</p>
+          <p v-if="headerLoading" class="text-aots-muted">Loading…</p>
           <ul v-else class="space-y-1">
             <li v-for="[key, value] in headerEntries" :key="key">
-              <span class="text-slate-400">{{ key }}</span>:
-              <span class="text-slate-100">{{ value }}</span>
+              <span class="text-aots-muted">{{ key }}</span>:
+              <span class="text-aots">{{ value }}</span>
             </li>
           </ul>
         </div>
@@ -441,7 +441,7 @@ async function remove() {
     <dialog
       v-if="lcEdit"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="lcEdit = false"
     >
       <div class="aots-panel w-full max-w-md">

@@ -37,13 +37,13 @@ onMounted(() => projectStore.fetchProjects())
       v-show="section.projects.length"
       class="space-y-3"
     >
-      <h2 class="text-lg font-medium text-slate-200">{{ section.title }}</h2>
+      <h2 class="text-lg font-medium text-aots">{{ section.title }}</h2>
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <RouterLink
           v-for="project in section.projects"
           :key="project.slug"
           :to="`/w/${project.slug}/dash/`"
-          class="flex flex-col rounded-lg border border-slate-500 bg-slate-800 px-2 py-2 shadow-sm transition hover:border-sky-400 hover:bg-slate-700"
+          class="flex flex-col rounded-lg border border-aots bg-aots-surface px-2 py-2 shadow-sm transition hover:border-aots-card hover:bg-aots-surface-muted"
         >
           <h3 class="text-center text-base font-medium leading-snug">{{ project.name }}</h3>
           <div class="mt-2 flex min-h-36 flex-1 items-start justify-center">
@@ -55,7 +55,7 @@ onMounted(() => projectStore.fetchProjects())
           </div>
           <p
             v-if="project.description"
-            class="mt-1 line-clamp-2 text-center text-sm italic leading-snug text-slate-300"
+            class="mt-1 line-clamp-2 text-center text-sm italic leading-snug text-aots-muted"
           >
             {{ project.description }}
           </p>

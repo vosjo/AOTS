@@ -114,10 +114,10 @@ async function deleteToken(pk: number) {
 
   <div
     v-if="dialogOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-aots-overlay p-4"
     @click.self="dialogOpen = false"
   >
-    <div class="w-full max-w-md space-y-4 rounded-xl border border-slate-600 bg-slate-900 p-5">
+    <div class="w-full max-w-md space-y-4 rounded-xl border border-aots bg-aots-page p-5">
       <h3 class="text-lg font-medium">Create token</h3>
       <select v-model="selectedUserId" class="aots-select w-full">
         <option value="">Select user…</option>

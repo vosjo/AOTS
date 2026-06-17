@@ -72,7 +72,7 @@ function formatActionTime(value: string): string {
     </template>
     <template #cell-change_message_display="{ row }">
       <span
-        class="line-clamp-3 text-sm text-slate-200"
+        class="line-clamp-3 text-sm text-aots"
         :title="row.change_message_display || row.change_message"
       >
         {{ row.change_message_display || '—' }}

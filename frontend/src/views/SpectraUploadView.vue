@@ -235,7 +235,7 @@ async function upload() {
       </AppButton>
     </div>
 
-    <p v-if="!auth.isAuthenticated" class="aots-panel text-slate-300">
+    <p v-if="!auth.isAuthenticated" class="aots-panel text-aots-muted">
       Log in to upload files.
     </p>
 
@@ -243,7 +243,7 @@ async function upload() {
       <section class="aots-panel space-y-4">
         <div>
           <h2 class="font-medium">File selection</h2>
-          <p class="text-sm text-slate-400">(required)</p>
+          <p class="text-sm text-aots-muted">(required)</p>
         </div>
         <label class="block">
           <span class="aots-label">File(s), .txt or .fits</span>
@@ -260,7 +260,7 @@ async function upload() {
       <section class="aots-panel space-y-4">
         <div>
           <h2 class="font-medium">Header information</h2>
-          <p class="text-sm text-slate-400">
+          <p class="text-sm text-aots-muted">
             Underlined fields are required for .txt files or if they are not included in the header.
           </p>
         </div>
@@ -275,7 +275,7 @@ async function upload() {
           :class="{ 'opacity-50': !headerEnabled }"
         >
           <div class="space-y-3">
-            <h3 class="text-sm font-medium text-slate-300">Target</h3>
+            <h3 class="text-sm font-medium text-aots-muted">Target</h3>
             <label class="block">
               <span class="aots-label">Target <span v-if="headerEnabled" class="underline">*</span></span>
               <input v-model="form.objectname" type="text" class="aots-field w-full" :disabled="!headerEnabled" />
@@ -325,7 +325,7 @@ async function upload() {
               </select>
             </label>
 
-            <h3 class="text-sm font-medium text-slate-300 pt-2">Observer</h3>
+            <h3 class="text-sm font-medium text-aots-muted pt-2">Observer</h3>
             <label class="block">
               <span class="aots-label">Observer name</span>
               <input v-model="form.observer" type="text" class="aots-field w-full" :disabled="!headerEnabled" />
@@ -333,7 +333,7 @@ async function upload() {
           </div>
 
           <div class="space-y-3">
-            <h3 class="text-sm font-medium text-slate-300">Instrument setup</h3>
+            <h3 class="text-sm font-medium text-aots-muted">Instrument setup</h3>
             <label class="block">
               <span class="aots-label">HJD-MID <span v-if="headerEnabled" class="underline">*</span></span>
               <input v-model="form.hjd" type="text" class="aots-field w-full" :disabled="!headerEnabled" />
@@ -359,7 +359,7 @@ async function upload() {
               <input v-model="form.snr" type="text" class="aots-field w-full" :disabled="!headerEnabled" />
             </label>
 
-            <h3 class="text-sm font-medium text-slate-300 pt-2">Wind conditions</h3>
+            <h3 class="text-sm font-medium text-aots-muted pt-2">Wind conditions</h3>
             <label class="block">
               <span class="aots-label">Wind direction (deg)</span>
               <input
@@ -376,7 +376,7 @@ async function upload() {
           </div>
 
           <div class="space-y-3">
-            <h3 class="text-sm font-medium text-slate-300">Seeing and airmass</h3>
+            <h3 class="text-sm font-medium text-aots-muted">Seeing and airmass</h3>
             <label class="block">
               <span class="aots-label">Seeing (&quot;)</span>
               <input v-model="form.seeing" type="text" class="aots-field w-full" :disabled="!headerEnabled" />
@@ -386,7 +386,7 @@ async function upload() {
               <input v-model="form.airmass" type="text" class="aots-field w-full" :disabled="!headerEnabled" />
             </label>
 
-            <h3 class="text-sm font-medium text-slate-300 pt-2">Spectrum processing</h3>
+            <h3 class="text-sm font-medium text-aots-muted pt-2">Spectrum processing</h3>
             <label class="flex items-center gap-2">
               <input v-model="form.barycor_bool" type="checkbox" :disabled="!headerEnabled" />
               Barycentric corrected
@@ -423,7 +423,7 @@ async function upload() {
           </div>
 
           <div class="space-y-3 lg:col-span-2 xl:col-span-1">
-            <h3 class="text-sm font-medium text-slate-300">Observatory</h3>
+            <h3 class="text-sm font-medium text-aots-muted">Observatory</h3>
             <label class="block">
               <span class="aots-label">Observatory</span>
               <select v-model="form.observatory" class="aots-select w-full" :disabled="!headerEnabled">
@@ -493,7 +493,7 @@ async function upload() {
               </label>
             </template>
 
-            <h3 class="text-sm font-medium text-slate-300 pt-2">Note</h3>
+            <h3 class="text-sm font-medium text-aots-muted pt-2">Note</h3>
             <textarea
               v-model="form.note"
               rows="6"
@@ -513,7 +513,7 @@ async function upload() {
           Upload
         </AppButton>
 
-        <p v-if="uploading" class="text-sm text-slate-400">Uploading and processing files…</p>
+        <p v-if="uploading" class="text-sm text-aots-muted">Uploading and processing files…</p>
 
         <div v-if="uploadFeedback.length" class="space-y-3">
           <AppAlert

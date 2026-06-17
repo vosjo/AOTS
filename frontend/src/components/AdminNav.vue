@@ -19,15 +19,15 @@ function isActive(link: { to: string; exact?: boolean }) {
 </script>
 
 <template>
-  <nav class="mb-6 flex flex-wrap gap-2 border-b border-slate-600 pb-3">
+  <nav class="mb-6 flex flex-wrap gap-2 border-b border-aots pb-3">
     <RouterLink
       v-for="link in links"
       :key="link.to"
       :to="link.to"
       class="rounded-md px-3 py-1.5 text-sm font-medium"
       :class="isActive(link)
-        ? 'bg-slate-700 text-white ring-1 ring-slate-500'
-        : 'text-slate-200 hover:bg-slate-800 hover:text-white'"
+        ? 'bg-aots-surface-muted text-white ring-1 ring-aots'
+        : 'text-aots hover:bg-aots-surface hover:text-white'"
     >
       {{ link.label }}
     </RouterLink>

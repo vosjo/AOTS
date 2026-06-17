@@ -177,11 +177,11 @@ async function uploadLightCurves() {
         >
           {{ starOf(row)!.name }}
         </AppButton>
-        <span class="text-slate-400">
+        <span class="text-aots-muted">
           ({{ starOf(row)!.ra.toFixed(5) }} {{ starOf(row)!.dec.toFixed(5) }})
         </span>
       </template>
-      <span v-else class="text-slate-400">—</span>
+      <span v-else class="text-aots-muted">—</span>
     </template>
 
     <template #cell-instrument="{ row }">
@@ -224,16 +224,16 @@ async function uploadLightCurves() {
   <dialog
     v-if="uploadOpen"
     open
-    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
     @click.self="uploadOpen = false"
   >
     <div class="aots-panel w-full max-w-md">
       <h3 class="font-medium mb-4">Add new light curve(s)</h3>
       <fieldset class="space-y-3">
-        <legend class="text-sm text-slate-300 mb-2">Select light curve files</legend>
+        <legend class="text-sm text-aots-muted mb-2">Select light curve files</legend>
         <input type="file" multiple class="aots-field w-full" @change="onUploadFilesChange" />
       </fieldset>
-      <p v-if="uploadStatus" class="mt-3 text-sm text-slate-400 whitespace-pre-wrap">{{ uploadStatus }}</p>
+      <p v-if="uploadStatus" class="mt-3 text-sm text-aots-muted whitespace-pre-wrap">{{ uploadStatus }}</p>
       <div class="flex gap-2 mt-4">
         <AppButton
           variant="primary"

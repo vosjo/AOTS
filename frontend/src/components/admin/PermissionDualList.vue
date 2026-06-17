@@ -112,7 +112,7 @@ watch(chosenFilter, () => {
 
 <template>
   <div class="space-y-2">
-    <p class="text-sm text-slate-300">
+    <p class="text-sm text-aots-muted">
       {{ modelValue.length }} of {{ permissions.length }} permissions selected.
       Double-click a row to move it; use the arrows for bulk moves.
     </p>
@@ -120,7 +120,7 @@ watch(chosenFilter, () => {
     <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
       <div class="space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <label class="text-sm font-medium text-slate-200">Available permissions</label>
+          <label class="text-sm font-medium text-aots">Available permissions</label>
           <AppButton variant="link" size="sm" @click="addAll">
             Choose all
           </AppButton>
@@ -161,7 +161,7 @@ watch(chosenFilter, () => {
 
       <div class="space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <label class="text-sm font-medium text-slate-200">Chosen permissions</label>
+          <label class="text-sm font-medium text-aots">Chosen permissions</label>
           <AppButton variant="link" size="sm" @click="removeAll">
             Remove all
           </AppButton>

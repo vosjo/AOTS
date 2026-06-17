@@ -163,11 +163,11 @@ onMounted(loadProject)
 <template>
   <div class="mx-auto max-w-3xl space-y-6">
     <h2 class="text-xl font-semibold">{{ isNew ? 'Add project' : `Edit project: ${name}` }}</h2>
-    <p v-if="loading" class="text-slate-300">Loading…</p>
+    <p v-if="loading" class="text-aots-muted">Loading…</p>
 
     <form class="space-y-6" @submit.prevent="save">
       <section class="aots-panel space-y-3">
-        <h3 class="font-medium text-slate-50">Basics</h3>
+        <h3 class="font-medium text-aots-heading">Basics</h3>
         <input v-model="name" class="aots-field" placeholder="Name" required />
         <input
           v-model="slug"
@@ -177,26 +177,26 @@ onMounted(loadProject)
         />
         <textarea v-model="description" class="aots-field min-h-24" placeholder="Description" />
         <label class="flex items-center gap-2 text-sm">
-          <input v-model="isPublic" type="checkbox" class="accent-sky-400" />
+          <input v-model="isPublic" type="checkbox" class="accent-aots" />
           Public project
         </label>
       </section>
 
       <section class="aots-panel space-y-3">
-        <h3 class="font-medium text-slate-50">Files</h3>
+        <h3 class="font-medium text-aots-heading">Files</h3>
         <div>
-          <label class="text-sm text-slate-300">Logo</label>
-          <a v-if="logoUrl" :href="logoUrl" class="block text-sm text-sky-400" target="_blank">Current file</a>
+          <label class="text-sm text-aots-muted">Logo</label>
+          <a v-if="logoUrl" :href="logoUrl" class="block text-sm text-aots-link" target="_blank">Current file</a>
           <input type="file" class="aots-field" @change="onFileChange($event, 'logo')" />
         </div>
         <div>
-          <label class="text-sm text-slate-300">Preview starmap</label>
-          <a v-if="previewUrl" :href="previewUrl" class="block text-sm text-sky-400" target="_blank">Current file</a>
+          <label class="text-sm text-aots-muted">Preview starmap</label>
+          <a v-if="previewUrl" :href="previewUrl" class="block text-sm text-aots-link" target="_blank">Current file</a>
           <input type="file" class="aots-field" @change="onFileChange($event, 'preview')" />
         </div>
         <div>
-          <label class="text-sm text-slate-300">Full starmap</label>
-          <a v-if="fullUrl" :href="fullUrl" class="block text-sm text-sky-400" target="_blank">Current file</a>
+          <label class="text-sm text-aots-muted">Full starmap</label>
+          <a v-if="fullUrl" :href="fullUrl" class="block text-sm text-aots-link" target="_blank">Current file</a>
           <input type="file" class="aots-field" @change="onFileChange($event, 'full')" />
         </div>
       </section>

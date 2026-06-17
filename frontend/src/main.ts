@@ -3,10 +3,12 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 import { initAppBootstrap } from '@/composables/useAppBootstrap'
+import { initTheme } from '@/theme'
 import router from './router'
 import './style.css'
 
 async function start() {
+  initTheme()
   await initAppBootstrap()
 
   const app = createApp(App)

@@ -97,7 +97,7 @@ onUnmounted(() => {
 <template>
   <div class="observatory-world-map w-full">
     <div ref="mapEl" class="observatory-world-map__viewport" />
-    <p v-if="observatories.length === 0" class="mt-2 text-sm text-slate-400">
+    <p v-if="observatories.length === 0" class="mt-2 text-sm text-aots-muted">
       No ground-based observatories to show.
     </p>
   </div>
@@ -109,27 +109,27 @@ onUnmounted(() => {
   width: 100%;
   border-radius: 0.5rem;
   overflow: hidden;
-  border: 1px solid rgb(100 116 139);
-  background: #0f172a;
+  border: 1px solid var(--aots-border);
+  background: var(--aots-page-bg);
 }
 
 .observatory-world-map :deep(.leaflet-control-attribution) {
   font-size: 0.65rem;
-  background: rgb(15 23 42 / 0.85);
-  color: rgb(148 163 184);
+  background: var(--aots-surface-elevated);
+  color: var(--aots-text-muted);
 }
 
 .observatory-world-map :deep(.leaflet-control-attribution a) {
-  color: rgb(125 211 252);
+  color: var(--aots-link);
 }
 
 .observatory-world-map :deep(.leaflet-popup-content-wrapper) {
-  background: rgb(30 41 59);
-  color: rgb(241 245 249);
+  background: var(--aots-surface-elevated);
+  color: var(--aots-text);
   border-radius: 0.375rem;
 }
 
 .observatory-world-map :deep(.leaflet-popup-tip) {
-  background: rgb(30 41 59);
+  background: var(--aots-surface-elevated);
 }
 </style>

@@ -7,6 +7,14 @@
   <link rel="icon" href="{% static 'favicon.ico' %}" />
   <title>AOTS</title>
   <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem('aots-theme');
+        document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
     window.__AOTS_BOOTSTRAP__ = {
       csrfToken: '{{ csrf_token }}',
       testInstallation: {{ test_installation|yesno:"true,false" }},
@@ -20,7 +28,7 @@
   <script type="module" src="{% static 'dist/assets/index.js' %}"></script>
   {% endif %}
 </head>
-<body class="bg-slate-900 text-slate-50">
+<body>
   <div id="app"></div>
 </body>
 </html>

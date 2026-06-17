@@ -213,7 +213,7 @@ async function deriveParameters() {
         <h2 class="font-medium text-sm mb-2">Related analyses</h2>
         <h3
           v-if="star"
-          class="text-slate-400 mb-1"
+          class="text-aots-muted mb-1"
           :title="'Other analyses for the same star'"
         >
           {{ star.name }}
@@ -222,8 +222,8 @@ async function deriveParameters() {
           <li v-for="item in analysis.related_analyses" :key="item.pk">
             <RouterLink
               :to="`/w/${projectSlug}/analysis/analyses/${item.pk}/`"
-              class="block rounded px-1 py-0.5 hover:bg-slate-700/60"
-              :class="item.is_current ? 'bg-sky-900/40 text-sky-300' : ''"
+              class="block rounded px-1 py-0.5 hover:bg-aots-surface-muted/60"
+              :class="item.is_current ? 'bg-aots-highlight text-aots-brand' : ''"
             >
               <template v-if="item.is_current">— {{ item.category_label }} —</template>
               <template v-else>{{ item.category_label }} · {{ item.name }}</template>
@@ -234,7 +234,7 @@ async function deriveParameters() {
 
       <div v-if="analysis.related_by_category.length">
         <h3
-          class="text-slate-400 mb-1"
+          class="text-aots-muted mb-1"
           :title="'Other analyses in the same category'"
         >
           {{ analysis.category_label }}
@@ -243,8 +243,8 @@ async function deriveParameters() {
           <li v-for="item in analysis.related_by_category" :key="`category-${item.pk}`">
             <RouterLink
               :to="`/w/${projectSlug}/analysis/analyses/${item.pk}/`"
-              class="block rounded px-1 py-0.5 hover:bg-slate-700/60"
-              :class="item.is_current ? 'bg-sky-900/40 text-sky-300' : ''"
+              class="block rounded px-1 py-0.5 hover:bg-aots-surface-muted/60"
+              :class="item.is_current ? 'bg-aots-highlight text-aots-brand' : ''"
             >
               <template v-if="item.is_current">— {{ item.star_name }} —</template>
               <template v-else>{{ item.star_name }} · {{ item.name }}</template>
@@ -267,7 +267,7 @@ async function deriveParameters() {
         </AppButton>
 
         <h1 class="text-lg font-semibold m-0 w-full xl:w-auto">
-          {{ pageTitle }}<span v-if="analysis.name" class="font-medium text-slate-300"> ({{ analysis.name }})</span>
+          {{ pageTitle }}<span v-if="analysis.name" class="font-medium text-aots-muted"> ({{ analysis.name }})</span>
         </h1>
 
         <div v-if="star" class="flex items-center gap-1.5">
@@ -295,7 +295,7 @@ async function deriveParameters() {
         </div>
 
         <div v-if="analysis.reference" class="flex items-center gap-1.5 text-sm">
-          <BookOpen class="w-4 h-4 text-slate-400 shrink-0" />
+          <BookOpen class="w-4 h-4 text-aots-muted shrink-0" />
           <AppButton
             variant="link"
             :href="analysis.reference_url"
@@ -306,10 +306,10 @@ async function deriveParameters() {
           </AppButton>
         </div>
 
-        <div class="flex items-center gap-2 text-sm text-slate-300">
+        <div class="flex items-center gap-2 text-sm text-aots-muted">
           <input
             type="checkbox"
-            class="accent-sky-400 pointer-events-none"
+            class="accent-aots pointer-events-none"
             :checked="analysis.fit"
             tabindex="-1"
             aria-hidden="true"
@@ -343,10 +343,10 @@ async function deriveParameters() {
                 </thead>
                 <tbody class="font-mono">
                   <tr v-if="!analysis.parameters.length">
-                    <td colspan="4" class="text-slate-400">No data available</td>
+                    <td colspan="4" class="text-aots-muted">No data available</td>
                   </tr>
                   <tr v-for="param in analysis.parameters" :key="param.pk">
-                    <th class="font-normal text-slate-200">
+                    <th class="font-normal text-aots">
                       {{ param.cname }} ({{ param.unit }})
                     </th>
                     <td>{{ param.rvalue }}</td>
@@ -354,7 +354,7 @@ async function deriveParameters() {
                     <td>
                       <input
                         type="checkbox"
-                        class="accent-sky-400"
+                        class="accent-aots"
                         :checked="param.valid"
                         :disabled="!auth.isAuthenticated"
                         @change="toggleParameterValid(param.pk, ($event.target as HTMLInputElement).checked)"
@@ -379,8 +379,8 @@ async function deriveParameters() {
                 {{ deriveButtonLabel }}
               </AppButton>
             </div>
-            <p v-if="deriveMessage" class="text-xs text-slate-400 mb-2">{{ deriveMessage }}</p>
-            <p class="text-xs text-slate-500 mb-2">
+            <p v-if="deriveMessage" class="text-xs text-aots-muted mb-2">{{ deriveMessage }}</p>
+            <p class="text-xs text-aots-faint-extra mb-2">
               Star-level averages for this category (not stored on the analysis file itself).
             </p>
             <div class="overflow-x-auto">
@@ -394,13 +394,13 @@ async function deriveParameters() {
                 </thead>
                 <tbody class="font-mono">
                   <tr v-if="!analysis.derived_parameters.length">
-                    <td colspan="3" class="text-slate-400">
+                    <td colspan="3" class="text-aots-muted">
                       Not calculated yet
                       <template v-if="analysis.can_edit"> — use the button above</template>
                     </td>
                   </tr>
                   <tr v-for="param in analysis.derived_parameters" :key="param.pk">
-                    <th class="font-normal text-slate-200">
+                    <th class="font-normal text-aots">
                       {{ param.cname }} ({{ param.unit }})
                     </th>
                     <td>{{ param.rvalue }}</td>
@@ -422,7 +422,7 @@ async function deriveParameters() {
             >
               <Pencil class="w-4 h-4" />
             </AppButton>
-            <div class="text-sm text-slate-200 whitespace-pre-wrap pr-8">
+            <div class="text-sm text-aots whitespace-pre-wrap pr-8">
               {{ analysis.note || '—' }}
             </div>
           </section>
@@ -481,7 +481,7 @@ async function deriveParameters() {
     <dialog
       v-if="noteEdit"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="noteEdit = false"
     >
       <div class="aots-panel w-full max-w-lg">
@@ -497,17 +497,17 @@ async function deriveParameters() {
     <dialog
       v-if="detailsEdit"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="detailsEdit = false"
     >
       <div class="aots-panel w-full max-w-lg space-y-4">
         <h3 class="font-medium">Edit analysis</h3>
         <label class="block space-y-1">
-          <span class="text-sm text-slate-300">Name</span>
+          <span class="text-sm text-aots-muted">Name</span>
           <textarea v-model="nameText" rows="2" class="aots-field w-full font-mono text-sm" />
         </label>
         <label class="block space-y-1">
-          <span class="text-sm text-slate-300">Category</span>
+          <span class="text-sm text-aots-muted">Category</span>
           <select v-model="categoryValue" class="aots-select w-full">
             <option
               v-for="option in categoryOptions?.results ?? []"
@@ -519,7 +519,7 @@ async function deriveParameters() {
           </select>
         </label>
         <label class="flex items-center gap-2 text-sm cursor-pointer">
-          <input v-model="fitValue" type="checkbox" class="accent-sky-400" />
+          <input v-model="fitValue" type="checkbox" class="accent-aots" />
           <span>Fit (analysis contains fit results)</span>
         </label>
         <div class="flex gap-2">

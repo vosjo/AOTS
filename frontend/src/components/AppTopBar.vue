@@ -5,8 +5,10 @@ import {
   FlaskConical,
   LayoutDashboard,
   Menu,
+  Moon,
   Shield,
   Star,
+  Sun,
   Telescope,
   User,
   type LucideIcon,
@@ -17,10 +19,12 @@ import AppButton from '@/components/AppButton.vue'
 import { useClassicToggle } from '@/composables/useClassicToggle'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
+import { useThemeStore } from '@/stores/theme'
 
 const route = useRoute()
 const auth = useAuthStore()
 const projectStore = useProjectStore()
+const theme = useThemeStore()
 const { toClassic } = useClassicToggle()
 const mobileOpen = ref(false)
 
@@ -53,9 +57,9 @@ async function logout() {
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 border-b border-slate-600 bg-slate-900/95 backdrop-blur">
+  <header class="aots-topbar">
     <div class="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-4">
-      <RouterLink to="/w/projects/" class="shrink-0 font-semibold text-sky-300 hover:text-sky-200">
+      <RouterLink to="/w/projects/" class="shrink-0 font-semibold text-aots-brand hover:text-aots-link-hover">
         AOTS
       </RouterLink>
 
@@ -74,8 +78,8 @@ async function logout() {
           v-for="item in nav"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700 hover:text-white"
-          :class="{ 'bg-slate-700 text-white ring-1 ring-slate-500': navActive(item) }"
+          class="aots-topbar-nav-link"
+          :class="{ 'aots-topbar-nav-link--active': navActive(item) }"
           :title="item.label"
         >
           <component :is="item.icon" class="h-4 w-4" />
@@ -84,6 +88,16 @@ async function logout() {
       </nav>
 
       <div class="ml-auto flex items-center gap-2">
+        <AppButton
+          variant="icon"
+          size="sm"
+          class="!p-2"
+          :title="theme.mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+          @click="theme.toggle()"
+        >
+          <Sun v-if="theme.mode === 'dark'" class="h-5 w-5" />
+          <Moon v-else class="h-5 w-5" />
+        </AppButton>
         <AppButton
           v-if="auth.isSuperuser"
           variant="ghost"
@@ -114,18 +128,22 @@ async function logout() {
         >
           Logout
         </AppButton>
-        <button type="button" class="rounded-md p-2 text-slate-200 hover:bg-slate-700 lg:hidden" @click="mobileOpen = !mobileOpen">
+        <button
+          type="button"
+          class="aots-btn-icon !p-2 lg:hidden"
+          @click="mobileOpen = !mobileOpen"
+        >
           <Menu class="h-5 w-5" />
         </button>
       </div>
     </div>
 
-    <nav v-if="mobileOpen && inProject" class="space-y-1 border-t border-slate-600 px-4 py-2 lg:hidden">
+    <nav v-if="mobileOpen && inProject" class="space-y-1 border-t border-aots px-4 py-2 lg:hidden">
       <RouterLink
         v-for="item in nav"
         :key="item.to"
         :to="item.to"
-        class="flex items-center gap-2 rounded-md px-2 py-2 text-sm font-medium text-slate-100 hover:bg-slate-700"
+        class="aots-topbar-nav-link text-sm"
         @click="mobileOpen = false"
       >
         <component :is="item.icon" class="h-4 w-4" />

@@ -479,7 +479,7 @@ async function addSystem() {
     </template>
 
     <template #cell-analyses="{ row }">
-      <span v-if="!row.analyses?.length" class="text-slate-500">—</span>
+      <span v-if="!row.analyses?.length" class="text-aots-faint-extra">—</span>
       <RouterLink
         v-for="(item, index) in row.analyses"
         :key="`${row.pk}-${index}-${item.href}`"
@@ -493,7 +493,7 @@ async function addSystem() {
     </template>
 
     <template #cell-tags="{ row }">
-      <span v-if="!row.tags?.length" class="text-slate-500">—</span>
+      <span v-if="!row.tags?.length" class="text-aots-faint-extra">—</span>
       <span
         v-for="tag in row.tags"
         :key="tag.pk"
@@ -514,7 +514,7 @@ async function addSystem() {
           class="inline-block w-2 h-2 rounded-full shrink-0"
           :class="statusDot(row.observing_status)"
         />
-        <span class="text-xs text-slate-300">{{ row.observing_status_display }}</span>
+        <span class="text-xs text-aots-muted">{{ row.observing_status_display }}</span>
       </span>
     </template>
   </DataTablePage>
@@ -553,7 +553,7 @@ async function addSystem() {
     </div>
 
     <div class="space-y-1">
-      <p class="text-xs text-slate-400">Type</p>
+      <p class="text-xs text-aots-muted">Type</p>
       <label
         v-for="opt in TYPE_OPTIONS"
         :key="opt.value"
@@ -569,7 +569,7 @@ async function addSystem() {
     </div>
 
     <div class="space-y-1">
-      <p class="text-xs text-slate-400">Status</p>
+      <p class="text-xs text-aots-muted">Status</p>
       <label
         v-for="opt in STATUS_OPTIONS"
         :key="opt.value"
@@ -585,7 +585,7 @@ async function addSystem() {
     </div>
 
     <div v-if="allTags?.results?.length" class="space-y-1">
-      <p class="text-xs text-slate-400">Tags</p>
+      <p class="text-xs text-aots-muted">Tags</p>
       <label
         v-for="tag in allTags.results"
         :key="tag.pk"
@@ -604,7 +604,7 @@ async function addSystem() {
   <dialog
     v-if="tagDialog"
     open
-    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
     @click.self="tagDialog = false"
   >
     <div class="aots-panel w-full max-w-sm">
@@ -628,7 +628,7 @@ async function addSystem() {
   <dialog
     v-if="statusDialog"
     open
-    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
     @click.self="statusDialog = false"
   >
     <div class="aots-panel w-full max-w-xs">
@@ -652,7 +652,7 @@ async function addSystem() {
   <dialog
     v-if="addDialog"
     open
-    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
     @click.self="addDialog = false"
   >
     <div class="aots-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6">
@@ -662,7 +662,7 @@ async function addSystem() {
       </div>
 
       <section class="space-y-3">
-        <h4 class="text-sm font-medium text-slate-300">Bulk upload (.csv)</h4>
+        <h4 class="text-sm font-medium text-aots-muted">Bulk upload (.csv)</h4>
         <input type="file" accept=".csv" class="aots-field w-full" @change="(e) => csvFile = (e.target as HTMLInputElement).files" />
         <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
           <AppButton
@@ -684,8 +684,8 @@ async function addSystem() {
         </div>
       </section>
 
-      <section class="space-y-3 border-t border-slate-600 pt-4">
-        <h4 class="text-sm font-medium text-slate-300">Single system</h4>
+      <section class="space-y-3 border-t border-aots pt-4">
+        <h4 class="text-sm font-medium text-aots-muted">Single system</h4>
         <label class="flex items-center gap-2">
           <input v-model="addForm.get_simbad" type="checkbox" />
           <span>Use Simbad (coordinates and spectral classification are filled automatically)</span>
@@ -721,17 +721,17 @@ async function addSystem() {
           </AppAlert>
           <ul
             v-if="addForm.get_simbad && simbadAmbiguous.length"
-            class="sm:col-span-2 space-y-1 max-h-40 overflow-y-auto rounded border border-slate-600 p-2 text-sm"
+            class="sm:col-span-2 space-y-1 max-h-40 overflow-y-auto rounded border border-aots p-2 text-sm"
           >
             <li v-for="match in simbadAmbiguous" :key="match.main_id">
               <button
                 type="button"
-                class="w-full text-left rounded px-2 py-1 hover:bg-slate-700/60"
+                class="w-full text-left rounded px-2 py-1 hover:bg-aots-surface-muted/60"
                 @click="selectSimbadMatch(match)"
               >
                 <span class="font-medium">{{ match.main_id }}</span>
-                <span class="text-slate-400 ml-2">{{ match.ra }}, {{ match.dec }}</span>
-                <span v-if="match.classification" class="text-slate-400 ml-2">{{ match.classification }}</span>
+                <span class="text-aots-muted ml-2">{{ match.ra }}, {{ match.dec }}</span>
+                <span v-if="match.classification" class="text-aots-muted ml-2">{{ match.classification }}</span>
               </button>
             </li>
           </ul>

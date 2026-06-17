@@ -16,6 +16,6 @@ const { data } = useQuery({
 <template>
   <div v-if="data" class="space-y-4">
     <h1 class="text-2xl font-semibold">{{ data.username }}</h1>
-    <p class="text-slate-300 whitespace-pre-wrap">{{ data.note || 'No profile note.' }}</p>
+    <p class="text-aots-muted whitespace-pre-wrap">{{ data.note || 'No profile note.' }}</p>
   </div>
 </template>

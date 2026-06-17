@@ -112,7 +112,7 @@ onMounted(async () => {
 <template>
   <div class="mx-auto max-w-6xl space-y-6">
     <h2 class="text-xl font-semibold">{{ isNew ? 'Add group' : `Edit group: ${name}` }}</h2>
-    <p v-if="loading" class="text-slate-300">Loading…</p>
+    <p v-if="loading" class="text-aots-muted">Loading…</p>
 
     <form class="space-y-6" @submit.prevent="save">
       <section class="aots-panel space-y-3">
@@ -120,8 +120,8 @@ onMounted(async () => {
       </section>
 
       <section class="aots-panel space-y-3">
-        <h3 class="font-medium text-slate-50">Permissions</h3>
-        <p v-if="permissionsLoading" class="text-sm text-slate-300">Loading permissions…</p>
+        <h3 class="font-medium text-aots-heading">Permissions</h3>
+        <p v-if="permissionsLoading" class="text-sm text-aots-muted">Loading permissions…</p>
         <PermissionDualList
           v-else
           v-model="selectedPermissions"

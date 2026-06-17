@@ -65,7 +65,7 @@ onUnmounted(() => {
   <div class="aladin-map" :class="{ 'aladin-map--compact': compact }">
     <div
       ref="el"
-      class="aladin-map__viewport w-full rounded-lg border border-slate-500 overflow-hidden relative"
+      class="aladin-map__viewport w-full rounded-lg border border-aots overflow-hidden relative"
       :class="compact ? 'h-44' : 'h-80'"
     />
     <AppAlert v-if="error" kind="error" class="mt-2">{{ error }}</AppAlert>

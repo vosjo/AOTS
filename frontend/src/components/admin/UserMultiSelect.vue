@@ -51,24 +51,24 @@ const choiceRows = computed(() => choicesQuery.data.value?.results ?? [])
 
 <template>
   <div class="space-y-2">
-    <label class="block text-sm font-medium text-slate-200">{{ label }}</label>
+    <label class="block text-sm font-medium text-aots">{{ label }}</label>
     <input v-model="search" class="aots-field" placeholder="Search users…" />
-    <div class="max-h-40 overflow-y-auto rounded-md border border-slate-600 bg-slate-900 p-2">
+    <div class="max-h-40 overflow-y-auto rounded-md border border-aots bg-aots-page p-2">
       <label
         v-for="user in choiceRows"
         :key="user.id"
-        class="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-slate-800"
+        class="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-aots-surface"
       >
         <input
           type="checkbox"
-          class="accent-sky-400"
+          class="accent-aots"
           :checked="selectedUsers.has(user.id)"
           @change="toggleUser(user.id)"
         />
         <span>{{ user.username }}</span>
       </label>
-      <p v-if="!choiceRows.length" class="px-2 py-1 text-sm text-slate-400">No users found.</p>
+      <p v-if="!choiceRows.length" class="px-2 py-1 text-sm text-aots-muted">No users found.</p>
     </div>
-    <p class="text-xs text-slate-400">{{ modelValue.length }} selected</p>
+    <p class="text-xs text-aots-muted">{{ modelValue.length }} selected</p>
   </div>
 </template>

@@ -126,11 +126,11 @@ onMounted(loadUser)
 <template>
   <div class="mx-auto max-w-2xl space-y-6">
     <h2 class="text-xl font-semibold">{{ isNew ? 'Add user' : `Edit user: ${username}` }}</h2>
-    <p v-if="loading" class="text-slate-300">Loading…</p>
+    <p v-if="loading" class="text-aots-muted">Loading…</p>
 
     <form class="space-y-6" @submit.prevent="save">
       <section class="aots-panel space-y-3">
-        <h3 class="font-medium text-slate-50">Credentials</h3>
+        <h3 class="font-medium text-aots-heading">Credentials</h3>
         <input v-model="username" class="aots-field" placeholder="Username" required />
         <input v-model="email" class="aots-field" type="email" placeholder="Email" />
         <input
@@ -143,28 +143,28 @@ onMounted(loadUser)
       </section>
 
       <section class="aots-panel space-y-3">
-        <h3 class="font-medium text-slate-50">Extra info</h3>
+        <h3 class="font-medium text-aots-heading">Extra info</h3>
         <input v-model="firstName" class="aots-field" placeholder="First name" />
         <input v-model="lastName" class="aots-field" placeholder="Last name" />
         <textarea v-model="note" class="aots-field min-h-24" placeholder="Note" />
       </section>
 
       <section class="aots-panel space-y-2">
-        <h3 class="font-medium text-slate-50">Permissions</h3>
+        <h3 class="font-medium text-aots-heading">Permissions</h3>
         <label class="flex items-center gap-2 text-sm">
-          <input v-model="isSuperuser" type="checkbox" class="accent-sky-400" />
+          <input v-model="isSuperuser" type="checkbox" class="accent-aots" />
           Superuser
         </label>
         <label class="flex items-center gap-2 text-sm">
-          <input v-model="isStaff" type="checkbox" class="accent-sky-400" />
+          <input v-model="isStaff" type="checkbox" class="accent-aots" />
           Staff (Django admin access)
         </label>
         <label class="flex items-center gap-2 text-sm">
-          <input v-model="isActive" type="checkbox" class="accent-sky-400" />
+          <input v-model="isActive" type="checkbox" class="accent-aots" />
           Active
         </label>
         <label class="flex items-center gap-2 text-sm">
-          <input v-model="isStudent" type="checkbox" class="accent-sky-400" />
+          <input v-model="isStudent" type="checkbox" class="accent-aots" />
           Student
         </label>
       </section>

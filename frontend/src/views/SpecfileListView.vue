@@ -124,7 +124,7 @@ function spectrumLabel(info: SpectrumInfo) {
         {{ starOf(row)!.name }}
       </AppButton>
       <span v-else-if="starOf(row)?.name">{{ starOf(row)!.name }}</span>
-      <span v-else class="text-slate-400">—</span>
+      <span v-else class="text-aots-muted">—</span>
     </template>
 
     <template #cell-spectrum_info="{ row }">
@@ -135,11 +135,11 @@ function spectrumLabel(info: SpectrumInfo) {
       >
         {{ spectrumLabel(row.spectrum_info) }}
       </AppButton>
-      <span v-else class="text-slate-400">—</span>
+      <span v-else class="text-aots-muted">—</span>
     </template>
 
     <template #cell-spectrum="{ row }">
-      <span :class="isProcessed(row) ? 'text-slate-200' : 'text-slate-400'">
+      <span :class="isProcessed(row) ? 'text-aots' : 'text-aots-muted'">
         {{ isProcessed(row) ? 'Yes' : 'No' }}
       </span>
     </template>

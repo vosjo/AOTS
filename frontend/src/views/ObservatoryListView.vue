@@ -212,7 +212,7 @@ async function deleteObservatory(row: ObservatoryRow) {
 
 <template>
   <div class="space-y-4">
-    <h1 class="text-2xl font-semibold text-slate-50">Observatories</h1>
+    <h1 class="text-2xl font-semibold text-aots-heading">Observatories</h1>
 
     <div class="grid min-w-0 items-start gap-6 lg:grid-cols-2">
       <div class="min-w-0">
@@ -260,7 +260,7 @@ async function deleteObservatory(row: ObservatoryRow) {
     </template>
 
     <template #cell-note="{ row }">
-      <span class="text-slate-300 line-clamp-2">{{ row.note || '—' }}</span>
+      <span class="text-aots-muted line-clamp-2">{{ row.note || '—' }}</span>
     </template>
 
     <template v-if="auth.isAuthenticated" #cell-actions="{ row }">
@@ -285,7 +285,7 @@ async function deleteObservatory(row: ObservatoryRow) {
       </div>
 
       <section class="aots-panel min-w-0 self-start lg:sticky lg:top-20">
-        <h2 class="mb-3 font-medium text-slate-50">Ground observatories</h2>
+        <h2 class="mb-3 font-medium text-aots-heading">Ground observatories</h2>
         <ObservatoryWorldMap :observatories="groundObservatories" />
       </section>
     </div>
@@ -294,7 +294,7 @@ async function deleteObservatory(row: ObservatoryRow) {
   <dialog
     v-if="dialogOpen"
     open
-    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
     @click.self="closeDialog"
   >
     <div class="aots-panel w-full max-w-lg max-h-[90vh] overflow-y-auto">

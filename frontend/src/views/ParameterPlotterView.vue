@@ -71,7 +71,7 @@ function updateFigure() {
 
     <div class="grid min-w-0 items-start gap-6 lg:grid-cols-3">
       <section v-if="data?.form" class="aots-panel min-w-0 space-y-3">
-        <h2 class="font-medium text-slate-50">Plot setup</h2>
+        <h2 class="font-medium text-aots-heading">Plot setup</h2>
         <label v-for="field in data.form.fields" :key="field" class="block text-sm">
           <span class="aots-label">{{ data.form.labels[field] ?? field }}</span>
           <select
@@ -87,11 +87,11 @@ function updateFigure() {
             </option>
           </select>
         </label>
-        <label class="flex items-center gap-2 text-sm text-slate-200">
+        <label class="flex items-center gap-2 text-sm text-aots">
           <input
             v-model="showRegression"
             type="checkbox"
-            class="size-4 rounded border-slate-500 bg-slate-700 text-sky-500 focus:ring-sky-400/40"
+            class="size-4 rounded border-aots bg-aots-surface-muted accent-aots ring-aots focus:ring-2"
           />
           <span>Show regression line &amp; confidence band</span>
         </label>
@@ -102,13 +102,13 @@ function updateFigure() {
         >
           Update Figure
         </AppButton>
-        <div v-if="data.statistics" class="mt-4 text-sm text-slate-200">
-          <h3 class="font-medium text-slate-50">Statistics</h3>
+        <div v-if="data.statistics" class="mt-4 text-sm text-aots">
+          <h3 class="font-medium text-aots-heading">Statistics</h3>
           <pre class="whitespace-pre-wrap">{{ data.statistics }}</pre>
         </div>
       </section>
       <section class="aots-panel min-w-0 lg:col-span-2">
-        <div v-if="isFetching && !data?.plot" class="text-slate-300">Loading plot…</div>
+        <div v-if="isFetching && !data?.plot" class="text-aots-muted">Loading plot…</div>
         <BokehPlot v-else-if="data?.plot" :script="data.plot.script" :div="data.plot.div" />
       </section>
     </div>

@@ -1,61 +1,386 @@
 @import "tailwindcss";
 
-@layer base {
-  html {
-    color-scheme: dark;
-  }
+/* ── Theme tokens (dark = default SPA; light ≈ classic Django UI) ───────── */
 
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --aots-page-bg: #0f172a;
+  --aots-surface: rgb(30 41 59 / 0.9);
+  --aots-surface-solid: #1e293b;
+  --aots-surface-elevated: #0f172a;
+  --aots-surface-muted: #334155;
+  --aots-surface-input: #334155;
+  --aots-surface-hover: rgb(51 65 85 / 0.6);
+  --aots-surface-row-hover: rgb(51 65 85 / 0.55);
+
+  --aots-border: #64748b;
+  --aots-border-subtle: #475569;
+
+  --aots-text: #f1f5f9;
+  --aots-text-strong: #f8fafc;
+  --aots-text-muted: #94a3b8;
+  --aots-text-faint: #cbd5e1;
+
+  --aots-link: #38bdf8;
+  --aots-link-hover: #7dd3fc;
+  --aots-brand: #7dd3fc;
+
+  --aots-header-bg: rgb(15 23 42 / 0.95);
+  --aots-nav-text: #e2e8f0;
+  --aots-nav-hover-bg: #334155;
+  --aots-nav-active-bg: #334155;
+  --aots-nav-active-ring: #64748b;
+
+  --aots-overlay: rgb(0 0 0 / 0.4);
+  --aots-overlay-strong: rgb(0 0 0 / 0.8);
+  --aots-dialog-bg: #0f172a;
+  --aots-accent: #38bdf8;
+  --aots-highlight-bg: rgb(14 165 233 / 0.25);
+  --aots-card-hover-border: #38bdf8;
+
+  --aots-btn-secondary-bg: #475569;
+  --aots-btn-secondary-border: #94a3b8;
+  --aots-btn-secondary-text: #f8fafc;
+  --aots-btn-secondary-hover-bg: #64748b;
+  --aots-btn-secondary-hover-border: #cbd5e1;
+
+  --aots-btn-primary-bg: #0ea5e9;
+  --aots-btn-primary-border: #7dd3fc;
+  --aots-btn-primary-text: #020617;
+  --aots-btn-primary-hover-bg: #38bdf8;
+  --aots-btn-primary-hover-border: #bae6fd;
+
+  --aots-btn-ghost-text: #e2e8f0;
+  --aots-btn-ghost-hover-bg: rgb(51 65 85 / 0.6);
+  --aots-btn-ghost-danger-text: #f87171;
+  --aots-btn-ghost-danger-hover-bg: rgb(69 10 10 / 0.3);
+  --aots-btn-ghost-danger-hover-text: #fca5a5;
+
+  --aots-btn-icon-text: #cbd5e1;
+  --aots-btn-icon-hover-bg: rgb(51 65 85 / 0.6);
+  --aots-btn-icon-hover-text: #38bdf8;
+  --aots-btn-icon-danger-hover-text: #f87171;
+
+  --aots-table-bg: #1e293b;
+  --aots-table-head-bg: #475569;
+  --aots-table-head-text: #f8fafc;
+  --aots-table-border: #526880;
+  --aots-table-wrap-border: #64748b;
+  --aots-table-shadow: 0 1px 3px rgb(0 0 0 / 0.35), 0 0 0 1px rgb(0 0 0 / 0.15);
+
+  --aots-focus-ring: rgb(56 189 248 / 0.4);
+  --aots-focus-border: #38bdf8;
+
+  --aots-alert-success-border: rgb(16 185 129 / 0.4);
+  --aots-alert-success-bg: rgb(2 44 34 / 0.4);
+  --aots-alert-success-text: #d1fae5;
+  --aots-alert-success-icon: #34d399;
+
+  --aots-alert-warning-border: rgb(245 158 11 / 0.4);
+  --aots-alert-warning-bg: rgb(69 26 3 / 0.4);
+  --aots-alert-warning-text: #fef3c7;
+  --aots-alert-warning-icon: #fbbf24;
+
+  --aots-alert-error-border: rgb(239 68 68 / 0.4);
+  --aots-alert-error-bg: rgb(69 10 10 / 0.4);
+  --aots-alert-error-text: #fee2e2;
+  --aots-alert-error-icon: #f87171;
+
+  --aots-alert-info-border: rgb(100 116 139 / 0.4);
+  --aots-alert-info-bg: rgb(30 41 59 / 0.6);
+  --aots-alert-info-text: #e2e8f0;
+  --aots-alert-info-icon: #94a3b8;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --aots-page-bg: #eef2f6;
+  --aots-surface: #ffffff;
+  --aots-surface-solid: #ffffff;
+  --aots-surface-elevated: #f9fafb;
+  --aots-surface-muted: #f3f6f9;
+  --aots-surface-input: #ffffff;
+  --aots-surface-hover: #e8eef4;
+  --aots-surface-row-hover: #d8e8f4;
+
+  --aots-border: #c5d5dd;
+  --aots-border-subtle: #d8e0e8;
+
+  --aots-text: #333333;
+  --aots-text-strong: #222222;
+  --aots-text-muted: #666666;
+  --aots-text-faint: #888888;
+
+  --aots-link: #5b80b2;
+  --aots-link-hover: #4169a8;
+  --aots-brand: #5b80b2;
+
+  --aots-header-bg: rgba(64, 117, 144, 0.15);
+  --aots-nav-text: #444444;
+  --aots-nav-hover-bg: rgba(64, 117, 144, 0.12);
+  --aots-nav-active-bg: #e8eef4;
+  --aots-nav-active-ring: #b8c5d4;
+
+  --aots-overlay: rgb(0 0 0 / 0.25);
+  --aots-overlay-strong: rgb(0 0 0 / 0.55);
+  --aots-dialog-bg: #ffffff;
+  --aots-accent: #5b80b2;
+  --aots-highlight-bg: rgba(64, 117, 144, 0.2);
+  --aots-card-hover-border: #5b80b2;
+
+  --aots-btn-secondary-bg: #e9eef4;
+  --aots-btn-secondary-border: #b8c5d4;
+  --aots-btn-secondary-text: #333333;
+  --aots-btn-secondary-hover-bg: #dde6ef;
+  --aots-btn-secondary-hover-border: #a8b8c8;
+
+  --aots-btn-primary-bg: #5b80b2;
+  --aots-btn-primary-border: #4a6fa0;
+  --aots-btn-primary-text: #ffffff;
+  --aots-btn-primary-hover-bg: #4a6fa0;
+  --aots-btn-primary-hover-border: #3d5d8a;
+
+  --aots-btn-ghost-text: #444444;
+  --aots-btn-ghost-hover-bg: rgba(64, 117, 144, 0.1);
+  --aots-btn-ghost-danger-text: #b91c1c;
+  --aots-btn-ghost-danger-hover-bg: rgb(254 226 226 / 0.8);
+  --aots-btn-ghost-danger-hover-text: #991b1b;
+
+  --aots-btn-icon-text: #666666;
+  --aots-btn-icon-hover-bg: rgba(64, 117, 144, 0.12);
+  --aots-btn-icon-hover-text: #5b80b2;
+  --aots-btn-icon-danger-hover-text: #b91c1c;
+
+  --aots-table-bg: #ffffff;
+  --aots-table-head-bg: #d4dfe8;
+  --aots-table-head-text: #222222;
+  --aots-table-border: #b8c9d6;
+  --aots-table-wrap-border: #94a8b8;
+  --aots-table-shadow: 0 1px 4px rgb(0 0 0 / 0.1), 0 0 0 1px rgb(0 0 0 / 0.04);
+
+  --aots-focus-ring: rgb(91 128 178 / 0.35);
+  --aots-focus-border: #5b80b2;
+
+  --aots-alert-success-border: rgb(22 163 74 / 0.35);
+  --aots-alert-success-bg: rgb(220 252 231 / 0.9);
+  --aots-alert-success-text: #14532d;
+  --aots-alert-success-icon: #16a34a;
+
+  --aots-alert-warning-border: rgb(217 119 6 / 0.4);
+  --aots-alert-warning-bg: rgb(254 243 199 / 0.9);
+  --aots-alert-warning-text: #78350f;
+  --aots-alert-warning-icon: #d97706;
+
+  --aots-alert-error-border: rgb(220 38 38 / 0.35);
+  --aots-alert-error-bg: rgb(254 226 226 / 0.9);
+  --aots-alert-error-text: #7f1d1d;
+  --aots-alert-error-icon: #dc2626;
+
+  --aots-alert-info-border: rgb(197 213 221 / 0.9);
+  --aots-alert-info-bg: rgb(237 245 251 / 0.95);
+  --aots-alert-info-text: #334155;
+  --aots-alert-info-icon: #64748b;
+}
+
+@layer base {
   body {
     margin: 0;
     min-height: 100vh;
     font-family: system-ui, -apple-system, sans-serif;
-    background-color: #0f172a;
-    color: #f1f5f9;
+    background-color: var(--aots-page-bg);
+    color: var(--aots-text);
   }
 
-  /* Fallback for controls without explicit component classes */
   select,
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
   textarea {
-    color: #f8fafc;
-    background-color: #334155;
-    border: 1px solid #94a3b8;
+    color: var(--aots-text-strong);
+    background-color: var(--aots-surface-input);
+    border: 1px solid var(--aots-border);
   }
 
   select option {
-    background-color: #334155;
-    color: #f8fafc;
+    background-color: var(--aots-surface-solid);
+    color: var(--aots-text);
   }
 
   a {
-    color: #38bdf8;
+    color: var(--aots-link);
   }
 
   a:hover {
-    color: #7dd3fc;
+    color: var(--aots-link-hover);
+  }
+}
+
+@layer utilities {
+  .text-aots {
+    color: var(--aots-text);
+  }
+
+  .text-aots-strong {
+    color: var(--aots-text-strong);
+  }
+
+  .text-aots-muted {
+    color: var(--aots-text-muted);
+  }
+
+  .text-aots-faint {
+    color: var(--aots-text-faint);
+  }
+
+  .text-aots-heading {
+    color: var(--aots-text-strong);
+  }
+
+  .text-aots-link {
+    color: var(--aots-link);
+  }
+
+  .text-aots-brand {
+    color: var(--aots-brand);
+  }
+
+  .hover\:text-aots-link:hover {
+    color: var(--aots-link-hover);
+  }
+
+  .hover\:text-aots-link-hover:hover {
+    color: var(--aots-link-hover);
+  }
+
+  .bg-aots-page {
+    background-color: var(--aots-page-bg);
+  }
+
+  .bg-aots-surface {
+    background-color: var(--aots-surface);
+  }
+
+  .bg-aots-surface-solid {
+    background-color: var(--aots-surface-solid);
+  }
+
+  .bg-aots-surface-elevated {
+    background-color: var(--aots-surface-elevated);
+  }
+
+  .bg-aots-surface-muted {
+    background-color: var(--aots-surface-muted);
+  }
+
+  .bg-aots-header {
+    background-color: var(--aots-header-bg);
+  }
+
+  .bg-aots-dialog {
+    background-color: var(--aots-dialog-bg);
+  }
+
+  .bg-aots-overlay {
+    background-color: var(--aots-overlay);
+  }
+
+  .bg-aots-overlay-strong {
+    background-color: var(--aots-overlay-strong);
+  }
+
+  .accent-aots {
+    accent-color: var(--aots-accent);
+  }
+
+  .border-t-aots-accent {
+    border-top-color: var(--aots-accent);
+  }
+
+  .hover\:border-aots-card:hover {
+    border-color: var(--aots-card-hover-border);
+  }
+
+  .bg-aots-highlight {
+    background-color: var(--aots-highlight-bg);
+  }
+
+  .text-aots-faint-extra {
+    color: var(--aots-text-faint);
+  }
+
+  .border-aots {
+    border-color: var(--aots-border);
+  }
+
+  .border-aots-subtle {
+    border-color: var(--aots-border-subtle);
+  }
+
+  .ring-aots {
+    --tw-ring-color: var(--aots-nav-active-ring);
+  }
+
+  .hover\:bg-aots-nav:hover {
+    background-color: var(--aots-nav-hover-bg);
+  }
+
+  .bg-aots-nav-active {
+    background-color: var(--aots-nav-active-bg);
   }
 }
 
 @layer components {
   .aots-label {
-    @apply block text-sm font-medium text-slate-200 mb-1;
+    @apply block text-sm font-medium mb-1;
+    color: var(--aots-text);
   }
 
   .aots-field {
-    @apply w-full rounded-md border border-slate-400 bg-slate-700 px-3 py-2 text-sm text-slate-50 shadow-sm;
-    @apply placeholder:text-slate-400;
-    @apply focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40;
+    @apply w-full rounded-md px-3 py-2 text-sm shadow-sm;
+    color: var(--aots-text-strong);
+    background-color: var(--aots-surface-input);
+    border: 1px solid var(--aots-border);
+  }
+
+  .aots-field::placeholder {
+    color: var(--aots-text-muted);
+  }
+
+  .aots-field:focus {
+    border-color: var(--aots-focus-border);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--aots-focus-ring);
   }
 
   .aots-field-sm {
-    @apply w-full rounded-md border border-slate-400 bg-slate-700 px-3 py-1.5 text-sm text-slate-50 shadow-sm;
-    @apply placeholder:text-slate-400;
-    @apply focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40;
+    @apply w-full rounded-md px-3 py-1.5 text-sm shadow-sm;
+    color: var(--aots-text-strong);
+    background-color: var(--aots-surface-input);
+    border: 1px solid var(--aots-border);
+  }
+
+  .aots-field-sm::placeholder {
+    color: var(--aots-text-muted);
+  }
+
+  .aots-field-sm:focus {
+    border-color: var(--aots-focus-border);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--aots-focus-ring);
   }
 
   .aots-select {
-    @apply w-full cursor-pointer rounded-md border border-slate-400 bg-slate-700 px-3 py-2 text-sm text-slate-50 shadow-sm;
-    @apply focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/40;
+    @apply w-full cursor-pointer rounded-md px-3 py-2 text-sm shadow-sm;
+    color: var(--aots-text-strong);
+    background-color: var(--aots-surface-input);
+    border: 1px solid var(--aots-border);
+  }
+
+  .aots-select:focus {
+    border-color: var(--aots-focus-border);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--aots-focus-ring);
   }
 
   .aots-btn {
@@ -64,13 +389,29 @@
   }
 
   .aots-btn-secondary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-400 bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-50 transition-colors;
-    @apply hover:border-slate-300 hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    background-color: var(--aots-btn-secondary-bg);
+    border-color: var(--aots-btn-secondary-border);
+    color: var(--aots-btn-secondary-text);
+  }
+
+  .aots-btn-secondary:hover:not(:disabled) {
+    background-color: var(--aots-btn-secondary-hover-bg);
+    border-color: var(--aots-btn-secondary-hover-border);
   }
 
   .aots-btn-primary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-sky-300 bg-sky-500 px-3 py-1.5 text-sm font-medium text-slate-950 transition-colors;
-    @apply hover:border-sky-200 hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    background-color: var(--aots-btn-primary-bg);
+    border-color: var(--aots-btn-primary-border);
+    color: var(--aots-btn-primary-text);
+  }
+
+  .aots-btn-primary:hover:not(:disabled) {
+    background-color: var(--aots-btn-primary-hover-bg);
+    border-color: var(--aots-btn-primary-hover-border);
   }
 
   .aots-btn-danger {
@@ -78,14 +419,29 @@
     @apply hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
+  [data-theme="light"] .aots-btn-danger {
+    @apply border-red-500 bg-red-600 hover:bg-red-700;
+  }
+
   .aots-btn-ghost {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors;
-    @apply hover:bg-slate-700/60 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-3 py-1.5 text-sm font-medium transition-colors;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    color: var(--aots-btn-ghost-text);
+  }
+
+  .aots-btn-ghost:hover:not(:disabled) {
+    background-color: var(--aots-btn-ghost-hover-bg);
   }
 
   .aots-btn-ghost-danger {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-3 py-1.5 text-sm font-medium text-red-400 transition-colors;
-    @apply hover:bg-red-950/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-3 py-1.5 text-sm font-medium transition-colors;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    color: var(--aots-btn-ghost-danger-text);
+  }
+
+  .aots-btn-ghost-danger:hover:not(:disabled) {
+    background-color: var(--aots-btn-ghost-danger-hover-bg);
+    color: var(--aots-btn-ghost-danger-hover-text);
   }
 
   .aots-btn-sm {
@@ -93,29 +449,52 @@
   }
 
   .aots-btn-icon {
-    @apply inline-flex items-center justify-center rounded-md p-1.5 text-slate-300 transition-colors;
-    @apply hover:bg-slate-700/60 hover:text-sky-400 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-md p-1.5 transition-colors;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    color: var(--aots-btn-icon-text);
+  }
+
+  .aots-btn-icon:hover:not(:disabled) {
+    background-color: var(--aots-btn-icon-hover-bg);
+    color: var(--aots-btn-icon-hover-text);
   }
 
   .aots-btn-icon-danger {
-    @apply inline-flex items-center justify-center rounded-md p-1.5 text-slate-300 transition-colors;
-    @apply hover:bg-slate-700/60 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-md p-1.5 transition-colors;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    color: var(--aots-btn-icon-text);
+  }
+
+  .aots-btn-icon-danger:hover:not(:disabled) {
+    background-color: var(--aots-btn-icon-hover-bg);
+    color: var(--aots-btn-icon-danger-hover-text);
   }
 
   .aots-btn-link {
-    @apply inline-flex items-center gap-1 text-sm text-sky-400 transition-colors hover:text-sky-300;
+    @apply inline-flex items-center gap-1 text-sm transition-colors;
+    color: var(--aots-link);
+  }
+
+  .aots-btn-link:hover {
+    color: var(--aots-link-hover);
   }
 
   .aots-panel {
-    @apply rounded-lg border border-slate-500 bg-slate-800/90 p-4 shadow-sm;
+    @apply rounded-lg border p-4 shadow-sm;
+    border-color: var(--aots-border);
+    background-color: var(--aots-surface);
   }
 
   .aots-panel-compact {
-    @apply rounded-lg border border-slate-500 bg-slate-800/90 p-3 shadow-sm;
+    @apply rounded-lg border p-3 shadow-sm;
+    border-color: var(--aots-border);
+    background-color: var(--aots-surface);
   }
 
   .aots-detail-header {
-    @apply relative flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg border border-slate-500 bg-slate-800/90 px-4 py-2;
+    @apply relative flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg border px-4 py-2;
+    border-color: var(--aots-border);
+    background-color: var(--aots-surface);
   }
 
   .aots-kv-table {
@@ -123,11 +502,13 @@
   }
 
   .aots-kv-table th {
-    @apply py-0.5 pr-3 text-left align-top font-normal whitespace-nowrap text-slate-400;
+    @apply py-0.5 pr-3 text-left align-top font-normal whitespace-nowrap;
+    color: var(--aots-text-muted);
   }
 
   .aots-kv-table td {
-    @apply py-0.5 font-mono text-slate-100;
+    @apply py-0.5 font-mono;
+    color: var(--aots-text-strong);
   }
 
   .bokeh-plot-host {
@@ -150,11 +531,14 @@
 
   .aots-param-table th,
   .aots-param-table td {
-    @apply px-2 py-1 text-left align-top border-b border-slate-700;
+    @apply px-2 py-1 text-left align-top;
+    border-bottom: 1px solid var(--aots-table-border);
   }
 
   .aots-param-table thead th {
-    @apply font-medium text-slate-300 bg-slate-900/50;
+    @apply font-medium;
+    color: var(--aots-table-head-text);
+    background-color: var(--aots-table-head-bg);
   }
 
   .aots-obs-table {
@@ -163,23 +547,32 @@
 
   .aots-obs-table th,
   .aots-obs-table td {
-    @apply px-2 py-1 text-left whitespace-nowrap border-b border-slate-700;
+    @apply px-2 py-1 text-left whitespace-nowrap;
+    border-bottom: 1px solid var(--aots-table-border);
   }
 
   .aots-obs-table thead th {
-    @apply font-medium text-slate-300 bg-slate-900/50;
+    @apply font-medium;
+    color: var(--aots-table-head-text);
+    background-color: var(--aots-table-head-bg);
   }
 
   .aots-table-wrap {
-    @apply overflow-x-auto rounded-lg border border-slate-500;
+    @apply overflow-x-auto rounded-lg border;
+    border-color: var(--aots-table-wrap-border);
+    background-color: var(--aots-table-bg);
+    box-shadow: var(--aots-table-shadow);
   }
 
   .aots-table {
-    @apply min-w-full text-sm text-slate-100;
+    @apply min-w-full text-sm;
+    color: var(--aots-text);
+    background-color: var(--aots-table-bg);
   }
 
   .aots-table thead {
-    @apply bg-slate-700 text-slate-100;
+    background-color: var(--aots-table-head-bg);
+    color: var(--aots-table-head-text);
   }
 
   .aots-table th {
@@ -191,7 +584,99 @@
   }
 
   .aots-table tbody tr {
-    @apply border-t border-slate-600 hover:bg-slate-700/40;
+    border-top: 1px solid var(--aots-table-border);
+  }
+
+  .aots-table tbody tr:hover {
+    background-color: var(--aots-surface-row-hover);
+  }
+
+  .aots-section-nav {
+    @apply flex flex-wrap gap-1 border-b;
+    border-color: var(--aots-border);
+  }
+
+  .aots-section-tab {
+    @apply rounded-t-md px-4 py-2 text-sm font-medium transition-colors;
+    color: var(--aots-text-muted);
+  }
+
+  .aots-section-tab:hover {
+    background-color: var(--aots-nav-hover-bg);
+    color: var(--aots-text);
+  }
+
+  .aots-section-tab--active {
+    border: 1px solid var(--aots-border);
+    border-bottom-color: transparent;
+    background-color: var(--aots-surface-solid);
+    color: var(--aots-text-strong);
+  }
+
+  .aots-topbar {
+    @apply sticky top-0 z-50 border-b backdrop-blur;
+    border-color: var(--aots-border);
+    background-color: var(--aots-header-bg);
+  }
+
+  .aots-topbar-nav-link {
+    @apply flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors;
+    color: var(--aots-nav-text);
+  }
+
+  .aots-topbar-nav-link:hover {
+    background-color: var(--aots-nav-hover-bg);
+    color: var(--aots-text-strong);
+  }
+
+  .aots-topbar-nav-link--active {
+    background-color: var(--aots-nav-active-bg);
+    color: var(--aots-text-strong);
+    box-shadow: 0 0 0 1px var(--aots-nav-active-ring);
+  }
+
+  .aots-alert {
+    @apply rounded-md border px-3 py-2 text-sm;
+  }
+
+  .aots-alert-success {
+    border-color: var(--aots-alert-success-border);
+    background-color: var(--aots-alert-success-bg);
+    color: var(--aots-alert-success-text);
+  }
+
+  .aots-alert-success-icon {
+    color: var(--aots-alert-success-icon);
+  }
+
+  .aots-alert-warning {
+    border-color: var(--aots-alert-warning-border);
+    background-color: var(--aots-alert-warning-bg);
+    color: var(--aots-alert-warning-text);
+  }
+
+  .aots-alert-warning-icon {
+    color: var(--aots-alert-warning-icon);
+  }
+
+  .aots-alert-error {
+    border-color: var(--aots-alert-error-border);
+    background-color: var(--aots-alert-error-bg);
+    color: var(--aots-alert-error-text);
+  }
+
+  .aots-alert-error-icon {
+    color: var(--aots-alert-error-icon);
+  }
+
+  .aots-alert-info {
+    border-color: var(--aots-alert-info-border);
+    background-color: var(--aots-alert-info-bg);
+    color: var(--aots-alert-info-text);
+  }
+
+  .aots-alert-info-icon {
+    color: var(--aots-alert-info-icon);
   }
 
   .classification-SP {
@@ -199,7 +684,7 @@
   }
 
   .classification-PH {
-    color: #94a3b8;
+    color: var(--aots-text-muted);
   }
 
   .aots-tag-chip {

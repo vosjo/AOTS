@@ -391,7 +391,7 @@ async function updateLinkage() {
             <span v-if="index < systemsOf(row).length - 1">, </span>
           </template>
         </template>
-        <span v-else class="text-slate-400">—</span>
+        <span v-else class="text-aots-muted">—</span>
       </template>
     </DataTablePage>
   </div>
@@ -420,7 +420,7 @@ async function updateLinkage() {
   <dialog
     v-if="uploadOpen"
     open
-    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
     @click.self="uploadOpen = false"
   >
     <div class="aots-panel w-full max-w-3xl max-h-[90vh] overflow-y-auto space-y-4">
@@ -430,9 +430,9 @@ async function updateLinkage() {
       </div>
 
       <template v-if="uploadMode === 'choose'">
-        <section class="space-y-3 rounded border border-slate-600 p-4">
+        <section class="space-y-3 rounded border border-aots p-4">
           <h4 class="font-medium text-sm">Coherent dataset upload</h4>
-          <p class="text-sm text-slate-400">
+          <p class="text-sm text-aots-muted">
             Upload coherent datasets such as an observation night with multiple targets and
             calibration data. Calibration files are associated with all observed objects.
           </p>
@@ -440,9 +440,9 @@ async function updateLinkage() {
             Automatically upload coherent data sets
           </AppButton>
         </section>
-        <section class="space-y-3 rounded border border-slate-600 p-4">
+        <section class="space-y-3 rounded border border-aots p-4">
           <h4 class="font-medium text-sm">Individual data upload</h4>
-          <p class="text-sm text-slate-400">
+          <p class="text-sm text-aots-muted">
             Upload individual raw files or bulk data with manual association to systems and/or
             reduced spectra.
           </p>
@@ -456,7 +456,7 @@ async function updateLinkage() {
         <AppButton variant="ghost" size="sm" @click="uploadMode = 'choose'">← Back</AppButton>
 
         <fieldset v-if="uploadMode === 'manual'" class="space-y-4">
-          <legend class="text-sm font-medium text-slate-300 mb-2">Filter systems and spectra</legend>
+          <legend class="text-sm font-medium text-aots-muted mb-2">Filter systems and spectra</legend>
           <div class="grid sm:grid-cols-2 gap-3">
             <label class="block">
               <span class="aots-label">System name (main id)</span>
@@ -470,13 +470,13 @@ async function updateLinkage() {
         </fieldset>
 
         <fieldset v-if="uploadMode === 'manual'" class="space-y-3">
-          <legend class="text-sm font-medium text-slate-300 mb-2">
+          <legend class="text-sm font-medium text-aots-muted mb-2">
             Allocate raw data to system(s) or reduced spectra
           </legend>
           <div class="grid sm:grid-cols-2 gap-4">
             <div>
               <p class="aots-label mb-1">Systems</p>
-              <div class="max-h-40 overflow-y-auto rounded border border-slate-600 p-2 space-y-1">
+              <div class="max-h-40 overflow-y-auto rounded border border-aots p-2 space-y-1">
                 <label
                   v-for="star in filteredStars"
                   :key="star.pk"
@@ -493,7 +493,7 @@ async function updateLinkage() {
             </div>
             <div>
               <p class="aots-label mb-1">Reduced spectra (obs. date — instrument)</p>
-              <div class="max-h-40 overflow-y-auto rounded border border-slate-600 p-2 space-y-1">
+              <div class="max-h-40 overflow-y-auto rounded border border-aots p-2 space-y-1">
                 <label
                   v-for="spf in filteredSpecfiles"
                   :key="spf.pk"
@@ -512,7 +512,7 @@ async function updateLinkage() {
         </fieldset>
 
         <fieldset class="space-y-2">
-          <legend class="text-sm font-medium text-slate-300 mb-2">Select raw data</legend>
+          <legend class="text-sm font-medium text-aots-muted mb-2">Select raw data</legend>
           <input type="file" multiple class="aots-field w-full" @change="(e) => uploadFiles = (e.target as HTMLInputElement).files" />
         </fieldset>
 
@@ -540,7 +540,7 @@ async function updateLinkage() {
   <dialog
     v-if="linkageOpen"
     open
-    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
     @click.self="linkageOpen = false"
   >
     <div class="aots-panel w-full max-w-3xl max-h-[90vh] overflow-y-auto space-y-4">
@@ -550,7 +550,7 @@ async function updateLinkage() {
       </div>
 
       <fieldset class="space-y-4">
-        <legend class="text-sm font-medium text-slate-300 mb-2">Filter systems and spectra</legend>
+        <legend class="text-sm font-medium text-aots-muted mb-2">Filter systems and spectra</legend>
         <div class="grid sm:grid-cols-2 gap-3">
           <label class="block">
             <span class="aots-label">System name (main id)</span>
@@ -564,13 +564,13 @@ async function updateLinkage() {
       </fieldset>
 
       <fieldset class="space-y-3">
-        <legend class="text-sm font-medium text-slate-300 mb-2">
+        <legend class="text-sm font-medium text-aots-muted mb-2">
           Select system(s) or reduced spectra for {{ selectedIds.length }} file(s)
         </legend>
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
             <p class="aots-label mb-1">Systems</p>
-            <div class="max-h-48 overflow-y-auto rounded border border-slate-600 p-2 space-y-1">
+            <div class="max-h-48 overflow-y-auto rounded border border-aots p-2 space-y-1">
               <label
                 v-for="star in filteredStars"
                 :key="star.pk"
@@ -587,7 +587,7 @@ async function updateLinkage() {
           </div>
           <div>
             <p class="aots-label mb-1">Reduced spectra</p>
-            <div class="max-h-48 overflow-y-auto rounded border border-slate-600 p-2 space-y-1">
+            <div class="max-h-48 overflow-y-auto rounded border border-aots p-2 space-y-1">
               <label
                 v-for="spf in filteredSpecfiles"
                 :key="spf.pk"

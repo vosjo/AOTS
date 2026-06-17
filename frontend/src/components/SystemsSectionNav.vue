@@ -27,19 +27,14 @@ const activeTab = computed(() => {
 
 <template>
   <header class="space-y-3">
-    <h1 class="text-2xl font-semibold text-slate-50">Systems</h1>
-    <nav
-      class="flex flex-wrap gap-1 border-b border-slate-600"
-      aria-label="Systems views"
-    >
+    <h1 class="text-2xl font-semibold text-aots-heading">Systems</h1>
+    <nav class="aots-section-nav" aria-label="Systems views">
       <RouterLink
         v-for="tab in tabs"
         :key="tab.id"
         :to="tab.to"
-        class="rounded-t-md px-4 py-2 text-sm font-medium transition-colors"
-        :class="activeTab === tab.id
-          ? 'border border-b-0 border-slate-600 bg-slate-800 text-slate-50'
-          : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'"
+        class="aots-section-tab"
+        :class="{ 'aots-section-tab--active': activeTab === tab.id }"
       >
         {{ tab.label }}
       </RouterLink>

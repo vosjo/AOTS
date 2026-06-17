@@ -33,7 +33,7 @@ const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.page
 <template>
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <h1 v-if="!hideTitle && title" class="text-2xl font-semibold text-slate-50">{{ title }}</h1>
+      <h1 v-if="!hideTitle && title" class="text-2xl font-semibold text-aots-heading">{{ title }}</h1>
       <div v-else-if="!hideTitle" class="flex-1" />
       <div class="flex flex-wrap gap-2" :class="{ 'ml-auto': hideTitle }">
         <slot name="actions" />
@@ -45,20 +45,20 @@ const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.page
         <thead>
           <tr>
             <th v-if="selectable" class="w-8">
-              <input type="checkbox" class="accent-sky-400" @change="emit('toggleAll')" />
+              <input type="checkbox" class="accent-aots" @change="emit('toggleAll')" />
             </th>
             <th v-for="col in columns" :key="col.id">{{ col.header }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="loading">
-            <td :colspan="colSpan" class="p-4 text-center text-slate-300">Loading…</td>
+            <td :colspan="colSpan" class="p-4 text-center text-aots-muted">Loading…</td>
           </tr>
           <tr v-for="row in rows" :key="row.pk">
             <td v-if="selectable">
               <input
                 type="checkbox"
-                class="accent-sky-400"
+                class="accent-aots"
                 :checked="selected.has(row.pk)"
                 @change="emit('toggleRow', row)"
               />
@@ -72,7 +72,7 @@ const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.page
         </tbody>
       </table>
     </div>
-    <div class="flex flex-wrap items-center gap-3 text-sm text-slate-200">
+    <div class="flex flex-wrap items-center gap-3 text-sm text-aots">
       <AppButton variant="secondary" :disabled="page <= 1" @click="emit('update:page', page - 1)">
         Prev
       </AppButton>

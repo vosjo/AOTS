@@ -210,13 +210,13 @@ function yesNo(value: boolean) {
         All spectra for <span class="whitespace-nowrap">{{ star.name }}</span>
       </h2>
       <div v-for="group in spectrum.related_spectra" :key="group.instrument" class="mb-3">
-        <h3 class="text-slate-400 font-medium mb-1">{{ group.instrument }}</h3>
+        <h3 class="text-aots-muted font-medium mb-1">{{ group.instrument }}</h3>
         <ul class="space-y-0.5">
           <li v-for="spec in group.spectra" :key="spec.pk">
             <RouterLink
               :to="`/w/${projectSlug}/observations/spectra/${spec.pk}/`"
-              class="block rounded px-1 py-0.5 hover:bg-slate-700/60"
-              :class="spec.is_current ? 'bg-sky-900/40 text-sky-300' : ''"
+              class="block rounded px-1 py-0.5 hover:bg-aots-surface-muted/60"
+              :class="spec.is_current ? 'bg-aots-highlight text-aots-brand' : ''"
             >
               {{ spec.hjd.toFixed(3) }} — {{ spec.hjd_date }}
             </RouterLink>
@@ -333,7 +333,7 @@ function yesNo(value: boolean) {
           <div class="min-h-[180px] w-full max-w-full min-w-0 overflow-hidden">
             <div
               v-if="visibilityLoading && !visibilityPlot?.visibility"
-              class="h-[180px] rounded bg-slate-700/40 animate-pulse"
+              class="h-[180px] rounded bg-aots-surface-muted/40 animate-pulse"
             />
             <BokehPlot
               v-else-if="visibilityPlot?.visibility"
@@ -362,10 +362,10 @@ function yesNo(value: boolean) {
                 </AppButton>
               </li>
             </ul>
-            <p v-else class="text-xs text-slate-400">No files</p>
+            <p v-else class="text-xs text-aots-muted">No files</p>
           </div>
 
-          <div class="border-t border-slate-600 pt-2 relative">
+          <div class="border-t border-aots pt-2 relative">
             <h2 class="text-sm font-medium">Note</h2>
             <AppButton
               v-if="auth.isAuthenticated"
@@ -376,7 +376,7 @@ function yesNo(value: boolean) {
             >
               <Pencil class="w-4 h-4" />
             </AppButton>
-            <p v-if="!noteEdit" class="text-xs text-slate-300 mt-1 whitespace-pre-wrap pr-8">
+            <p v-if="!noteEdit" class="text-xs text-aots-muted mt-1 whitespace-pre-wrap pr-8">
               {{ spectrum.note || '—' }}
             </p>
             <div v-else class="mt-2 space-y-2">
@@ -389,7 +389,7 @@ function yesNo(value: boolean) {
 
       <section class="aots-panel-compact">
         <h2 class="text-sm font-medium mb-1">The spectrum</h2>
-        <p class="text-xs text-slate-400 mb-3">
+        <p class="text-xs text-aots-muted mb-3">
           The spectrum is shifted with a barycentric correction of
           {{ spectrum.barycor.toFixed(2) }} km/s.
         </p>
@@ -398,7 +398,7 @@ function yesNo(value: boolean) {
           <div class="w-full max-w-full min-w-0 overflow-hidden min-h-0">
             <div
               v-if="specLoading && !specPlot?.spec"
-              class="h-[220px] sm:h-[360px] rounded bg-slate-700/40 animate-pulse"
+              class="h-[220px] sm:h-[360px] rounded bg-aots-surface-muted/40 animate-pulse"
             />
             <BokehPlot
               v-else-if="specPlot?.spec"
@@ -408,7 +408,7 @@ function yesNo(value: boolean) {
             />
           </div>
 
-          <div class="w-full border border-slate-600 rounded-md p-3 bg-slate-900/40">
+          <div class="w-full border border-aots rounded-md p-3 bg-aots-page/40">
             <h3 class="text-sm font-medium mb-2">Modify data</h3>
             <form class="text-xs" @submit.prevent="updateFigure">
               <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -427,7 +427,7 @@ function yesNo(value: boolean) {
                   class="flex items-center gap-1.5"
                   :class="orderDisabled ? 'opacity-50' : ''"
                 >
-                  <span class="text-slate-400 whitespace-nowrap">Order</span>
+                  <span class="text-aots-muted whitespace-nowrap">Order</span>
                   <input
                     v-model.number="formPorder"
                     type="number"
@@ -438,7 +438,7 @@ function yesNo(value: boolean) {
                   />
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <span class="text-slate-400 whitespace-nowrap">Binning</span>
+                  <span class="text-aots-muted whitespace-nowrap">Binning</span>
                   <input
                     v-model.number="formRebin"
                     type="number"
@@ -465,7 +465,7 @@ function yesNo(value: boolean) {
     <dialog
       v-if="headerDialog"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="headerDialog = false"
     >
       <div class="aots-panel max-h-[90vh] w-full max-w-2xl overflow-hidden flex flex-col">
@@ -476,11 +476,11 @@ function yesNo(value: boolean) {
           </AppButton>
         </div>
         <div class="overflow-y-auto text-xs font-mono">
-          <p v-if="headerLoading" class="text-slate-400">Loading…</p>
+          <p v-if="headerLoading" class="text-aots-muted">Loading…</p>
           <ul v-else class="space-y-1">
             <li v-for="[key, value] in headerEntries" :key="key">
-              <span class="text-slate-400">{{ key }}</span>:
-              <span class="text-slate-100">{{ value }}</span>
+              <span class="text-aots-muted">{{ key }}</span>:
+              <span class="text-aots">{{ value }}</span>
             </li>
           </ul>
         </div>
@@ -490,7 +490,7 @@ function yesNo(value: boolean) {
     <dialog
       v-if="spectrumEdit"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="spectrumEdit = false"
     >
       <div class="aots-panel w-full max-w-md">

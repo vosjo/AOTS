@@ -212,7 +212,7 @@ async function deleteSelected() {
         >
           {{ starOf(row)!.name }}
         </AppButton>
-        <span v-else class="text-slate-400">—</span>
+        <span v-else class="text-aots-muted">—</span>
       </template>
 
       <template #cell-name="{ row }">
@@ -259,16 +259,16 @@ async function deleteSelected() {
     <dialog
       v-if="uploadOpen"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="uploadOpen = false"
     >
       <div class="aots-panel w-full max-w-md">
         <h3 class="text-lg font-medium mb-1">Add analysis(es)</h3>
-        <p class="text-sm text-slate-400 mb-4">Upload new analysis</p>
+        <p class="text-sm text-aots-muted mb-4">Upload new analysis</p>
         <fieldset class="space-y-3">
-          <legend class="text-sm text-slate-300 mb-2">Select analysis files</legend>
+          <legend class="text-sm text-aots-muted mb-2">Select analysis files</legend>
           <input type="file" multiple class="aots-field w-full" @change="onUploadFilesChange" />
-          <label class="block text-sm text-slate-300">
+          <label class="block text-sm text-aots-muted">
             Category
             <select v-model="uploadCategory" class="aots-select w-full mt-1">
               <option value="">Derive from file</option>
@@ -281,7 +281,7 @@ async function deleteSelected() {
               </option>
             </select>
           </label>
-          <p class="text-xs text-slate-500">
+          <p class="text-xs text-aots-faint-extra">
             Choose a category when the file type is not detected automatically
             (e.g. to create derived parameters for RV solutions).
           </p>

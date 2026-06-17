@@ -6,7 +6,7 @@ import AdminNav from '@/components/AdminNav.vue'
 <template>
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <h1 class="text-2xl font-semibold text-slate-50">Administration</h1>
+      <h1 class="text-2xl font-semibold text-aots-heading">Administration</h1>
       <AppButton variant="link" to="/w/projects/">
         Back to projects
       </AppButton>

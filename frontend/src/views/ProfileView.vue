@@ -37,14 +37,14 @@ async function regenerateApiKey() {
     <p v-if="auth.user?.username">Signed in as <strong>{{ auth.user.username }}</strong></p>
 
     <section class="aots-panel space-y-2">
-      <h2 class="font-medium text-slate-50">DRF token</h2>
-      <code class="block break-all rounded-md border border-slate-500 bg-slate-700 p-2 text-sm text-slate-100">{{ token }}</code>
+      <h2 class="font-medium text-aots-heading">DRF token</h2>
+      <code class="block break-all rounded-md border border-aots bg-aots-surface-muted p-2 text-sm text-aots">{{ token }}</code>
       <AppButton variant="link" @click="regenerateToken">Regenerate token</AppButton>
     </section>
 
     <section class="aots-panel space-y-2">
       <h2 class="font-medium">API key pair</h2>
-      <p class="text-sm text-slate-200">Public key: {{ auth.user?.api_key || '—' }}</p>
+      <p class="text-sm text-aots">Public key: {{ auth.user?.api_key || '—' }}</p>
       <AppButton variant="link" @click="regenerateApiKey">Generate new API key</AppButton>
       <AppAlert v-if="apiSecret" kind="warning">
         Secret (shown once): {{ apiSecret }}

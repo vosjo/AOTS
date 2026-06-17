@@ -469,13 +469,13 @@ watch(editableParams, (data) => {
       class="hidden xl:block w-52 shrink-0 aots-panel-compact text-xs sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto"
     >
       <h2 class="font-medium text-sm mb-2">Related systems</h2>
-      <div class="flex flex-wrap gap-2 mb-3 text-[10px] text-slate-400">
+      <div class="flex flex-wrap gap-2 mb-3 text-[10px] text-aots-muted">
         <span class="flex items-center gap-1"><i class="inline-block w-2 h-2 rounded-full bg-sky-400" />New</span>
         <span class="flex items-center gap-1"><i class="inline-block w-2 h-2 rounded-full bg-amber-400" />Ongoing</span>
         <span class="flex items-center gap-1"><i class="inline-block w-2 h-2 rounded-full bg-emerald-400" />Finished</span>
         <span class="flex items-center gap-1"><i class="inline-block w-2 h-2 rounded-full bg-red-400" />Rejected</span>
       </div>
-      <div v-if="detail.related_systems.length === 0" class="text-slate-400">
+      <div v-if="detail.related_systems.length === 0" class="text-aots-muted">
         No related systems found
       </div>
       <div v-for="group in detail.related_systems" :key="group.tag.pk" class="mb-3">
@@ -487,31 +487,31 @@ watch(editableParams, (data) => {
           {{ group.tag.name }}
         </h3>
         <ul class="space-y-0.5">
-          <li v-if="group.stars_lower_hidden" class="text-slate-500">
+          <li v-if="group.stars_lower_hidden" class="text-aots-faint-extra">
             (... {{ group.stars_lower_hidden }} more ...)
           </li>
           <li v-for="s in group.stars_lower" :key="s.pk">
             <RouterLink
               :to="`/w/${projectSlug}/systems/stars/${s.pk}`"
-              class="inline-flex items-center gap-1 hover:text-sky-300"
+              class="inline-flex items-center gap-1 hover:text-aots-brand"
             >
               <i class="inline-block w-2 h-2 rounded-full shrink-0" :class="statusDot(s.observing_status)" />
               {{ s.name }}
             </RouterLink>
           </li>
           <li>
-            <span class="text-sky-300 font-medium">— {{ star.name }} —</span>
+            <span class="text-aots-brand font-medium">— {{ star.name }} —</span>
           </li>
           <li v-for="s in group.stars_upper" :key="s.pk">
             <RouterLink
               :to="`/w/${projectSlug}/systems/stars/${s.pk}`"
-              class="inline-flex items-center gap-1 hover:text-sky-300"
+              class="inline-flex items-center gap-1 hover:text-aots-brand"
             >
               <i class="inline-block w-2 h-2 rounded-full shrink-0" :class="statusDot(s.observing_status)" />
               {{ s.name }}
             </RouterLink>
           </li>
-          <li v-if="group.stars_upper_hidden" class="text-slate-500">
+          <li v-if="group.stars_upper_hidden" class="text-aots-faint-extra">
             (... {{ group.stars_upper_hidden }} more ...)
           </li>
         </ul>
@@ -530,7 +530,7 @@ watch(editableParams, (data) => {
           <Pencil class="w-4 h-4" />
         </AppButton>
         <h1 class="text-lg font-semibold m-0">{{ headerTitle }}</h1>
-        <span class="inline-flex items-center gap-1.5 text-sm text-slate-300">
+        <span class="inline-flex items-center gap-1.5 text-sm text-aots-muted">
           <i
             class="inline-block w-2 h-2 rounded-full shrink-0"
             :class="statusDot(star.observing_status)"
@@ -608,7 +608,7 @@ watch(editableParams, (data) => {
           </table>
           <p
             v-if="!detail.summary_parameters.system.length && !detail.summary_parameters.component.length"
-            class="text-xs text-slate-400"
+            class="text-xs text-aots-muted"
           >
             No summary parameters
           </p>
@@ -625,7 +625,7 @@ watch(editableParams, (data) => {
           >
             <Pencil class="w-4 h-4" />
           </AppButton>
-          <p v-if="!noteEdit" class="text-xs text-slate-300 whitespace-pre-wrap pr-8">{{ star.note || '—' }}</p>
+          <p v-if="!noteEdit" class="text-xs text-aots-muted whitespace-pre-wrap pr-8">{{ star.note || '—' }}</p>
           <div v-else class="space-y-2">
             <textarea v-model="noteText" class="aots-field text-xs" rows="4" />
             <AppButton variant="primary" size="sm" @click="saveNote">Save</AppButton>
@@ -659,7 +659,7 @@ watch(editableParams, (data) => {
             <div
               v-for="ident in detail.identifiers"
               :key="ident.pk"
-              class="inline-flex items-center gap-1 rounded border border-slate-600 px-2 py-1"
+              class="inline-flex items-center gap-1 rounded border border-aots px-2 py-1"
             >
               <a v-if="ident.href" :href="ident.href" target="_blank" rel="noopener">{{ ident.name }}</a>
               <span v-else>{{ ident.name }}</span>
@@ -672,7 +672,7 @@ watch(editableParams, (data) => {
               </AppButton>
             </div>
           </div>
-          <p v-else class="text-xs text-slate-400">None known.</p>
+          <p v-else class="text-xs text-aots-muted">None known.</p>
         </section>
 
         <section class="aots-panel-compact">
@@ -696,7 +696,7 @@ watch(editableParams, (data) => {
             >
               {{ t.name }}
             </span>
-            <span v-if="!star.tags.length" class="text-xs text-slate-400">No tags</span>
+            <span v-if="!star.tags.length" class="text-xs text-aots-muted">No tags</span>
           </div>
         </section>
       </div>
@@ -713,7 +713,7 @@ watch(editableParams, (data) => {
           </AppButton>
           <h2 class="text-sm font-medium">Observations</h2>
         </div>
-        <p v-if="!obsExpanded && counts" class="text-xs text-slate-400">
+        <p v-if="!obsExpanded && counts" class="text-xs text-aots-muted">
           Photometric: {{ counts.photometry }},
           Spectra: {{ counts.spectra }},
           Raw science files: {{ counts.raw_science }},
@@ -721,7 +721,7 @@ watch(editableParams, (data) => {
         </p>
 
         <div v-if="obsExpanded" class="space-y-4">
-          <p v-if="counts" class="text-xs text-slate-400">
+          <p v-if="counts" class="text-xs text-aots-muted">
             Photometric observations: {{ counts.photometry }},
             Reduced spectroscopic observations: {{ counts.spectra }},
             Spectroscopic raw files: {{ counts.raw_science }},
@@ -730,15 +730,15 @@ watch(editableParams, (data) => {
 
           <div class="grid gap-3 xl:grid-cols-2">
             <div class="min-w-0">
-              <h3 class="text-xs font-medium text-slate-300 mb-2 text-center">SED</h3>
+              <h3 class="text-xs font-medium text-aots-muted mb-2 text-center">SED</h3>
               <div class="min-h-[200px] relative">
                 <BokehPlot v-if="sed" compact :script="sed.script" :div="sed.div" />
                 <div
                   v-if="photVizierLoading"
-                  class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded bg-slate-900/75"
+                  class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded bg-aots-page/75"
                 >
-                  <Loader2 class="w-8 h-8 animate-spin text-sky-400" />
-                  <span class="text-xs text-slate-300">Fetching photometry from VizieR…</span>
+                  <Loader2 class="w-8 h-8 animate-spin text-aots-link" />
+                  <span class="text-xs text-aots-muted">Fetching photometry from VizieR…</span>
                 </div>
               </div>
               <p v-if="detail.stilism_url" class="text-xs text-center mt-1">
@@ -750,7 +750,7 @@ watch(editableParams, (data) => {
 
             <div>
               <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h3 class="text-xs font-medium text-slate-300">Photometry</h3>
+                <h3 class="text-xs font-medium text-aots-muted">Photometry</h3>
                 <div class="flex flex-wrap items-center justify-end gap-2">
                 <AppButton
                   v-if="!photEdit && detail.photometry.length"
@@ -795,13 +795,13 @@ watch(editableParams, (data) => {
                     </AppButton>
                     <div
                       v-if="addBandOpen"
-                      class="absolute right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded border border-slate-500 bg-slate-800 py-1 shadow-lg min-w-[10rem]"
+                      class="absolute right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded border border-aots bg-aots-surface py-1 shadow-lg min-w-[10rem]"
                     >
                       <button
                         v-for="b in availableBands"
                         :key="b.band"
                         type="button"
-                        class="block w-full px-3 py-1 text-left text-xs hover:bg-slate-700"
+                        class="block w-full px-3 py-1 text-left text-xs hover:bg-aots-surface-muted"
                         @click="addPhotBand(b.band)"
                       >
                         {{ b.band }}
@@ -855,7 +855,7 @@ watch(editableParams, (data) => {
                         </td>
                       </tr>
                       <tr v-if="!photDraft.length">
-                        <td colspan="4" class="text-slate-400">Add photometry bands</td>
+                        <td colspan="4" class="text-aots-muted">Add photometry bands</td>
                       </tr>
                     </template>
                     <template v-else>
@@ -866,7 +866,7 @@ watch(editableParams, (data) => {
                         <td>{{ p.unit }}</td>
                       </tr>
                       <tr v-if="!detail.photometry.length">
-                        <td colspan="4" class="text-slate-400">No photometry values</td>
+                        <td colspan="4" class="text-aots-muted">No photometry values</td>
                       </tr>
                     </template>
                   </tbody>
@@ -876,7 +876,7 @@ watch(editableParams, (data) => {
           </div>
 
           <div v-if="detail.spectra.length">
-            <h3 class="text-xs font-medium text-slate-300 mb-2">Reduced spectra</h3>
+            <h3 class="text-xs font-medium text-aots-muted mb-2">Reduced spectra</h3>
             <div class="overflow-x-auto">
               <table class="aots-obs-table">
                 <thead>
@@ -910,7 +910,7 @@ watch(editableParams, (data) => {
           </div>
 
           <div v-if="detail.raw_spectra.length">
-            <h3 class="text-xs font-medium text-slate-300 mb-2">Raw spectra</h3>
+            <h3 class="text-xs font-medium text-aots-muted mb-2">Raw spectra</h3>
             <div class="overflow-x-auto">
               <table class="aots-obs-table">
                 <thead>
@@ -941,7 +941,7 @@ watch(editableParams, (data) => {
           </div>
 
           <div v-if="detail.lightcurves.length">
-            <h3 class="text-xs font-medium text-slate-300 mb-2">Light curves</h3>
+            <h3 class="text-xs font-medium text-aots-muted mb-2">Light curves</h3>
             <div class="overflow-x-auto">
               <table class="aots-obs-table">
                 <thead>
@@ -977,7 +977,7 @@ watch(editableParams, (data) => {
         :key="group.label"
         class="space-y-3"
       >
-        <h2 class="text-base font-medium text-slate-200">{{ group.label }}</h2>
+        <h2 class="text-base font-medium text-aots">{{ group.label }}</h2>
         <article
           v-for="plot in group.plots"
           :key="plot.analysis_id"
@@ -989,14 +989,14 @@ watch(editableParams, (data) => {
             </RouterLink>
             <CheckCircle2 v-if="plot.fit" class="w-4 h-4 text-emerald-400" title="Fit" />
             <XCircle v-else class="w-4 h-4 text-red-400" title="No fit" />
-            <span class="text-xs text-slate-400">{{ plot.added_by }} · {{ plot.added_on }}</span>
+            <span class="text-xs text-aots-muted">{{ plot.added_by }} · {{ plot.added_on }}</span>
           </h3>
           <div class="grid gap-3 xl:grid-cols-2">
             <div class="min-w-0">
               <BokehPlot compact :script="plot.embed.script" :div="plot.embed.div" />
             </div>
             <div>
-              <h4 class="text-xs text-slate-400 mb-1">Parameters</h4>
+              <h4 class="text-xs text-aots-muted mb-1">Parameters</h4>
               <table class="aots-param-table mb-3">
                 <thead>
                   <tr>
@@ -1018,8 +1018,8 @@ watch(editableParams, (data) => {
                   </tr>
                 </tbody>
               </table>
-              <h4 class="text-xs text-slate-400 mb-1">Description</h4>
-              <p class="text-xs text-slate-300 whitespace-pre-wrap">{{ plot.note || '—' }}</p>
+              <h4 class="text-xs text-aots-muted mb-1">Description</h4>
+              <p class="text-xs text-aots-muted whitespace-pre-wrap">{{ plot.note || '—' }}</p>
             </div>
           </div>
         </article>
@@ -1029,7 +1029,7 @@ watch(editableParams, (data) => {
     <dialog
       v-if="tagDialog"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="tagDialog = false"
     >
       <div class="aots-panel w-full max-w-md max-h-[80vh] overflow-y-auto">
@@ -1048,7 +1048,7 @@ watch(editableParams, (data) => {
     <dialog
       v-if="paramDialog"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="paramDialog = false; cancelParamEdit()"
     >
       <div class="aots-panel w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -1119,14 +1119,14 @@ watch(editableParams, (data) => {
                 </td>
               </tr>
               <tr v-if="!(editableParams?.parameters.length)">
-                <td colspan="5" class="text-slate-400">No editable parameters</td>
+                <td colspan="5" class="text-aots-muted">No editable parameters</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <template v-else>
-          <p v-if="paramLoading" class="text-sm text-slate-400">Loading…</p>
+          <p v-if="paramLoading" class="text-sm text-aots-muted">Loading…</p>
           <div v-else-if="paramOverview" class="overflow-x-auto">
             <table class="aots-param-table">
               <thead>
@@ -1138,7 +1138,7 @@ watch(editableParams, (data) => {
               <tbody>
                 <template v-for="comp in paramOverview.components" :key="comp.component">
                   <tr>
-                    <th :colspan="(paramOverview.sources.length || 0) + 1" class="bg-slate-900/60">
+                    <th :colspan="(paramOverview.sources.length || 0) + 1" class="bg-aots-page/60">
                       <b>{{ comp.component }}</b>
                     </th>
                   </tr>
@@ -1157,7 +1157,7 @@ watch(editableParams, (data) => {
     <dialog
       v-if="copyPhotDialog"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="copyPhotDialog = false"
     >
       <div class="aots-panel w-full max-w-lg">
@@ -1173,7 +1173,7 @@ watch(editableParams, (data) => {
     <dialog
       v-if="identifierDialog"
       open
-      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
       @click.self="identifierDialog = false"
     >
       <div class="aots-panel w-full max-w-md space-y-3">

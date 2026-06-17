@@ -139,13 +139,13 @@ async function deleteTag(row: TagRow) {
     </template>
 
     <template #cell-description="{ row }">
-      <span class="text-slate-300">{{ row.description || '—' }}</span>
+      <span class="text-aots-muted">{{ row.description || '—' }}</span>
     </template>
 
     <template #cell-color="{ row }">
       <span class="inline-flex items-center gap-2 font-mono text-sm">
         <i
-          class="inline-block w-3 h-3 rounded-full shrink-0 border border-slate-500"
+          class="inline-block w-3 h-3 rounded-full shrink-0 border border-aots"
           :style="{ backgroundColor: row.color }"
         />
         {{ row.color }}
@@ -175,7 +175,7 @@ async function deleteTag(row: TagRow) {
   <dialog
     v-if="dialogOpen"
     open
-    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-black/60 p-4 w-full max-w-none h-full max-h-none"
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
     @click.self="closeDialog"
   >
     <div class="aots-panel w-full max-w-md">
@@ -195,9 +195,9 @@ async function deleteTag(row: TagRow) {
           rows="2"
         />
         <div class="flex items-center gap-3">
-          <label class="text-sm text-slate-300 shrink-0">Color</label>
-          <input v-model="formColor" type="color" class="h-9 w-14 cursor-pointer rounded border border-slate-500 bg-transparent" />
-          <span class="font-mono text-sm text-slate-300">{{ formColor }}</span>
+          <label class="text-sm text-aots-muted shrink-0">Color</label>
+          <input v-model="formColor" type="color" class="h-9 w-14 cursor-pointer rounded border border-aots bg-transparent" />
+          <span class="font-mono text-sm text-aots-muted">{{ formColor }}</span>
         </div>
         <AppAlert v-if="formError" kind="error">{{ formError }}</AppAlert>
       </div>

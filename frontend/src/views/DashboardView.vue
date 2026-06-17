@@ -134,7 +134,7 @@ function updateHrd() {
 </script>
 
 <template>
-  <div v-if="isFetching && !data" class="text-slate-300">Loading dashboard…</div>
+  <div v-if="isFetching && !data" class="text-aots-muted">Loading dashboard…</div>
   <div v-else-if="data" class="min-w-0 space-y-6">
     <h1 class="text-2xl font-semibold">Dashboard</h1>
 
@@ -143,13 +143,13 @@ function updateHrd() {
         v-for="card in statCards"
         :key="card.key"
         :to="card.to"
-        class="group flex min-h-0 items-center justify-between gap-2 rounded-lg border border-slate-600 bg-slate-800/90 px-3 py-2 transition hover:border-sky-500/70 hover:bg-slate-700/90"
+        class="group flex min-h-0 items-center justify-between gap-2 rounded-lg border border-aots bg-aots-surface/90 px-3 py-2 transition hover:border-aots-card hover:bg-aots-surface-muted/90"
       >
         <div class="min-w-0">
-          <div class="truncate text-xs font-medium text-slate-400 group-hover:text-slate-300">
+          <div class="truncate text-xs font-medium text-aots-muted group-hover:text-aots-muted">
             {{ card.label }}
           </div>
-          <div class="text-xl font-semibold tabular-nums leading-tight text-slate-50 sm:text-2xl">
+          <div class="text-xl font-semibold tabular-nums leading-tight text-aots-heading sm:text-2xl">
             {{ card.count }}
           </div>
         </div>
@@ -158,7 +158,7 @@ function updateHrd() {
           class="shrink-0 text-right text-xs leading-snug text-emerald-400"
         >
           <span class="font-semibold">+{{ card.delta }}</span>
-          <span class="block text-[0.65rem] font-normal text-slate-500">last week</span>
+          <span class="block text-[0.65rem] font-normal text-aots-faint-extra">last week</span>
         </div>
       </RouterLink>
     </div>
@@ -207,16 +207,16 @@ function updateHrd() {
       <section class="aots-panel">
         <h2 class="font-medium mb-2">Latest changes</h2>
         <ul class="text-sm space-y-2 max-h-64 overflow-y-auto">
-          <li v-for="(c, i) in data.recent_changes" :key="i" class="border-b border-slate-600 pb-2">
-            <span class="text-slate-300">{{ c.date.slice(0, 10) }}</span>
+          <li v-for="(c, i) in data.recent_changes" :key="i" class="border-b border-aots pb-2">
+            <span class="text-aots-muted">{{ c.date.slice(0, 10) }}</span>
             {{ c.created ? 'Created' : 'Updated' }} {{ c.modeltype }} — {{ c.label }}
-            <span class="text-slate-500">by {{ c.user }}</span>
+            <span class="text-aots-faint-extra">by {{ c.user }}</span>
           </li>
         </ul>
       </section>
     </div>
 
-    <dialog v-if="starmapOpen && data.starmap.full_url" open class="fixed inset-0 z-50 bg-black/80 p-8" @click="starmapOpen = false">
+    <dialog v-if="starmapOpen && data.starmap.full_url" open class="fixed inset-0 z-50 bg-aots-overlay-strong p-8" @click="starmapOpen = false">
       <img :src="data.starmap.full_url" alt="Full starmap" class="max-h-full max-w-full mx-auto" @click.stop />
     </dialog>
   </div>

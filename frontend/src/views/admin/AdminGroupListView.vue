@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Plus } from 'lucide-vue-next'
+import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import { rowPk, useAdminList } from '@/composables/useAdminList'
 
@@ -46,18 +47,18 @@ const selected = ref(new Set<number>())
     @update:page-size="pageSize = $event"
   >
     <template #actions>
-      <RouterLink to="/admin/groups/new" class="aots-btn-primary inline-flex items-center gap-1 text-sm">
+      <AppButton variant="primary" size="sm" class="inline-flex items-center gap-1" to="/admin/groups/new">
         <Plus class="h-4 w-4" />
         Add group
-      </RouterLink>
+      </AppButton>
     </template>
     <template #filters>
       <input v-model="search" class="aots-field max-w-xs" placeholder="Search groups…" />
     </template>
     <template #cell-actions="{ row }">
-      <RouterLink :to="`/admin/groups/${rowPk(row)}`" class="text-sm text-sky-400 hover:text-sky-300">
+      <AppButton variant="link" :to="`/admin/groups/${rowPk(row)}`">
         Edit
-      </RouterLink>
+      </AppButton>
     </template>
   </DataTablePage>
 </template>

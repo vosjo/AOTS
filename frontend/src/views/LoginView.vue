@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppAlert from '@/components/AppAlert.vue'
+import AppButton from '@/components/AppButton.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
@@ -29,7 +30,7 @@ async function submit() {
     <form class="space-y-3" @submit.prevent="submit">
       <input v-model="username" class="aots-field" placeholder="Username" />
       <input v-model="password" type="password" class="aots-field" placeholder="Password" />
-      <button type="submit" class="aots-btn-primary w-full">Sign in</button>
+      <AppButton type="submit" variant="primary" class="w-full">Sign in</AppButton>
     </form>
     <AppAlert v-if="error" kind="error">{{ error }}</AppAlert>
   </div>

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { CheckCircle2, Download, Pencil, Star, XCircle } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -226,15 +227,15 @@ function yesNo(value: boolean) {
 
     <div class="flex-1 min-w-0 space-y-3">
       <div class="aots-detail-header">
-        <button
+        <AppButton
           v-if="auth.isAuthenticated"
-          type="button"
-          class="absolute top-1 right-1 p-1 text-slate-300 hover:text-sky-400"
+          variant="icon"
+          class="absolute top-1 right-1"
           title="Edit spectrum"
           @click="openSpectrumEdit"
         >
           <Pencil class="w-4 h-4" />
-        </button>
+        </AppButton>
 
         <div class="flex items-center gap-2">
           <h1 class="text-lg font-semibold m-0">{{ spectrum.title }}</h1>
@@ -348,21 +349,17 @@ function yesNo(value: boolean) {
             <ul v-if="spectrum.specfiles.length" class="text-xs space-y-1">
               <li v-for="file in spectrum.specfiles" :key="file.pk" class="flex flex-wrap items-center gap-1">
                 <span>{{ file.filetype }}</span>
-                <button
-                  type="button"
-                  class="text-sky-400 hover:text-sky-300"
-                  @click="showHeader(file)"
-                >
+                <AppButton variant="link" @click="showHeader(file)">
                   (header)
-                </button>
-                <a
+                </AppButton>
+                <AppButton
                   v-if="auth.isAuthenticated && file.download_url"
+                  variant="link"
                   :href="file.download_url"
-                  class="inline-flex text-sky-400 hover:text-sky-300"
                   title="Download"
                 >
                   <Download class="w-3.5 h-3.5" />
-                </a>
+                </AppButton>
               </li>
             </ul>
             <p v-else class="text-xs text-slate-400">No files</p>
@@ -370,21 +367,21 @@ function yesNo(value: boolean) {
 
           <div class="border-t border-slate-600 pt-2 relative">
             <h2 class="text-sm font-medium">Note</h2>
-            <button
+            <AppButton
               v-if="auth.isAuthenticated"
-              type="button"
-              class="absolute top-2 right-0 p-1 text-slate-300 hover:text-sky-400"
+              variant="icon"
+              class="absolute top-2 right-0"
               title="Edit note"
               @click="noteEdit = !noteEdit"
             >
               <Pencil class="w-4 h-4" />
-            </button>
+            </AppButton>
             <p v-if="!noteEdit" class="text-xs text-slate-300 mt-1 whitespace-pre-wrap pr-8">
               {{ spectrum.note || '—' }}
             </p>
             <div v-else class="mt-2 space-y-2">
               <textarea v-model="noteText" class="aots-field text-xs" rows="4" />
-              <button type="button" class="aots-btn-primary text-xs" @click="saveNote">Save</button>
+              <AppButton variant="primary" size="sm" @click="saveNote">Save</AppButton>
             </div>
           </div>
         </section>
@@ -450,12 +447,14 @@ function yesNo(value: boolean) {
                     class="aots-field-sm w-16"
                   />
                 </div>
-                <button
+                <AppButton
                   type="submit"
-                  class="aots-btn-primary text-xs w-full sm:w-auto sm:ml-auto"
+                  variant="primary"
+                  size="sm"
+                  class="w-full sm:w-auto sm:ml-auto"
                 >
                   Update figure
-                </button>
+                </AppButton>
               </div>
             </form>
           </div>
@@ -472,9 +471,9 @@ function yesNo(value: boolean) {
       <div class="aots-panel max-h-[90vh] w-full max-w-2xl overflow-hidden flex flex-col">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-medium">{{ headerTitle }} header</h2>
-          <button type="button" class="aots-btn-ghost text-sm" @click="headerDialog = false">
+          <AppButton variant="ghost" @click="headerDialog = false">
             Close
-          </button>
+          </AppButton>
         </div>
         <div class="overflow-y-auto text-xs font-mono">
           <p v-if="headerLoading" class="text-slate-400">Loading…</p>
@@ -517,8 +516,8 @@ function yesNo(value: boolean) {
           </li>
         </ul>
         <div class="flex justify-end gap-2 mt-4">
-          <button type="button" class="aots-btn-ghost" @click="spectrumEdit = false">Cancel</button>
-          <button type="button" class="aots-btn-primary" @click="saveSpectrumEdit">Update</button>
+          <AppButton variant="ghost" @click="spectrumEdit = false">Cancel</AppButton>
+          <AppButton variant="primary" @click="saveSpectrumEdit">Update</AppButton>
         </div>
       </div>
     </dialog>

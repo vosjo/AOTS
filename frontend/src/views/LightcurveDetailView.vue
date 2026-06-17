@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { CheckCircle2, Download, Pencil, Star, Trash2, XCircle } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -206,15 +207,15 @@ async function remove() {
 
     <div class="flex-1 min-w-0 space-y-3">
       <div class="aots-detail-header">
-        <button
+        <AppButton
           v-if="auth.isAuthenticated"
-          type="button"
-          class="absolute top-1 right-1 p-1 text-slate-300 hover:text-sky-400"
+          variant="icon"
+          class="absolute top-1 right-1"
           title="Edit light curve"
           @click="openLcEdit"
         >
           <Pencil class="w-4 h-4" />
-        </button>
+        </AppButton>
 
         <h1 class="text-lg font-semibold m-0">{{ lc.title }}</h1>
 
@@ -307,21 +308,17 @@ async function remove() {
             <ul v-if="lc.filetype" class="text-xs space-y-1">
               <li class="flex flex-wrap items-center gap-1">
                 <span>{{ lc.filetype }}</span>
-                <button
-                  type="button"
-                  class="text-sky-400 hover:text-sky-300"
-                  @click="showHeader"
-                >
+                <AppButton variant="link" @click="showHeader">
                   (header)
-                </button>
-                <a
+                </AppButton>
+                <AppButton
                   v-if="auth.isAuthenticated && lc.download_url"
+                  variant="link"
                   :href="lc.download_url"
-                  class="inline-flex text-sky-400 hover:text-sky-300"
                   title="Download"
                 >
                   <Download class="w-3.5 h-3.5" />
-                </a>
+                </AppButton>
               </li>
             </ul>
             <p v-else class="text-xs text-slate-400">No files</p>
@@ -329,32 +326,32 @@ async function remove() {
 
           <div class="border-t border-slate-600 pt-2 relative">
             <h2 class="text-sm font-medium">Note</h2>
-            <button
+            <AppButton
               v-if="auth.isAuthenticated"
-              type="button"
-              class="absolute top-2 right-0 p-1 text-slate-300 hover:text-sky-400"
+              variant="icon"
+              class="absolute top-2 right-0"
               title="Edit note"
               @click="noteEdit = !noteEdit"
             >
               <Pencil class="w-4 h-4" />
-            </button>
+            </AppButton>
             <p v-if="!noteEdit" class="text-xs text-slate-300 mt-1 whitespace-pre-wrap pr-8">
               {{ lc.note || '—' }}
             </p>
             <div v-else class="mt-2 space-y-2">
               <textarea v-model="noteText" class="aots-field text-xs" rows="4" />
-              <button type="button" class="aots-btn-primary text-xs" @click="saveNote">Save</button>
+              <AppButton variant="primary" size="sm" @click="saveNote">Save</AppButton>
             </div>
           </div>
 
-          <button
+          <AppButton
             v-if="auth.isAuthenticated"
-            type="button"
-            class="text-xs text-red-400 hover:text-red-300"
+            variant="ghost-danger"
+            size="sm"
             @click="remove"
           >
             Delete light curve <Trash2 class="w-3 h-3 inline-block ml-1" />
-          </button>
+          </AppButton>
         </section>
       </div>
 
@@ -396,9 +393,9 @@ async function remove() {
               class="aots-field-sm w-28"
             />
           </label>
-          <button type="submit" class="aots-btn-primary text-xs">
+          <AppButton type="submit" variant="primary" size="sm">
             Phase lightcurve
-          </button>
+          </AppButton>
         </form>
 
         <div class="w-full max-w-full min-w-0 overflow-hidden">
@@ -425,9 +422,9 @@ async function remove() {
       <div class="aots-panel max-h-[90vh] w-full max-w-2xl overflow-hidden flex flex-col">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-medium">{{ lc.filetype }} header</h2>
-          <button type="button" class="aots-btn-ghost text-sm" @click="headerDialog = false">
+          <AppButton variant="ghost" @click="headerDialog = false">
             Close
-          </button>
+          </AppButton>
         </div>
         <div class="overflow-y-auto text-xs font-mono">
           <p v-if="headerLoading" class="text-slate-400">Loading…</p>
@@ -464,8 +461,8 @@ async function remove() {
           </li>
         </ul>
         <div class="flex justify-end gap-2 mt-4">
-          <button type="button" class="aots-btn-ghost" @click="lcEdit = false">Cancel</button>
-          <button type="button" class="aots-btn-primary" @click="saveLcEdit">Update</button>
+          <AppButton variant="ghost" @click="lcEdit = false">Cancel</AppButton>
+          <AppButton variant="primary" @click="saveLcEdit">Update</AppButton>
         </div>
       </div>
     </dialog>

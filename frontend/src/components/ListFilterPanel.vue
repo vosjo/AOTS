@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppButton from '@/components/AppButton.vue'
+
 defineProps<{
   open: boolean
   title?: string
@@ -19,13 +21,13 @@ const emit = defineEmits<{ close: []; apply: []; clear: [] }>()
   >
     <div class="mb-4 flex items-center justify-between">
       <h2 class="text-lg font-semibold text-slate-50">{{ title ?? 'Filters' }}</h2>
-      <button type="button" class="aots-btn-ghost" @click="emit('close')">Close</button>
+      <AppButton variant="ghost" @click="emit('close')">Close</AppButton>
     </div>
     <form class="space-y-4" @submit.prevent="emit('apply')">
       <slot />
       <div class="grid grid-cols-2 gap-2">
-        <button type="button" class="aots-btn-secondary" @click="emit('clear')">Clear filters</button>
-        <button type="submit" class="aots-btn-primary">Apply filters</button>
+        <AppButton type="button" variant="secondary" @click="emit('clear')">Clear filters</AppButton>
+        <AppButton type="submit" variant="primary">Apply filters</AppButton>
       </div>
     </form>
   </aside>

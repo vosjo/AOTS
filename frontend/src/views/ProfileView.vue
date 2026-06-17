@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import AppAlert from '@/components/AppAlert.vue'
+import AppButton from '@/components/AppButton.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 
@@ -38,18 +39,18 @@ async function regenerateApiKey() {
     <section class="aots-panel space-y-2">
       <h2 class="font-medium text-slate-50">DRF token</h2>
       <code class="block break-all rounded-md border border-slate-500 bg-slate-700 p-2 text-sm text-slate-100">{{ token }}</code>
-      <button class="text-sm text-sky-400" @click="regenerateToken">Regenerate token</button>
+      <AppButton variant="link" @click="regenerateToken">Regenerate token</AppButton>
     </section>
 
     <section class="aots-panel space-y-2">
       <h2 class="font-medium">API key pair</h2>
       <p class="text-sm text-slate-200">Public key: {{ auth.user?.api_key || '—' }}</p>
-      <button class="text-sm text-sky-400" @click="regenerateApiKey">Generate new API key</button>
+      <AppButton variant="link" @click="regenerateApiKey">Generate new API key</AppButton>
       <AppAlert v-if="apiSecret" kind="warning">
         Secret (shown once): {{ apiSecret }}
       </AppAlert>
     </section>
 
-    <RouterLink to="/accounts/password_change/" class="text-sky-400">Change password</RouterLink>
+    <AppButton variant="link" to="/accounts/password_change/">Change password</AppButton>
   </div>
 </template>

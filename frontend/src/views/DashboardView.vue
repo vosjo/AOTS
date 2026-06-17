@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import BokehPlot from '@/components/BokehPlot.vue'
+import AppButton from '@/components/AppButton.vue'
 import { api } from '@/api/client'
 import { useElementHeight } from '@/composables/useElementHeight'
 
@@ -176,7 +177,7 @@ function updateHrd() {
                 <option v-for="[val, label] in form.choices[field]" :key="String(val)" :value="val ?? ''">{{ label }}</option>
               </select>
             </label>
-            <button class="aots-btn-primary" @click="updateHrd">Update Figure</button>
+            <AppButton variant="primary" @click="updateHrd">Update Figure</AppButton>
           </div>
         </div>
       </section>

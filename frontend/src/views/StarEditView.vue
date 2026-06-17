@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import AppButton from '@/components/AppButton.vue'
 import { api } from '@/api/client'
 
 const route = useRoute()
@@ -31,7 +32,7 @@ async function save() {
       <input v-model="form.name" class="aots-field" placeholder="Name" />
       <input v-model="form.classification" class="aots-field" placeholder="Classification" />
       <textarea v-model="form.note" class="aots-field" rows="4" placeholder="Note" />
-      <button type="submit" class="aots-btn-primary">Save</button>
+      <AppButton type="submit" variant="primary">Save</AppButton>
     </form>
   </div>
 </template>

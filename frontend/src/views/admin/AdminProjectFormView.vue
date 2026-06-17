@@ -6,6 +6,7 @@ import { api } from '@/api/client'
 import { useAdminEntityRoute } from '@/composables/useAdminEntityRoute'
 import { useAdminFormFeedback } from '@/composables/useAdminFormFeedback'
 import AdminFormActions from '@/components/admin/AdminFormActions.vue'
+import AppButton from '@/components/AppButton.vue'
 
 interface AdminProject {
   pk: number
@@ -208,19 +209,18 @@ onMounted(loadProject)
       </section>
 
       <AdminFormActions :success="success" :error="error">
-        <button type="submit" class="aots-btn-primary" :disabled="saving || loading">
+        <AppButton type="submit" variant="primary" :disabled="saving || loading">
           {{ saving ? 'Saving…' : 'Save' }}
-        </button>
-        <RouterLink to="/admin/projects/" class="aots-btn-secondary">Cancel</RouterLink>
-        <button
+        </AppButton>
+        <AppButton variant="ghost" to="/admin/projects/">Cancel</AppButton>
+        <AppButton
           v-if="!isNew"
-          type="button"
-          class="aots-btn-ghost text-red-400"
+          variant="ghost-danger"
           :disabled="saving"
           @click="removeProject"
         >
           Delete
-        </button>
+        </AppButton>
       </AdminFormActions>
     </form>
   </div>

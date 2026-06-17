@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { BookOpen, Pencil, Star } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -255,15 +256,15 @@ async function deriveParameters() {
 
     <div class="flex-1 min-w-0 space-y-4">
       <div class="aots-detail-header">
-        <button
+        <AppButton
           v-if="auth.isAuthenticated"
-          type="button"
-          class="absolute top-1 right-1 p-1 text-slate-300 hover:text-sky-400"
+          variant="icon"
+          class="absolute top-1 right-1"
           title="Edit analysis"
           @click="openDetailsEdit"
         >
           <Pencil class="w-4 h-4" />
-        </button>
+        </AppButton>
 
         <h1 class="text-lg font-semibold m-0 w-full xl:w-auto">
           {{ pageTitle }}<span v-if="analysis.name" class="font-medium text-slate-300"> ({{ analysis.name }})</span>
@@ -271,12 +272,13 @@ async function deriveParameters() {
 
         <div v-if="star" class="flex items-center gap-1.5">
           <Star class="w-4 h-4 text-amber-400 shrink-0" />
-          <RouterLink
+          <AppButton
+            variant="link"
+            class="font-medium"
             :to="`/w/${projectSlug}/systems/stars/${star.pk}`"
-            class="font-medium text-sky-400 hover:text-sky-300"
           >
             {{ star.name }}
-          </RouterLink>
+          </AppButton>
         </div>
 
         <div class="flex items-center gap-1.5 text-sm">
@@ -294,14 +296,14 @@ async function deriveParameters() {
 
         <div v-if="analysis.reference" class="flex items-center gap-1.5 text-sm">
           <BookOpen class="w-4 h-4 text-slate-400 shrink-0" />
-          <a
+          <AppButton
+            variant="link"
             :href="analysis.reference_url"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-sky-400 hover:text-sky-300"
           >
             {{ analysis.reference }}
-          </a>
+          </AppButton>
         </div>
 
         <div class="flex items-center gap-2 text-sm text-slate-300">
@@ -367,15 +369,15 @@ async function deriveParameters() {
           <section v-if="analysis.has_derived_definitions" class="aots-panel-compact">
             <div class="flex items-center justify-between gap-2 mb-2">
               <h2 class="text-sm font-medium m-0">Derived parameters</h2>
-              <button
+              <AppButton
                 v-if="analysis.can_edit && star"
-                type="button"
-                class="aots-btn-secondary text-xs"
+                variant="secondary"
+                size="sm"
                 :disabled="deriveBusy"
                 @click="deriveParameters"
               >
                 {{ deriveButtonLabel }}
-              </button>
+              </AppButton>
             </div>
             <p v-if="deriveMessage" class="text-xs text-slate-400 mb-2">{{ deriveMessage }}</p>
             <p class="text-xs text-slate-500 mb-2">
@@ -411,15 +413,15 @@ async function deriveParameters() {
 
           <section class="aots-panel-compact relative">
             <h2 class="text-sm font-medium mb-2">Notes</h2>
-            <button
+            <AppButton
               v-if="auth.isAuthenticated"
-              type="button"
-              class="absolute top-2 right-2 p-1 text-slate-300 hover:text-sky-400"
+              variant="icon"
+              class="absolute top-2 right-2"
               title="Edit note"
               @click="openNoteEdit"
             >
               <Pencil class="w-4 h-4" />
-            </button>
+            </AppButton>
             <div class="text-sm text-slate-200 whitespace-pre-wrap pr-8">
               {{ analysis.note || '—' }}
             </div>
@@ -486,8 +488,8 @@ async function deriveParameters() {
         <h3 class="font-medium mb-3">Edit notes</h3>
         <textarea v-model="noteText" rows="5" class="aots-field w-full font-mono text-sm" />
         <div class="flex gap-2 mt-4">
-          <button type="button" class="aots-btn-primary" @click="saveNote">Update</button>
-          <button type="button" class="aots-btn-ghost" @click="noteEdit = false">Cancel</button>
+          <AppButton variant="primary" @click="saveNote">Update</AppButton>
+          <AppButton variant="ghost" @click="noteEdit = false">Cancel</AppButton>
         </div>
       </div>
     </dialog>
@@ -521,8 +523,8 @@ async function deriveParameters() {
           <span>Fit (analysis contains fit results)</span>
         </label>
         <div class="flex gap-2">
-          <button type="button" class="aots-btn-primary" @click="saveDetails">Update</button>
-          <button type="button" class="aots-btn-ghost" @click="detailsEdit = false">Cancel</button>
+          <AppButton variant="primary" @click="saveDetails">Update</AppButton>
+          <AppButton variant="ghost" @click="detailsEdit = false">Cancel</AppButton>
         </div>
       </div>
     </dialog>

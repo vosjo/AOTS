@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import BokehPlot from '@/components/BokehPlot.vue'
 import AnalysesSectionNav from '@/components/AnalysesSectionNav.vue'
 import AppAlert from '@/components/AppAlert.vue'
+import AppButton from '@/components/AppButton.vue'
 import { api, formatApiError } from '@/api/client'
 
 interface FormChoice {
@@ -94,13 +95,13 @@ function updateFigure() {
           />
           <span>Show regression line &amp; confidence band</span>
         </label>
-        <button
-          class="aots-btn-primary disabled:opacity-40"
+        <AppButton
+          variant="primary"
           :disabled="isFetching"
           @click="updateFigure"
         >
           Update Figure
-        </button>
+        </AppButton>
         <div v-if="data.statistics" class="mt-4 text-sm text-slate-200">
           <h3 class="font-medium text-slate-50">Statistics</h3>
           <pre class="whitespace-pre-wrap">{{ data.statistics }}</pre>

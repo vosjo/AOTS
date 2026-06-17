@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import AnalysesSectionNav from '@/components/AnalysesSectionNav.vue'
@@ -174,53 +175,53 @@ async function deleteSelected() {
       @toggle-all="toggleAll(rows)"
     >
       <template #actions>
-        <button type="button" class="aots-btn-secondary" @click="filterOpen = true">Filters</button>
-        <button
+        <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
+        <AppButton
           v-if="auth.isAuthenticated"
-          type="button"
-          class="aots-btn-secondary inline-flex items-center gap-1.5"
+          variant="primary"
+          class="inline-flex items-center gap-1.5"
           @click="uploadOpen = true"
         >
           <Plus class="w-4 h-4" />
-          Add analysis(es)
-        </button>
-        <button
+          Upload analysis(es)
+        </AppButton>
+        <AppButton
           v-if="auth.isAuthenticated"
-          class="aots-btn-secondary disabled:opacity-40"
+          variant="secondary"
           :disabled="!selectedIds.length || bulk.busy"
           @click="bulk.start('analyses', selectedIds, projectStore.currentProject!.pk)"
         >
           Download analysis
-        </button>
-        <button
+        </AppButton>
+        <AppButton
           v-if="auth.isAuthenticated"
-          class="aots-btn-danger disabled:opacity-40"
+          variant="danger"
           :disabled="!selectedIds.length"
           @click="deleteSelected"
         >
           Delete selected
-        </button>
+        </AppButton>
         <BulkDownloadProgress :status="bulk.status" :busy="bulk.busy" />
       </template>
 
       <template #cell-star="{ row }">
-        <RouterLink
+        <AppButton
           v-if="starOf(row)"
+          variant="link"
           :to="`/w/${projectSlug}/systems/stars/${starOf(row)!.pk}`"
-          class="text-sky-400 hover:text-sky-300"
         >
           {{ starOf(row)!.name }}
-        </RouterLink>
+        </AppButton>
         <span v-else class="text-slate-400">—</span>
       </template>
 
       <template #cell-name="{ row }">
-        <RouterLink
+        <AppButton
+          variant="link"
           :to="`/w/${projectSlug}/analysis/analyses/${row.pk}/`"
-          class="text-sky-400 hover:text-sky-300"
         >
           {{ row.name || '—' }}
-        </RouterLink>
+        </AppButton>
       </template>
 
       <template #cell-category="{ row }">
@@ -295,22 +296,20 @@ async function deleteSelected() {
           </AppAlert>
         </div>
         <div class="flex gap-2 mt-4">
-          <button
-            type="button"
-            class="aots-btn-primary"
+          <AppButton
+            variant="primary"
             :disabled="uploadBusy || !uploadFiles?.length"
             @click="uploadAnalyses"
           >
             Upload…
-          </button>
-          <button
-            type="button"
-            class="aots-btn-ghost"
+          </AppButton>
+          <AppButton
+            variant="ghost"
             :disabled="uploadBusy"
             @click="uploadOpen = false"
           >
             Cancel
-          </button>
+          </AppButton>
         </div>
       </div>
     </dialog>

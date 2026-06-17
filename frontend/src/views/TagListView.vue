@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
+import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
@@ -131,10 +132,10 @@ async function deleteTag(row: TagRow) {
     @toggle-all="toggleAll(rows)"
   >
     <template v-if="auth.isAuthenticated" #actions>
-      <button type="button" class="aots-btn-primary inline-flex items-center gap-1.5" @click="openAdd">
+      <AppButton variant="primary" class="inline-flex items-center gap-1.5" @click="openAdd">
         <Plus class="w-4 h-4" />
         Add tag
-      </button>
+      </AppButton>
     </template>
 
     <template #cell-description="{ row }">
@@ -153,22 +154,20 @@ async function deleteTag(row: TagRow) {
 
     <template v-if="auth.isAuthenticated" #cell-actions="{ row }">
       <div class="flex items-center gap-2">
-        <button
-          type="button"
-          class="p-1 text-slate-300 hover:text-sky-400"
+        <AppButton
+          variant="icon"
           title="Edit tag"
           @click="openEdit(row)"
         >
           <Pencil class="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          class="p-1 text-slate-300 hover:text-red-400"
+        </AppButton>
+        <AppButton
+          variant="icon-danger"
           title="Delete tag"
           @click="deleteTag(row)"
         >
           <Trash2 class="w-4 h-4" />
-        </button>
+        </AppButton>
       </div>
     </template>
   </DataTablePage>
@@ -203,12 +202,12 @@ async function deleteTag(row: TagRow) {
         <AppAlert v-if="formError" kind="error">{{ formError }}</AppAlert>
       </div>
       <div class="flex gap-2 mt-4">
-        <button type="button" class="aots-btn-primary" :disabled="saving" @click="saveTag">
+        <AppButton variant="primary" :disabled="saving" @click="saveTag">
           {{ saveLabel }}
-        </button>
-        <button type="button" class="aots-btn-ghost" :disabled="saving" @click="closeDialog">
+        </AppButton>
+        <AppButton variant="ghost" :disabled="saving" @click="closeDialog">
           Cancel
-        </button>
+        </AppButton>
       </div>
     </div>
   </dialog>

@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends { pk: number }">
 import { computed } from 'vue'
+import AppButton from '@/components/AppButton.vue'
 import type { ListColumn } from '@/composables/useDataTablePage'
 
 const props = defineProps<{
@@ -72,21 +73,17 @@ const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.page
       </table>
     </div>
     <div class="flex flex-wrap items-center gap-3 text-sm text-slate-200">
-      <button
-        class="aots-btn-secondary"
-        :disabled="page <= 1"
-        @click="emit('update:page', page - 1)"
-      >
+      <AppButton variant="secondary" :disabled="page <= 1" @click="emit('update:page', page - 1)">
         Prev
-      </button>
+      </AppButton>
       <span>Page {{ page }} / {{ totalPages }} ({{ count }} rows)</span>
-      <button
-        class="aots-btn-secondary"
+      <AppButton
+        variant="secondary"
         :disabled="page >= totalPages"
         @click="emit('update:page', page + 1)"
       >
         Next
-      </button>
+      </AppButton>
       <select
         class="aots-select w-auto"
         :value="pageSize"

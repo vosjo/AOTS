@@ -13,6 +13,7 @@ import {
 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import AppButton from '@/components/AppButton.vue'
 import { useClassicToggle } from '@/composables/useClassicToggle'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
@@ -83,33 +84,36 @@ async function logout() {
       </nav>
 
       <div class="ml-auto flex items-center gap-2">
-        <RouterLink
+        <AppButton
           v-if="auth.isSuperuser"
+          variant="ghost"
+          size="sm"
+          class="hidden sm:inline-flex items-center gap-1"
           to="/admin/"
-          class="hidden items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700 hover:text-white sm:inline-flex"
           title="Administration"
         >
           <Shield class="h-4 w-4" />
           Admin
-        </RouterLink>
-        <a :href="toClassic()" class="aots-btn-secondary text-xs">Classic UI</a>
-        <RouterLink
+        </AppButton>
+        <AppButton variant="secondary" size="sm" :href="toClassic()">Classic UI</AppButton>
+        <AppButton
           v-if="auth.isAuthenticated"
+          variant="icon"
+          class="!p-2"
           to="/users/you/"
-          class="rounded-md p-2 text-slate-200 hover:bg-slate-700 hover:text-white"
           title="Profile"
         >
           <User class="h-5 w-5" />
-        </RouterLink>
-        <RouterLink v-else to="/accounts/login/" class="aots-btn-primary text-xs">Login</RouterLink>
-        <button
+        </AppButton>
+        <AppButton v-else variant="primary" size="sm" to="/accounts/login/">Login</AppButton>
+        <AppButton
           v-if="auth.isAuthenticated"
-          type="button"
-          class="aots-btn-ghost text-xs"
+          variant="ghost"
+          size="sm"
           @click="logout"
         >
           Logout
-        </button>
+        </AppButton>
         <button type="button" class="rounded-md p-2 text-slate-200 hover:bg-slate-700 lg:hidden" @click="mobileOpen = !mobileOpen">
           <Menu class="h-5 w-5" />
         </button>

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppAlert from '@/components/AppAlert.vue'
+import AppButton from '@/components/AppButton.vue'
 import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
@@ -229,9 +230,9 @@ async function upload() {
   <div class="space-y-6 max-w-6xl">
     <div class="flex items-center justify-between gap-4">
       <h1 class="text-2xl font-semibold">Spectra: Upload</h1>
-      <RouterLink :to="`/w/${projectSlug}/observations/spectra/`" class="aots-btn-secondary">
+      <AppButton variant="secondary" :to="`/w/${projectSlug}/observations/spectra/`">
         Back to list
-      </RouterLink>
+      </AppButton>
     </div>
 
     <p v-if="!auth.isAuthenticated" class="aots-panel text-slate-300">
@@ -504,14 +505,13 @@ async function upload() {
       </section>
 
       <div class="space-y-4">
-        <button
-          type="button"
-          class="aots-btn-primary"
+        <AppButton
+          variant="primary"
           :disabled="busy || !files?.length"
           @click="upload"
         >
           Upload
-        </button>
+        </AppButton>
 
         <p v-if="uploading" class="text-sm text-slate-400">Uploading and processing files…</p>
 

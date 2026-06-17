@@ -83,6 +83,29 @@
     @apply hover:bg-slate-700/60 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
+  .aots-btn-ghost-danger {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-3 py-1.5 text-sm font-medium text-red-400 transition-colors;
+    @apply hover:bg-red-950/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .aots-btn-sm {
+    @apply px-2.5 py-1 text-xs;
+  }
+
+  .aots-btn-icon {
+    @apply inline-flex items-center justify-center rounded-md p-1.5 text-slate-300 transition-colors;
+    @apply hover:bg-slate-700/60 hover:text-sky-400 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .aots-btn-icon-danger {
+    @apply inline-flex items-center justify-center rounded-md p-1.5 text-slate-300 transition-colors;
+    @apply hover:bg-slate-700/60 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .aots-btn-link {
+    @apply inline-flex items-center gap-1 text-sm text-sky-400 transition-colors hover:text-sky-300;
+  }
+
   .aots-panel {
     @apply rounded-lg border border-slate-500 bg-slate-800/90 p-4 shadow-sm;
   }

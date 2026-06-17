@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+import AppButton from '@/components/AppButton.vue'
+
 export interface PermissionOption {
   id: number
   codename: string
@@ -119,9 +121,9 @@ watch(chosenFilter, () => {
       <div class="space-y-2">
         <div class="flex items-center justify-between gap-2">
           <label class="text-sm font-medium text-slate-200">Available permissions</label>
-          <button type="button" class="text-xs text-sky-400 hover:text-sky-300" @click="addAll">
+          <AppButton variant="link" size="sm" @click="addAll">
             Choose all
-          </button>
+          </AppButton>
         </div>
         <input
           v-model="availableFilter"
@@ -143,26 +145,26 @@ watch(chosenFilter, () => {
       </div>
 
       <div class="flex flex-row items-center justify-center gap-2 lg:flex-col lg:py-8">
-        <button type="button" class="aots-btn-secondary px-3" title="Add selected" @click="addSelected">
+        <AppButton variant="secondary" size="sm" class="px-3" title="Add selected" @click="addSelected">
           &gt;
-        </button>
-        <button type="button" class="aots-btn-secondary px-3" title="Add all filtered" @click="addAll">
+        </AppButton>
+        <AppButton variant="secondary" size="sm" class="px-3" title="Add all filtered" @click="addAll">
           &gt;&gt;
-        </button>
-        <button type="button" class="aots-btn-secondary px-3" title="Remove selected" @click="removeSelected">
+        </AppButton>
+        <AppButton variant="secondary" size="sm" class="px-3" title="Remove selected" @click="removeSelected">
           &lt;
-        </button>
-        <button type="button" class="aots-btn-secondary px-3" title="Remove all filtered" @click="removeAll">
+        </AppButton>
+        <AppButton variant="secondary" size="sm" class="px-3" title="Remove all filtered" @click="removeAll">
           &lt;&lt;
-        </button>
+        </AppButton>
       </div>
 
       <div class="space-y-2">
         <div class="flex items-center justify-between gap-2">
           <label class="text-sm font-medium text-slate-200">Chosen permissions</label>
-          <button type="button" class="text-xs text-sky-400 hover:text-sky-300" @click="removeAll">
+          <AppButton variant="link" size="sm" @click="removeAll">
             Remove all
-          </button>
+          </AppButton>
         </div>
         <input
           v-model="chosenFilter"

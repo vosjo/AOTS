@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { Plus } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
+import AppButton from '@/components/AppButton.vue'
 import { api, formatApiError, type PaginatedResponse } from '@/api/client'
 import { useAdminList } from '@/composables/useAdminList'
 
@@ -96,18 +97,18 @@ async function deleteToken(pk: number) {
     @update:page-size="pageSize = $event"
   >
     <template #actions>
-      <button type="button" class="aots-btn-primary inline-flex items-center gap-1 text-sm" @click="dialogOpen = true">
+      <AppButton variant="primary" size="sm" class="inline-flex items-center gap-1" @click="dialogOpen = true">
         <Plus class="h-4 w-4" />
         Add token
-      </button>
+      </AppButton>
     </template>
     <template #filters>
       <input v-model="search" class="aots-field max-w-xs" placeholder="Search tokens or users…" />
     </template>
     <template #cell-actions="{ row }">
-      <button type="button" class="text-sm text-red-400 hover:text-red-300" @click="deleteToken(row.pk)">
+      <AppButton variant="ghost-danger" size="sm" @click="deleteToken(row.pk)">
         Revoke
-      </button>
+      </AppButton>
     </template>
   </DataTablePage>
 
@@ -126,10 +127,10 @@ async function deleteToken(pk: number) {
       </select>
       <AppAlert v-if="formError" kind="error">{{ formError }}</AppAlert>
       <div class="flex justify-end gap-2">
-        <button type="button" class="aots-btn-secondary" @click="dialogOpen = false">Cancel</button>
-        <button type="button" class="aots-btn-primary" :disabled="creating" @click="createToken">
+        <AppButton variant="ghost" @click="dialogOpen = false">Cancel</AppButton>
+        <AppButton variant="primary" :disabled="creating" @click="createToken">
           {{ creating ? 'Creating…' : 'Create' }}
-        </button>
+        </AppButton>
       </div>
     </div>
   </div>

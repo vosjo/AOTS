@@ -2,6 +2,7 @@
 import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
@@ -112,37 +113,38 @@ function formatAirmass(value: number) {
     @toggle-all="toggleAll(rows)"
   >
     <template #actions>
-      <button class="aots-btn-secondary" @click="filterOpen = true">Filters</button>
-      <RouterLink
+      <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
+      <AppButton
+        variant="primary"
+        class="inline-flex items-center gap-1.5"
         :to="`/w/${projectSlug}/observations/spectra/upload`"
-        class="aots-btn-secondary inline-flex items-center gap-1.5"
       >
         <Plus class="w-4 h-4" />
         Upload reduced spectra
-      </RouterLink>
+      </AppButton>
       <template v-if="auth.isAuthenticated">
-        <button
-          class="aots-btn-secondary disabled:opacity-40"
+        <AppButton
+          variant="secondary"
           :disabled="!selectedIds.length || bulk.busy"
           @click="bulk.start('processed', selectedIds, projectStore.currentProject!.pk)"
         >
           Download processed
-        </button>
-        <button
-          class="aots-btn-secondary disabled:opacity-40"
+        </AppButton>
+        <AppButton
+          variant="secondary"
           :disabled="!selectedIds.length || !anyRaw || bulk.busy"
           :title="anyRaw ? '' : 'No raw data for selection'"
           @click="bulk.start('raw', selectedIds, projectStore.currentProject!.pk)"
         >
           Download raw
-        </button>
-        <button
-          class="aots-btn-danger disabled:opacity-40"
+        </AppButton>
+        <AppButton
+          variant="danger"
           :disabled="!selectedIds.length"
           @click="deleteSelected"
         >
           Delete
-        </button>
+        </AppButton>
       </template>
       <BulkDownloadProgress :status="bulk.status" :busy="bulk.busy" />
     </template>
@@ -151,13 +153,13 @@ function formatAirmass(value: number) {
       <RouterLink :to="`/w/${projectSlug}/observations/spectra/${row.pk}/`">{{ row.hjd }}</RouterLink>
     </template>
     <template #cell-star="{ row }">
-      <RouterLink
+      <AppButton
         v-if="starOf(row)"
+        variant="link"
         :to="`/w/${projectSlug}/systems/stars/${starOf(row)!.pk}`"
-        class="text-sky-400 hover:text-sky-300"
       >
         {{ starOf(row)!.name }}
-      </RouterLink>
+      </AppButton>
       <span v-else>{{ starName(row) }}</span>
     </template>
     <template #cell-resolution="{ row }">{{ formatResolution(row.resolution) }}</template>

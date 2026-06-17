@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
@@ -105,7 +106,7 @@ function spectrumLabel(info: SpectrumInfo) {
     @toggle-all="toggleAll(rows)"
   >
     <template #actions>
-      <button type="button" class="aots-btn-secondary" @click="filterOpen = true">Filters</button>
+      <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
     </template>
 
     <template #cell-hjd="{ row }">{{ row.hjd }}</template>
@@ -115,25 +116,25 @@ function spectrumLabel(info: SpectrumInfo) {
     </template>
 
     <template #cell-star="{ row }">
-      <RouterLink
+      <AppButton
         v-if="starOf(row)?.pk"
+        variant="link"
         :to="`/w/${projectSlug}/systems/stars/${starOf(row)!.pk}`"
-        class="text-sky-400 hover:text-sky-300"
       >
         {{ starOf(row)!.name }}
-      </RouterLink>
+      </AppButton>
       <span v-else-if="starOf(row)?.name">{{ starOf(row)!.name }}</span>
       <span v-else class="text-slate-400">—</span>
     </template>
 
     <template #cell-spectrum_info="{ row }">
-      <RouterLink
+      <AppButton
         v-if="row.spectrum_info"
+        variant="link"
         :to="`/w/${projectSlug}/observations/spectra/${row.spectrum_info.pk}/`"
-        class="text-sky-400 hover:text-sky-300"
       >
         {{ spectrumLabel(row.spectrum_info) }}
-      </RouterLink>
+      </AppButton>
       <span v-else class="text-slate-400">—</span>
     </template>
 

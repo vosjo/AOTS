@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import { CheckCircle2, Pencil, Plus, Trash2, XCircle } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
+import AppButton from '@/components/AppButton.vue'
 import ObservatoryWorldMap from '@/components/ObservatoryWorldMap.vue'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { api, type PaginatedResponse } from '@/api/client'
@@ -230,22 +231,22 @@ async function deleteObservatory(row: ObservatoryRow) {
           @toggle-all="toggleAll(rows)"
         >
     <template v-if="auth.isAuthenticated" #actions>
-      <button type="button" class="aots-btn-primary inline-flex items-center gap-1.5" @click="openAdd">
+      <AppButton variant="primary" class="inline-flex items-center gap-1.5" @click="openAdd">
         <Plus class="w-4 h-4" />
         Add observatory
-      </button>
+      </AppButton>
     </template>
 
     <template #cell-name="{ row }">
-      <a
+      <AppButton
         v-if="row.url"
+        variant="link"
         :href="observatoryHref(row.url)"
         target="_blank"
         rel="noopener"
-        class="text-sky-400 hover:text-sky-300"
       >
         {{ row.name }}
-      </a>
+      </AppButton>
       <span v-else>{{ row.name }}</span>
     </template>
 
@@ -264,22 +265,20 @@ async function deleteObservatory(row: ObservatoryRow) {
 
     <template v-if="auth.isAuthenticated" #cell-actions="{ row }">
       <div class="flex items-center gap-2">
-        <button
-          type="button"
-          class="p-1 text-slate-300 hover:text-sky-400"
+        <AppButton
+          variant="icon"
           title="Edit observatory"
           @click="openEdit(row)"
         >
           <Pencil class="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          class="p-1 text-slate-300 hover:text-red-400"
+        </AppButton>
+        <AppButton
+          variant="icon-danger"
           title="Delete observatory"
           @click="deleteObservatory(row)"
         >
           <Trash2 class="w-4 h-4" />
-        </button>
+        </AppButton>
       </div>
         </template>
         </DataTablePage>
@@ -346,12 +345,12 @@ async function deleteObservatory(row: ObservatoryRow) {
         <AppAlert v-if="formError" kind="error">{{ formError }}</AppAlert>
       </div>
       <div class="flex gap-2 mt-4">
-        <button type="button" class="aots-btn-primary" :disabled="saving" @click="saveObservatory">
+        <AppButton variant="primary" :disabled="saving" @click="saveObservatory">
           {{ saveLabel }}
-        </button>
-        <button type="button" class="aots-btn-ghost" :disabled="saving" @click="closeDialog">
+        </AppButton>
+        <AppButton variant="ghost" :disabled="saving" @click="closeDialog">
           Cancel
-        </button>
+        </AppButton>
       </div>
     </div>
   </dialog>

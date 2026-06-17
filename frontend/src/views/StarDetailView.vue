@@ -15,6 +15,7 @@ import {
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppAlert from '@/components/AppAlert.vue'
+import AppButton from '@/components/AppButton.vue'
 import AladinMap from '@/components/AladinMap.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
@@ -519,14 +520,15 @@ watch(editableParams, (data) => {
 
     <div class="flex-1 min-w-0 space-y-3">
       <div class="aots-detail-header">
-        <RouterLink
+        <AppButton
           v-if="auth.isAuthenticated"
+          variant="icon"
+          class="absolute top-1 right-1"
           :to="`/w/${projectSlug}/systems/stars/${starId}/edit`"
-          class="absolute top-1 right-1 p-1 text-slate-300 hover:text-sky-400"
           title="Edit star"
         >
           <Pencil class="w-4 h-4" />
-        </RouterLink>
+        </AppButton>
         <h1 class="text-lg font-semibold m-0">{{ headerTitle }}</h1>
         <span class="inline-flex items-center gap-1.5 text-sm text-slate-300">
           <i
@@ -569,9 +571,9 @@ watch(editableParams, (data) => {
         <section class="aots-panel-compact">
           <div class="flex justify-between items-center mb-2 gap-2">
             <h2 class="text-sm font-medium">Parameters</h2>
-            <button type="button" class="text-sky-400 hover:text-sky-300" title="View all parameters" @click="openParamDialog">
+            <AppButton variant="icon" title="View all parameters" @click="openParamDialog">
               <Eye class="w-4 h-4" />
-            </button>
+            </AppButton>
           </div>
           <table v-if="detail.summary_parameters.has_components" class="aots-param-table">
             <thead>
@@ -614,19 +616,19 @@ watch(editableParams, (data) => {
 
         <section class="aots-panel-compact relative">
           <h2 class="text-sm font-medium mb-1">Notes</h2>
-          <button
+          <AppButton
             v-if="auth.isAuthenticated"
-            type="button"
-            class="absolute top-2 right-2 p-1 text-slate-300 hover:text-sky-400"
+            variant="icon"
+            class="absolute top-2 right-2"
             title="Edit note"
             @click="noteEdit = !noteEdit"
           >
             <Pencil class="w-4 h-4" />
-          </button>
+          </AppButton>
           <p v-if="!noteEdit" class="text-xs text-slate-300 whitespace-pre-wrap pr-8">{{ star.note || '—' }}</p>
           <div v-else class="space-y-2">
             <textarea v-model="noteText" class="aots-field text-xs" rows="4" />
-            <button type="button" class="aots-btn-primary text-xs" @click="saveNote">Save</button>
+            <AppButton variant="primary" size="sm" @click="saveNote">Save</AppButton>
           </div>
         </section>
 
@@ -644,15 +646,14 @@ watch(editableParams, (data) => {
         <section class="aots-panel-compact">
           <div class="flex justify-between items-center mb-2">
             <h2 class="text-sm font-medium">Aliases</h2>
-            <button
+            <AppButton
               v-if="auth.isAuthenticated"
-              type="button"
-              class="text-sky-400 hover:text-sky-300"
+              variant="icon"
               title="Add alias"
               @click="identifierDialog = true"
             >
               <Plus class="w-4 h-4" />
-            </button>
+            </AppButton>
           </div>
           <div v-if="detail.identifiers.length" class="flex flex-wrap gap-2 text-xs">
             <div
@@ -662,14 +663,13 @@ watch(editableParams, (data) => {
             >
               <a v-if="ident.href" :href="ident.href" target="_blank" rel="noopener">{{ ident.name }}</a>
               <span v-else>{{ ident.name }}</span>
-              <button
+              <AppButton
                 v-if="auth.isAuthenticated"
-                type="button"
-                class="text-red-400 hover:text-red-300"
+                variant="icon-danger"
                 @click="deleteIdentifier(ident.pk)"
               >
                 <Trash2 class="w-3 h-3" />
-              </button>
+              </AppButton>
             </div>
           </div>
           <p v-else class="text-xs text-slate-400">None known.</p>
@@ -678,15 +678,14 @@ watch(editableParams, (data) => {
         <section class="aots-panel-compact">
           <div class="flex justify-between items-center mb-2">
             <h2 class="text-sm font-medium">Tags</h2>
-            <button
+            <AppButton
               v-if="auth.isAuthenticated"
-              type="button"
-              class="p-1 text-slate-300 hover:text-sky-400"
+              variant="icon"
               title="Edit tags"
               @click="openTags"
             >
               <Pencil class="w-4 h-4" />
-            </button>
+            </AppButton>
           </div>
           <div class="flex flex-wrap gap-1.5">
             <span
@@ -704,15 +703,14 @@ watch(editableParams, (data) => {
 
       <section class="aots-panel-compact">
         <div class="flex items-center gap-2 mb-2">
-          <button
-            type="button"
-            class="text-slate-300 hover:text-sky-400"
+          <AppButton
+            variant="icon"
             :title="obsExpanded ? 'Hide details' : 'Show details'"
             @click="obsExpanded = !obsExpanded"
           >
             <EyeOff v-if="obsExpanded" class="w-4 h-4" />
             <Eye v-else class="w-4 h-4" />
-          </button>
+          </AppButton>
           <h2 class="text-sm font-medium">Observations</h2>
         </div>
         <p v-if="!obsExpanded && counts" class="text-xs text-slate-400">
@@ -754,44 +752,47 @@ watch(editableParams, (data) => {
               <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <h3 class="text-xs font-medium text-slate-300">Photometry</h3>
                 <div class="flex flex-wrap items-center justify-end gap-2">
-                <button
+                <AppButton
                   v-if="!photEdit && detail.photometry.length"
-                  type="button"
-                  class="text-xs aots-btn-secondary inline-flex items-center gap-1"
+                  variant="secondary"
+                  size="sm"
+                  class="inline-flex items-center gap-1"
                   @click="copyPhotDialog = true"
                 >
                   <Copy class="w-3.5 h-3.5" />
                   Copy
-                </button>
-                <button
+                </AppButton>
+                <AppButton
                   v-if="auth.isAuthenticated"
-                  type="button"
-                  class="text-xs aots-btn-secondary inline-flex items-center gap-1"
+                  variant="secondary"
+                  size="sm"
+                  class="inline-flex items-center gap-1"
                   :disabled="photVizierLoading || photEdit"
                   @click="fetchPhotometryVizier"
                 >
                   <Loader2 v-if="photVizierLoading" class="w-3.5 h-3.5 animate-spin" />
                   <Sparkles v-else class="w-3.5 h-3.5" />
                   {{ photVizierLoading ? 'Fetching…' : 'Fetch from VizieR' }}
-                </button>
-                <button
+                </AppButton>
+                <AppButton
                   v-if="auth.isAuthenticated && !photEdit"
-                  type="button"
-                  class="text-xs aots-btn-secondary inline-flex items-center gap-1"
+                  variant="secondary"
+                  size="sm"
+                  class="inline-flex items-center gap-1"
                   @click="startPhotEdit"
                 >
                   <Pencil class="w-3.5 h-3.5" />
                   Edit
-                </button>
+                </AppButton>
                 <template v-if="photEdit">
                   <div class="relative">
-                    <button
-                      type="button"
-                      class="text-xs aots-btn-secondary"
+                    <AppButton
+                      variant="secondary"
+                      size="sm"
                       @click="addBandOpen = !addBandOpen"
                     >
                       Add band
-                    </button>
+                    </AppButton>
                     <div
                       v-if="addBandOpen"
                       class="absolute right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded border border-slate-500 bg-slate-800 py-1 shadow-lg min-w-[10rem]"
@@ -807,17 +808,17 @@ watch(editableParams, (data) => {
                       </button>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    class="text-xs aots-btn-primary"
+                  <AppButton
+                    variant="primary"
+                    size="sm"
                     :disabled="photSaving"
                     @click="savePhotometry"
                   >
                     Save
-                  </button>
-                  <button type="button" class="text-xs aots-btn-ghost" @click="cancelPhotEdit">
+                  </AppButton>
+                  <AppButton variant="ghost" size="sm" @click="cancelPhotEdit">
                     Cancel
-                  </button>
+                  </AppButton>
                 </template>
                 </div>
               </div>
@@ -844,14 +845,13 @@ watch(editableParams, (data) => {
                           <input v-model="row.error" type="number" step="any" class="aots-field-sm w-20" />
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            class="text-red-400 hover:text-red-300"
+                          <AppButton
+                            variant="icon-danger"
                             title="Remove band"
                             @click="removePhotBand(row.band)"
                           >
                             <Trash2 class="w-3.5 h-3.5" />
-                          </button>
+                          </AppButton>
                         </td>
                       </tr>
                       <tr v-if="!photDraft.length">
@@ -1039,8 +1039,8 @@ watch(editableParams, (data) => {
           {{ t.name }}
         </label>
         <div class="flex gap-2 mt-4">
-          <button type="button" class="aots-btn-primary" @click="saveTags">Save</button>
-          <button type="button" class="aots-btn-ghost" @click="tagDialog = false">Cancel</button>
+          <AppButton variant="primary" @click="saveTags">Save</AppButton>
+          <AppButton variant="ghost" @click="tagDialog = false">Cancel</AppButton>
         </div>
       </div>
     </dialog>
@@ -1055,35 +1055,33 @@ watch(editableParams, (data) => {
         <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
           <h3 class="font-medium">{{ paramEdit ? 'Edit parameters' : 'Parameter overview' }}</h3>
           <div class="flex flex-wrap items-center gap-2">
-            <button
+            <AppButton
               v-if="auth.isAuthenticated && !paramEdit"
-              type="button"
-              class="p-1 text-slate-300 hover:text-sky-400"
+              variant="icon"
               title="Edit values"
               @click="startParamEdit"
             >
               <Pencil class="w-4 h-4" />
-            </button>
+            </AppButton>
             <template v-if="paramEdit">
-              <button
-                type="button"
-                class="text-xs aots-btn-primary"
+              <AppButton
+                variant="primary"
+                size="sm"
                 :disabled="paramSaving"
                 @click="saveParameters"
               >
                 Save changes
-              </button>
-              <button type="button" class="text-xs aots-btn-ghost" @click="cancelParamEdit">
+              </AppButton>
+              <AppButton variant="ghost" size="sm" @click="cancelParamEdit">
                 Cancel
-              </button>
+              </AppButton>
             </template>
-            <button
-              type="button"
-              class="aots-btn-ghost text-sm"
+            <AppButton
+              variant="ghost"
               @click="paramDialog = false; cancelParamEdit()"
             >
               Close
-            </button>
+            </AppButton>
           </div>
         </div>
 
@@ -1166,8 +1164,8 @@ watch(editableParams, (data) => {
         <h3 class="font-medium mb-2">Copy photometry</h3>
         <textarea class="aots-field text-xs font-mono" rows="8" readonly :value="photometryCsv" />
         <div class="flex gap-2 mt-3">
-          <button type="button" class="aots-btn-primary" @click="copyPhotometry">Copy text</button>
-          <button type="button" class="aots-btn-ghost" @click="copyPhotDialog = false">Close</button>
+          <AppButton variant="primary" @click="copyPhotometry">Copy text</AppButton>
+          <AppButton variant="ghost" @click="copyPhotDialog = false">Close</AppButton>
         </div>
       </div>
     </dialog>
@@ -1183,8 +1181,8 @@ watch(editableParams, (data) => {
         <input v-model="newIdentifierName" class="aots-field" placeholder="New alias" />
         <input v-model="newIdentifierHref" class="aots-field" placeholder="Optional link" />
         <div class="flex gap-2">
-          <button type="button" class="aots-btn-primary" @click="addIdentifier">Add</button>
-          <button type="button" class="aots-btn-ghost" @click="identifierDialog = false">Cancel</button>
+          <AppButton variant="primary" @click="addIdentifier">Add</AppButton>
+          <AppButton variant="ghost" @click="identifierDialog = false">Cancel</AppButton>
         </div>
       </div>
     </dialog>

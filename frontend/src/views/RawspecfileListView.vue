@@ -5,6 +5,7 @@ import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
+import AppButton from '@/components/AppButton.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
 import { api } from '@/api/client'
@@ -321,42 +322,39 @@ async function updateLinkage() {
       @toggle-all="toggleAll(rows)"
     >
       <template #actions>
-        <button type="button" class="aots-btn-secondary" @click="filterOpen = true">Filters</button>
-        <button
+        <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
+        <AppButton
           v-if="auth.isAuthenticated"
-          type="button"
-          class="aots-btn-secondary inline-flex items-center gap-1.5"
+          variant="primary"
+          class="inline-flex items-center gap-1.5"
           @click="openUploadDialog"
         >
           <Plus class="w-4 h-4" />
           Upload raw spectra
-        </button>
+        </AppButton>
         <template v-if="auth.isAuthenticated">
-          <button
-            type="button"
-            class="aots-btn-secondary disabled:opacity-40"
+          <AppButton
+            variant="secondary"
             :disabled="!selectedIds.length"
             @click="openLinkageDialog"
           >
             Update file allocations
-          </button>
-          <button
-            type="button"
-            class="aots-btn-danger disabled:opacity-40"
+          </AppButton>
+          <AppButton
+            variant="danger"
             :disabled="!selectedIds.length"
             @click="deleteSelected"
           >
             Delete raw data
-          </button>
+          </AppButton>
         </template>
-        <button
-          type="button"
-          class="aots-btn-secondary disabled:opacity-40"
+        <AppButton
+          variant="secondary"
           :disabled="!selectedIds.length || bulk.busy"
           @click="bulk.start('rawspecfiles', selectedIds, projectStore.currentProject!.pk)"
         >
           Download raw data
-        </button>
+        </AppButton>
         <BulkDownloadProgress :status="bulk.status" :busy="bulk.busy" />
       </template>
 
@@ -382,13 +380,13 @@ async function updateLinkage() {
       <template #cell-systems="{ row }">
         <template v-if="systemsOf(row).length">
           <template v-for="(system, index) in systemsOf(row)" :key="system.name">
-            <RouterLink
+            <AppButton
               v-if="system.pk"
+              variant="link"
               :to="`/w/${projectSlug}/systems/stars/${system.pk}`"
-              class="text-sky-400 hover:text-sky-300"
             >
               {{ system.name }}
-            </RouterLink>
+            </AppButton>
             <span v-else>{{ system.name }}</span>
             <span v-if="index < systemsOf(row).length - 1">, </span>
           </template>
@@ -428,7 +426,7 @@ async function updateLinkage() {
     <div class="aots-panel w-full max-w-3xl max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between gap-4">
         <h3 class="font-medium">Add raw data</h3>
-        <button type="button" class="aots-btn-secondary shrink-0" @click="uploadOpen = false">Close</button>
+        <AppButton variant="ghost" class="shrink-0" @click="uploadOpen = false">Close</AppButton>
       </div>
 
       <template v-if="uploadMode === 'choose'">
@@ -438,9 +436,9 @@ async function updateLinkage() {
             Upload coherent datasets such as an observation night with multiple targets and
             calibration data. Calibration files are associated with all observed objects.
           </p>
-          <button type="button" class="aots-btn-secondary" @click="uploadMode = 'simple'">
+          <AppButton variant="secondary" @click="uploadMode = 'simple'">
             Automatically upload coherent data sets
-          </button>
+          </AppButton>
         </section>
         <section class="space-y-3 rounded border border-slate-600 p-4">
           <h4 class="font-medium text-sm">Individual data upload</h4>
@@ -448,14 +446,14 @@ async function updateLinkage() {
             Upload individual raw files or bulk data with manual association to systems and/or
             reduced spectra.
           </p>
-          <button type="button" class="aots-btn-secondary" @click="uploadMode = 'manual'">
+          <AppButton variant="secondary" @click="uploadMode = 'manual'">
             Manually control how data gets uploaded
-          </button>
+          </AppButton>
         </section>
       </template>
 
       <template v-else>
-        <button type="button" class="aots-btn-ghost text-sm" @click="uploadMode = 'choose'">← Back</button>
+        <AppButton variant="ghost" size="sm" @click="uploadMode = 'choose'">← Back</AppButton>
 
         <fieldset v-if="uploadMode === 'manual'" class="space-y-4">
           <legend class="text-sm font-medium text-slate-300 mb-2">Filter systems and spectra</legend>
@@ -528,14 +526,13 @@ async function updateLinkage() {
           </AppAlert>
         </div>
 
-        <button
-          type="button"
-          class="aots-btn-primary"
+        <AppButton
+          variant="primary"
           :disabled="uploadBusy || !uploadFiles?.length"
           @click="uploadRawFiles(uploadMode === 'simple')"
         >
           Upload raw data
-        </button>
+        </AppButton>
       </template>
     </div>
   </dialog>
@@ -549,7 +546,7 @@ async function updateLinkage() {
     <div class="aots-panel w-full max-w-3xl max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between gap-4">
         <h3 class="font-medium">Adjust file allocations</h3>
-        <button type="button" class="aots-btn-secondary shrink-0" @click="linkageOpen = false">Close</button>
+        <AppButton variant="ghost" class="shrink-0" @click="linkageOpen = false">Close</AppButton>
       </div>
 
       <fieldset class="space-y-4">
@@ -610,14 +607,13 @@ async function updateLinkage() {
 
       <AppAlert v-if="linkageError" kind="error">{{ linkageError }}</AppAlert>
 
-      <button
-        type="button"
-        class="aots-btn-primary"
+      <AppButton
+        variant="primary"
         :disabled="linkageBusy"
         @click="updateLinkage"
       >
         Update
-      </button>
+      </AppButton>
     </div>
   </dialog>
 </template>

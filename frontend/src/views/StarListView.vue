@@ -5,6 +5,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Plus } from 'lucide-vue-next'
 import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
+import AppButton from '@/components/AppButton.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
 import { saveCarryOver } from '@/composables/useCarryOver'
@@ -415,52 +416,52 @@ async function addSystem() {
     @toggle-all="toggleAll(rows)"
   >
     <template #actions>
-      <button type="button" class="aots-btn-secondary" @click="filterOpen = true">Filters</button>
-      <button
+      <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
+      <AppButton
         v-if="auth.isAuthenticated"
-        type="button"
-        class="aots-btn-primary inline-flex items-center gap-1.5"
+        variant="primary"
+        class="inline-flex items-center gap-1.5"
         @click="openAddDialog"
       >
         <Plus class="w-4 h-4" />
         Add system(s)
-      </button>
+      </AppButton>
       <template v-if="auth.isAuthenticated">
-        <button
-          class="aots-btn-secondary disabled:opacity-40"
+        <AppButton
+          variant="secondary"
           :disabled="!selectedIds.length"
           @click="openTagDialog"
         >
           Edit tags
-        </button>
-        <button
-          class="aots-btn-secondary disabled:opacity-40"
+        </AppButton>
+        <AppButton
+          variant="secondary"
           :disabled="!selectedIds.length"
           @click="openStatusDialog"
         >
           Change status
-        </button>
-        <button
-          class="aots-btn-secondary disabled:opacity-40"
+        </AppButton>
+        <AppButton
+          variant="secondary"
           :disabled="!selectedIds.length"
           @click="carryTo('spectra')"
         >
           Carry-over → Spectra
-        </button>
-        <button
-          class="aots-btn-secondary disabled:opacity-40"
+        </AppButton>
+        <AppButton
+          variant="secondary"
           :disabled="!selectedIds.length"
           @click="carryTo('lightcurves')"
         >
           Carry-over → LC
-        </button>
-        <button
-          class="aots-btn-danger disabled:opacity-40"
+        </AppButton>
+        <AppButton
+          variant="danger"
           :disabled="!selectedIds.length"
           @click="deleteSelected"
         >
           Delete
-        </button>
+        </AppButton>
       </template>
     </template>
 
@@ -618,8 +619,8 @@ async function addSystem() {
       </ul>
       <AppAlert v-if="tagError" kind="error" class="mt-2">{{ tagError }}</AppAlert>
       <div class="flex gap-2 mt-4">
-        <button type="button" class="aots-btn-primary" @click="saveTags">Update</button>
-        <button type="button" class="aots-btn-ghost" @click="tagDialog = false">Cancel</button>
+        <AppButton variant="primary" @click="saveTags">Update</AppButton>
+        <AppButton variant="ghost" @click="tagDialog = false">Cancel</AppButton>
       </div>
     </div>
   </dialog>
@@ -642,8 +643,8 @@ async function addSystem() {
       </ul>
       <AppAlert v-if="statusError" kind="error" class="mt-2">{{ statusError }}</AppAlert>
       <div class="flex gap-2 mt-4">
-        <button type="button" class="aots-btn-primary" @click="saveStatus">Update</button>
-        <button type="button" class="aots-btn-ghost" @click="statusDialog = false">Cancel</button>
+        <AppButton variant="primary" @click="saveStatus">Update</AppButton>
+        <AppButton variant="ghost" @click="statusDialog = false">Cancel</AppButton>
       </div>
     </div>
   </dialog>
@@ -657,24 +658,29 @@ async function addSystem() {
     <div class="aots-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6">
       <div class="flex items-center justify-between gap-4">
         <h3 class="font-medium">Add system(s)</h3>
-        <button type="button" class="aots-btn-secondary shrink-0" @click="addDialog = false">Close</button>
+        <AppButton variant="ghost" class="shrink-0" @click="addDialog = false">Close</AppButton>
       </div>
 
       <section class="space-y-3">
         <h4 class="text-sm font-medium text-slate-300">Bulk upload (.csv)</h4>
         <input type="file" accept=".csv" class="aots-field w-full" @change="(e) => csvFile = (e.target as HTMLInputElement).files" />
         <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
-          <button
-            type="button"
-            class="aots-btn-secondary"
+          <AppButton
+            variant="secondary"
             :disabled="addBusy || !csvFile?.length"
             @click="uploadCsv"
           >
             Upload .csv file
-          </button>
-          <a href="/media/docs/Bulk_system_example.csv" class="text-xs text-sky-400 hover:text-sky-300" target="_blank" rel="noopener">
+          </AppButton>
+          <AppButton
+            variant="link"
+            size="sm"
+            href="/media/docs/Bulk_system_example.csv"
+            target="_blank"
+            rel="noopener"
+          >
             Example .csv file
-          </a>
+          </AppButton>
         </div>
       </section>
 
@@ -694,15 +700,15 @@ async function addSystem() {
                 class="aots-field w-full"
                 @blur="addForm.get_simbad && resolveSimbadName()"
               />
-              <button
+              <AppButton
                 v-if="addForm.get_simbad"
-                type="button"
-                class="aots-btn-secondary shrink-0"
+                variant="secondary"
+                class="shrink-0"
                 :disabled="simbadResolving || !addForm.name.trim()"
                 @click="resolveSimbadName"
               >
                 {{ simbadResolving ? 'Resolving…' : 'Resolve' }}
-              </button>
+              </AppButton>
             </div>
           </label>
           <AppAlert
@@ -779,14 +785,13 @@ async function addSystem() {
             {{ tag.name }}
           </label>
         </div>
-        <button
-          type="button"
-          class="aots-btn-primary"
+        <AppButton
+          variant="primary"
           :disabled="addBusy || !addForm.name || (addForm.get_simbad && simbadAmbiguous.length > 0)"
           @click="addSystem"
         >
           Add system
-        </button>
+        </AppButton>
       </section>
 
       <AppAlert v-if="addError" :kind="addErrorKind" class="whitespace-pre-wrap">{{ addError }}</AppAlert>

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { Plus, Trash2 } from 'lucide-vue-next'
+import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
@@ -136,31 +137,31 @@ async function uploadLightCurves() {
     @toggle-all="toggleAll(rows)"
   >
     <template #actions>
-      <button type="button" class="aots-btn-secondary" @click="filterOpen = true">Filters</button>
-      <button
+      <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
+      <AppButton
         v-if="auth.isAuthenticated"
-        type="button"
-        class="aots-btn-secondary inline-flex items-center gap-1.5"
+        variant="primary"
+        class="inline-flex items-center gap-1.5"
         @click="uploadOpen = true"
       >
         <Plus class="w-4 h-4" />
-        Add new
-      </button>
-      <button
-        class="aots-btn-secondary disabled:opacity-40"
+        Upload lightcurve(s)
+      </AppButton>
+      <AppButton
+        variant="secondary"
         :disabled="!selectedIds.length || bulk.busy"
         @click="bulk.start('lightcurves', selectedIds, projectStore.currentProject!.pk)"
       >
         Download selected
-      </button>
-      <button
+      </AppButton>
+      <AppButton
         v-if="auth.isAuthenticated"
-        class="aots-btn-danger disabled:opacity-40"
+        variant="danger"
         :disabled="!selectedIds.length"
         @click="deleteSelected"
       >
         Delete selected
-      </button>
+      </AppButton>
       <BulkDownloadProgress :status="bulk.status" :busy="bulk.busy" />
     </template>
 
@@ -170,12 +171,12 @@ async function uploadLightCurves() {
 
     <template #cell-star="{ row }">
       <template v-if="starOf(row)">
-        <RouterLink
+        <AppButton
+          variant="link"
           :to="`/w/${projectSlug}/systems/stars/${starOf(row)!.pk}`"
-          class="text-sky-400 hover:text-sky-300"
         >
           {{ starOf(row)!.name }}
-        </RouterLink>
+        </AppButton>
         <span class="text-slate-400">
           ({{ starOf(row)!.ra.toFixed(5) }} {{ starOf(row)!.dec.toFixed(5) }})
         </span>
@@ -191,14 +192,13 @@ async function uploadLightCurves() {
     <template #cell-cadence="{ row }">{{ formatLcValue(row.cadence) }}</template>
 
     <template v-if="auth.isAuthenticated" #cell-actions="{ row }">
-      <button
-        type="button"
-        class="p-1 text-slate-300 hover:text-red-400"
+      <AppButton
+        variant="icon-danger"
         title="Delete light curve"
         @click="deleteRow(row.pk)"
       >
         <Trash2 class="w-4 h-4" />
-      </button>
+      </AppButton>
     </template>
   </DataTablePage>
 
@@ -235,17 +235,16 @@ async function uploadLightCurves() {
       </fieldset>
       <p v-if="uploadStatus" class="mt-3 text-sm text-slate-400 whitespace-pre-wrap">{{ uploadStatus }}</p>
       <div class="flex gap-2 mt-4">
-        <button
-          type="button"
-          class="aots-btn-primary"
+        <AppButton
+          variant="primary"
           :disabled="uploadBusy || !uploadFiles?.length"
           @click="uploadLightCurves"
         >
           Upload
-        </button>
-        <button type="button" class="aots-btn-ghost" :disabled="uploadBusy" @click="uploadOpen = false">
+        </AppButton>
+        <AppButton variant="ghost" :disabled="uploadBusy" @click="uploadOpen = false">
           Cancel
-        </button>
+        </AppButton>
       </div>
     </div>
   </dialog>

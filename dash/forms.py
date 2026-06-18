@@ -1,8 +1,19 @@
 from django import forms
 
+from analysis.parameter_labels import hrd_axis_choices, normalize_hrd_axis_key
+
+
+def _normalize_hrd_form_data(data):
+    if not data:
+        return data
+    mutable = data.copy()
+    for key in ('xaxis', 'yaxis', 'size', 'color'):
+        if mutable.get(key):
+            mutable[key] = normalize_hrd_axis_key(mutable[key])
+    return mutable
+
 
 class HRDPlotterForm(forms.Form):
-    from .labels import labeldict
     nsys = forms.ChoiceField(label="# Systems ",
                              required=True,
                              widget=forms.Select(),
@@ -18,30 +29,27 @@ class HRDPlotterForm(forms.Form):
     xaxis = forms.ChoiceField(label="X-axis ",
                               required=True,
                               widget=forms.Select(),
-                              choices=[
-                                  (a, b) for a, b in labeldict.items()
-                              ])
+                              choices=hrd_axis_choices())
 
     yaxis = forms.ChoiceField(label="Y-axis ",
                               required=True,
                               widget=forms.Select(),
-                              choices=[
-                                  (a, b) for a, b in labeldict.items()
-                              ])
+                              choices=hrd_axis_choices())
 
     size = forms.ChoiceField(label="Size ",
                              required=False,
                              widget=forms.Select(),
-                             choices=[
-                                         (a, b) for a, b in labeldict.items()
-                                     ] + [(None, "None")])
+                             choices=hrd_axis_choices() + [(None, "None")])
 
     color = forms.ChoiceField(label="Color ",
                               required=False,
                               widget=forms.Select(),
-                              choices=[
-                                          (a, b) for a, b in labeldict.items()
-                                      ] + [(None, "None")])
+                              choices=hrd_axis_choices() + [(None, "None")])
+
+    def __init__(self, *args, **kwargs):
+        if args and hasattr(args[0], 'copy'):
+            args = (_normalize_hrd_form_data(args[0]),) + args[1:]
+        super().__init__(*args, **kwargs)
 
     def get_parameters(self):
         return {'xaxis': self.cleaned_data['xaxis'],

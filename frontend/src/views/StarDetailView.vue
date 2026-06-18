@@ -44,7 +44,9 @@ interface StarCore {
 
 interface ParamRow {
   name: string
+  display_label: string
   unit: string
+  unit_display: string
   value?: string
   primary?: string
   secondary?: string
@@ -150,16 +152,18 @@ interface ParamOverview {
   sources: Array<{ pk: number; name: string }>
   components: Array<{
     component: string
-    rows: Array<{ name: string; unit: string; values: string[] }>
+    rows: Array<{ name: string; display_label?: string; unit: string; unit_display?: string; values: string[] }>
   }>
 }
 
 interface EditableParameter {
   id: number
   name: string
+  display_label: string
   component: string
   source: string
   unit: string
+  unit_display: string
   value: number
   error: number
 }
@@ -585,11 +589,11 @@ watch(editableParams, (data) => {
             </thead>
             <tbody>
               <tr v-for="p in detail.summary_parameters.system" :key="`sys-${p.name}`">
-                <th>{{ p.name }} ({{ p.unit }})</th>
+                <th>{{ p.display_label }}</th>
                 <td colspan="2">{{ p.value }}</td>
               </tr>
               <tr v-for="p in detail.summary_parameters.component" :key="`cmp-${p.name}`">
-                <th>{{ p.name }} ({{ p.unit }})</th>
+                <th>{{ p.display_label }}</th>
                 <td>{{ p.primary }}</td>
                 <td>{{ p.secondary }}</td>
               </tr>
@@ -601,7 +605,7 @@ watch(editableParams, (data) => {
             </thead>
             <tbody>
               <tr v-for="p in detail.summary_parameters.system" :key="p.name">
-                <th>{{ p.name }} ({{ p.unit }})</th>
+                <th>{{ p.display_label }}</th>
                 <td>{{ p.value }}</td>
               </tr>
             </tbody>
@@ -1008,11 +1012,11 @@ watch(editableParams, (data) => {
                 </thead>
                 <tbody>
                   <tr v-for="p in plot.parameters.system" :key="`ds-${plot.analysis_id}-sys-${p.name}`">
-                    <th>{{ p.name }} ({{ p.unit }})</th>
+                    <th>{{ p.display_label }}</th>
                     <td :colspan="plot.parameters.component.length ? 2 : 1">{{ p.value }}</td>
                   </tr>
                   <tr v-for="p in plot.parameters.component" :key="`ds-${plot.analysis_id}-cmp-${p.name}`">
-                    <th>{{ p.name }} ({{ p.unit }})</th>
+                    <th>{{ p.display_label }}</th>
                     <td>{{ p.primary }}</td>
                     <td>{{ p.secondary }}</td>
                   </tr>
@@ -1098,7 +1102,7 @@ watch(editableParams, (data) => {
             </thead>
             <tbody>
               <tr v-for="p in editableParams?.parameters ?? []" :key="p.id">
-                <th>{{ p.name }} ({{ p.unit }})</th>
+                <th>{{ p.display_label }}</th>
                 <td>{{ p.component }}</td>
                 <td>{{ p.source }}</td>
                 <td v-if="paramDraft[p.id]">
@@ -1143,7 +1147,7 @@ watch(editableParams, (data) => {
                     </th>
                   </tr>
                   <tr v-for="row in comp.rows" :key="`${comp.component}-${row.name}`">
-                    <th>{{ row.name }} ({{ row.unit }})</th>
+                    <th>{{ row.display_label || row.name }}</th>
                     <td v-for="(val, idx) in row.values" :key="idx">{{ val }}</td>
                   </tr>
                 </template>

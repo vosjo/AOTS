@@ -1,5 +1,7 @@
 import numpy as np
 
+from analysis.parameter_aliases import STORED_PARAMETER_ALIASES, stored_parameter_lookup_names
+
 # -- Method related constants
 GENERIC = 'gen'
 SED = 'sed'
@@ -29,7 +31,6 @@ PARAMETER_DECIMALS = {
     'rad': 2,
     'ebv': 3,
     'z': 2,
-    'met': 2,
     'vmicro': 1,
     'vrot': 0,
     'dilution': 2,
@@ -40,6 +41,9 @@ PARAMETER_DECIMALS = {
     'K': 2,
     'v0': 2,
 }
+
+#   Derived parameter base names (display metadata in parameter_labels.py)
+DERIVED_PARAMETER_NAMES = ('q', 'msini', 'asini', 'r', 'm')
 
 #   Default parameters and corresponding default units
 DEFAULT_PARAMETERS = {
@@ -57,6 +61,10 @@ DEFAULT_PARAMETERS = {
     'rad': 'solRad',
     'teff': 'K',
     'logg': 'dex',
+    'z': 'dex',
+    'vmicro': 'km/s',
+    'vrot': 'km/s',
+    'dilution': '',
 }
 
 #   Parameter aliases
@@ -64,6 +72,8 @@ PARAMETER_ALIASES = {
     # 'L': ['L*', 'Lstar'],         #   Example
     'v01': ['v', 'v0'],
     'k1': ['k'],
+    'logg': ['log_g'],
+    'z': ['met'],
 }
 
 #   Unit aliases
@@ -71,6 +81,20 @@ UNIT_ALIASES = {
     'solRad': ['Rsol'],
     'solLum': ['Lsol'],
 }
+
+
+def canonical_parameter_base(name: str) -> str:
+    """Map legacy/alias parameter names to their canonical base (e.g. ``met`` → ``z``)."""
+    base, _component = split_parameter_name(name)
+    if base in DEFAULT_PARAMETERS or base in PARAMETER_DECIMALS or base in PARAMETER_ORDER:
+        return base
+    for canonical, aliases in PARAMETER_ALIASES.items():
+        canonical_base, _ = split_parameter_name(canonical)
+        if base.lower() == canonical_base.lower():
+            return canonical_base
+        if base.lower() in (alias.lower() for alias in aliases):
+            return canonical_base
+    return base
 
 
 def split_parameter_name(name):
@@ -101,6 +125,7 @@ def round_value(value, name=None, error=None):
     # else round based on the type of parameter
     if not name is None:
         name, component = split_parameter_name(name)
+        name = canonical_parameter_base(name)
 
         decimals = PARAMETER_DECIMALS.get(name, 3)
         if decimals > 0:
@@ -126,7 +151,6 @@ PARAMETER_ORDER = {
     'rad': 12,
     'ebv': 13,
     'z': 14,
-    'met': 14,
     'vmicro': 15,
     'vrot': 16,
     'dilution': 17,
@@ -137,7 +161,8 @@ def parameter_order(name):
     """
     returns the parameter order based on its name
     """
-    if name in PARAMETER_ORDER:
-        return PARAMETER_ORDER[name]
+    base = canonical_parameter_base(name)
+    if base in PARAMETER_ORDER:
+        return PARAMETER_ORDER[base]
     else:
         return 20

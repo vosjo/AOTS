@@ -22,7 +22,9 @@ interface CategoryOption {
 interface AnalysisParameter {
   pk: number
   cname: string
+  display_label: string
   unit: string
+  unit_display: string
   rvalue: number
   rerror: number
   valid: boolean
@@ -347,7 +349,7 @@ async function deriveParameters() {
                   </tr>
                   <tr v-for="param in analysis.parameters" :key="param.pk">
                     <th class="font-normal text-aots">
-                      {{ param.cname }} ({{ param.unit }})
+                      {{ param.display_label }}
                     </th>
                     <td>{{ param.rvalue }}</td>
                     <td>{{ param.rerror }}</td>
@@ -401,7 +403,7 @@ async function deriveParameters() {
                   </tr>
                   <tr v-for="param in analysis.derived_parameters" :key="param.pk">
                     <th class="font-normal text-aots">
-                      {{ param.cname }} ({{ param.unit }})
+                      {{ param.display_label }}
                     </th>
                     <td>{{ param.rvalue }}</td>
                     <td>{{ param.rerror }}</td>

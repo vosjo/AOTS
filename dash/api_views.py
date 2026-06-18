@@ -56,7 +56,7 @@ def dashboard_bootstrap(request, project_slug):
     form = HRDPlotterForm(request.GET or None)
     if not form.is_valid():
         form = HRDPlotterForm(initial={
-            'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': 'mag_abs', 'size': '', 'color': '',
+            'nsys': 50, 'xaxis': 'bp_rp', 'yaxis': 'absolute_g_mag', 'size': '', 'color': '',
         })
 
     parameters = form.get_parameters() if form.is_valid() else {}

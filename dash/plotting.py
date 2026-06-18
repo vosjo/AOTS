@@ -17,8 +17,11 @@ from astropy.table import QTable
 
 from django.db.models import Prefetch
 
+from analysis.parameter_aliases import stored_parameter_lookup_names
 from stars.models import Project, Star
-from .labels import labeldict
+from analysis.parameter_labels import hrd_axis_label, normalize_hrd_axis_key
+
+_ABS_G_MAG_NAMES = frozenset(stored_parameter_lookup_names('absolute_g_mag'))
 
 
 def errors_from_coords(x, y, x_err, y_err):
@@ -34,12 +37,18 @@ def errors_from_coords(x, y, x_err, y_err):
     return list(zip(x_upper, x_lower)), list(zip(y_upper, y_lower)), list(zip(x, x)), list(zip(y, y))
 
 
-def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
+def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None,
              cstr=None, nstars=50):
     if rstr == "":
         rstr = None
     if cstr == "":
         cstr = None
+    xstr = normalize_hrd_axis_key(xstr)
+    ystr = normalize_hrd_axis_key(ystr)
+    if rstr:
+        rstr = normalize_hrd_axis_key(rstr)
+    if cstr:
+        cstr = normalize_hrd_axis_key(cstr)
     proj = Project.objects.get(pk=project_id)
     if nstars == "all":
         star_list = Star.objects.filter(project=proj).prefetch_related('parameter_set', 'photometry_set')
@@ -100,18 +109,18 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
         g_mag_abs_err = None
 
         for name, source_name, val, err_l, err_u in pset:
-            if source_name != "AVG" and name != 'absolute_g_mag':
+            if source_name != "AVG" and name not in _ABS_G_MAG_NAMES:
                 continue
             if name == "teff":
                 teff = val
                 tefferr = (err_l + err_u) / 2
-            if name == "log_g":
+            if name in ('logg', 'log_g'):
                 logg = val
                 loggerr = (err_l + err_u) / 2
             if name == "bp_rp" and bp_rp == 0:
                 bp_rp = val
                 bp_rp_err = (err_l + err_u) / 2
-            if name == 'absolute_g_mag':
+            if name in _ABS_G_MAG_NAMES:
                 g_mag_abs = val
                 g_mag_abs_err = (err_l + err_u) / 2
 
@@ -156,8 +165,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
                       mag_errs=np.array(mags_errs),
                       bp_rp=np.array(bp_rps),
                       bp_rp_errs=np.array(bp_rps_errs),
-                      mag_abs=np.array(g_mag_abss),
-                      mag_abs_errs=np.array(g_mag_abs_errs),
+                      absolute_g_mag=np.array(g_mag_abss),
+                      absolute_g_mag_errs=np.array(g_mag_abs_errs),
                       )
 
     if cstr is not None:
@@ -178,8 +187,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
             normrstr = normrstr / np.amax(normrstr) * .025
             star_props["norm_" + rstr] = normrstr
 
-    if ystr == "mag_abs":
-        if sum(star_props['mag_abs'] != -1000.) == 0:
+    if ystr == "absolute_g_mag":
+        if sum(star_props['absolute_g_mag'] != -1000.) == 0:
             ystr = "mag"
             messages.warning(request,
                              "Absolute g-band magnitudes are not available, instead apparent magnitudes are plotted.")
@@ -194,7 +203,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
     # fig.circle('bp_rp', 'mag', size=8, color='white', alpha=0.1, name='hover', source=starsource)
 
     #   Add Gaia data for CMD plots
-    if xstr == "bp_rp" and ystr == "mag_abs":
+    if xstr == "bp_rp" and ystr == "absolute_g_mag":
         #   Read data from file
         gaia_data = QTable.read(
             os.path.join(settings.BASE_DIR, 'media/gaia/gaia_data.fits')
@@ -230,7 +239,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
                                 fill_color=colors,
                                 line_color=colors)
 
-        color_bar = ColorBar(color_mapper=colors['transform'], width=8, location=(0, 0), title=labeldict[cstr])
+        color_bar = ColorBar(color_mapper=colors['transform'], width=8, location=(0, 0), title=hrd_axis_label(cstr))
 
         fig.add_layout(color_bar, 'right')
 
@@ -269,7 +278,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
                                 fill_color=colors,
                                 line_color=colors)
 
-        color_bar = ColorBar(color_mapper=colors['transform'], width=8, location=(0, 0), title=labeldict[cstr])
+        color_bar = ColorBar(color_mapper=colors['transform'], width=8, location=(0, 0), title=hrd_axis_label(cstr))
 
         fig.add_layout(color_bar, 'right')
 
@@ -324,7 +333,7 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
             )
 
         #   Plot limits for CMD with Gaia data
-        if xstr == "bp_rp" and ystr == "mag_abs":
+        if xstr == "bp_rp" and ystr == "absolute_g_mag":
             fig.y_range = Range1d(
                 max(np.nanmax(y), np.nanmax(gaia_color)) + (np.nanmax(y) - np.nanmin(y)) * 0.05,
                 min(np.nanmin(y), np.nanmin(gaia_color)) - (np.nanmax(y) - np.nanmin(y)) * 0.05
@@ -345,8 +354,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="mag_abs", rstr=None,
 
     fig.toolbar.logo = None
 
-    fig.yaxis.axis_label = labeldict[ystr]
-    fig.xaxis.axis_label = labeldict[xstr]
+    fig.yaxis.axis_label = hrd_axis_label(ystr)
+    fig.xaxis.axis_label = hrd_axis_label(xstr)
     fig.yaxis.axis_label_text_font_size = '10pt'
     fig.xaxis.axis_label_text_font_size = '10pt'
     fig.min_border = 5

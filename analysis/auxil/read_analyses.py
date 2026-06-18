@@ -2,7 +2,9 @@ from astropy import units as u
 from astropy.coordinates.angles import Angle
 
 from analysis.categories import uses_sed_hdf5_reader
-from analysis.models.default_values import DEFAULT_PARAMETERS, PARAMETER_ALIASES, UNIT_ALIASES
+from analysis.models.default_values import DEFAULT_PARAMETERS, UNIT_ALIASES
+from analysis.services.metallicity import metallicity_to_feh_dex
+from analysis.services.parameter_names import resolve_ingest_parameter_name, storage_parameter_name
 
 
 # ==============================================================================================
@@ -93,6 +95,28 @@ def get_basic_info(data):
 # PARAMETER extraction
 # ==============================================================================================
 
+def _parameter_record_to_dict(parameter):
+    if isinstance(parameter, (list, tuple)):
+        value, err_l, err_u, unit = parameter
+        return {
+            'value': value,
+            'err_l': err_l,
+            'err_u': err_u,
+            'unit': unit,
+        }
+    record = dict(parameter)
+    if 'err_l' not in record and 'err' in record:
+        record['err_l'] = record['err']
+        record['err_u'] = record['err']
+    return record
+
+
+def _record_to_tuple(record):
+    err_l = record['err_l']
+    err_u = record['err_u']
+    return [record['value'], err_l, err_u, record['unit']]
+
+
 def unit_homogenisation(unit, parameter_name):
     '''
         This function ensures that the provided unit is compatible with
@@ -113,6 +137,10 @@ def unit_homogenisation(unit, parameter_name):
     '''
     if parameter_name == 'ebv' and unit == '':
         return 'mag'
+    if parameter_name == 'z' and unit == '':
+        return 'dex'
+    if parameter_name in ('vmicro', 'vrot') and unit == '':
+        return 'km/s'
     for default_unit, aliases in UNIT_ALIASES.items():
         if unit in aliases:
             return default_unit
@@ -122,7 +150,7 @@ def unit_homogenisation(unit, parameter_name):
 
 def parameter_homogenisation(data):
     '''
-        This function ensures that parameters are save with default names
+        This function ensures that parameters are saved with default names
         and units. Non default units or names will be converted, if possible.
 
         Parameters
@@ -133,54 +161,52 @@ def parameter_homogenisation(data):
         Returns
         -------
             results         : dictionary`
-                Dictionary with default parameter names and units
+                Dictionary mapping parameter keys to
+                [value, error_l, error_u, unit] lists
     '''
     results = {}
-    for pname, parameter in data.items():
-        #   Check if parameter name is a default one or not
-        if pname in DEFAULT_PARAMETERS.keys():
-            parameter_name = pname
-        else:
-            for default_name, aliases in PARAMETER_ALIASES.items():
-                if pname in aliases:
-                    parameter_name = default_name
-                    break
-            else:
-                continue
+    for pname, raw in data.items():
+        resolved = resolve_ingest_parameter_name(pname)
+        if resolved is None:
+            continue
 
-        #   Add to results
-        results[parameter_name] = parameter
+        base, component = resolved
+        storage_name = storage_parameter_name(base, component)
+        record = _parameter_record_to_dict(raw)
 
-        #   Find units
-        default_unit = DEFAULT_PARAMETERS[parameter_name]
-        parameter_unit = unit_homogenisation(parameter['unit'], parameter_name)
-        results[parameter_name]['unit'] = parameter_unit
+        default_unit = DEFAULT_PARAMETERS[base]
+        parameter_unit = unit_homogenisation(record['unit'], base)
 
-        if default_unit != parameter_unit:
-            #   Convert value and error if unit mismatch
+        if base == 'z':
             try:
-                value = parameter['value'] * u.Unit(parameter_unit)
-                if 'err_l' in parameter:
-                    err_l = parameter['err_l'] * u.Unit(parameter_unit)
-                else:
-                    err_l = parameter['err'] * u.Unit(parameter_unit)
-                if 'err_u' in parameter:
-                    err_u = parameter['err_u'] * u.Unit(parameter_unit)
-                else:
-                    err_u = parameter['err'] * u.Unit(parameter_unit)
-                    results[parameter_name].pop('err')
+                value, err_l, err_u, parameter_unit = metallicity_to_feh_dex(
+                    record['value'],
+                    record.get('err_l'),
+                    record.get('err_u'),
+                    unit=parameter_unit,
+                )
+                record['value'] = value
+                record['err_l'] = err_l
+                record['err_u'] = err_u
+                record['unit'] = parameter_unit
+            except (ValueError, ZeroDivisionError):
+                continue
+        elif default_unit != parameter_unit:
+            try:
+                value = record['value'] * u.Unit(parameter_unit)
+                err_l = record['err_l'] * u.Unit(parameter_unit)
+                err_u = record['err_u'] * u.Unit(parameter_unit)
 
-                #   Actual conversion
-                converted_value = value.to_value(u.Unit(default_unit))
-                results[parameter_name]['value'] = converted_value
-                converted_err_l = err_l.to_value(u.Unit(default_unit))
-                results[parameter_name]['err_l'] = converted_err_l
-                converted_err_u = err_u.to_value(u.Unit(default_unit))
-                results[parameter_name]['err_u'] = converted_err_u
+                record['value'] = value.to_value(u.Unit(default_unit))
+                record['err_l'] = err_l.to_value(u.Unit(default_unit))
+                record['err_u'] = err_u.to_value(u.Unit(default_unit))
+                record['unit'] = default_unit
+            except Exception:
+                continue
+        else:
+            record['unit'] = default_unit
 
-                results[parameter_name]['unit'] = default_unit
-            except:
-                results.pop(parameter_name)
+        results[storage_name] = _record_to_tuple(record)
 
     return results
 
@@ -199,23 +225,38 @@ def get_parameters_special_sedfit(data):
 
     ci = data['results']['iminimize']['CI'] if 'iminimize' in data['results'] else data['results']['igrid_search']['CI']
 
-    parameters1 = [('ebv', '')]
-    parameters2 = [('teff', 'K'), ('logg', 'dex'), ]
     upper, lower = '_u', '_l'
 
+    def _ci_tuple(key, unit):
+        if key not in ci or key + upper not in ci or key + lower not in ci:
+            return None
+        return [ci[key], ci[key + upper] - ci[key], ci[key] - ci[key + lower], unit]
+
+    def _add_component_pair(base, unit):
+        t1 = _ci_tuple(base, unit)
+        if t1 is not None:
+            results[base + '1'] = t1
+        t2 = _ci_tuple(base + '2', unit)
+        if t2 is not None:
+            results[base + '2'] = t2
+
     results = {}
-    for (p, u) in parameters1:
-        results[p] = [ci[p], ci[p + upper] - ci[p], ci[p] - ci[p + lower], u]
+    for p, u in [('ebv', 'mag')]:
+        t = _ci_tuple(p, u)
+        if t is not None:
+            results[p] = t
 
-    for (p, u) in parameters2:
-        results[p + '1'] = [ci[p], ci[p + upper] - ci[p], ci[p] - ci[p + lower], u]
-        p = p + '2'
-        results[p] = [ci[p], ci[p + upper] - ci[p], ci[p] - ci[p + lower], u]
+    for p, u in [
+        ('teff', 'K'),
+        ('logg', 'dex'),
+        ('z', 'dex'),
+        ('vmicro', 'km/s'),
+        ('vrot', 'km/s'),
+        ('dilution', ''),
+    ]:
+        _add_component_pair(p, u)
 
-    #   Check parameter names and units
-    results = parameter_homogenisation(results)
-
-    return results
+    return parameter_homogenisation(results)
 
 
 def get_parameters_generic(data):
@@ -230,19 +271,7 @@ def get_parameters_generic(data):
         return {}
 
     pars = data['PARAMETERS']
-
-    #   Check parameter names and units
-    pars = parameter_homogenisation(pars)
-
-    results = {}
-    for pname, parameter in pars.items():
-        value = parameter['value']
-        unit = parameter['unit']
-        err_l = parameter['err_l'] if 'err_l' in parameter else parameter['err']
-        err_u = parameter['err_u'] if 'err_u' in parameter else parameter['err']
-        results[pname] = [value, err_l, err_u, unit]
-
-    return results
+    return parameter_homogenisation(pars)
 
 
 def get_parameters(data):

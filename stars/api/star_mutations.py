@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
+from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
 from analysis.services import parameter_io
 from stars.auxil import (
     passbands,
@@ -72,9 +73,11 @@ def _editable_parameters(star):
         rows.append({
             'id': param.pk,
             'name': param.name,
+            'display_label': parameter_label_with_unit(param.cname, param.unit, from_cname=True),
             'component': comp_label,
             'source': source_name,
             'unit': param.unit,
+            'unit_display': unit_display_name(param.unit),
             'value': param.value,
             'error': param.error,
             'field_key': f'{param.name}_{comp_label}_{source_name.replace(" ", "-")}',

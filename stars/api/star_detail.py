@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from AOTS.custom_permissions import IsAllowedOnProject
 from AOTS.permissions_helpers import get_object_if_allowed
 from observations.api.formatting import format_float_negative_na, hjd2date
+from analysis.parameter_labels import parameter_display_name, parameter_label_with_unit, unit_display_name
 from stars.auxil import get_params
 from stars.models import Star
 from stars.api.serializers import StarSerializer, IdentifierListSerializer
@@ -61,7 +62,9 @@ def _summary_parameters(star):
     system = [
         {
             'name': name,
+            'display_label': parameter_label_with_unit(name, unit),
             'unit': unit,
+            'unit_display': unit_display_name(unit),
             'value': _param_display(value),
         }
         for name, unit, value in star.get_system_summary_parameter()
@@ -69,7 +72,9 @@ def _summary_parameters(star):
     component = [
         {
             'name': name,
+            'display_label': parameter_label_with_unit(name, unit),
             'unit': unit,
+            'unit_display': unit_display_name(unit),
             'primary': _param_display(primary),
             'secondary': _param_display(secondary),
         }
@@ -230,7 +235,13 @@ def star_parameters_overview(request, pk):
                 'rows': [
                     {
                         'name': row['pinfo'].name if row['pinfo'] else '',
+                        'display_label': parameter_label_with_unit(
+                            row['pinfo'].cname if row['pinfo'] else '',
+                            row['pinfo'].unit if row['pinfo'] else '',
+                            from_cname=True,
+                        ) if row['pinfo'] else '',
                         'unit': row['pinfo'].unit if row['pinfo'] else '',
+                        'unit_display': unit_display_name(row['pinfo'].unit) if row['pinfo'] else '',
                         'values': [_param_display(v) for v in row['values']],
                     }
                     for row in comp['params']

@@ -54,7 +54,7 @@ def dashboard(request, project=None, **kwargs):
             form = HRDPlotterForm(initial={
                 'nsys': 50,
                 'xaxis': 'bp_rp',
-                'yaxis': "mag_abs",
+                'yaxis': 'absolute_g_mag',
                 "size": "",
                 "color": "",
                 })
@@ -62,7 +62,7 @@ def dashboard(request, project=None, **kwargs):
         form = HRDPlotterForm(initial={
             'nsys': 50,
             'xaxis': 'bp_rp',
-            'yaxis': "mag_abs",
+            'yaxis': 'absolute_g_mag',
             "size": "",
             "color": "",
             })

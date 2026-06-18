@@ -8,6 +8,7 @@ from scipy import stats
 from scipy.stats import pearsonr
 
 from analysis.models import Parameter
+from analysis.parameter_labels import parameter_axis_label
 from stars.models import Star
 
 
@@ -181,7 +182,17 @@ def get_data(parameters, project=None):
     return parameter_table, list(pnames)
 
 
-def get_parameter_statistics(data, xpar, ypar):
+def _parameter_units_by_cname(project=None):
+    qs = Parameter.objects.filter(average=True)
+    if project is not None:
+        qs = qs.filter(star__project=project)
+    return {
+        row['cname']: row['unit']
+        for row in qs.values('cname', 'unit').distinct()
+    }
+
+
+def get_parameter_statistics(data, xpar, ypar, unit_lookup=None):
     try:
         x = np.asarray(data[xpar], dtype=float)
         y = np.asarray(data[ypar], dtype=float)
@@ -192,7 +203,9 @@ def get_parameter_statistics(data, xpar, ypar):
         corr, pvalue = pearsonr(x[mask], y[mask])
 
         return "Pearson correlation ({} - {}) = {:0.2f},   P-value = {:0.3f}".format(
-            xpar, ypar, corr, pvalue,
+            parameter_axis_label(xpar, (unit_lookup or {}).get(xpar)),
+            parameter_axis_label(ypar, (unit_lookup or {}).get(ypar)),
+            corr, pvalue,
         )
     except Exception:
         return "No statistics calculated"
@@ -212,11 +225,12 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
         cstr = None
 
     data, param_names = get_data(parameters, project=project)
+    unit_lookup = _parameter_units_by_cname(project=project)
     for par in (xpar, ypar, rstr, cstr):
         if par:
             data.setdefault(par, [])
             data.setdefault(f'e_{par}', [])
-    statistics = get_parameter_statistics(data, xpar, ypar)
+    statistics = get_parameter_statistics(data, xpar, ypar, unit_lookup=unit_lookup)
 
     norm_cstr = None
     if cstr is not None:
@@ -237,7 +251,8 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
     datasource = bpl.ColumnDataSource(data=data)
 
     tooltips = [('System', '@system')] + \
-               [(p, '@{} +- @e_{}'.format(p, p)) for p in param_names]
+               [(parameter_axis_label(p, unit_lookup.get(p)),
+                 '@{} +- @e_{}'.format(p, p)) for p in param_names]
 
     TOOLS = [mpl.PanTool(), mpl.WheelZoomTool(),
              mpl.BoxZoomTool(), mpl.ResetTool()]
@@ -278,7 +293,7 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
             color_mapper=colors['transform'],
             width=8,
             location=(0, 0),
-            title=cstr,
+            title=parameter_axis_label(cstr, unit_lookup.get(cstr)),
         )
         fig.add_layout(color_bar, 'right')
     elif rstr is not None:
@@ -311,7 +326,7 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
             color_mapper=colors['transform'],
             width=8,
             location=(0, 0),
-            title=cstr,
+            title=parameter_axis_label(cstr, unit_lookup.get(cstr)),
         )
         fig.add_layout(color_bar, 'right')
     else:
@@ -339,8 +354,8 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
     fig.add_tools(hover)
 
     fig.toolbar.logo = None
-    fig.yaxis.axis_label = ypar
-    fig.xaxis.axis_label = xpar
+    fig.yaxis.axis_label = parameter_axis_label(ypar, unit_lookup.get(ypar))
+    fig.xaxis.axis_label = parameter_axis_label(xpar, unit_lookup.get(xpar))
     fig.yaxis.axis_label_text_font_size = '10pt'
     fig.xaxis.axis_label_text_font_size = '10pt'
     fig.min_border = 5

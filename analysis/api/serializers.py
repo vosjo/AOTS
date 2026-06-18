@@ -3,6 +3,7 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from analysis.categories import category_color, category_label, category_derived_parameter_specs, has_category_derived_parameters
 from analysis.models import Analysis, DerivedParameter, Parameter
+from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
 from analysis.services.analysis_history import (
     added_by_display,
     earliest_iso,
@@ -69,6 +70,8 @@ class AnalysisListSerializer(ModelSerializer):
 class AnalysisParameterSerializer(ModelSerializer):
     rvalue = SerializerMethodField()
     rerror = SerializerMethodField()
+    display_label = SerializerMethodField()
+    unit_display = SerializerMethodField()
 
     class Meta:
         model = Parameter
@@ -78,13 +81,24 @@ class AnalysisParameterSerializer(ModelSerializer):
             'name',
             'component',
             'unit',
+            'unit_display',
+            'display_label',
             'value',
             'error',
             'rvalue',
             'rerror',
             'valid',
         ]
-        read_only_fields = ('pk', 'cname', 'name', 'component', 'unit', 'value', 'error', 'rvalue', 'rerror')
+        read_only_fields = (
+            'pk', 'cname', 'name', 'component', 'unit', 'unit_display',
+            'display_label', 'value', 'error', 'rvalue', 'rerror',
+        )
+
+    def get_display_label(self, obj):
+        return parameter_label_with_unit(obj.cname, obj.unit, from_cname=True)
+
+    def get_unit_display(self, obj):
+        return unit_display_name(obj.unit)
 
     def get_rvalue(self, obj):
         return obj.rvalue()

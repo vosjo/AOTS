@@ -4,6 +4,8 @@ from astropy.coordinates.angles import Angle
 from django.db import models
 from simple_history.models import HistoricalRecords
 
+from analysis.parameter_aliases import stored_parameter_lookup_names
+
 from .project import Project
 
 
@@ -89,10 +91,12 @@ class Star(models.Model):
         """
         pars = []
 
-        for name in ['M_G', 'parallax', 'p', 't0', 'e']:
-            p = self.parameter_set.filter(name__exact=name, average__exact=True)
-            if len(p) > 0:
-                p = p[0]
+        for name in ['absolute_g_mag', 'parallax', 'p', 't0', 'e']:
+            p = self.parameter_set.filter(
+                name__in=stored_parameter_lookup_names(name),
+                average__exact=True,
+            ).first()
+            if p is not None:
                 pars.append((name, p.unit, "{} &pm; {}".format(p.rvalue(), p.rerror())))
 
         return pars

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { BookOpen, Pencil, Star } from 'lucide-vue-next'
+import { BookOpen, Download, Pencil, Star } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
@@ -65,6 +65,8 @@ interface AnalysisDetail {
   derived_parameters: AnalysisParameter[]
   has_derived_definitions: boolean
   can_edit: boolean
+  file_url: string
+  datafile: string
   related_analyses: RelatedAnalysis[]
   related_by_category: RelatedByCategory[]
 }
@@ -119,6 +121,17 @@ const deriveButtonLabel = computed(() => {
   if (deriveBusy.value) return 'Calculating…'
   if (analysis.value?.derived_parameters.length) return 'Recalculate parameters'
   return 'Calculate additional parameters'
+})
+
+const analysisDownloadName = computed(() => {
+  const path = analysis.value?.datafile
+  if (path) {
+    const base = path.split('/').pop()
+    if (base) return base
+  }
+  const name = analysis.value?.name?.trim()
+  if (name) return name.endsWith('.h5') || name.endsWith('.hdf5') ? name : `${name}.h5`
+  return 'analysis.h5'
 })
 
 const histPlotKeys = computed(() => {
@@ -317,6 +330,20 @@ async function deriveParameters() {
             aria-hidden="true"
           />
           <span>Fit</span>
+        </div>
+
+        <div v-if="analysis.file_url" class="flex items-center gap-1.5">
+          <AppButton
+            variant="secondary"
+            size="sm"
+            class="inline-flex items-center gap-1"
+            :href="analysis.file_url"
+            :download="analysisDownloadName"
+            title="Download HDF5 analysis file"
+          >
+            <Download class="w-3.5 h-3.5" />
+            Download HDF5
+          </AppButton>
         </div>
       </div>
 

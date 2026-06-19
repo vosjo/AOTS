@@ -11,6 +11,7 @@ const props = withDefaults(
     disabled?: boolean
     to?: string | Record<string, unknown>
     href?: string
+    download?: string
     title?: string
     class?: string
   }>(),
@@ -42,6 +43,7 @@ const isDisabled = computed(() => props.disabled && tag.value === 'button')
     :type="tag === 'button' ? type : undefined"
     :to="to"
     :href="href"
+    :download="download"
     :title="title"
     :aria-disabled="disabled && tag !== 'button' ? true : undefined"
   >

@@ -316,6 +316,7 @@ async function updateLinkage() {
       :page-size="pageSize"
       :loading="query.isFetching.value"
       :selected="selected"
+      :selectable="auth.isAuthenticated"
       @update:page="page = $event"
       @update:page-size="pageSize = $event"
       @toggle-row="toggleRow"

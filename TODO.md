@@ -46,11 +46,12 @@
 - Default policies per project from `consensus_defaults.py` (Gaia source priority, RV/spectral/SED categories, wildcard `*` fallback); seeded on project create + migration 0022
 - Project settings UI: `/w/<slug>/settings/consensus/`; API `/api/analysis/consensus-policies/<slug>/`
 - Consumers use consensus facade (summary, plotter, HRD, derivation) — not raw `average=True` in application code
+- Gaia DR3 import service (`stars/services/gaia_import.py`): photometry + astrometry + derived `mag` / `bp_rp` / `absolute_g_mag` as catalog parameters; SPA buttons + Celery bulk task
 
 **Later:**
 
 - [ ] HRD / Parameter-Plotter: Photometrie-Kandidaten (`bp_rp`, `mag` aus `photometry_set`) in `resolve_consensus`
-- [ ] HRD / Plotter: `absolute_g_mag`-Regeln vereinheitlichen (Gaia script vs. berechnet)
+- [ ] HRD (`dash/plotting.py`): `photometry_set`-Fallback für `bp_rp` und direkte Photometrie-Reads entfernen; Achsenwerte nur noch über `get_consensus_parameter()` (nach Gaia-Import mit gespeichertem `mag` / `bp_rp` / `absolute_g_mag`)
 - [ ] Parameter overview: „active“ vs. archived measurement columns
 - [ ] Per-star policy overrides (optional)
 - [ ] Weighted average: statistisch robustere Fehlerkombination

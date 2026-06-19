@@ -400,6 +400,8 @@ def getTaskStatus(request, task_id):
         'status': result.status,
         'ready': result.ready(),
     }
+    if result.status == 'PROGRESS' and isinstance(result.info, dict):
+        payload['meta'] = result.info
     if result.failed():
         payload['error'] = str(result.result)
     elif result.successful():

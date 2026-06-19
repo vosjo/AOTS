@@ -1,108 +1,31 @@
 ############################################################################
-####                            Libraries                               ####
+####  Deprecated: absolute G mag is derived by update_stars_gaia-dr3.py   ####
+####  (stars.services.gaia_import). Re-run Gaia import for each star.     ####
 ############################################################################
 
 import os
-
-import time
-
 import sys
 
 sys.path.append('../')
-os.environ["DJANGO_SETTINGS_MODULE"] = "AOTS.settings"
-
-import numpy as np
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AOTS.settings')
 
 import django
 
 django.setup()
 
 from stars.models import Project
-from analysis.models import ParameterSource
-from analysis.services import parameter_io
-
-############################################################################
-####                               Main                                 ####
-############################################################################
+from stars.services.gaia_import import import_gaia_dr3_for_star
 
 if __name__ == '__main__':
-    #   Load projects
-    projects = Project.objects.all()
-
-    #   Loop over projects
-    for pro in projects:
-        print()
-        print(pro)
-
-        #   Get stars
-        stars = pro.star_set.all()
-
-        for star in stars:
-            print(f"\t{star.name}")
-
-            #   Check if parallax entry from GAIA DR3 exists
-            parallaxes = star.parameter_set.filter(name__exact='parallax')
-            conti = False
-            for para in parallaxes:
-                source_name = para.parameter_source.name
-                if source_name == 'Gaia DR3':
-                    conti = True
-                    dr3_para = para
-            if not conti:
-                print('\t\tSkip star due to missing DR3 parallax')
+    for project in Project.objects.all():
+        print(project)
+        for star in project.star_set.all():
+            has_dr3_parallax = star.parameter_set.filter(
+                name='parallax',
+                parameter_source__name='Gaia DR3',
+            ).exists()
+            if not has_dr3_parallax:
+                print(f'\t{star.name}: skip (no Gaia DR3 parallax; run update_stars_gaia-dr3.py)')
                 continue
-
-            #   Get parallax and error
-            para_value = dr3_para.value
-            para_err = dr3_para.error
-
-            #   Only use well definded parallaxes
-            if para_value <= 0.:
-                print('\t\tSkip star due to a too negative parallax')
-                continue
-
-            if para_err > 0.1:
-                print('\t\tSkip star due to a too high parallax error')
-                continue
-
-            #   Check if Gaia Gmag is available
-            gmag = star.photometry_set.filter(band__exact='GAIA3.G')
-
-            if not gmag:
-                print('\t\tSkip star due to missing Gaia G magnitude')
-                continue
-
-            #   Get Gaia photometry
-            gmag = gmag[0]
-            gmag_value = gmag.measurement
-            gmag_err = gmag.error
-
-            #   Calculate absolute magnitude
-            gmag_abs = gmag_value + 5.0 * np.log10(para_value) - 10.0
-            gmag_abs_err = (gmag_err**2 + (para_err / para_value)**2)**(0.5)
-
-            #   Look for old entries, delete those and add new values
-            old_abs_mag = star.parameter_set.filter(name__exact='absolute_g_mag')
-            for old in old_abs_mag:
-                print('\t\tDelete old absolute Gaia magnitude entry')
-                parameter_io.delete_measurement(old, run_after=False)
-
-            dsgaia = ParameterSource.objects.get(
-                name__exact='Gaia DR3',
-                project=pro,
-            )
-
-            print('\t\tAdd new absolute Gaia magnitude entry')
-            parameter_io.create_measurement(
-                star=star,
-                parameter_source=dsgaia,
-                name='absolute_g_mag',
-                component=0,
-                value=gmag_abs,
-                error_l=gmag_abs_err,
-                error_u=gmag_abs_err,
-                unit='mag',
-                run_after=False,
-            )
-            parameter_io.after_star_parameters_batch(star)
-
+            result = import_gaia_dr3_for_star(star)
+            print(f'\t{star.name}: {result.status} — {result.message}')

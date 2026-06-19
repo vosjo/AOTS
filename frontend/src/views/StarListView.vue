@@ -8,8 +8,10 @@ import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
+import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { saveCarryOver } from '@/composables/useCarryOver'
 import { useDataTablePage } from '@/composables/useDataTablePage'
+import { useGaiaFetch } from '@/composables/useGaiaFetch'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
@@ -91,6 +93,8 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const projectStore = useProjectStore()
+const gaiaFetch = useGaiaFetch()
+const gaiaSummaryMessage = ref('')
 const projectSlug = computed(() => route.params.projectSlug as string)
 const filterOpen = ref(false)
 const filters = ref(emptyFilters())
@@ -180,6 +184,30 @@ async function deleteSelected() {
   }
   clearSelection()
   await query.refetch()
+}
+
+async function fetchGaiaSelected() {
+  const project = projectStore.currentProject
+  if (!project || !selectedIds.value.length) return
+  const n = selectedIds.value.length
+  if (
+    !confirm(
+      `Fetch Gaia DR3 data for ${n} system(s)? Existing Gaia DR3 measurements will be replaced.`,
+    )
+  ) {
+    return
+  }
+  gaiaSummaryMessage.value = ''
+  try {
+    await gaiaFetch.startBulk(selectedIds.value, project.pk)
+    const s = gaiaFetch.lastSummary
+    if (s) {
+      gaiaSummaryMessage.value = `Gaia DR3 fetch complete: ${s.ok} updated, ${s.no_match} no match, ${s.partial} partial, ${s.failed} failed.`
+    }
+    await query.refetch()
+  } catch (e) {
+    gaiaSummaryMessage.value = e instanceof Error ? e.message : 'Gaia DR3 fetch failed'
+  }
 }
 
 function openTagDialog() {
@@ -390,6 +418,8 @@ async function addSystem() {
   <div class="space-y-4">
     <SystemsSectionNav />
 
+    <AppAlert v-if="gaiaSummaryMessage" kind="info">{{ gaiaSummaryMessage }}</AppAlert>
+
     <DataTablePage
       hide-title
     :columns="[
@@ -408,9 +438,10 @@ async function addSystem() {
     :count="query.data.value?.count ?? 0"
     :page="page"
     :page-size="pageSize"
-    :loading="query.isFetching.value"
-    :selected="selected"
-    @update:page="page = $event"
+      :loading="query.isFetching.value"
+      :selected="selected"
+      :selectable="auth.isAuthenticated"
+      @update:page="page = $event"
     @update:page-size="pageSize = $event"
     @toggle-row="toggleRow"
     @toggle-all="toggleAll(rows)"
@@ -441,6 +472,14 @@ async function addSystem() {
         >
           Change status
         </AppButton>
+        <AppButton
+          variant="secondary"
+          :disabled="!selectedIds.length || gaiaFetch.busy"
+          @click="fetchGaiaSelected"
+        >
+          Fetch Gaia DR3
+        </AppButton>
+        <BulkDownloadProgress :status="gaiaFetch.status" :busy="gaiaFetch.busy" />
         <AppButton
           variant="secondary"
           :disabled="!selectedIds.length"

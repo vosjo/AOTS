@@ -426,6 +426,26 @@ Parameters from HDF5 uploads link via `Parameter.analysis`. Catalog and script m
 
 Configure policies at `/w/<project>/settings/consensus/` (SPA) or via `GET/POST /api/analysis/consensus-policies/<slug>/`. New projects receive defaults from `analysis/services/consensus_defaults.py` (Gaia source priority for astrometry, RV/spectral/SED analysis categories for model parameters, wildcard `*` weighted average as fallback). Existing per-project overrides are preserved when seeding.
 
+### Gaia DR3 import
+
+Catalog data is fetched from Vizier (`I/355/gaiadr3`) via `stars/services/gaia_import.py`:
+
+- **Photometry:** `GAIA3.G`, `GAIA3.BP`, `GAIA3.RP` in `photometry_set`
+- **Parameters** (source `Gaia DR3`): `parallax`, `pmra`, `pmdec`, plus derived `mag`, `bp_rp`, `absolute_g_mag` (Variante A — stored as catalog parameters for consensus/HRD)
+
+**SPA:** Star detail → Parameters → *Fetch Gaia DR3*; systems list → select rows → *Fetch Gaia DR3* (Celery bulk, ~5 s between stars).
+
+**API:**
+
+| Endpoint | Behaviour |
+| --- | --- |
+| `POST /api/systems/stars/<pk>/gaia/fetch/` | Single star (sync) |
+| `POST /api/systems/stars/gaia/fetch-bulk/?async=1` | Body `{ "star_ids": [...] }` or `{ "all": true }`; header `Projectid` |
+
+Task status: `GET /api/observations/tasks/<task_id>/` (includes `meta` while `PROGRESS`).
+
+**CLI:** `scripts/update_stars_gaia-dr3.py` wraps the same service (optional skip if DR3 parallax exists).
+
 ### Analysis app architecture
 
 Use-cases live in `analysis/services/`; models hold schema and simple display helpers; `analysis/auxil/` holds stateless HDF5 and plotting I/O.

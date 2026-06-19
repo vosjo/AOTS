@@ -1,208 +1,54 @@
 ############################################################################
-####                            Libraries                               ####
+####  Thin CLI wrapper around stars.services.gaia_import (Gaia DR3 import) ####
 ############################################################################
 
 import os
-
+import sys
 import time
 
-import sys
-
 sys.path.append('../')
-os.environ["DJANGO_SETTINGS_MODULE"] = "AOTS.settings"
-
-import numpy as np
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AOTS.settings')
 
 import django
 
 django.setup()
 
 from stars.models import Project
-from analysis.models import ParameterSource
-from analysis.services import parameter_io
-
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-
-from astroquery.vizier import Vizier
+from stars.services.gaia_import import import_gaia_dr3_for_star
 
 ############################################################################
 ####                          Configuration                             ####
 ############################################################################
 
-#   Delete old parameter entries
-rm_old_para = False
+# Skip stars that already have Gaia DR3 parallax (legacy batch behaviour).
+skip_if_dr3_parallax = True
+
+# Pause between Vizier queries (seconds).
+delay_seconds = 5.0
 
 ############################################################################
 ####                               Main                                 ####
 ############################################################################
 
 if __name__ == '__main__':
-    #   Load projects
-    projects = Project.objects.all()
+    for project in Project.objects.all():
+        print(project)
+        for star in project.star_set.all():
+            print(f'\t{star.name}')
 
-    #   Loop over projects
-    for pro in projects:
-        print()
-        print(pro)
+            if skip_if_dr3_parallax:
+                has_dr3 = star.parameter_set.filter(
+                    name='parallax',
+                    parameter_source__name='Gaia DR3',
+                ).exists()
+                if has_dr3:
+                    print('\tSkip star (Gaia DR3 parallax already present)')
+                    continue
 
-        #   Get stars
-        stars = pro.star_set.all()
+            result = import_gaia_dr3_for_star(star)
+            print(f'\t{result.status}: {result.message}')
+            if result.warnings:
+                for warning in result.warnings:
+                    print(f'\t\tWarning: {warning}')
 
-        for star in stars:
-            print(f"\t{star.name}")
-
-            #   Get coordinates
-            ra = star.ra
-            dec = star.dec
-
-            coord = SkyCoord(ra=ra, dec=dec, unit=(u.deg, u.deg), frame='icrs')
-
-            #   Check is parallax entry from GAIA DR3 exists -> skip if yes
-            old_parall = star.parameter_set.filter(name__exact='parallax')
-            conti = False
-            for old in old_parall:
-                source_name = old.parameter_source.name
-                if source_name == 'Gaia DR3':
-                    conti = True
-            if conti:
-                print('\tSkip star')
-                continue
-
-            #   Get GAIA data
-            gaia_data = Vizier(
-                catalog='I/355/gaiadr3',
-                columns=['Plx', 'e_Plx', 'pmRA', 'e_pmRA', 'pmDE', 'e_pmDE',
-                         'Gmag', 'e_Gmag', 'BPmag', 'e_BPmag', 'RPmag',
-                         'e_RPmag'],
-            ).query_region(coord, radius=1 * u.arcsec)
-
-            #   Check if GAIA request contains data
-            if gaia_data and len(gaia_data[0]) == 1:
-                print('\tAdd phtometry')
-                mags = ['Gmag', 'BPmag', 'RPmag']
-                errs = ['e_Gmag', 'e_BPmag', 'e_RPmag']
-                bands = ['GAIA3.G', 'GAIA3.BP', 'GAIA3.RP']
-                for band, mag, err in zip(bands, mags, errs):
-                    #   Skip in case of invalid magnitude
-                    if np.isnan(gaia_data[0][mag]): continue
-
-                    #   Add magnitude
-                    star.photometry_set.create(
-                        band=band,
-                        measurement=gaia_data[0][mag],
-                        error=gaia_data[0][err],
-                        unit='mag',
-                    )
-
-                print('\tUpdate/Add parallax and proper motion')
-                try:
-                    dsgaia = ParameterSource.objects.get(
-                        name__exact='Gaia DR3',
-                        project=pro,
-                    )
-                except ParameterSource.DoesNotExist:
-                    dsgaia = ParameterSource.objects.create(
-                        name='Gaia DR3',
-                        note='3nd Gaia data release',
-                        reference='https://doi.org/10.1051/0004-6361/202243940',
-                        project=pro,
-                    )
-
-                #   Set parallax
-                if (str(gaia_data[0]['Plx']) != '--' and
-                        str(gaia_data[0]['e_Plx']) != '--'):
-                    for old in old_parall:
-                        #   Delete old entries is requested
-                        if rm_old_para:
-                            print('\t\tDelete old parallax entry')
-                            parameter_io.delete_measurement(old, run_after=False)
-                        else:
-                            #   Delete existing DR3 entries
-                            source_name = old.parameter_source.name
-                            if source_name == 'Gaia DR3':
-                                parameter_io.delete_measurement(old, run_after=False)
-
-                    print('\t\tAdd new parallax entry')
-                    parameter_io.create_measurement(
-                        star=star,
-                        parameter_source=dsgaia,
-                        name='parallax',
-                        component=0,
-                        value=gaia_data[0]['Plx'],
-                        error_l=gaia_data[0]['e_Plx'],
-                        error_u=gaia_data[0]['e_Plx'],
-                        unit='mas',
-                        run_after=False,
-                    )
-
-                #   RA proper motion
-                if (str(gaia_data[0]['pmRA']) != '--' and
-                        str(gaia_data[0]['e_pmRA']) != '--'):
-                    old_pmra = star.parameter_set.filter(name__exact='pmra')
-                    for old in old_pmra:
-                        #   Delete old entries is requested
-                        if rm_old_para:
-                            print('\t\tDelete old pmra entry')
-                            parameter_io.delete_measurement(old, run_after=False)
-                        else:
-                            #   Delete existing DR3 entries
-                            source_name = old.parameter_source.name
-                            if source_name == 'Gaia DR3':
-                                parameter_io.delete_measurement(old, run_after=False)
-
-                    print('\t\tAdd new pmra entry')
-                    parameter_io.create_measurement(
-                        star=star,
-                        parameter_source=dsgaia,
-                        name='pmra',
-                        component=0,
-                        value=gaia_data[0]['pmRA'],
-                        error_l=gaia_data[0]['e_pmRA'],
-                        error_u=gaia_data[0]['e_pmRA'],
-                        unit='mas',
-                        run_after=False,
-                    )
-
-                #   DEC proper motion
-                if (str(gaia_data[0]['pmDE']) != '--' and
-                        str(gaia_data[0]['e_pmDE']) != '--'):
-                    old_pmdec = star.parameter_set.filter(name__exact='pmdec')
-                    for old in old_pmdec:
-                        #   Delete old entries is requested
-                        if rm_old_para:
-                            print('\t\tDelete old pmdec entry')
-                            parameter_io.delete_measurement(old, run_after=False)
-                        else:
-                            #   Delete existing DR3 entries
-                            source_name = old.parameter_source.name
-                            if source_name == 'Gaia DR3':
-                                parameter_io.delete_measurement(old, run_after=False)
-
-                    print('\t\tAdd new pmdec entry')
-                    parameter_io.create_measurement(
-                        star=star,
-                        parameter_source=dsgaia,
-                        name='pmdec',
-                        component=0,
-                        value=gaia_data[0]['pmDE'],
-                        error_l=gaia_data[0]['e_pmDE'],
-                        error_u=gaia_data[0]['e_pmDE'],
-                        unit='mas',
-                        run_after=False,
-                    )
-
-                parameter_io.after_star_parameters_batch(star)
-                print()
-
-            #   Sleep for 5s to avoid hitting the Vizier-Server too often
-            time.sleep(5.)
-        # try:
-        #     dsgaia_old = ParameterSource.objects.get(
-        #         name__exact='Gaia EDR3',
-        #         project=pro,
-        #     )
-        #     dsgaia_old.delete()
-        #     print('Gaia EDR3 datasouce deleted')
-        # except:
-        #     print('Gaia EDR3 datasouce not found or deletion failed')
+            time.sleep(delay_seconds)

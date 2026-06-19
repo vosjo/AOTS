@@ -7,6 +7,7 @@ import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters'
+import { useAuthStore } from '@/stores/auth'
 
 interface SpectrumInfo {
   pk: number
@@ -29,6 +30,7 @@ interface SpecfileRow {
 }
 
 const route = useRoute()
+const auth = useAuthStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const filterOpen = ref(false)
 const { filters, clearFilters } = useSpectraSectionFilters({
@@ -100,6 +102,7 @@ function spectrumLabel(info: SpectrumInfo) {
     :page-size="pageSize"
     :loading="query.isFetching.value"
     :selected="selected"
+    :selectable="auth.isAuthenticated"
     @update:page="page = $event"
     @update:page-size="pageSize = $event"
     @toggle-row="toggleRow"

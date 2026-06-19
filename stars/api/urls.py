@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
+from .gaia_views import star_fetch_gaia_dr3, stars_fetch_gaia_dr3_bulk
 from .plots import star_analysis_plots, star_sed_plot
 from .star_detail import star_detail_bootstrap, star_parameters_overview
 from .star_mutations import (
@@ -35,6 +36,7 @@ urlpatterns = [
     path('stars/resolve-simbad/', resolve_simbad, name='star-resolve-simbad'),
     path('stars/create-from-form/', create_star_from_form, name='star-create-from-form'),
     path('stars/bulk-upload/', bulk_upload_stars, name='star-bulk-upload'),
+    path('stars/gaia/fetch-bulk/', stars_fetch_gaia_dr3_bulk, name='stars-fetch-gaia-bulk'),
     path(
         'stars/<int:star_pk>/specfiles/',
         getStarSpecfiles,
@@ -57,6 +59,11 @@ urlpatterns = [
         'stars/<int:pk>/photometry/',
         star_update_photometry,
         name='star-update-photometry',
+    ),
+    path(
+        'stars/<int:pk>/gaia/fetch/',
+        star_fetch_gaia_dr3,
+        name='star-fetch-gaia-dr3',
     ),
     path(
         'stars/<int:pk>/photometry/from-vizier/',

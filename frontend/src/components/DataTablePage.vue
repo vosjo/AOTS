@@ -1,23 +1,35 @@
 <script setup lang="ts" generic="T extends { pk: number }">
-import { computed } from 'vue'
+import { computed, unref } from 'vue'
 import AppButton from '@/components/AppButton.vue'
 import type { ListColumn } from '@/composables/useDataTablePage'
 
-const props = defineProps<{
-  title?: string
-  hideTitle?: boolean
-  columns: ListColumn<T>[]
-  rows: T[]
-  count: number
-  page: number
-  pageSize: number
-  loading?: boolean
-  selected: Set<number>
-  selectable?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    title?: string
+    hideTitle?: boolean
+    columns: ListColumn<T>[]
+    rows: T[]
+    count: number
+    page: number
+    pageSize: number
+    loading?: boolean
+    selected: Set<number>
+    selectable?: boolean
+  }>(),
+  {
+    selectable: true,
+  },
+)
 
-const selectable = computed(() => props.selectable !== false)
-const colSpan = computed(() => props.columns.length + (selectable.value ? 1 : 0))
+// Avoid prop/computed name collision (`selectable` prop vs. template binding).
+const showCheckboxes = computed(() => props.selectable)
+
+const selectedSet = computed(() => {
+  const value = unref(props.selected as Set<number>)
+  return value instanceof Set ? value : new Set<number>()
+})
+
+const colSpan = computed(() => props.columns.length + (showCheckboxes.value ? 1 : 0))
 
 const emit = defineEmits<{
   'update:page': [number]
@@ -28,6 +40,15 @@ const emit = defineEmits<{
 }>()
 
 const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.pageSize)))
+
+function isRowSelected(pk: number): boolean {
+  return selectedSet.value.has(pk)
+}
+
+const headerChecked = computed(() => {
+  if (!props.rows.length) return false
+  return props.rows.every((row) => selectedSet.value.has(row.pk))
+})
 </script>
 
 <template>
@@ -44,8 +65,13 @@ const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.page
       <table class="aots-table">
         <thead>
           <tr>
-            <th v-if="selectable" class="w-8">
-              <input type="checkbox" class="accent-aots" @change="emit('toggleAll')" />
+            <th v-if="showCheckboxes" class="w-10 px-2">
+              <input
+                type="checkbox"
+                class="size-4 shrink-0 cursor-pointer rounded border border-aots bg-aots-surface-muted accent-aots ring-aots focus:ring-2 focus:outline-none"
+                :checked="headerChecked"
+                @change="emit('toggleAll')"
+              />
             </th>
             <th v-for="col in columns" :key="col.id">{{ col.header }}</th>
           </tr>
@@ -55,11 +81,11 @@ const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.page
             <td :colspan="colSpan" class="p-4 text-center text-aots-muted">Loading…</td>
           </tr>
           <tr v-for="row in rows" :key="row.pk">
-            <td v-if="selectable">
+            <td v-if="showCheckboxes" class="w-10 px-2">
               <input
                 type="checkbox"
-                class="accent-aots"
-                :checked="selected.has(row.pk)"
+                class="size-4 shrink-0 cursor-pointer rounded border border-aots bg-aots-surface-muted accent-aots ring-aots focus:ring-2 focus:outline-none"
+                :checked="isRowSelected(row.pk)"
                 @change="emit('toggleRow', row)"
               />
             </td>

@@ -205,6 +205,9 @@ const photEdit = ref(false)
 const photSaving = ref(false)
 const photVizierLoading = ref(false)
 const photError = ref<string | null>(null)
+const paramGaiaLoading = ref(false)
+const paramGaiaMessage = ref<string | null>(null)
+const paramGaiaError = ref<string | null>(null)
 const photDraft = ref<PhotDraftRow[]>([])
 const addBandOpen = ref(false)
 const copyPhotDialog = ref(false)
@@ -429,6 +432,31 @@ async function fetchPhotometryVizier() {
   }
 }
 
+async function fetchGaiaDr3() {
+  paramGaiaLoading.value = true
+  paramGaiaError.value = null
+  paramGaiaMessage.value = null
+  try {
+    const res = await api<{
+      status: string
+      detail: string
+      warnings?: string[]
+    }>(`/api/systems/stars/${starId.value}/gaia/fetch/`, {
+      method: 'POST',
+    })
+    paramGaiaMessage.value = res.detail
+    if (res.warnings?.length) {
+      paramGaiaMessage.value += ` (${res.warnings.join(' ')})`
+    }
+    await Promise.all([refetch(), refetchParams(), refetchSed()])
+  } catch (e: unknown) {
+    const err = e as { data?: { detail?: string }; message?: string }
+    paramGaiaError.value = err.data?.detail ?? err.message ?? 'Gaia DR3 fetch failed'
+  } finally {
+    paramGaiaLoading.value = false
+  }
+}
+
 const hasParamRows = computed(
   () => (paramOverview.value?.components ?? []).some((comp) => comp.rows.length > 0),
 )
@@ -580,15 +608,34 @@ watch(editableParams, (data) => {
         <section class="aots-panel-compact">
           <div class="flex justify-between items-center mb-2 gap-2">
             <h2 class="text-sm font-medium">Parameters</h2>
-            <AppButton
-              v-if="auth.isAuthenticated"
-              variant="icon"
-              title="Edit parameters"
-              @click="openParamEditDialog"
-            >
-              <Pencil class="w-4 h-4" />
-            </AppButton>
+            <div v-if="auth.isAuthenticated" class="flex items-center gap-2">
+              <AppButton
+                variant="secondary"
+                size="sm"
+                class="inline-flex items-center gap-1"
+                :disabled="paramGaiaLoading || paramDialog"
+                @click="fetchGaiaDr3"
+              >
+                <Loader2 v-if="paramGaiaLoading" class="w-3.5 h-3.5 animate-spin" />
+                <Sparkles v-else class="w-3.5 h-3.5" />
+                {{ paramGaiaLoading ? 'Fetching…' : 'Fetch Gaia DR3' }}
+              </AppButton>
+              <AppButton
+                variant="icon"
+                title="Edit parameters"
+                @click="openParamEditDialog"
+              >
+                <Pencil class="w-4 h-4" />
+              </AppButton>
+            </div>
           </div>
+
+          <AppAlert v-if="paramGaiaError" kind="error" class="mb-2 text-xs">
+            {{ paramGaiaError }}
+          </AppAlert>
+          <AppAlert v-else-if="paramGaiaMessage" kind="info" class="mb-2 text-xs">
+            {{ paramGaiaMessage }}
+          </AppAlert>
 
           <p v-if="paramLoading" class="text-xs text-aots-muted">Loading…</p>
           <div v-else-if="paramOverview && hasParamRows" class="max-h-32 overflow-auto">

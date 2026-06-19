@@ -8,7 +8,12 @@ from scipy import stats
 from scipy.stats import pearsonr
 
 from analysis.models import Parameter
-from analysis.parameter_labels import parameter_axis_label
+from analysis.parameter_labels import parameter_axis_label, parse_cname
+from analysis.services.parameter_consensus import (
+    consensus_queryset,
+    get_consensus_parameter,
+    iter_project_consensus_cnames,
+)
 from stars.models import Star
 
 
@@ -153,11 +158,10 @@ def get_data(parameters, project=None):
     pnames = set(parameters.values())
     pnames.discard('')
 
-    params = Parameter.objects.filter(cname__in=pnames, average=True)
-    if project is not None:
-        params = params.filter(star__project=project)
-    stars = params.values_list('star', flat=True).distinct()
-    stars = Star.objects.filter(pk__in=stars)
+    params = consensus_queryset(project=project).filter(cname__in=pnames)
+    stars = Star.objects.filter(
+        pk__in=params.values_list('star', flat=True).distinct(),
+    )
     if project is not None:
         stars = stars.filter(project=project)
 
@@ -165,12 +169,13 @@ def get_data(parameters, project=None):
     parameter_table = {'system': [s.name for s in stars]}
     for pname in pnames:
         values, errors = [], []
+        base, component = parse_cname(pname)
         for star in stars:
-            try:
-                p = params.get(cname__exact=pname, star__exact=star.pk, average__exact=True)
+            p = get_consensus_parameter(star, base, component)
+            if p is not None and p.cname == pname:
                 values.append(p.value)
                 errors.append(p.error)
-            except Parameter.DoesNotExist:
+            else:
                 values.append(np.nan)
                 errors.append(np.nan)
         parameter_table[pname] = values
@@ -183,13 +188,11 @@ def get_data(parameters, project=None):
 
 
 def _parameter_units_by_cname(project=None):
-    qs = Parameter.objects.filter(average=True)
     if project is not None:
-        qs = qs.filter(star__project=project)
-    return {
-        row['cname']: row['unit']
-        for row in qs.values('cname', 'unit').distinct()
-    }
+        rows = iter_project_consensus_cnames(project)
+    else:
+        rows = consensus_queryset().values_list('cname', 'unit').distinct()
+    return {cname: unit for cname, unit in rows}
 
 
 def get_parameter_statistics(data, xpar, ypar, unit_lookup=None):

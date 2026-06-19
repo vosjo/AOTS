@@ -487,12 +487,9 @@ class UpdateParamsForm(forms.Form):
                         if paramset_pinfo.parameter_source
                         else (paramset_pinfo.analysis.name if paramset_pinfo.analysis else '')
                     )
-                    paramset_values = paramset["values"]
-                    #   Loop over parameter set values to identify missing values
-                    for i, paramset_value in enumerate(paramset_values):
-                        if paramset_value != '/':
-                            initval, initerrval = paramset_value.split(" &pm; ")
-                            break
+                    paramset_value = paramset.get('value', '/')
+                    if paramset_value != '/':
+                        initval, initerrval = paramset_value.split(" &pm; ")
 
                     initval = float(initval)
                     initerrval = float(initerrval)

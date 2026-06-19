@@ -66,8 +66,9 @@ def _summary_parameters(star):
             'unit': unit,
             'unit_display': unit_display_name(unit),
             'value': _param_display(value),
+            'provenance': provenance or '',
         }
-        for name, unit, value in star.get_system_summary_parameter()
+        for name, unit, value, provenance in star.get_system_summary_parameter()
     ]
     component = [
         {
@@ -77,8 +78,9 @@ def _summary_parameters(star):
             'unit_display': unit_display_name(unit),
             'primary': _param_display(primary),
             'secondary': _param_display(secondary),
+            'provenance': provenance or '',
         }
-        for name, unit, primary, secondary in star.get_component_summary_parameter()
+        for name, unit, primary, secondary, provenance in star.get_component_summary_parameter()
     ]
     return {
         'has_components': len(component) > 0,
@@ -226,9 +228,8 @@ def star_detail_bootstrap(request, pk):
 @permission_classes([AllowAny])
 def star_parameters_overview(request, pk):
     get_object_if_allowed(Star, request, pk, select_related=('project',))
-    parameters, sources = get_params(pk)
+    parameters = get_params(pk, catalog_only=True)
     return Response({
-        'sources': [{'pk': s.pk, 'name': s.name} for s in sources],
         'components': [
             {
                 'component': comp['component'],
@@ -242,7 +243,8 @@ def star_parameters_overview(request, pk):
                         ) if row['pinfo'] else '',
                         'unit': row['pinfo'].unit if row['pinfo'] else '',
                         'unit_display': unit_display_name(row['pinfo'].unit) if row['pinfo'] else '',
-                        'values': [_param_display(v) for v in row['values']],
+                        'value': _param_display(row.get('value') or ''),
+                        'provenance': row.get('provenance') or '',
                     }
                     for row in comp['params']
                     if row['pinfo'] is not None

@@ -419,9 +419,12 @@ Download `kind` query parameter:
 | --- | --- | --- |
 | HDF5 analysis result | `Analysis` | RV solution, SED fit |
 | External / catalog provenance | `ParameterSource` (`kind=catalog`) | Gaia DR3, manual entry |
-| Project average container | `ParameterSource` (`kind=average`, `name='AVG'`) | per-project AVG row |
+| Project average container | `ParameterSource` (`kind=average`, `name='AVG'`) | materialized consensus cache row |
+| Consensus policy | `ParameterConsensusPolicy` | e.g. parallax from Gaia DR3, teff from SED fit |
 
-Parameters from HDF5 uploads link via `Parameter.analysis`. Catalog, script, and averaged parameters link via `Parameter.parameter_source` (including derived parameters on the project AVG source).
+Parameters from HDF5 uploads link via `Parameter.analysis`. Catalog and script measurements link via `Parameter.parameter_source`. The **consensus** value shown in summaries, plotters, and HRD is resolved by project policy (`analysis/services/parameter_consensus.py`) and stored as a cache row (`Parameter.average=True`, source `AVG`) with `consensus_provenance` describing the winning rule/source.
+
+Configure policies at `/w/<project>/settings/consensus/` (SPA) or via `GET/POST /api/analysis/consensus-policies/<slug>/`. New projects receive defaults from `analysis/services/consensus_defaults.py` (Gaia source priority for astrometry, RV/spectral/SED analysis categories for model parameters, wildcard `*` weighted average as fallback). Existing per-project overrides are preserved when seeding.
 
 ### Analysis app architecture
 
@@ -430,11 +433,13 @@ Use-cases live in `analysis/services/`; models hold schema and simple display he
 | Layer | Modules | Responsibility |
 | --- | --- | --- |
 | API / legacy views | `analysis/api/`, `analysis/views.py` | HTTP, permissions, serialization |
-| Services | `analysis_ingestion`, `analysis_plotting`, `analysis_display`, `parameter_io`, `parameter_averaging`, `parameter_derivation`, `parameter_sources`, `analysis_history`, `analysis_upload` | Upload pipeline, plots, averages, derived params |
-| Models | `Analysis`, `ParameterSource`, `Parameter`, `DerivedParameter` | ORM schema, `__str__`, reference URLs |
+| Services | `analysis_ingestion`, `analysis_plotting`, `analysis_display`, `parameter_io`, `parameter_consensus`, `parameter_averaging`, `parameter_derivation`, `parameter_sources`, `analysis_history`, `analysis_upload` | Upload pipeline, plots, consensus, derived params |
+| Models | `Analysis`, `ParameterSource`, `Parameter`, `DerivedParameter`, `ParameterConsensusPolicy` | ORM schema, `__str__`, reference URLs |
 | Auxil | `read_analyses`, `plot_analyses`, `plot_parameters`, `fileio` | Pure functions on files and arrays |
 
-**Parameter writes** go through `analysis/services/parameter_io.py` (create/update/delete measurements, derived records, batch sync). Direct `Parameter.objects.create()` / `.save()` in the Django shell or ad-hoc scripts does **not** sync project averages or derived parameters — use `parameter_io` helpers instead.
+**Parameter writes** go through `analysis/services/parameter_io.py` (create/update/delete measurements, derived records, batch sync). Direct `Parameter.objects.create()` / `.save()` in the Django shell or ad-hoc scripts does **not** sync consensus cache or derived parameters — use `parameter_io` helpers instead.
+
+**Parameter reads** for display/plots should use `get_consensus_parameter()` / `consensus_queryset()` from `parameter_consensus.py`, not `filter(average=True)` in application code. The `average` field marks the materialized cache row only.
 
 **Star writes** that need a primary identifier go through `stars/services/star_io.py` (`create_star`, `save_star`). Direct `Star.save()` in the Django shell does **not** create or update identifiers — use `star_io` helpers instead.
 

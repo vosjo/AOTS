@@ -1,23 +1,22 @@
 import numpy as np
 
+from analysis.models import Parameter
 
-def _average_on_star(star, name, component):
-    """Average parameter for a star; name match is case-insensitive (k vs K)."""
-    from analysis.models import Parameter
-    return Parameter.objects.get(
-        star=star,
-        name__iexact=name,
-        component=component,
-        average=True,
-        valid=True,
-    )
+
+def _consensus_on_star(star, name, component):
+    """Consensus parameter for a star (policy-resolved cache row)."""
+    from analysis.services.parameter_consensus import get_consensus_parameter
+
+    p = get_consensus_parameter(star, name, component)
+    if p is None:
+        raise Parameter.DoesNotExist
+    return p
 
 
 def _linked_source(dpar, name, component):
     return dpar.source_parameters.filter(
         name__iexact=name,
         component=component,
-        average=True,
     ).get()
 
 
@@ -38,7 +37,7 @@ def find_parameters(dpar, **kwargs):
 
     try:
         for n, c in zip(names, components):
-            p = _average_on_star(dpar.star, n, c)
+            p = _consensus_on_star(dpar.star, n, c)
             dpar.source_parameters.add(p)
         return True
     except Exception:

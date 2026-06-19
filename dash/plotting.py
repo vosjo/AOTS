@@ -18,10 +18,21 @@ from astropy.table import QTable
 from django.db.models import Prefetch
 
 from analysis.parameter_aliases import stored_parameter_lookup_names
-from stars.models import Project, Star
 from analysis.parameter_labels import hrd_axis_label, normalize_hrd_axis_key
+from stars.models import Project, Star
 
 _ABS_G_MAG_NAMES = frozenset(stored_parameter_lookup_names('absolute_g_mag'))
+
+
+def _consensus_axis_value(star, name, components=(1, 2, 0)):
+    """First available consensus value for an HRD axis parameter."""
+    from analysis.services.parameter_consensus import get_consensus_parameter
+
+    for component in components:
+        param = get_consensus_parameter(star, name, component)
+        if param is not None:
+            return param.value, (param.error_l + param.error_u) / 2.0
+    return None, None
 
 
 def errors_from_coords(x, y, x_err, y_err):
@@ -70,11 +81,6 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
     g_mag_abs_errs = []
 
     for star in star_list:
-        pset = list(
-            star.parameter_set.values_list(
-                "name", "parameter_source__name", "value", "error_l", "error_u",
-            )
-        )
         photset = list(star.photometry_set.values_list("band", "measurement", "error"))
 
         mag = None
@@ -101,28 +107,15 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
 
         bp_rp_err /= 2
 
-        teff = None
-        tefferr = None
-        logg = None
-        loggerr = None
-        g_mag_abs = None
-        g_mag_abs_err = None
+        teff, tefferr = _consensus_axis_value(star, 'teff')
+        logg, loggerr = _consensus_axis_value(star, 'logg')
+        g_mag_abs, g_mag_abs_err = _consensus_axis_value(star, 'absolute_g_mag', components=(0,))
 
-        for name, source_name, val, err_l, err_u in pset:
-            if source_name != "AVG" and name not in _ABS_G_MAG_NAMES:
-                continue
-            if name == "teff":
-                teff = val
-                tefferr = (err_l + err_u) / 2
-            if name in ('logg', 'log_g'):
-                logg = val
-                loggerr = (err_l + err_u) / 2
-            if name == "bp_rp" and bp_rp == 0:
-                bp_rp = val
-                bp_rp_err = (err_l + err_u) / 2
-            if name in _ABS_G_MAG_NAMES:
-                g_mag_abs = val
-                g_mag_abs_err = (err_l + err_u) / 2
+        if bp_rp == 0 or bp_rp_err == 0:
+            bp_rp_cons, bp_rp_cons_err = _consensus_axis_value(star, 'bp_rp', components=(0,))
+            if bp_rp_cons is not None:
+                bp_rp = bp_rp_cons
+                bp_rp_err = bp_rp_cons_err
 
         if teff is None or tefferr is None:
             teff = tefferr = -1000.

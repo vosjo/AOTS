@@ -161,6 +161,12 @@ const router = createRouter({
       redirect: (to) => `/w/${to.params.projectSlug}/analysis/analyses/plotter`,
     },
     {
+      path: '/w/:projectSlug/settings/consensus/',
+      name: 'project-consensus-settings',
+      component: () => import('@/views/ProjectConsensusSettingsView.vue'),
+      meta: { requiresProject: true, requiresAuth: true },
+    },
+    {
       path: '/admin',
       component: () => import('@/views/admin/AdminLayout.vue'),
       meta: { requiresAuth: true, requiresSuperuser: true },

@@ -40,8 +40,14 @@ def _build_photometry_cleaned_data(measurements):
 
 
 def _apply_parameter_updates(star, updates):
+    from analysis.models.parameter_source import ParameterSourceKind
+
     for entry in updates:
-        param = star.parameter_set.filter(pk=entry['id']).first()
+        param = star.parameter_set.filter(
+            pk=entry['id'],
+            average=False,
+            parameter_source__kind=ParameterSourceKind.CATALOG,
+        ).first()
         if param is None:
             raise ValueError(f'Unknown parameter id: {entry.get("id")}')
         value = entry.get('value')
@@ -58,17 +64,20 @@ def _apply_parameter_updates(star, updates):
 
 
 def _editable_parameters(star):
+    from analysis.models.parameter_source import ParameterSourceKind
+
     rows = []
     for param in (
         star.parameter_set
-        .filter(valid=True)
+        .filter(
+            valid=True,
+            average=False,
+            parameter_source__kind=ParameterSourceKind.CATALOG,
+        )
         .select_related('parameter_source', 'analysis')
         .order_by('component', 'name', 'parameter_source__name')
     ):
-        source_name = (
-            param.parameter_source.name if param.parameter_source
-            else (param.analysis.name if param.analysis else '')
-        )
+        source_name = param.parameter_source.name
         comp_label = param.get_component_display()
         rows.append({
             'id': param.pk,

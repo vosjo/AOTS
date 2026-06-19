@@ -73,6 +73,18 @@ class Parameter(models.Model):
 
     valid = models.BooleanField(default=True)
 
+    # Materialized consensus cache metadata (average=True rows only).
+    # The ``average`` flag marks the cached consensus row, not a semantic average.
+    consensus_rule = models.CharField(max_length=40, blank=True, default='')
+    consensus_provenance = models.CharField(max_length=200, blank=True, default='')
+    consensus_from = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='consensus_caches',
+    )
+
     average = models.BooleanField(default=False)
 
     def clean(self):

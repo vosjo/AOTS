@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 import { Plus } from 'lucide-vue-next'
 import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
@@ -57,9 +56,14 @@ const selected = ref(new Set<number>())
       <input v-model="search" class="aots-field max-w-xs" placeholder="Search projects…" />
     </template>
     <template #cell-actions="{ row }">
-      <AppButton variant="link" :to="`/admin/projects/${row.pk}`">
-        Edit
-      </AppButton>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <AppButton variant="link" :to="`/admin/projects/${row.pk}`">
+          Edit
+        </AppButton>
+        <AppButton variant="link" :to="`/w/${row.slug}/settings/consensus/`">
+          Consensus
+        </AppButton>
+      </div>
     </template>
   </DataTablePage>
 </template>

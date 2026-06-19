@@ -210,3 +210,113 @@ def default_unit_display_for_name(name: str) -> str:
         if key_base.lower() == base.lower() or key.lower() == name.lower():
             return unit_display_name(unit)
     return ''
+
+
+PLOTTER_GROUP_ORBIT = 'Orbital parameters'
+PLOTTER_GROUP_ASTROMETRY = 'Distance & proper motion'
+PLOTTER_GROUP_STELLAR = 'Stellar parameters'
+
+ORBIT_PARAMETER_BASES = frozenset({
+    'p', 't0', 'e', 'omega', 'k', 'v0', 'q', 'msini', 'asini',
+})
+
+ASTROMETRY_PARAMETER_BASES = frozenset({
+    'd', 'parallax', 'pmra', 'pmdec',
+})
+
+PLOTTER_PARAMETER_GROUPS = (
+    PLOTTER_GROUP_ASTROMETRY,
+    PLOTTER_GROUP_ORBIT,
+    PLOTTER_GROUP_STELLAR,
+)
+
+
+def _plotter_base_matches(cname: str, bases: frozenset[str]) -> bool:
+    base, _ = parse_cname(cname)
+    if base == cname and '_' not in cname:
+        base, _ = split_parameter_name(cname)
+    base = normalize_parameter_name(base)
+    lowered = {name.lower() for name in bases}
+    return base in bases or base.lower() in lowered
+
+
+def plotter_parameter_group(cname: str) -> str:
+    """Plotter optgroup for a stored consensus cname."""
+    if _plotter_base_matches(cname, ORBIT_PARAMETER_BASES):
+        return PLOTTER_GROUP_ORBIT
+    if _plotter_base_matches(cname, ASTROMETRY_PARAMETER_BASES):
+        return PLOTTER_GROUP_ASTROMETRY
+    return PLOTTER_GROUP_STELLAR
+
+
+def group_plotter_parameter_choices(flat_choices: list[tuple[str, str]]) -> list:
+    """Group flat plotter (value, label) pairs into Django optgroup choices."""
+    grouped: dict[str, list[tuple[str, str]]] = {
+        group: [] for group in PLOTTER_PARAMETER_GROUPS
+    }
+    for value, label in flat_choices:
+        grouped[plotter_parameter_group(value)].append((value, label))
+
+    result = []
+    for group_name in PLOTTER_PARAMETER_GROUPS:
+        options = sorted(grouped[group_name], key=lambda item: item[1].lower())
+        if options:
+            result.append((group_name, options))
+    return result
+
+
+def group_consensus_parameter_choices(flat_choices: list[tuple[str, str]]) -> list:
+    """Group policy parameter choices; wildcard ``*`` stays ungrouped first."""
+    wildcard = None
+    rest: list[tuple[str, str]] = []
+    for value, label in flat_choices:
+        if value == '*':
+            wildcard = (value, label)
+        else:
+            rest.append((value, label))
+
+    result = []
+    if wildcard:
+        result.append(wildcard)
+    result.extend(group_plotter_parameter_choices(rest))
+    return result
+
+
+def flatten_plotter_choices(choices) -> list[str]:
+    """All option values from flat or grouped Django form choices."""
+    values: list[str] = []
+    for entry in choices:
+        if (
+            isinstance(entry, (list, tuple))
+            and len(entry) == 2
+            and isinstance(entry[1], (list, tuple))
+            and entry[1]
+            and isinstance(entry[1][0], (list, tuple))
+        ):
+            values.extend(value for value, _label in entry[1])
+        else:
+            values.append(entry[0])
+    return values
+
+
+def serialize_plotter_choices(choices) -> list[dict]:
+    """JSON-friendly grouped choices for the SPA plotter API."""
+    serialized: list[dict] = []
+    for entry in choices:
+        if (
+            isinstance(entry, (list, tuple))
+            and len(entry) == 2
+            and isinstance(entry[1], (list, tuple))
+            and entry[1]
+            and isinstance(entry[1][0], (list, tuple))
+        ):
+            serialized.append({
+                'group': entry[0],
+                'options': [
+                    {'value': value, 'label': label}
+                    for value, label in entry[1]
+                ],
+            })
+        else:
+            serialized.append({'value': entry[0], 'label': entry[1]})
+    return serialized

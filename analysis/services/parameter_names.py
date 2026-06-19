@@ -36,3 +36,21 @@ def storage_parameter_name(base: str, component: int) -> str:
     if component in (1, 2):
         return f'{base}{component}'
     return base
+
+
+def normalize_policy_parameter(name: str, component: int) -> tuple[str, int]:
+    """
+    Canonical policy storage: base parameter name + component field.
+
+    Legacy policies may store ``k1`` with component System; that maps to ``k`` + Primary.
+    """
+    from analysis.models.default_values import SYSTEM
+    from analysis.parameter_labels import normalize_parameter_name
+
+    if name == '*':
+        return name, component
+    canonical = normalize_parameter_name(name)
+    _, suffix_component = split_parameter_name(name)
+    if suffix_component in (1, 2) and component == SYSTEM:
+        return canonical, suffix_component
+    return canonical, component

@@ -54,8 +54,8 @@ def sync_derived_for_analysis(analysis):
     if not analysis.star_id or not has_category_derived_parameters(analysis.category):
         return {'created': 0, 'updated': 0, 'failed': []}
 
-    from analysis.services.parameter_averaging import sync_averages_for_star
-    sync_averages_for_star(analysis.star)
+    from analysis.services.parameter_consensus import sync_consensus_for_star
+    sync_consensus_for_star(analysis.star)
 
     created = create_derived_parameters(analysis)
     updated = 0
@@ -69,6 +69,7 @@ def sync_derived_for_analysis(analysis):
                 name=pname,
                 component=pcomp,
                 average=True,
+                valid=True,
             )
         except DerivedParameter.DoesNotExist:
             failed.append(label)

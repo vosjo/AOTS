@@ -10,6 +10,7 @@ from analysis.auxil import plot_parameters
 from analysis.services.analysis_plotting import plot_analysis_detail_figures
 from analysis.forms import ParameterPlotterForm
 from analysis.models import Analysis
+from analysis.parameter_labels import serialize_plotter_choices
 from stars.models import Project
 
 
@@ -46,7 +47,7 @@ def parameter_plotter_api(request, project_slug):
                 'show_regression': '1' if show_regression else '0',
             },
             'choices': {
-                name: [{'value': v, 'label': label} for v, label in field.choices]
+                name: serialize_plotter_choices(field.choices)
                 for name, field in form.fields.items()
             },
         },

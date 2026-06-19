@@ -678,9 +678,7 @@
                 <thead>
                 <tr id="psources">
                     <th>Parameter</th>
-                    {% for source in parameterSources %}
-                        <th>{{ source.name }}</th>
-                    {% endfor %}
+                    <th>Value</th>
                 </tr>
                 </thead>
 
@@ -692,9 +690,7 @@
                     {% for pline in comp.params %}
                         <tr class="pconsttr">
                             <th> {{ pline.pinfo.name }} ({{ pline.pinfo.unit }})</th>
-                            {% for p in pline.values %}
-                                <td> {{ p|safe }} </td>
-                            {% endfor %}
+                            <td> {{ pline.value|safe }} </td>
                         </tr>
                     {% endfor %}
 
@@ -728,8 +724,8 @@
     <div id="copyParameters" title="Copy Parameters">
         <label for="param_csv_choices">Copy parameters from </label>
         <select name="param_csv_choices" id="param_csv_choices">
-            {% for source in parameterSources %}
-                <option value="{{ source.name }}">{{ source.name }}</option>
+            {% for source, csvtext in star.parameter_csv.items %}
+                <option value="{{ source }}">{{ source }}</option>
             {% endfor %}
         </select><br>
         {% for source, csvtext in star.parameter_csv.items %}

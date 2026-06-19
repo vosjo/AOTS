@@ -1,6 +1,10 @@
-import numpy as np
+"""
+Weighted-mean helper and deprecated wrappers around consensus cache sync.
 
-from analysis.services.parameter_sources import get_or_create_avg_source
+New code should use ``analysis.services.parameter_consensus``.
+"""
+
+import warnings
 
 
 def calculate_average(params):
@@ -8,6 +12,8 @@ def calculate_average(params):
     Calculates the average value and error based on the given parameters.
     params needs to be a queryset.
     """
+    import numpy as np
+
     values = np.array(params.values_list('value', flat=True))
 
     errors_l = np.array(params.values_list('error_l', flat=True))
@@ -25,6 +31,7 @@ def calculate_average(params):
 def delete_orphan_average(param):
     from analysis.models.parameters import Parameter
     from analysis.services import parameter_io
+
     try:
         ap = Parameter.objects.get(
             name__exact=param.name,
@@ -32,6 +39,7 @@ def delete_orphan_average(param):
             star__exact=param.star,
             valid__exact=True,
             average__exact=True,
+            derivedparameter__isnull=True,
         )
         parameter_io.delete_measurement(ap)
     except Parameter.DoesNotExist:
@@ -39,72 +47,30 @@ def delete_orphan_average(param):
 
 
 def sync_average_for(param):
-    """
-    Create, update, or delete the average parameter for a non-average parameter.
-    """
-    from analysis.models.parameters import Parameter
-    from stars.models import Star
+    """Deprecated: use ``parameter_consensus.sync_consensus_cache``."""
+    from analysis.services.parameter_consensus import sync_consensus_cache
+
+    warnings.warn(
+        'sync_average_for is deprecated; use parameter_consensus.sync_consensus_cache',
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if param.average:
         return
-
     try:
         param.star
-    except Star.DoesNotExist:
+    except Exception:
         return
-
-    sources = Parameter.objects.filter(
-        name__exact=param.name,
-        component__exact=param.component,
-        star__exact=param.star,
-        valid__exact=True,
-        average__exact=False,
-    )
-
-    if not sources.exists():
-        delete_orphan_average(param)
-        return
-
-    value, error = calculate_average(sources)
-
-    try:
-        ap = Parameter.objects.get(
-            name__exact=param.name,
-            component__exact=param.component,
-            star__exact=param.star,
-            valid__exact=True,
-            average__exact=True,
-        )
-        ap.value = value
-        ap.error = error
-        ap.save()
-        if ap.derived_parameters.exists():
-            from analysis.services.parameter_derivation import refresh_derived_for
-            refresh_derived_for(ap)
-    except Parameter.DoesNotExist:
-        ds = get_or_create_avg_source(param.star.project)
-        ap = Parameter.objects.create(
-            star=param.star,
-            name=param.name,
-            component=param.component,
-            value=value,
-            error=error,
-            unit=param.unit,
-            average=True,
-            valid=True,
-            parameter_source=ds,
-        )
-        if ap.derived_parameters.exists():
-            from analysis.services.parameter_derivation import refresh_derived_for
-            refresh_derived_for(ap)
+    sync_consensus_cache(param.star, param.name, param.component)
 
 
 def sync_averages_for_star(star):
-    """Ensure average rows exist for all valid non-average parameters on a star."""
-    from analysis.models.parameters import Parameter
-    seen = set()
-    for param in Parameter.objects.filter(star=star, average=False, valid=True):
-        key = (param.name.lower(), param.component)
-        if key in seen:
-            continue
-        seen.add(key)
-        sync_average_for(param)
+    """Deprecated: use ``parameter_consensus.sync_consensus_for_star``."""
+    from analysis.services.parameter_consensus import sync_consensus_for_star
+
+    warnings.warn(
+        'sync_averages_for_star is deprecated; use parameter_consensus.sync_consensus_for_star',
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    sync_consensus_for_star(star)

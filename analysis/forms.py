@@ -1,8 +1,15 @@
 from django import forms
 
 from analysis.categories import upload_category_choices
-from analysis.models import Parameter
-from analysis.parameter_labels import parameter_label_with_unit
+from analysis.parameter_labels import (
+    flatten_plotter_choices,
+    group_plotter_parameter_choices,
+    parameter_label_with_unit,
+)
+from analysis.services.parameter_consensus import (
+    consensus_queryset,
+    iter_project_consensus_cnames,
+)
 
 
 class MultipleFileInput(forms.ClearableFileInput):
@@ -53,22 +60,29 @@ class ParameterPlotterForm(forms.Form):
         self.project = project
         super().__init__(*args, **kwargs)
 
-        param_qs = Parameter.objects.all()
-        if project is not None:
-            param_qs = param_qs.filter(star__project=project)
-        parameter_rows = (
-            param_qs.filter(average=True)
-            .values('cname', 'unit')
-            .distinct()
-            .order_by('cname')
-        )
-        parameter_names = [
+        flat_parameter_names = [
             (
                 row['cname'],
                 parameter_label_with_unit(row['cname'], row['unit'], from_cname=True),
             )
-            for row in parameter_rows
+            for row in (
+                {'cname': cname, 'unit': unit}
+                for cname, unit in iter_project_consensus_cnames(project)
+            )
+        ] if project is not None else [
+            (
+                row['cname'],
+                parameter_label_with_unit(row['cname'], row['unit'], from_cname=True),
+            )
+            for row in (
+                consensus_queryset()
+                .values('cname', 'unit')
+                .distinct()
+                .order_by('cname')
+            )
         ]
+
+        parameter_names = group_plotter_parameter_choices(flat_parameter_names)
 
         self.fields['xaxis'].choices = parameter_names
         self.fields['yaxis'].choices = parameter_names
@@ -76,7 +90,7 @@ class ParameterPlotterForm(forms.Form):
         self.fields['size'].choices = parameter_names_with_empty
         self.fields['color'].choices = parameter_names_with_empty
 
-        choice_values = [name for name, _ in parameter_names]
+        choice_values = flatten_plotter_choices(parameter_names)
 
         def pick(names, preferred, fallback_index=0):
             if preferred in names:

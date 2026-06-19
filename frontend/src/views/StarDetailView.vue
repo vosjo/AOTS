@@ -47,6 +47,7 @@ interface ParamRow {
   display_label: string
   unit: string
   unit_display: string
+  provenance?: string
   value?: string
   primary?: string
   secondary?: string
@@ -149,10 +150,16 @@ interface AnalysisPlot {
 }
 
 interface ParamOverview {
-  sources: Array<{ pk: number; name: string }>
   components: Array<{
     component: string
-    rows: Array<{ name: string; display_label?: string; unit: string; unit_display?: string; values: string[] }>
+    rows: Array<{
+      name: string
+      display_label?: string
+      unit: string
+      unit_display?: string
+      value: string
+      provenance?: string
+    }>
   }>
 }
 
@@ -192,7 +199,6 @@ const tagDialog = ref(false)
 const selectedTags = ref<number[]>([])
 const obsExpanded = ref(true)
 const paramDialog = ref(false)
-const paramEdit = ref(false)
 const paramSaving = ref(false)
 const paramDraft = ref<Record<number, { value: string; error: string }>>({})
 const photEdit = ref(false)
@@ -242,7 +248,7 @@ const { data: tags } = useQuery({
 const { data: paramOverview, isFetching: paramLoading, refetch: refetchParams } = useQuery({
   queryKey: computed(() => ['star-parameters', starId.value]),
   queryFn: () => api<ParamOverview>(`/api/systems/stars/${starId.value}/parameters/`),
-  enabled: paramDialog,
+  enabled: computed(() => !!starId.value),
 })
 
 const { data: editableParams, refetch: refetchEditableParams } = useQuery({
@@ -251,7 +257,7 @@ const { data: editableParams, refetch: refetchEditableParams } = useQuery({
     api<{ parameters: EditableParameter[] }>(
       `/api/systems/stars/${starId.value}/parameters/editable/`,
     ),
-  enabled: computed(() => paramDialog.value && paramEdit.value && auth.isAuthenticated),
+  enabled: computed(() => paramDialog.value && auth.isAuthenticated),
 })
 
 const { data: photBandOptions } = useQuery({
@@ -423,18 +429,17 @@ async function fetchPhotometryVizier() {
   }
 }
 
-function openParamDialog() {
-  paramEdit.value = false
-  paramDialog.value = true
-}
+const hasParamRows = computed(
+  () => (paramOverview.value?.components ?? []).some((comp) => comp.rows.length > 0),
+)
 
-async function startParamEdit() {
-  paramEdit.value = true
+async function openParamEditDialog() {
+  paramDialog.value = true
   await refetchEditableParams()
 }
 
-function cancelParamEdit() {
-  paramEdit.value = false
+function closeParamEditDialog() {
+  paramDialog.value = false
   paramDraft.value = {}
 }
 
@@ -450,7 +455,7 @@ async function saveParameters() {
       method: 'PATCH',
       body: { updates },
     })
-    paramEdit.value = false
+    closeParamEditDialog()
     await Promise.all([refetch(), refetchParams(), refetchEditableParams()])
   } finally {
     paramSaving.value = false
@@ -458,7 +463,7 @@ async function saveParameters() {
 }
 
 watch(editableParams, (data) => {
-  if (!paramEdit.value || !data) return
+  if (!paramDialog.value || !data) return
   const draft: Record<number, { value: string; error: string }> = {}
   for (const p of data.parameters) {
     draft[p.id] = { value: String(p.value), error: String(p.error) }
@@ -575,47 +580,49 @@ watch(editableParams, (data) => {
         <section class="aots-panel-compact">
           <div class="flex justify-between items-center mb-2 gap-2">
             <h2 class="text-sm font-medium">Parameters</h2>
-            <AppButton variant="icon" title="View all parameters" @click="openParamDialog">
-              <Eye class="w-4 h-4" />
+            <AppButton
+              v-if="auth.isAuthenticated"
+              variant="icon"
+              title="Edit parameters"
+              @click="openParamEditDialog"
+            >
+              <Pencil class="w-4 h-4" />
             </AppButton>
           </div>
-          <table v-if="detail.summary_parameters.has_components" class="aots-param-table">
-            <thead>
-              <tr>
-                <th>Parameter</th>
-                <th>Prim.</th>
-                <th>Sec.</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="p in detail.summary_parameters.system" :key="`sys-${p.name}`">
-                <th>{{ p.display_label }}</th>
-                <td colspan="2">{{ p.value }}</td>
-              </tr>
-              <tr v-for="p in detail.summary_parameters.component" :key="`cmp-${p.name}`">
-                <th>{{ p.display_label }}</th>
-                <td>{{ p.primary }}</td>
-                <td>{{ p.secondary }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <table v-else class="aots-param-table">
-            <thead>
-              <tr><th>Parameter</th><th>Value</th></tr>
-            </thead>
-            <tbody>
-              <tr v-for="p in detail.summary_parameters.system" :key="p.name">
-                <th>{{ p.display_label }}</th>
-                <td>{{ p.value }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <p
-            v-if="!detail.summary_parameters.system.length && !detail.summary_parameters.component.length"
-            class="text-xs text-aots-muted"
-          >
-            No summary parameters
-          </p>
+
+          <p v-if="paramLoading" class="text-xs text-aots-muted">Loading…</p>
+          <div v-else-if="paramOverview && hasParamRows" class="max-h-32 overflow-auto">
+            <table class="aots-param-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template v-for="comp in paramOverview.components" :key="comp.component">
+                  <tr>
+                    <th colspan="2" class="bg-aots-page/60">
+                      <b>{{ comp.component }}</b>
+                    </th>
+                  </tr>
+                  <tr v-for="row in comp.rows" :key="`${comp.component}-${row.name}`">
+                    <th>
+                      {{ row.display_label || row.name }}
+                      <span
+                        v-if="row.provenance"
+                        class="block text-xs font-normal text-aots-muted"
+                      >
+                        {{ row.provenance }}
+                      </span>
+                    </th>
+                    <td class="font-mono">{{ row.value }}</td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <p v-else class="text-xs text-aots-muted">No parameters</p>
         </section>
 
         <section class="aots-panel-compact relative">
@@ -1053,43 +1060,27 @@ watch(editableParams, (data) => {
       v-if="paramDialog"
       open
       class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
-      @click.self="paramDialog = false; cancelParamEdit()"
+      @click.self="closeParamEditDialog"
     >
       <div class="aots-panel w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-          <h3 class="font-medium">{{ paramEdit ? 'Edit parameters' : 'Parameter overview' }}</h3>
+          <h3 class="font-medium">Edit parameters</h3>
           <div class="flex flex-wrap items-center gap-2">
             <AppButton
-              v-if="auth.isAuthenticated && !paramEdit"
-              variant="icon"
-              title="Edit values"
-              @click="startParamEdit"
+              variant="primary"
+              size="sm"
+              :disabled="paramSaving"
+              @click="saveParameters"
             >
-              <Pencil class="w-4 h-4" />
+              Save changes
             </AppButton>
-            <template v-if="paramEdit">
-              <AppButton
-                variant="primary"
-                size="sm"
-                :disabled="paramSaving"
-                @click="saveParameters"
-              >
-                Save changes
-              </AppButton>
-              <AppButton variant="ghost" size="sm" @click="cancelParamEdit">
-                Cancel
-              </AppButton>
-            </template>
-            <AppButton
-              variant="ghost"
-              @click="paramDialog = false; cancelParamEdit()"
-            >
-              Close
+            <AppButton variant="ghost" size="sm" @click="closeParamEditDialog">
+              Cancel
             </AppButton>
           </div>
         </div>
 
-        <div v-if="paramEdit" class="overflow-x-auto">
+        <div class="overflow-x-auto">
           <table class="aots-param-table">
             <thead>
               <tr>
@@ -1128,33 +1119,6 @@ watch(editableParams, (data) => {
             </tbody>
           </table>
         </div>
-
-        <template v-else>
-          <p v-if="paramLoading" class="text-sm text-aots-muted">Loading…</p>
-          <div v-else-if="paramOverview" class="overflow-x-auto">
-            <table class="aots-param-table">
-              <thead>
-                <tr>
-                  <th>Parameter</th>
-                  <th v-for="src in paramOverview.sources" :key="src.pk">{{ src.name }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <template v-for="comp in paramOverview.components" :key="comp.component">
-                  <tr>
-                    <th :colspan="(paramOverview.sources.length || 0) + 1" class="bg-aots-page/60">
-                      <b>{{ comp.component }}</b>
-                    </th>
-                  </tr>
-                  <tr v-for="row in comp.rows" :key="`${comp.component}-${row.name}`">
-                    <th>{{ row.display_label || row.name }}</th>
-                    <td v-for="(val, idx) in row.values" :key="idx">{{ val }}</td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
-        </template>
       </div>
     </dialog>
 

@@ -108,3 +108,79 @@ class ParameterLabelsTests(SimpleTestCase):
 
     def test_unknown_parameter_falls_back_to_name(self):
         self.assertEqual(parameter_display_name('custom_param'), 'custom_param')
+
+    def test_t0_epoch_alias_and_labels(self):
+        from analysis.parameter_labels import (
+            PLOTTER_GROUP_ORBIT,
+            normalize_parameter_name,
+            plotter_parameter_group,
+        )
+
+        self.assertEqual(normalize_parameter_name('t0'), 't0')
+        self.assertEqual(normalize_parameter_name('t'), 't0')
+        self.assertEqual(
+            parameter_label_with_unit('t0', 'd'),
+            'Epoch T₀ [d]',
+        )
+        self.assertEqual(
+            parameter_label_with_unit('t', 'd'),
+            'Epoch T₀ [d]',
+        )
+        self.assertEqual(cname_display_label('t'), 'Epoch T₀')
+        self.assertEqual(plotter_parameter_group('t0'), PLOTTER_GROUP_ORBIT)
+        self.assertEqual(plotter_parameter_group('t'), PLOTTER_GROUP_ORBIT)
+
+    def test_consensus_parameter_grouping(self):
+        from analysis.parameter_labels import (
+            PLOTTER_GROUP_ASTROMETRY,
+            PLOTTER_GROUP_ORBIT,
+            PLOTTER_GROUP_STELLAR,
+            group_consensus_parameter_choices,
+            serialize_plotter_choices,
+        )
+
+        grouped = group_consensus_parameter_choices([
+            ('*', 'All parameters (*)'),
+            ('teff', 'Effective temperature T_eff [K]'),
+            ('p', 'Orbital period P [d]'),
+            ('parallax', 'Parallax'),
+            ('t0', 'Epoch T₀ [d]'),
+        ])
+        self.assertEqual(grouped[0], ('*', 'All parameters (*)'))
+        self.assertEqual(grouped[1][0], PLOTTER_GROUP_ASTROMETRY)
+        self.assertEqual(grouped[2][0], PLOTTER_GROUP_ORBIT)
+        self.assertEqual(grouped[3][0], PLOTTER_GROUP_STELLAR)
+
+        serialized = serialize_plotter_choices(grouped)
+        self.assertEqual(serialized[0]['value'], '*')
+        self.assertEqual(serialized[1]['group'], PLOTTER_GROUP_ASTROMETRY)
+        self.assertEqual(serialized[2]['group'], PLOTTER_GROUP_ORBIT)
+
+    def test_plotter_parameter_grouping(self):
+        from analysis.parameter_labels import (
+            PLOTTER_GROUP_ASTROMETRY,
+            PLOTTER_GROUP_ORBIT,
+            PLOTTER_GROUP_STELLAR,
+            group_plotter_parameter_choices,
+            plotter_parameter_group,
+            serialize_plotter_choices,
+        )
+
+        self.assertEqual(plotter_parameter_group('p'), PLOTTER_GROUP_ORBIT)
+        self.assertEqual(plotter_parameter_group('k_1'), PLOTTER_GROUP_ORBIT)
+        self.assertEqual(plotter_parameter_group('teff_1'), PLOTTER_GROUP_STELLAR)
+        self.assertEqual(plotter_parameter_group('parallax'), PLOTTER_GROUP_ASTROMETRY)
+        self.assertEqual(plotter_parameter_group('pmra'), PLOTTER_GROUP_ASTROMETRY)
+        self.assertEqual(plotter_parameter_group('d'), PLOTTER_GROUP_ASTROMETRY)
+
+        grouped = group_plotter_parameter_choices([
+            ('teff_1', 'Effective temperature T_eff₁ [K]'),
+            ('p', 'Orbital period P [d]'),
+            ('parallax', 'Parallax'),
+        ])
+        self.assertEqual(grouped[0][0], PLOTTER_GROUP_ASTROMETRY)
+        self.assertEqual(grouped[1][0], PLOTTER_GROUP_ORBIT)
+        self.assertEqual(grouped[2][0], PLOTTER_GROUP_STELLAR)
+        serialized = serialize_plotter_choices(grouped)
+        self.assertEqual(serialized[1]['group'], PLOTTER_GROUP_ORBIT)
+        self.assertEqual(serialized[1]['options'][0]['value'], 'p')

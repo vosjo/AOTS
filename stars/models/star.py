@@ -4,8 +4,6 @@ from astropy.coordinates.angles import Angle
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from analysis.parameter_aliases import stored_parameter_lookup_names
-
 from .project import Project
 
 
@@ -89,15 +87,18 @@ class Star(models.Model):
         Returns a list of parameters that should be included in the
         summary part of the star.
         """
+        from analysis.services.parameter_consensus import (
+            consensus_provenance_display,
+            get_consensus_parameter,
+        )
+
         pars = []
 
         for name in ['absolute_g_mag', 'parallax', 'p', 't0', 'e']:
-            p = self.parameter_set.filter(
-                name__in=stored_parameter_lookup_names(name),
-                average__exact=True,
-            ).first()
+            p = get_consensus_parameter(self, name, component=0)
             if p is not None:
-                pars.append((name, p.unit, "{} &pm; {}".format(p.rvalue(), p.rerror())))
+                provenance = consensus_provenance_display(self, p, name, component=0)
+                pars.append((name, p.unit, "{} &pm; {}".format(p.rvalue(), p.rerror()), provenance))
 
         return pars
 
@@ -106,20 +107,25 @@ class Star(models.Model):
         Returns a list of parameters that should be included in the
         summary part of the star.
         """
+        from analysis.services.parameter_consensus import (
+            consensus_provenance_display,
+            get_consensus_parameter,
+        )
+
         pars = []
 
         for name in ['teff', 'logg', 'rad']:
-            p1 = self.parameter_set.filter(name__exact=name, component__exact=1,
-                                           average__exact=True)
-            p2 = self.parameter_set.filter(name__exact=name, component__exact=2,
-                                           average__exact=True)
+            p1 = get_consensus_parameter(self, name, component=1)
+            p2 = get_consensus_parameter(self, name, component=2)
 
-            v1 = "{} &pm; {}".format(p1[0].rvalue(), p1[0].rerror()) if len(p1) > 0 else "/"
-            v2 = "{} &pm; {}".format(p2[0].rvalue(), p2[0].rerror()) if len(p2) > 0 else "/"
+            v1 = "{} &pm; {}".format(p1.rvalue(), p1.rerror()) if p1 is not None else "/"
+            v2 = "{} &pm; {}".format(p2.rvalue(), p2.rerror()) if p2 is not None else "/"
 
-            if len(p1) > 0 or len(p2) > 0:
-                unit = p1[0].unit if len(p1) > 0 else p2[0].unit
-                pars.append((name, unit, v1, v2))
+            if p1 is not None or p2 is not None:
+                unit = p1.unit if p1 is not None else p2.unit
+                ref = p1 if p1 is not None else p2
+                provenance = consensus_provenance_display(self, ref, name, component=ref.component)
+                pars.append((name, unit, v1, v2, provenance))
 
         return pars
 

@@ -37,6 +37,24 @@
 - [x] **Release 3:** PK column `id`, flatten AVG MTI (`ParameterSource.kind`), upload path `analyses/`, `relocate_analysis_files` + `cleanup_orphan_analysis_sources` commands
 - [ ] **Release 4:** remove legacy analysis views/templates/JS — gated on [frontend parity checklist](docs/frontend_parity_checklist.md) Analysis section
 
+## Parameter consensus (Konsens-Schicht)
+
+**Done:**
+
+- `ParameterConsensusPolicy` per project (rules: weighted average, preferred source, preferred analysis category, source priority, latest)
+- `analysis/services/parameter_consensus.py` — `resolve_consensus`, `get_consensus_parameter`, materialized AVG cache with `consensus_provenance`
+- Default policies per project from `consensus_defaults.py` (Gaia source priority, RV/spectral/SED categories, wildcard `*` fallback); seeded on project create + migration 0022
+- Project settings UI: `/w/<slug>/settings/consensus/`; API `/api/analysis/consensus-policies/<slug>/`
+- Consumers use consensus facade (summary, plotter, HRD, derivation) — not raw `average=True` in application code
+
+**Later:**
+
+- [ ] HRD / Parameter-Plotter: Photometrie-Kandidaten (`bp_rp`, `mag` aus `photometry_set`) in `resolve_consensus`
+- [ ] HRD / Plotter: `absolute_g_mag`-Regeln vereinheitlichen (Gaia script vs. berechnet)
+- [ ] Parameter overview: „active“ vs. archived measurement columns
+- [ ] Per-star policy overrides (optional)
+- [ ] Weighted average: statistisch robustere Fehlerkombination
+
 ## Other
 
 See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for DataTables API fields.

@@ -72,6 +72,7 @@ PARAMETER_ALIASES = {
     # 'L': ['L*', 'Lstar'],         #   Example
     'v01': ['v', 'v0'],
     'k1': ['k'],
+    't0': ['t'],
     'logg': ['log_g'],
     'z': ['met'],
 }
@@ -98,11 +99,13 @@ def canonical_parameter_base(name: str) -> str:
 
 
 def split_parameter_name(name):
+    # Epoch T0 is a single parameter name; trailing 0 is not a component suffix.
+    if name.lower() == 't0':
+        return 't0', 0
     if name[-1] in ['0', '1', '2']:
         component = int(name[-1])
         name = name[:-1]
     else:
-        name = name
         component = 0
     return name, component
 

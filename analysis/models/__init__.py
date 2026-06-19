@@ -1,4 +1,9 @@
 from .analysis_model import Analysis
+from .consensus_policy import (
+    CONSENSUS_WILDCARD,
+    ConsensusRuleKind,
+    ParameterConsensusPolicy,
+)
 from .parameter_source import ParameterSource, ParameterSourceKind
 from .default_values import SYSTEM, PRIMARY, SECONDARY, CBDISK, \
     COMPONENT_CHOICES, STELLAR_PARAMETERS, \

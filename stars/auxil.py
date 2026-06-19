@@ -709,42 +709,92 @@ def update_photometry(cleaned_data, project, star_id, from_vizier):
     return True, ""
 
 
+def _parameter_display_value(param) -> str:
+    return r"{} &pm; {}".format(param.rvalue(), param.rerror())
+
+
+def _consensus_result_display(name: str, result) -> str:
+    from analysis.models.default_values import round_value
+
+    error = result.error_l if result.error_l == result.error_u else result.error_l
+    return r"{} &pm; {}".format(
+        round_value(result.value, name, result.error_l),
+        round_value(error, name, result.error_l),
+    )
+
+
+def _parameter_provenance_label(param) -> str:
+    if param.analysis_id:
+        return param.analysis.name
+    if param.parameter_source_id:
+        return param.parameter_source.name
+    return ''
+
+
 #   Get all parameters for the parameter overview
-def get_params(star_id):
+def get_params(star_id, *, catalog_only=False):
+    from analysis.models.parameter_source import ParameterSourceKind
+    from analysis.services.parameter_consensus import (
+        consensus_provenance_display,
+        get_consensus_parameter,
+        resolve_catalog_consensus,
+    )
+
     star = get_object_or_404(Star, pk=star_id)
     parameters = []
-    pSource_pks = star.parameter_set.values_list('parameter_source').distinct()
-    pSource = ParameterSource.objects.filter(id__in=pSource_pks).order_by('name')
     component_names = {0: 'System', 1: 'Primary', 2: 'Secondary'}
+    catalog_filter = {}
+    if catalog_only:
+        catalog_filter = {'parameter_source__kind': ParameterSourceKind.CATALOG}
+
     for comp in [analModels.SYSTEM, analModels.PRIMARY, analModels.SECONDARY]:
-        pNames = star.parameter_set \
-            .filter(component__exact=comp, valid__exact=True) \
-            .values_list('name').distinct()
+        base_qs = star.parameter_set.filter(
+            component__exact=comp,
+            valid__exact=True,
+            average=False,
+        )
+        name_qs = base_qs.filter(**catalog_filter) if catalog_only else base_qs
         pNames = sorted(
-            [name[0] for name in pNames],
+            name_qs.values_list('name', flat=True).distinct(),
             key=analModels.parameter_order,
         )
 
-        allParameters = star.parameter_set.all().filter(component__exact=comp)
+        allParameters = base_qs
 
         params = []
         for name in pNames:
-            values, pinfo = [], None
-            for source in pSource:
-                try:
-                    p = allParameters.get(
-                        name__exact=name,
-                        parameter_source__exact=source.pk,
+            if catalog_only:
+                catalog_qs = allParameters.filter(name__exact=name, **catalog_filter)
+                pinfo = catalog_qs.first()
+                if pinfo is None:
+                    continue
+                result = resolve_catalog_consensus(star, name, comp)
+                if result:
+                    display_value = _consensus_result_display(name, result)
+                    provenance = result.provenance_label
+                else:
+                    display_value = _parameter_display_value(pinfo)
+                    provenance = _parameter_provenance_label(pinfo)
+            else:
+                pinfo = allParameters.filter(name__exact=name).first()
+                consensus = get_consensus_parameter(star, name, comp)
+                if consensus:
+                    display_value = _parameter_display_value(consensus)
+                    provenance = consensus_provenance_display(star, consensus, name, comp)
+                else:
+                    display_value = (
+                        _parameter_display_value(pinfo) if pinfo else '/'
                     )
-                    values.append(r"{} &pm; {}".format(p.rvalue(), p.rerror()))
-                    pinfo = p
-                except Exception as e:
-                    values.append("/")
+                    provenance = _parameter_provenance_label(pinfo) if pinfo else ''
 
-            params.append({'values': values, 'pinfo': pinfo})
+            params.append({
+                'value': display_value,
+                'pinfo': pinfo,
+                'provenance': provenance,
+            })
 
         parameters.append({'params': params, 'component': component_names[comp]})
-    return parameters, pSource
+    return parameters
 
 
 def pk_from_source_name(sname, star):

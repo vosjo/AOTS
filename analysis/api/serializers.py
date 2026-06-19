@@ -10,6 +10,7 @@ from analysis.services.analysis_history import (
     latest_iso,
     modified_by_username,
 )
+from analysis.services.parameter_consensus import consensus_queryset
 from stars.api.serializers import SimpleStarSerializer
 
 
@@ -144,10 +145,11 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
         if not obj.star_id or not has_category_derived_parameters(obj.category):
             return []
         specs = set(category_derived_parameter_specs(obj.category))
-        derived = DerivedParameter.objects.filter(
-            star_id=obj.star_id,
-            average=True,
-        ).order_by('name', 'component')
+        derived = (
+            consensus_queryset(star=obj.star)
+            .filter(derivedparameter__isnull=False)
+            .order_by('name', 'component')
+        )
         return AnalysisParameterSerializer(
             [dpar for dpar in derived if (dpar.name, dpar.component) in specs],
             many=True,

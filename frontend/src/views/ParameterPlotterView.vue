@@ -13,6 +13,17 @@ interface FormChoice {
   label: string
 }
 
+interface FormChoiceGroup {
+  group: string
+  options: FormChoice[]
+}
+
+type FormChoiceEntry = FormChoice | FormChoiceGroup
+
+function isChoiceGroup(entry: FormChoiceEntry): entry is FormChoiceGroup {
+  return 'group' in entry && Array.isArray((entry as FormChoiceGroup).options)
+}
+
 interface PlotterResponse {
   plot: { script: string; div: string }
   statistics: string
@@ -20,7 +31,7 @@ interface PlotterResponse {
     fields: string[]
     labels: Record<string, string>
     values: Record<string, string>
-    choices: Record<string, FormChoice[]>
+    choices: Record<string, FormChoiceEntry[]>
   }
 }
 
@@ -78,13 +89,24 @@ function updateFigure() {
             v-model="formValues[field]"
             class="aots-select"
           >
-            <option
-              v-for="opt in data.form.choices[field] ?? []"
-              :key="`${field}-${opt.value}`"
-              :value="opt.value"
-            >
-              {{ opt.label || '(none)' }}
-            </option>
+            <template v-for="(entry, idx) in data.form.choices[field] ?? []" :key="`${field}-${idx}`">
+              <optgroup v-if="isChoiceGroup(entry)" :label="entry.group">
+                <option
+                  v-for="opt in entry.options"
+                  :key="`${field}-${opt.value}`"
+                  :value="opt.value"
+                >
+                  {{ opt.label }}
+                </option>
+              </optgroup>
+              <option
+                v-else
+                :key="`${field}-${entry.value}`"
+                :value="entry.value"
+              >
+                {{ entry.label || '(none)' }}
+              </option>
+            </template>
           </select>
         </label>
         <label class="flex items-center gap-2 text-sm text-aots">

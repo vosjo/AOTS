@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from analysis.models.parameters import DerivedParameter, Parameter, combine_parameter_name
-from analysis.services.parameter_averaging import sync_average_for, sync_averages_for_star
+from analysis.services.parameter_consensus import (
+    consensus_queryset,
+    sync_consensus_cache,
+    sync_consensus_for_star,
+)
 from analysis.services.parameter_derivation import (
     refresh_derived_for,
     setup_derived_on_create,
@@ -16,12 +20,12 @@ def apply_cname(param) -> None:
 
 
 def after_measurement_saved(param) -> None:
-    """Sync project average row and refresh dependent derived parameters."""
+    """Sync consensus cache row and refresh dependent derived parameters."""
     if param.average:
         if param.derived_parameters.exists():
             refresh_derived_for(param)
         return
-    sync_average_for(param)
+    sync_consensus_cache(param.star, param.name, param.component)
     if param.derived_parameters.exists():
         refresh_derived_for(param)
 
@@ -31,15 +35,15 @@ def after_measurement_deleted(param, *, derived_pks=()) -> None:
         if derived_pks:
             DerivedParameter.objects.filter(pk__in=derived_pks).delete()
         return
-    sync_average_for(param)
+    sync_consensus_cache(param.star, param.name, param.component)
     if derived_pks:
         DerivedParameter.objects.filter(pk__in=derived_pks).delete()
 
 
 def after_star_parameters_batch(star) -> None:
     """Run after bulk parameter creates/updates for one star (scripts, ingestion)."""
-    sync_averages_for_star(star)
-    for param in Parameter.objects.filter(star=star, average=True, valid=True):
+    sync_consensus_for_star(star)
+    for param in consensus_queryset(star=star):
         if param.derived_parameters.exists():
             refresh_derived_for(param)
 

@@ -262,9 +262,8 @@ def star_detail(request, star_id, project=None, **kwargs):
         context["sed_plot"] = div_list[0] if div_list else None
         context["script"] = "\n".join(script_list)
 
-    parameters, pSource = get_params(star_id)
+    parameters = get_params(star_id)
     context["allParameters"] = parameters
-    context["parameterSources"] = pSource
 
     #   Get number of raw data files
     n_raw = len(star.rawspecfile_set.all().filter(filetype__exact="Science"))

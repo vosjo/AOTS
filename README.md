@@ -426,6 +426,16 @@ Parameters from HDF5 uploads link via `Parameter.analysis`. Catalog and script m
 
 Configure policies at `/w/<project>/settings/consensus/` (SPA) or via `GET/POST /api/analysis/consensus-policies/<slug>/`. New projects receive defaults from `analysis/services/consensus_defaults.py` (Gaia source priority for astrometry, RV/spectral/SED analysis categories for model parameters, wildcard `*` weighted average as fallback). Existing per-project overrides are preserved when seeding.
 
+### Photometry bands
+
+All supported passbands are defined in [`stars/photometry_bands.py`](stars/photometry_bands.py) (wavelength, zeropoint, CSV column names, VizieR catalog mapping). Consumers (`stars/auxil.py`, `observations/models/photometry.py`, SED plotting) import from this registry.
+
+Supported surveys include Gaia DR3 (manual/CSV only for photometry bands), GALEX, 2MASS, WISE, SKYMAP (U/V/B), APASS, SDSS, and Pan-STARRS.
+
+- **VizieR fetch** (SPA *Fetch from VizieR*): all surveys above **except Gaia** — use *Fetch Gaia DR3* for Gaia photometry and astrometry.
+- **Manual / bulk CSV:** all bands including `GAIA3.G`, `GAIA3.BP`, `GAIA3.RP` via columns `phot_g_mean_mag`, etc.
+- **API:** `GET /api/systems/stars/<pk>/photometry/options/` returns flat `bands` and grouped `surveys`.
+
 ### Gaia DR3 import
 
 Catalog data is fetched from Vizier (`I/355/gaiadr3`) via `stars/services/gaia_import.py`:

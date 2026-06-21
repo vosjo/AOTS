@@ -310,16 +310,10 @@ class UploadSystemDetailForm(forms.Form):
     # SKYMAP photometry and Errors
     Umag = forms.FloatField(required=False)
     Vmag = forms.FloatField(required=False)
-    Gmag = forms.FloatField(required=False)
-    Rmag = forms.FloatField(required=False)
-    Imag = forms.FloatField(required=False)
-    Zmag = forms.FloatField(required=False)
+    Bmag = forms.FloatField(required=False)
     Umagerr = forms.FloatField(required=False)
     Vmagerr = forms.FloatField(required=False)
-    Gmagerr = forms.FloatField(required=False)
-    Rmagerr = forms.FloatField(required=False)
-    Imagerr = forms.FloatField(required=False)
-    Zmagerr = forms.FloatField(required=False)
+    Bmagerr = forms.FloatField(required=False)
 
     # APASS photometry and Errors
     APBmag = forms.FloatField(required=False)
@@ -417,16 +411,10 @@ class UpdatePhotometryForm(forms.Form):
     # SKYMAP photometry and Errors
     Umag = forms.FloatField(required=False, label='SKYMAP.U', show_hidden_initial=True)
     Vmag = forms.FloatField(required=False, label='SKYMAP.V', show_hidden_initial=True)
-    Gmag = forms.FloatField(required=False, label='SKYMAP.G', show_hidden_initial=True)
-    Rmag = forms.FloatField(required=False, label='SKYMAP.R', show_hidden_initial=True)
-    Imag = forms.FloatField(required=False, label='SKYMAP.I', show_hidden_initial=True)
-    Zmag = forms.FloatField(required=False, label='SKYMAP.Z', show_hidden_initial=True)
+    Bmag = forms.FloatField(required=False, label='SKYMAP.B', show_hidden_initial=True)
     Umagerr = forms.FloatField(required=False, label='SKYMAP.Uerr', show_hidden_initial=True)
     Vmagerr = forms.FloatField(required=False, label='SKYMAP.Verr', show_hidden_initial=True)
-    Gmagerr = forms.FloatField(required=False, label='SKYMAP.Gerr', show_hidden_initial=True)
-    Rmagerr = forms.FloatField(required=False, label='SKYMAP.Rerr', show_hidden_initial=True)
-    Imagerr = forms.FloatField(required=False, label='SKYMAP.Ierr', show_hidden_initial=True)
-    Zmagerr = forms.FloatField(required=False, label='SKYMAP.Zerr', show_hidden_initial=True)
+    Bmagerr = forms.FloatField(required=False, label='SKYMAP.Berr', show_hidden_initial=True)
 
     # APASS photometry and Errors
     APBmag = forms.FloatField(required=False, label='APASS.B', show_hidden_initial=True)

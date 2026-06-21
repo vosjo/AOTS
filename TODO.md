@@ -47,6 +47,7 @@
 - Project settings UI: `/w/<slug>/settings/consensus/`; API `/api/analysis/consensus-policies/<slug>/`
 - Consumers use consensus facade (summary, plotter, HRD, derivation) — not raw `average=True` in application code
 - Gaia DR3 import service (`stars/services/gaia_import.py`): photometry + astrometry + derived `mag` / `bp_rp` / `absolute_g_mag` as catalog parameters; SPA buttons + Celery bulk task
+- Photometry band registry (`stars/photometry_bands.py`): unified passband definitions; VizieR fetch excludes Gaia (use Gaia DR3 import); SKYMAP U/V/B
 
 **Later:**
 

@@ -13,47 +13,8 @@ from specutils import Spectrum as SpecutilsSpectrum
 
 from observations.auxil import tools as spectools
 from stars.models import Star
+from stars.photometry_bands import SURVEY_PLOT_COLORS, ZEROPOINTS as zeropoints
 from .models import Spectrum, LightCurve
-
-zeropoints = {
-    'GALEX.FUV': 4.72496e-08,
-    'GALEX.NUV': 2.21466e-08,
-    'GAIA2.G': 2.46973e-09,
-    'GAIA2.BP': 4.0145e-09,
-    'GAIA2.RP': 1.28701e-09,
-    'GAIA3.G': 2.5e-9,
-    'GAIA3.BP': 4.08e-9,
-    'GAIA3.RP': 1.27e-9,
-    'GAIA3.RVS': 9.04e-10,
-    'SKYMAP.U': 8.93655e-09,
-    'SKYMAP.V': 7.38173e-09,
-    'SKYMAP.G': 4.18485e-09,
-    'SKYMAP.R': 2.85924e-09,
-    'SKYMAP.I': 1.79368e-09,
-    'SKYMAP.Z': 1.29727e-09,
-    'APASS.B': 6.40615e-09,
-    'APASS.V': 3.66992e-09,
-    'APASS.G': 4.92257e-09,
-    'APASS.R': 2.85425e-09,
-    'APASS.I': 1.94038e-09,
-    'SDSS.U': 3.493e-9,
-    'SDSS.G': 5.352e-9,
-    'SDSS.R': 2.541e-9,
-    'SDSS.I': 1.323e-9,
-    'SDSS.Z': 7.097e-10,
-    'PANSTAR.G': 4.704969e-09,
-    'PANSTAR.R': 2.859411e-09,
-    'PANSTAR.I': 1.924913e-09,
-    'PANSTAR.Z': 1.451480e-09,
-    'PANSTAR.Y': 1.176242e-09,
-    '2MASS.J': 3.11048e-10,
-    '2MASS.H': 1.13535e-10,
-    '2MASS.K': 4.27871e-11,
-    'WISE.W1': 8.1787e-12,
-    'WISE.W2': 2.415e-12,
-    'WISE.W3': 6.5151e-14,
-    'WISE.W4': 5.0901e-15,
-}
 
 
 def plot_visibility(observation):
@@ -510,18 +471,7 @@ def plot_sed(star_id, project=None):
         name="hover"
     )
 
-    colors = {
-        '2MASS': 'black',
-        'WISE': 'gray',
-        'STROMGREN': 'olive',
-        'SDSS': 'olive',
-        'GAIA2': 'maroon',
-        'GAIA3': 'maroon',
-        'APASS': 'gold',
-        'GALEX': 'powderblue',
-        'PANSTAR': 'green',
-        'SKYMAP': 'red',
-    }
+    colors = SURVEY_PLOT_COLORS
 
     # plot per system
     for system, group in photd.groupby("system"):

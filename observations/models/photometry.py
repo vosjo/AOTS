@@ -3,45 +3,7 @@ from django.db import models
 from simple_history.models import HistoricalRecords
 
 from stars.models import Star
-
-band_wavelengths = {'GALEX.FUV': 1535,
-                    'GALEX.NUV': 2300,
-                    'GAIA2.G': 6230,
-                    'GAIA2.BP': 5050,
-                    'GAIA2.RP': 7730,
-                    'GAIA3.G': 5822.39,
-                    'GAIA3.BP': 5035.75,
-                    'GAIA3.RP': 7619.96,
-                    'GAIA3.RVS': 8578.16,
-                    'SKYMAP.U': 3490,
-                    'SKYMAP.V': 3840,
-                    'SKYMAP.G': 5100,
-                    'SKYMAP.R': 6170,
-                    'SKYMAP.I': 7790,
-                    'SKYMAP.Z': 9160,
-                    'APASS.B': 4303,
-                    'APASS.V': 5437,
-                    'APASS.G': 4718,
-                    'APASS.R': 6185,
-                    'APASS.I': 7499,
-                    'SDSS.U': 3478,
-                    'SDSS.G': 4795,
-                    'SDSS.R': 6187,
-                    'SDSS.I': 7658,
-                    'SDSS.Z': 9668,
-                    'PANSTAR.G': 4810,
-                    'PANSTAR.R': 6170,
-                    'PANSTAR.I': 7520,
-                    'PANSTAR.Z': 8660,
-                    'PANSTAR.Y': 9620,
-                    '2MASS.J': 12393,
-                    '2MASS.H': 16494,
-                    '2MASS.K': 21638,
-                    'WISE.W1': 33526,
-                    'WISE.W2': 46028,
-                    'WISE.W3': 115608,
-                    'WISE.W4': 220883,
-                    }
+from stars.photometry_bands import BAND_WAVELENGTHS as band_wavelengths
 
 
 class Photometry(models.Model):

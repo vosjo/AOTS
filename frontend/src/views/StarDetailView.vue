@@ -266,7 +266,10 @@ const { data: editableParams, refetch: refetchEditableParams } = useQuery({
 const { data: photBandOptions } = useQuery({
   queryKey: computed(() => ['star-photometry-options', starId.value]),
   queryFn: () =>
-    api<{ bands: Array<{ band: string }> }>(
+    api<{
+      bands: Array<{ band: string; survey: string }>
+      surveys: Array<{ id: string; label: string; bands: string[] }>
+    }>(
       `/api/systems/stars/${starId.value}/photometry/options/`,
     ),
   enabled: computed(() => photEdit.value && auth.isAuthenticated),
@@ -290,9 +293,14 @@ const headerTitle = computed(() => {
   return s.classification ? `${s.name} — ${s.classification}` : s.name
 })
 
-const availableBands = computed(() => {
+const availableBandSurveys = computed(() => {
   const used = new Set(photDraft.value.map((r) => r.band))
-  return (photBandOptions.value?.bands ?? []).filter((b) => !used.has(b.band))
+  return (photBandOptions.value?.surveys ?? [])
+    .map((survey) => ({
+      ...survey,
+      bands: survey.bands.filter((band) => !used.has(band)),
+    }))
+    .filter((survey) => survey.bands.length > 0)
 })
 
 
@@ -826,6 +834,7 @@ watch(editableParams, (data) => {
                   size="sm"
                   class="inline-flex items-center gap-1"
                   :disabled="photVizierLoading || photEdit"
+                  title="Fetches GALEX, SDSS, Pan-STARRS, 2MASS, WISE, APASS, SKYMAP from VizieR (Gaia via Fetch Gaia DR3)"
                   @click="fetchPhotometryVizier"
                 >
                   <Loader2 v-if="photVizierLoading" class="w-3.5 h-3.5 animate-spin" />
@@ -855,15 +864,20 @@ watch(editableParams, (data) => {
                       v-if="addBandOpen"
                       class="absolute right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded border border-aots bg-aots-surface py-1 shadow-lg min-w-[10rem]"
                     >
-                      <button
-                        v-for="b in availableBands"
-                        :key="b.band"
-                        type="button"
-                        class="block w-full px-3 py-1 text-left text-xs hover:bg-aots-surface-muted"
-                        @click="addPhotBand(b.band)"
-                      >
-                        {{ b.band }}
-                      </button>
+                      <template v-for="survey in availableBandSurveys" :key="survey.id">
+                        <div class="px-3 py-1 text-[10px] font-medium text-aots-muted">
+                          {{ survey.label }}
+                        </div>
+                        <button
+                          v-for="band in survey.bands"
+                          :key="band"
+                          type="button"
+                          class="block w-full px-3 py-1 text-left text-xs hover:bg-aots-surface-muted"
+                          @click="addPhotBand(band)"
+                        >
+                          {{ band }}
+                        </button>
+                      </template>
                     </div>
                   </div>
                   <AppButton

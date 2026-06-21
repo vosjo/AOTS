@@ -12,12 +12,12 @@ from astroquery.vizier import Vizier
 
 from analysis.models import ParameterSource
 from analysis.services import parameter_io
+from stars.photometry_bands import GAIA_PHOTOMETRY_BANDS
 
 GAIA_DR3_SOURCE_NAME = 'Gaia DR3'
 GAIA_DR3_CATALOG = 'I/355/gaiadr3'
 GAIA_DR3_REFERENCE = 'https://doi.org/10.1051/0004-6361/202243940'
 
-GAIA_PHOTOMETRY_BANDS = ('GAIA3.G', 'GAIA3.BP', 'GAIA3.RP')
 GAIA_VIZIER_COLUMNS = [
     'Plx', 'e_Plx', 'pmRA', 'e_pmRA', 'pmDE', 'e_pmDE',
     'Gmag', 'e_Gmag', 'BPmag', 'e_BPmag', 'RPmag', 'e_RPmag',

@@ -30,8 +30,6 @@ from .models import Star, Tag, Project
 from stars.services import star_io
 
 
-# from .plotting import plot_photometry
-
 
 # Create your views here.
 

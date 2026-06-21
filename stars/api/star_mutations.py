@@ -10,9 +10,13 @@ from rest_framework.response import Response
 from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
 from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
 from analysis.services import parameter_io
+from stars.photometry_bands import (
+    ALL_BANDS,
+    CSV_MAG_BY_BAND,
+    PASSBANDS as passbands,
+    survey_groups,
+)
 from stars.auxil import (
-    passbands,
-    photnames,
     populate_system,
     resolve_simbad_name,
     update_photometry,
@@ -20,7 +24,7 @@ from stars.auxil import (
 from stars.models import Project, Star, Tag
 from stars.services import star_io
 
-PHOTNAME_BY_BAND = dict(zip(passbands, photnames))
+PHOTNAME_BY_BAND = CSV_MAG_BY_BAND
 
 
 def _build_photometry_cleaned_data(measurements):
@@ -99,7 +103,11 @@ def _editable_parameters(star):
 def star_photometry_options(request, pk):
     get_object_if_allowed(Star, request, pk, select_related=('project',))
     return Response({
-        'bands': [{'band': band} for band in passbands],
+        'bands': [
+            {'band': band, 'survey': ALL_BANDS[band].survey}
+            for band in passbands
+        ],
+        'surveys': survey_groups(),
     })
 
 

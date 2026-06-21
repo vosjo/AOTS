@@ -11,225 +11,20 @@ from django.shortcuts import reverse, get_object_or_404
 from analysis import models as analModels
 from analysis.models import ParameterSource
 from analysis.services import parameter_io
+from stars.photometry_bands import (
+    CSV_ERR_BY_BAND,
+    CSV_MAG_BY_BAND,
+    CSV_MAG_TO_BAND,
+    PASSBANDS as passbands,
+    build_vizier_catalogs,
+    csv_import_bands,
+    errs,
+    photnames,
+)
 from stars.services import star_io
 from .models import Star
 
-#   'simbad_id':    ID of the catalog
-#   'columns':      filter definition used by the catalog
-#   'err_columns':  filter errors used by the catalog
-#   'passbands':    internal names for the filters
-#   'photnames':    external names (e.g., in .csv files) for the filters
-#   'errs':         external names (e.g., in .csv files) for the errors
-catalogs = {
-    'GAIA3': {
-        'simbad_id': 'I/355/gaiadr3',
-        'columns': ['Gmag', 'BPmag', 'RPmag'],
-        'err_columns': ['e_Gmag', 'e_BPmag', 'e_RPmag'],
-        'passbands': ['GAIA3.G', 'GAIA3.BP', 'GAIA3.RP'],
-        'photnames': [
-            'phot_g_mean_mag',
-            'phot_bp_mean_mag',
-            'phot_rp_mean_mag',
-        ],
-        'errs': [
-            'phot_g_mean_magerr',
-            'phot_bp_mean_magerr',
-            'phot_rp_mean_magerr',
-        ],
-    },
-    '2MASS': {
-        'simbad_id': 'II/246/out',
-        'columns': ['Jmag', 'Hmag', 'Kmag'],
-        'err_columns': ['e_Jmag', 'e_Hmag', 'e_Kmag'],
-        'passbands': ['2MASS.J', '2MASS.H', '2MASS.K'],
-        'photnames': ['Jmag', 'Hmag', 'Kmag'],
-        'errs': ['Jmagerr', 'Hmagerr', 'Kmagerr'],
-    },
-    'WISE': {
-        'simbad_id': 'II/328/allwise',
-        'columns': ['W1mag', 'W2mag', 'W3mag', 'W4mag'],
-        'err_columns': ['e_W1mag', 'e_W2mag', 'e_W3mag', 'e_W4mag'],
-        'passbands': ['WISE.W1', 'WISE.W2', 'WISE.W3', 'WISE.W4'],
-        'photnames': ['W1mag', 'W2mag', 'W3mag', 'W4mag'],
-        'errs': ['W1magerr', 'W2magerr', 'W3magerr', 'W4magerr'],
-    },
-    'GALEX': {
-        'simbad_id': 'II/312/ais',
-        'columns': ['FUV', 'NUV'],
-        'err_columns': ['e_FUV', 'e_NUV'],
-        'passbands': ['GALEX.FUV', 'GALEX.NUV'],
-        'photnames': ['FUV', 'NUV'],
-        'errs': ['FUVerr', 'NUVerr'],
-    },
-    'SKYMAP': {
-        'simbad_id': 'V/145/sky2kv5',
-        'columns': ['Umag', 'Vmag'],
-        'err_columns': ['e_Umag', 'e_Vmag'],
-        'passbands': ['SKYMAP.U', 'SKYMAP.V'],
-        'photnames': ['Umag', 'Vmag'],
-        'errs': ['Umagerr', 'Vmagerr'],
-    },
-    'APASS': {
-        'simbad_id': 'II/336/apass9',
-        'columns': ["Bmag", "Vmag", "g'mag", "r'mag", "i'mag"],
-        'err_columns': ["e_Bmag", "e_Vmag", "e_g'mag", "e_r'mag", "e_i'mag"],
-        'passbands': ['APASS.B', 'APASS.V', 'APASS.G', 'APASS.R', 'APASS.I'],
-        'photnames': ['APBmag', 'APVmag', 'APGmag', 'APRmag', 'APImag'],
-        'errs': [
-            'APBmagerr',
-            'APVmagerr',
-            'APGmagerr',
-            'APRmagerr',
-            'APImagerr',
-        ],
-    },
-    'SDSS': {
-        'simbad_id': 'V/147/sdss12',
-        'columns': ['umag', 'gmag', 'rmag', 'imag', 'zmag'],
-        'err_columns': ['e_umag', 'e_gmag', 'e_rmag', 'e_imag', 'e_zmag'],
-        'passbands': ['SDSS.U', 'SDSS.G', 'SDSS.R', 'SDSS.I', 'SDSS.Z'],
-        'photnames': [
-            'SDSSUmag',
-            'SDSSGmag',
-            'SDSSRmag',
-            'SDSSImag',
-            'SDSSZmag',
-        ],
-        'errs': [
-            'SDSSUmagerr',
-            'SDSSGmagerr',
-            'SDSSRmagerr',
-            'SDSSImagerr',
-            'SDSSZmagerr',
-        ],
-    },
-    'PANSTAR': {
-        'simbad_id': 'II/349/ps1',
-        'columns': ['gmag', 'rmag', 'imag', 'zmag', 'ymag'],
-        'err_columns': ['e_gmag', 'e_rmag', 'e_imag', 'e_zmag', 'e_ymag'],
-        'passbands': [
-            'PANSTAR.G',
-            'PANSTAR.R',
-            'PANSTAR.I',
-            'PANSTAR.Z',
-            'PANSTAR.Y',
-        ],
-        'photnames': ['PANGmag', 'PANRmag', 'PANImag', 'PANZmag', 'PANYmag'],
-        'errs': [
-            'PANGmagerr',
-            'PANRmagerr',
-            'PANImagerr',
-            'PANZmagerr',
-            'PANYmagerr',
-        ],
-    },
-}
-
-passbands = [
-    'GAIA3.G',
-    'GAIA3.BP',
-    'GAIA3.RP',
-    '2MASS.J',
-    '2MASS.H',
-    '2MASS.K',
-    'WISE.W1',
-    'WISE.W2',
-    'WISE.W3',
-    'WISE.W4',
-    'GALEX.FUV',
-    'GALEX.NUV',
-    'SKYMAP.U',
-    'SKYMAP.V',
-    'SKYMAP.G',
-    'SKYMAP.R',
-    'SKYMAP.I',
-    'SKYMAP.Z',
-    'APASS.B',
-    'APASS.V',
-    'APASS.G',
-    'APASS.R',
-    'APASS.I',
-    'SDSS.U',
-    'SDSS.G',
-    'SDSS.R',
-    'SDSS.I',
-    'SDSS.Z',
-    'PANSTAR.G',
-    'PANSTAR.R',
-    'PANSTAR.I',
-    'PANSTAR.Z',
-    'PANSTAR.Y',
-]
-#   CSV or form names
-photnames = [
-    'phot_g_mean_mag',
-    'phot_bp_mean_mag',
-    'phot_rp_mean_mag',
-    'Jmag',
-    'Hmag',
-    'Kmag',
-    'W1mag',
-    'W2mag',
-    'W3mag',
-    'W4mag',
-    'FUV',
-    'NUV',
-    'Umag',
-    'Vmag',
-    'Gmag',
-    'Rmag',
-    'Imag',
-    'Zmag',
-    'APBmag',
-    'APVmag',
-    'APGmag',
-    'APRmag',
-    'APImag',
-    'SDSSUmag',
-    'SDSSGmag',
-    'SDSSRmag',
-    'SDSSImag',
-    'SDSSZmag',
-    'PANGmag',
-    'PANRmag',
-    'PANImag',
-    'PANZmag',
-    'PANYmag'
-]
-#   Error names
-errs = ['phot_g_mean_magerr',
-        'phot_bp_mean_magerr',
-        'phot_rp_mean_magerr',
-        'Jmagerr',
-        'Hmagerr',
-        'Kmagerr',
-        'W1magerr',
-        'W2magerr',
-        'W3magerr',
-        'W4magerr',
-        'FUVerr',
-        'NUVerr',
-        'Umagerr',
-        'Vmagerr',
-        'Gmagerr',
-        'Rmagerr',
-        'Imagerr',
-        'Zmagerr',
-        'APBmagerr',
-        'APVmagerr',
-        'APGmagerr',
-        'APRmagerr',
-        'APImagerr',
-        'SDSSUmagerr',
-        'SDSSGmagerr',
-        'SDSSRmagerr',
-        'SDSSImagerr',
-        'SDSSZmagerr',
-        'PANGmagerr',
-        'PANRmagerr',
-        'PANImagerr',
-        'PANZmagerr',
-        'PANYmagerr']
+catalogs = build_vizier_catalogs()
 
 
 def invalid_form(request, redirect, project_slug, star_id=None):
@@ -437,79 +232,10 @@ def populate_system(star, star_pk):
         for tag in star["tags"]:
             sobj.tags.add(tag)
 
-        # -- Add photometry
-        #   Loop over catalogs
-        for name, content in catalogs.items():
-            #   Check if photometry shall be loaded from Vizier
-            if check_vizier:
-                #   Define catalog and columns
-                v = Vizier(
-                    catalog=content['simbad_id'],
-                    columns=content['columns'] + content['err_columns'],
-                )
-                #   Get data, assume a radius of 1"
-                photo = v.query_region(
-                    SkyCoord(ra=ra, dec=dec, unit=(u.deg, u.deg), frame='icrs'),
-                    radius=1 * u.arcsec,
-                )
-                #   Check if catalog contains data for this object
-                if len(photo) != 0:
-                    #   Loop over photometry bands
-                    for i, band in enumerate(content['columns']):
-                        #   Sanitize band/filter names
-                        band = band.replace("'", '_')
-                        #   Get magnitudes
-                        mag = photo[0][band][0]
-                        #      Sanitize error names
-                        err_band = content['err_columns'][i].replace("'", '_')
-                        #   Get errors
-                        err = photo[0][err_band][0]
-                        #   Set error to zero, if it is undefined
-                        if str(err) == '--' or np.isnan(err):
-                            err = 0.
-                        #   Check if magnitude value is valid
-                        if mag != '--' and ~np.isnan(mag):
-                            #   Set magnitude value and error
-                            sobj.photometry_set.create(
-                                band=content['passbands'][i],
-                                measurement=mag,
-                                error=err,
-                                unit='mag',
-                            )
-
-            else:
-                for i, phot in enumerate(content['photnames']):
-                    #   Check if photometry was provided
-                    if phot in star:
-                        err_name = content['errs'][i]
-                        #   Check if error was provided
-                        if err_name in star:
-                            #   Check if photometry and error is not empty
-                            if (star[phot] is not None and star[phot] != "" and
-                                    star[err_name] is not None and star[err_name] != ""):
-                                sobj.photometry_set.create(
-                                    band=content['passbands'][i],
-                                    measurement=star[phot],
-                                    error=star[err_name],
-                                    unit='mag',
-                                )
-                            #   If error is empty set it to zero
-                            elif star[phot] != None and star[phot] != "":
-                                sobj.photometry_set.create(
-                                    band=content['passbands'][i],
-                                    measurement=star[phot],
-                                    error=0.,
-                                    unit='mag',
-                                )
-                        else:
-                            #   If error is not provided set it to zero
-                            if star[phot] != None and star[phot] != "":
-                                sobj.photometry_set.create(
-                                    band=content['passbands'][i],
-                                    measurement=star[phot],
-                                    error=0.,
-                                    unit='mag',
-                                )
+    if check_vizier:
+        _store_vizier_photometry(sobj, ra, dec)
+    else:
+        _store_csv_photometry(sobj, star)
 
     if check_vizier:
         #   Download GAIA DR3 data
@@ -644,68 +370,141 @@ def populate_system(star, star_pk):
     return True, "New system ({}) created".format(star["main_id"])
 
 
-def update_photometry(cleaned_data, project, star_id, from_vizier):
-    star = get_object_or_404(Star, pk=star_id)
-    if not from_vizier:
-        for i, pair in enumerate(cleaned_data.items()):
-            if "err" not in pair[0]:
-                phot = passbands[photnames.index(pair[0])]
-            else:
-                continue
-            pval = pair[1]
-            phset = star.photometry_set.filter(band=phot)
-            if pval is None:
-                if len(phset) != 0:
-                    phset[0].delete()
-            else:
-                if len(phset) != 0:
-                    phset[0].delete()
-                star.photometry_set.create(
-                    band=phot,
-                    measurement=pval,
-                    error=cleaned_data[pair[0] + "err"],
-                    unit='mag',
-                )
-    else:
-        #   Loop over catalogs
-        for name, content in catalogs.items():
-            #   Define catalog and columns
+def _resolve_vizier_column(photo_row, column):
+    """Map registry column name to actual VizieR table column (handles g'mag vs g_mag)."""
+    colnames = list(photo_row.colnames)
+    candidates = (column, column.replace("'", '_'), column.replace("'", ''))
+    for cand in candidates:
+        if cand in colnames:
+            return cand
+    lower_map = {name.lower(): name for name in colnames}
+    for cand in candidates:
+        match = lower_map.get(cand.lower())
+        if match:
+            return match
+    raise KeyError(column.replace("'", '_'))
+
+
+def _vizier_mag_err(photo_row, column, err_column):
+    try:
+        band_col = _resolve_vizier_column(photo_row, column)
+        err_col = _resolve_vizier_column(photo_row, err_column)
+    except KeyError:
+        return None
+    mag = photo_row[band_col][0]
+    err = photo_row[err_col][0]
+    if str(err) == '--' or np.isnan(err):
+        err = 0.
+    if mag != '--' and not np.isnan(mag):
+        return float(mag), float(err)
+    return None
+
+
+def _store_vizier_photometry(star_obj, ra, dec, *, replace_existing=False):
+    for content in catalogs.values():
+        try:
             v = Vizier(
                 catalog=content['simbad_id'],
                 columns=content['columns'] + content['err_columns'],
             )
-            #   Get data, assume a radius of 1"
             photo = v.query_region(
-                SkyCoord(ra=star.ra, dec=star.dec, unit=(u.deg, u.deg), frame='icrs'),
+                SkyCoord(ra=ra, dec=dec, unit=(u.deg, u.deg), frame='icrs'),
                 radius=1 * u.arcsec,
             )
-            #   Check if catalog contains data for this object
-            if len(photo) != 0:
-                #   Loop over photometry bands
-                for i, band in enumerate(content['columns']):
-                    #   Sanitize band/filter names
-                    band = band.replace("'", '_')
-                    phset = star.photometry_set.filter(band=content['passbands'][i])
-                    #   Get magnitudes
-                    mag = photo[0][band][0]
-                    #      Sanitize error names
-                    err_band = content['err_columns'][i].replace("'", '_')
-                    #   Get errors
-                    err = photo[0][err_band][0]
-                    #   Set error to zero, if it is undefined
-                    if str(err) == '--' or np.isnan(err):
-                        err = 0.
-                    #   Check if magnitude value is valid
-                    if mag != '--' and ~np.isnan(mag):
-                        if len(phset) != 0:
-                            phset[0].delete()
-                        #   Set magnitude value and error
-                        star.photometry_set.create(
-                            band=content['passbands'][i],
-                            measurement=mag,
-                            error=err,
-                            unit='mag',
-                        )
+        except Exception:
+            continue
+        if len(photo) == 0:
+            continue
+        for i, column in enumerate(content['columns']):
+            values = _vizier_mag_err(photo[0], column, content['err_columns'][i])
+            if values is None:
+                continue
+            mag, err = values
+            band_id = content['passbands'][i]
+            if replace_existing:
+                star_obj.photometry_set.filter(band=band_id).delete()
+            star_obj.photometry_set.create(
+                band=band_id,
+                measurement=mag,
+                error=err,
+                unit='mag',
+            )
+
+
+def _csv_photometry_value(row, csv_mag, csv_err):
+    if csv_mag not in row:
+        return None
+    value = row[csv_mag]
+    if value is None or value == '':
+        return None
+    if csv_err in row and row[csv_err] not in (None, ''):
+        return float(value), float(row[csv_err])
+    return float(value), 0.0
+
+
+def _store_csv_photometry(star_obj, row):
+    for band in csv_import_bands():
+        values = _csv_photometry_value(row, band.csv_mag, band.csv_err)
+        if values is None:
+            continue
+        mag, err = values
+        star_obj.photometry_set.create(
+            band=band.id,
+            measurement=mag,
+            error=err,
+            unit='mag',
+        )
+
+
+def update_photometry(cleaned_data, project, star_id, from_vizier):
+    star = get_object_or_404(Star, pk=star_id)
+    if not from_vizier:
+        for csv_mag, band_id in CSV_MAG_TO_BAND.items():
+            if csv_mag not in cleaned_data:
+                continue
+            pval = cleaned_data[csv_mag]
+            phset = star.photometry_set.filter(band=band_id)
+            if pval is None:
+                if phset.exists():
+                    phset.first().delete()
+            else:
+                err_key = CSV_ERR_BY_BAND[band_id]
+                err_val = cleaned_data.get(err_key, 0)
+                phset.delete()
+                star.photometry_set.create(
+                    band=band_id,
+                    measurement=pval,
+                    error=err_val,
+                    unit='mag',
+                )
+    else:
+        for content in catalogs.values():
+            try:
+                v = Vizier(
+                    catalog=content['simbad_id'],
+                    columns=content['columns'] + content['err_columns'],
+                )
+                photo = v.query_region(
+                    SkyCoord(ra=star.ra, dec=star.dec, unit=(u.deg, u.deg), frame='icrs'),
+                    radius=1 * u.arcsec,
+                )
+            except Exception:
+                continue
+            if len(photo) == 0:
+                continue
+            for i, column in enumerate(content['columns']):
+                values = _vizier_mag_err(photo[0], column, content['err_columns'][i])
+                if values is None:
+                    continue
+                mag, err = values
+                band_id = content['passbands'][i]
+                star.photometry_set.filter(band=band_id).delete()
+                star.photometry_set.create(
+                    band=band_id,
+                    measurement=mag,
+                    error=err,
+                    unit='mag',
+                )
     return True, ""
 
 

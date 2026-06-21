@@ -547,7 +547,7 @@
                                         </tr>
                                         <tr id='SKYMAP'>
                                             <td id='label'>
-                                                <label for="{{ form_detail.Umag.id_for_label }}">J: </label>
+                                                <label for="{{ form_detail.Umag.id_for_label }}">U: </label>
                                             </td>
                                             <td>
                                                 {{ form_detail.Umag }}
@@ -579,66 +579,18 @@
                                         </tr>
                                         <tr id='SKYMAP'>
                                             <td id='label'>
-                                                <label for="{{ form_detail.Gmag.id_for_label }}">G: </label>
+                                                <label for="{{ form_detail.Bmag.id_for_label }}">B: </label>
                                             </td>
                                             <td>
-                                                {{ form_detail.Gmag }}
-                                                <span class="error"> {{ form_detail.Gmag.errors.as_text }} </span>
+                                                {{ form_detail.Bmag }}
+                                                <span class="error"> {{ form_detail.Bmag.errors.as_text }} </span>
                                             </td>
                                             <td id='label'>
-                                                <label for="{{ form_detail.Gmagerr.id_for_label }}">Error: </label>
+                                                <label for="{{ form_detail.Bmagerr.id_for_label }}">Error: </label>
                                             </td>
                                             <td>
-                                                {{ form_detail.Gmagerr }}
-                                                <span class="error"> {{ form_detail.Gmagerr.errors.as_text }} </span>
-                                            </td>
-                                        </tr>
-                                        <tr id='SKYMAP'>
-                                            <td id='label'>
-                                                <label for="{{ form_detail.Rmag.id_for_label }}">R: </label>
-                                            </td>
-                                            <td>
-                                                {{ form_detail.Rmag }}
-                                                <span class="error"> {{ form_detail.Rmag.errors.as_text }} </span>
-                                            </td>
-                                            <td id='label'>
-                                                <label for="{{ form_detail.Rmagerr.id_for_label }}">Error: </label>
-                                            </td>
-                                            <td>
-                                                {{ form_detail.Rmagerr }}
-                                                <span class="error"> {{ form_detail.Rmagerr.errors.as_text }} </span>
-                                            </td>
-                                        </tr>
-                                        <tr id='SKYMAP'>
-                                            <td id='label'>
-                                                <label for="{{ form_detail.Imag.id_for_label }}">I: </label>
-                                            </td>
-                                            <td>
-                                                {{ form_detail.Imag }}
-                                                <span class="error"> {{ form_detail.Imag.errors.as_text }} </span>
-                                            </td>
-                                            <td id='label'>
-                                                <label for="{{ form_detail.Imagerr.id_for_label }}">Error: </label>
-                                            </td>
-                                            <td>
-                                                {{ form_detail.Imagerr }}
-                                                <span class="error"> {{ form_detail.Imagerr.errors.as_text }} </span>
-                                            </td>
-                                        </tr>
-                                        <tr id='SKYMAP'>
-                                            <td id='label'>
-                                                <label for="{{ form_detail.Zmag.id_for_label }}">Z: </label>
-                                            </td>
-                                            <td>
-                                                {{ form_detail.Zmag }}
-                                                <span class="error"> {{ form_detail.Zmag.errors.as_text }} </span>
-                                            </td>
-                                            <td id='label'>
-                                                <label for="{{ form_detail.Zmagerr.id_for_label }}">Error: </label>
-                                            </td>
-                                            <td>
-                                                {{ form_detail.Zmagerr }}
-                                                <span class="error"> {{ form_detail.Zmagerr.errors.as_text }} </span>
+                                                {{ form_detail.Bmagerr }}
+                                                <span class="error"> {{ form_detail.Bmagerr.errors.as_text }} </span>
                                             </td>
                                         </tr>
                                         <tr id='APASS'>

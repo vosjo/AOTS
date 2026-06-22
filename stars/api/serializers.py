@@ -20,7 +20,6 @@ class ProjectListSerializer(ModelSerializer):
             'pk',
             'is_public',
             'logo',
-            'preview_starmap',
         ]
         read_only_fields = ('pk',)
 

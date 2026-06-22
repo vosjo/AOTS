@@ -3,7 +3,6 @@ from itertools import chain
 
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import make_aware
-from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
@@ -11,15 +10,14 @@ from rest_framework.response import Response
 
 from AOTS.bokeh_embed import bokeh_embed_response
 from AOTS.history_helpers import history_actor_for_changelog
-from AOTS.task_helpers import run_task
 from analysis.models import Analysis
 from dash.forms import HRDPlotterForm
 from dash.plotting import plot_hrd
+from dash.starmap_plotting import plot_interactive_starmap
 from dash.views import get_modeltype, sort_modified_created, wascreated
 from observations.models import LightCurve, Spectrum
 from stars.models import Project, Star
-from stars.services.starmap import generate_starmap, starmap_metadata
-from stars.tasks import regenerate_starmap_task
+from stars.services.starmap import starmap_metadata, starmap_star_records
 
 
 def _dashboard_project(request, project_slug):
@@ -68,14 +66,16 @@ def dashboard_bootstrap(request, project_slug):
         })
 
     parameters = form.get_parameters() if form.is_valid() else {}
+    plot_theme = request.query_params.get('theme')
     if parameters:
         figure = plot_hrd(
             request, project.pk,
             parameters['xaxis'], parameters['yaxis'],
             parameters['size'], parameters['color'], parameters['nsys'],
+            theme=plot_theme,
         )
     else:
-        figure = plot_hrd(request, project.pk)
+        figure = plot_hrd(request, project.pk, theme=plot_theme)
 
     dtime_naive = datetime.now() - timedelta(days=7)
     aware_datetime = make_aware(dtime_naive)
@@ -113,36 +113,12 @@ def dashboard_bootstrap(request, project_slug):
 @permission_classes([AllowAny])
 def dashboard_starmap(request, project_slug):
     project = _dashboard_project(request, project_slug)
-    can_edit = (
-        not request.user.is_anonymous
-        and request.user.can_edit(project)
-    )
-    return Response(starmap_metadata(project, can_edit=can_edit))
+    payload = starmap_metadata(project)
 
+    if request.query_params.get('format') == 'json':
+        payload['stars'] = starmap_star_records(project)
+        return Response(payload)
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def dashboard_starmap_regenerate(request, project_slug):
-    project = _dashboard_project(request, project_slug)
-    if request.user.is_anonymous or not request.user.can_edit(project):
-        raise PermissionDenied()
-
-    async_requested = request.query_params.get('async', '').lower() in ('1', 'true', 'yes')
-    if async_requested:
-        _result, task_id = run_task(
-            regenerate_starmap_task,
-            project.pk,
-            request.user.pk,
-            async_requested=True,
-            owner_user_id=request.user.pk,
-            project_id=project.pk,
-        )
-        return Response(
-            {'status': 'pending', 'task_id': task_id},
-            status=status.HTTP_202_ACCEPTED,
-        )
-
-    result = generate_starmap(project, user=request.user)
-    payload = result.as_dict()
-    payload['can_edit'] = True
+    figure = plot_interactive_starmap(project, theme=request.query_params.get('theme'))
+    payload['interactive'] = bokeh_embed_response(figure) if figure is not None else None
     return Response(payload)

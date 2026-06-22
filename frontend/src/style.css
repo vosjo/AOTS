@@ -529,6 +529,15 @@
   .bokeh-plot-host .bk-panel-models-tabs-Tabs {
     @apply max-w-full;
     width: 100% !important;
+    background-color: var(--aots-surface) !important;
+  }
+
+  [data-theme="dark"] .bokeh-plot-host .bk-root {
+    color: #cbd5e1;
+  }
+
+  [data-theme="dark"] .bokeh-plot-host .bk-root .bk-toolbar {
+    background-color: transparent;
   }
 
   .aots-param-table {

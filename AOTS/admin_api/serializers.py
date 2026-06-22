@@ -94,8 +94,6 @@ class AdminProjectSerializer(serializers.ModelSerializer):
             'description',
             'is_public',
             'logo',
-            'preview_starmap',
-            'full_starmap',
             'readonly_users',
             'readwriteown_users',
             'readwrite_users',

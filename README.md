@@ -267,12 +267,6 @@ python manage.py collectstatic --noinput
 
 Repeat **`npm run build`** and **`collectstatic`** on every deploy that changes the frontend. Node.js is only required at build time, not on the server at runtime (unless you build there).
 
-Optional one-time maintenance after upgrade (see [docs/architecture.md](docs/architecture.md)):
-
-```
-python manage.py regenerate_starmaps --all
-```
-
 ### 7. Upgrading an existing installation
 
 After `git pull` or a new release tarball:
@@ -489,7 +483,7 @@ Download `kind` query parameter:
 | Gaia DR3 (single star) | `POST /api/systems/stars/<pk>/gaia/fetch/` |
 | Gaia DR3 (bulk, async) | `POST /api/systems/stars/gaia/fetch-bulk/?async=1` + header `Projectid` |
 | Consensus policies | `/w/<project>/settings/consensus/` or `/api/analysis/consensus-policies/<slug>/` |
-| Starmap regenerate | Dashboard *Regenerate*, or `python manage.py regenerate_starmaps [--project SLUG \| --all]` |
+| Dashboard starmap | `/w/<project>/dash/` — interactive Bokeh map; PNG via plot save tool |
 | Superuser admin (SPA) | `/admin/` (`/api/admin/`, requires `is_superuser`; Django `/admin/` remains as fallback) |
 
 Domain models, service layers, I/O conventions, and one-time migration notes:
@@ -621,14 +615,11 @@ When Celery Beat is enabled (`AOTS/celery.py`), these jobs run daily:
 | Job | Default schedule | Purpose |
 | --- | --- | --- |
 | `cleanup-bulk-download-artifacts` | 03:30 | Remove expired ZIPs from `media/bulk_downloads/` |
-| `regenerate-all-starmaps` | 04:00 | Regenerate dashboard starmap PNGs for all projects |
 
-Override starmap schedule via `STARMAP_DAILY_REGEN_CRONTAB` in settings (dict passed to `crontab()`).
+Manual alternative:
 
-Manual alternatives:
 ```
 python manage.py cleanup_bulk_downloads
-python manage.py regenerate_starmaps --all
 ```
 
 Example Beat systemd unit:

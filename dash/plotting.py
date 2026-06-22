@@ -8,7 +8,7 @@ from django.db import reset_queries, connection
 import numpy as np
 from bokeh import models as mpl
 from bokeh import plotting as bpl
-from bokeh.models import ColorBar, Range1d
+from bokeh.models import Range1d
 from bokeh.palettes import Viridis9
 from bokeh.transform import linear_cmap
 from django.contrib import messages
@@ -19,6 +19,7 @@ from django.db.models import Prefetch
 
 from analysis.parameter_aliases import stored_parameter_lookup_names
 from analysis.parameter_labels import hrd_axis_label, normalize_hrd_axis_key
+from dash.bokeh_theme import apply_bokeh_figure_theme, resolve_bokeh_theme, styled_color_bar, themed_hover_tool
 from stars.models import Project, Star
 
 _ABS_G_MAG_NAMES = frozenset(stored_parameter_lookup_names('absolute_g_mag'))
@@ -48,8 +49,15 @@ def errors_from_coords(x, y, x_err, y_err):
     return list(zip(x_upper, x_lower)), list(zip(y_upper, y_lower)), list(zip(x, x)), list(zip(y, y))
 
 
+def _plot_error_bars(fig, x_errcoords, y_errcoords, empty_x, empty_y, *, theme):
+    style = {'line_color': theme.error_line, 'line_alpha': 0.55}
+    fig.multi_line(x_errcoords, empty_y, **style)
+    fig.multi_line(empty_x, y_errcoords, **style)
+
+
 def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None,
-             cstr=None, nstars=50):
+             cstr=None, nstars=50, *, theme=None):
+    plot_theme = resolve_bokeh_theme(theme)
     if rstr == "":
         rstr = None
     if cstr == "":
@@ -209,7 +217,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
             y=gaia_mag,
             size=10,
             marker='dot',
-            color="#9db3d1",
+            color=plot_theme.gaia_reference,
+            alpha=plot_theme.gaia_reference_alpha,
         )
 
     if rstr is not None and cstr is not None:
@@ -220,8 +229,9 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
                                                                         star_props[xstr + "_errs"],
                                                                         star_props[ystr + "_errs"])
 
-        fig.multi_line(x_errcoords, empty_y)
-        fig.multi_line(empty_x, y_errcoords)
+        _plot_error_bars(
+            fig, x_errcoords, y_errcoords, empty_x, empty_y, theme=plot_theme,
+        )
 
         main_plot = fig.circle(source=starsource,
                                 name="main",
@@ -232,7 +242,11 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
                                 fill_color=colors,
                                 line_color=colors)
 
-        color_bar = ColorBar(color_mapper=colors['transform'], width=8, location=(0, 0), title=hrd_axis_label(cstr))
+        color_bar = styled_color_bar(
+            colors['transform'],
+            theme=plot_theme,
+            title=hrd_axis_label(cstr),
+        )
 
         fig.add_layout(color_bar, 'right')
 
@@ -241,15 +255,18 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
                                                                         star_props[xstr + "_errs"],
                                                                         star_props[ystr + "_errs"])
 
-        fig.multi_line(x_errcoords, empty_y)
-        fig.multi_line(empty_x, y_errcoords)
+        _plot_error_bars(
+            fig, x_errcoords, y_errcoords, empty_x, empty_y, theme=plot_theme,
+        )
 
         main_plot = fig.circle(source=starsource,
                                 name="main",
                                 x=xstr,
                                 y=ystr,
                                 radius="norm_" + rstr,
-                                alpha=.7)
+                                alpha=.7,
+                                fill_color=plot_theme.marker_fill,
+                                line_color=plot_theme.marker_line)
 
     elif cstr is not None:
         colors = linear_cmap("norm_" + cstr, palette=Viridis9, low=np.amin(star_props["norm_" + cstr]),
@@ -259,8 +276,9 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
                                                                         star_props[xstr + "_errs"],
                                                                         star_props[ystr + "_errs"])
 
-        fig.multi_line(x_errcoords, empty_y)
-        fig.multi_line(empty_x, y_errcoords)
+        _plot_error_bars(
+            fig, x_errcoords, y_errcoords, empty_x, empty_y, theme=plot_theme,
+        )
 
         main_plot = fig.circle(source=starsource,
                                 name="main",
@@ -271,7 +289,11 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
                                 fill_color=colors,
                                 line_color=colors)
 
-        color_bar = ColorBar(color_mapper=colors['transform'], width=8, location=(0, 0), title=hrd_axis_label(cstr))
+        color_bar = styled_color_bar(
+            colors['transform'],
+            theme=plot_theme,
+            title=hrd_axis_label(cstr),
+        )
 
         fig.add_layout(color_bar, 'right')
 
@@ -280,23 +302,31 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
                                                                         star_props[xstr + "_errs"],
                                                                         star_props[ystr + "_errs"])
 
-        fig.multi_line(x_errcoords, empty_y)
-        fig.multi_line(empty_x, y_errcoords)
+        _plot_error_bars(
+            fig, x_errcoords, y_errcoords, empty_x, empty_y, theme=plot_theme,
+        )
 
         main_plot = fig.circle(source=starsource,
                                 name="main",
                                 x=xstr,
                                 y=ystr,
                                 radius=.03,
-                                alpha=.7)
+                                alpha=.7,
+                                fill_color=plot_theme.marker_fill,
+                                line_color=plot_theme.marker_line)
 
     # fig.circle(x=xstr, y=ystr, source=starsource, size=5)
 
-    hover = mpl.HoverTool(tooltips=[("System", "@idents"),
-                                    ("T_eff", "@teff"),
-                                    ("log(g)", "@logg"),
-                                    ("magnitude", "@mag")],
-                          renderers=[main_plot])
+    hover = themed_hover_tool(
+        renderers=[main_plot],
+        rows=[
+            ('System', '@idents'),
+            ('T_eff', '@teff'),
+            ('log(g)', '@logg'),
+            ('magnitude', '@mag'),
+        ],
+        theme=plot_theme,
+    )
 
     fig.add_tools(hover)
 
@@ -352,5 +382,6 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
     fig.yaxis.axis_label_text_font_size = '10pt'
     fig.xaxis.axis_label_text_font_size = '10pt'
     fig.min_border = 5
+    apply_bokeh_figure_theme(fig, plot_theme)
 
     return fig

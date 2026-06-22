@@ -67,10 +67,10 @@
                 {% endif %}
             </div>
             <div class="dash-project-sky-preview-wrapper">
-                {% if project.preview_starmap %}
-                    <img class="project-logo" src="{{ project.preview_starmap.url }}" alt="{{ project.name }} Starmap" onclick="openDetailedStarmap()">
+                {% if project.logo %}
+                    <img class="project-logo" src="{{ project.logo.url }}" alt="{{ project.name }} logo">
                 {% else %}
-                    <img class="project-logo" src="{% static "images/default_logo.png" %}" alt="{{ project.name }} Starmap">
+                    <img class="project-logo" src="{% static "images/default_logo.png" %}" alt="{{ project.name }} logo">
                 {% endif %}
             </div>
             <div class="dash-upper-right">
@@ -154,12 +154,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div id="detailedStarmap" title="Copy Photometry">
-        {% if project.full_starmap %}
-            <img class="full-starmap" src="{{ project.full_starmap.url }}" alt="{{ project.name }} logo">
-        {% endif %}
     </div>
     {{ script|safe }}
 {% endblock %}

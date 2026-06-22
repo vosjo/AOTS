@@ -57,15 +57,14 @@ export interface ProjectSummary {
   is_public: boolean
   description?: string
   logo?: string | null
-  preview_starmap?: string | null
 }
 
 const DEFAULT_PROJECT_LOGO = '/static/images/default_logo.png'
 
 export { DEFAULT_PROJECT_LOGO }
 
-export function projectLogoUrl(project: Pick<ProjectSummary, 'logo' | 'preview_starmap'>): string {
-  return project.logo || project.preview_starmap || DEFAULT_PROJECT_LOGO
+export function projectLogoUrl(project: Pick<ProjectSummary, 'logo'>): string {
+  return project.logo || DEFAULT_PROJECT_LOGO
 }
 
 export interface MeResponse {

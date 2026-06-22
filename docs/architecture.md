@@ -78,19 +78,16 @@ Task status: `GET /api/observations/tasks/<task_id>/` (includes `meta` while `PR
 
 **CLI:** `scripts/update_stars_gaia-dr3.py` wraps the same service (optional skip if DR3 parallax exists).
 
-After a bulk Gaia import, starmap regeneration for that project is scheduled automatically (debounced Celery task).
+After a bulk Gaia import, the dashboard starmap reflects updated coordinates on the next load (live Bokeh plot).
 
-### Starmap generation
+### Starmap
 
-Static dashboard starmaps are built by `stars/services/starmap.py`:
+Coordinate helpers and metadata live in `stars/services/starmap.py`:
 
 - Aitoff projection in galactic coordinates; parallax from consensus (`get_consensus_parameter`)
 - Distance colour when parallax is available; uniform colour fallback when only RA/Dec exist
-- PNGs stored on `Project.preview_starmap` / `full_starmap` under `media/projects/`
 
-Regeneration triggers: dashboard button, `python manage.py regenerate_starmaps`, debounced job after Gaia bulk import, daily Celery Beat task (`regenerate_all_starmaps_task`, default 04:00).
-
-Legacy starmaps may still reference `static/images/project_previews/` from the old script; regenerating replaces them with media paths.
+**Interactive map:** `GET /api/dash/<slug>/starmap/` embeds a Bokeh figure (`interactive` key). Bokeh has no native Aitoff projection; galactic `l,b` are projected server-side with the same transform as matplotlib (`galactic_aitoff_xy`). Star positions as JSON: `?format=json` (`stars` array with `pk`, `ra`, `dec`, `l`, `b`, `distance_kpc`, `url`). PNG export uses Bokeh’s built-in save tool in the plot toolbar. Theme query: `?theme=dark|light`.
 
 ## One-time migration notes
 
@@ -101,9 +98,3 @@ python manage.py relocate_analysis_files
 ```
 
 Optional on PostgreSQL: `cleanup_orphan_analysis_sources` to remove leftover MTI parent `ParameterSource` rows.
-
-After deploying starmap service changes, run once:
-
-```
-python manage.py regenerate_starmaps --all
-```

@@ -33,7 +33,7 @@ from AOTS.api_auth import (
 )
 from AOTS.spa_views import spa_index
 from AOTS.views import health_check
-from dash.api_views import dashboard_bootstrap, dashboard_starmap, dashboard_starmap_regenerate
+from dash.api_views import dashboard_bootstrap, dashboard_starmap
 from stars import views as star_views
 from stars.api.views import ProjectViewSet
 
@@ -115,11 +115,6 @@ urlpatterns = [
                       'api/dash/<slug:project_slug>/starmap/',
                       dashboard_starmap,
                       name='api-dashboard-starmap',
-                  ),
-                  path(
-                      'api/dash/<slug:project_slug>/starmap/regenerate/',
-                      dashboard_starmap_regenerate,
-                      name='api-dashboard-starmap-regenerate',
                   ),
 
                   path('api/', include(router.urls), name='project-api'),

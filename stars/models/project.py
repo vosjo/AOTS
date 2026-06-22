@@ -21,9 +21,6 @@ class Project(models.Model):
     description = models.TextField(default='')
 
     logo = models.FileField(upload_to='projects/', null=True, blank=True)
-    preview_starmap = models.FileField(upload_to='projects/', null=True, blank=True)
-    full_starmap = models.FileField(upload_to='projects/', null=True, blank=True)
-    starmap_generated_at = models.DateTimeField(null=True, blank=True)
 
     is_public = models.BooleanField(default=True)
 

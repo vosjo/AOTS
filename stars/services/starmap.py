@@ -1,57 +1,32 @@
-"""Generate project starmap PNG previews stored on Project FileFields."""
+"""Starmap coordinate helpers and metadata for the interactive Bokeh dashboard map."""
 
 from __future__ import annotations
 
-import io
-import logging
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Any
 
-import astropy.coordinates as coord
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import Galactic, SkyCoord
-from django.core.cache import cache
-from django.core.exceptions import SuspiciousFileOperation
-from django.core.files.base import ContentFile
-from django.utils import timezone
 
 from analysis.services.parameter_consensus import get_consensus_parameter
-
-logger = logging.getLogger('AOTS.starmap')
-
-STARMAP_REGEN_CACHE_PREFIX = 'starmap_regen:'
-STARMAP_REGEN_CACHE_TTL = 300
-STARMAP_REGEN_COUNTDOWN = 120
 
 mpl.use('Agg')
 
 
 @dataclass(frozen=True)
 class StarPosition:
+    star_pk: int
+    name: str
     ra_deg: float
     dec_deg: float
     parallax_mas: float | None
-
-
-@dataclass(frozen=True)
-class StarmapResult:
-    preview_url: str | None
-    full_url: str | None
-    generated_at: str | None
-    n_stars: int
-    colored_by_distance: bool
-
-    def as_dict(self) -> dict[str, Any]:
-        return {
-            'preview_url': self.preview_url,
-            'full_url': self.full_url,
-            'generated_at': self.generated_at,
-            'n_stars': self.n_stars,
-            'colored_by_distance': self.colored_by_distance,
-        }
+    galactic_l_deg: float
+    galactic_b_deg: float
+    distance_kpc: float | None
 
 
 def marker_size(nstars: int) -> float:
@@ -62,6 +37,130 @@ def marker_size(nstars: int) -> float:
     return 1.0
 
 
+@dataclass(frozen=True)
+class AitoffGrid:
+    meridian_xs: list[list[float]]
+    meridian_ys: list[list[float]]
+    parallel_xs: list[list[float]]
+    parallel_ys: list[list[float]]
+    outline_xs: list[float]
+    outline_ys: list[float]
+    longitude_tick_labels: list[dict[str, float | str]]
+    latitude_tick_labels: list[dict[str, float | str]]
+
+
+_AITOFF_AX = None
+
+
+def _get_aitoff_transform():
+    """Reuse one matplotlib Aitoff axes for all coordinate transforms."""
+    global _AITOFF_AX
+    if _AITOFF_AX is None:
+        _, _AITOFF_AX = plt.subplots(subplot_kw={'projection': 'aitoff'}, figsize=(2, 1))
+    return _AITOFF_AX.transProjection
+
+
+def galactic_aitoff_xy(l_deg: np.ndarray | float, b_deg: np.ndarray | float) -> tuple[np.ndarray, np.ndarray]:
+    """Project galactic l,b (degrees) to Aitoff x,y (matplotlib projection plane)."""
+    l = np.atleast_1d(np.asarray(l_deg, dtype=float))
+    b = np.atleast_1d(np.asarray(b_deg, dtype=float))
+    lon = -np.deg2rad(l)
+    lon = (lon + np.pi) % (2 * np.pi) - np.pi
+    lat = np.deg2rad(b)
+    xy = _get_aitoff_transform().transform(np.column_stack([lon, lat]))
+    return xy[:, 0], xy[:, 1]
+
+
+def _aitoff_outline_xy(*, lat_samples: int = 181) -> tuple[list[float], list[float]]:
+    """Closed path of the Aitoff map rim in projected coordinates."""
+    latitudes = np.linspace(-89.9, 89.9, lat_samples)
+    l_right = np.linspace(181, 359, 361)
+    l_left = np.linspace(0, 179, 361)
+
+    right_l = np.broadcast_to(l_right, (lat_samples, l_right.size))
+    right_b = np.broadcast_to(latitudes[:, None], (lat_samples, l_right.size))
+    x_right, y_right = galactic_aitoff_xy(right_l.ravel(), right_b.ravel())
+    x_right = x_right.reshape(lat_samples, l_right.size)
+    y_right = y_right.reshape(lat_samples, l_right.size)
+    right_idx = np.argmax(x_right, axis=1)
+    row_idx = np.arange(lat_samples)
+
+    left_l = np.broadcast_to(l_left, (lat_samples, l_left.size))
+    left_b = np.broadcast_to(latitudes[::-1][:, None], (lat_samples, l_left.size))
+    x_left, y_left = galactic_aitoff_xy(left_l.ravel(), left_b.ravel())
+    x_left = x_left.reshape(lat_samples, l_left.size)
+    y_left = y_left.reshape(lat_samples, l_left.size)
+    left_idx = np.argmin(x_left, axis=1)
+
+    outline_x = x_right[row_idx, right_idx].tolist()
+    outline_y = y_right[row_idx, right_idx].tolist()
+    outline_x.extend(x_left[row_idx, left_idx].tolist())
+    outline_y.extend(y_left[row_idx, left_idx].tolist())
+    if outline_x:
+        outline_x.append(outline_x[0])
+        outline_y.append(outline_y[0])
+    return outline_x, outline_y
+
+
+def _parallel_segments() -> tuple[np.ndarray, np.ndarray]:
+    """Longitude samples for one parallel without crossing the l=180 discontinuity."""
+    return np.linspace(0, 179, 180), np.linspace(181, 359, 179)
+
+
+@lru_cache(maxsize=4)
+def build_aitoff_grid(*, lon_step: int = 30, lat_step: int = 30) -> AitoffGrid:
+    """Grid lines and degree tick labels for the interactive Aitoff starmap."""
+    meridian_xs: list[list[float]] = []
+    meridian_ys: list[list[float]] = []
+    b_line = np.linspace(-89.9, 89.9, 360)
+    for lon in np.arange(0, 360, lon_step):
+        x, y = galactic_aitoff_xy(np.full_like(b_line, lon), b_line)
+        meridian_xs.append(x.tolist())
+        meridian_ys.append(y.tolist())
+
+    parallel_xs: list[list[float]] = []
+    parallel_ys: list[list[float]] = []
+    latitudes = np.arange(-90 + lat_step, 90, lat_step)
+    lon_left, lon_right = _parallel_segments()
+    # Avoid l=180 in parallels: projection jumps from left rim (l=180) to right rim (l=181).
+    for lat in latitudes:
+        for lon in (lon_left, lon_right):
+            x, y = galactic_aitoff_xy(lon, np.full_like(lon, lat))
+            parallel_xs.append(x.tolist())
+            parallel_ys.append(y.tolist())
+
+    outline_x, outline_y = _aitoff_outline_xy()
+
+    longitude_tick_labels: list[dict[str, float | str]] = []
+    for lon in np.arange(0, 360, lon_step):
+        x, y = galactic_aitoff_xy([lon], [0.0])
+        longitude_tick_labels.append({
+            'x': float(x[0]),
+            'y': float(y[0]),
+            'text': f'{int(lon)}°',
+        })
+
+    latitude_tick_labels: list[dict[str, float | str]] = []
+    for lat in latitudes:
+        x, y = galactic_aitoff_xy([0.0], [lat])
+        latitude_tick_labels.append({
+            'x': float(x[0]),
+            'y': float(y[0]),
+            'text': f'{int(lat)}°',
+        })
+
+    return AitoffGrid(
+        meridian_xs=meridian_xs,
+        meridian_ys=meridian_ys,
+        parallel_xs=parallel_xs,
+        parallel_ys=parallel_ys,
+        outline_xs=outline_x,
+        outline_ys=outline_y,
+        longitude_tick_labels=longitude_tick_labels,
+        latitude_tick_labels=latitude_tick_labels,
+    )
+
+
 def collect_star_positions(project) -> list[StarPosition]:
     positions: list[StarPosition] = []
     for star in project.star_set.all().order_by('pk'):
@@ -69,224 +168,54 @@ def collect_star_positions(project) -> list[StarPosition]:
             continue
         consensus = get_consensus_parameter(star, 'parallax', 0)
         parallax_mas = None
+        distance_kpc = None
         if consensus is not None and consensus.value is not None and consensus.value > 0:
             parallax_mas = float(consensus.value)
+            distance_kpc = float(
+                (parallax_mas * u.mas).to_value(u.kpc, equivalencies=u.parallax()),
+            )
+        galactic = SkyCoord(
+            ra=star.ra * u.deg,
+            dec=star.dec * u.deg,
+            frame='icrs',
+        ).transform_to(Galactic())
         positions.append(
             StarPosition(
+                star_pk=star.pk,
+                name=star.name,
                 ra_deg=float(star.ra),
                 dec_deg=float(star.dec),
                 parallax_mas=parallax_mas,
+                galactic_l_deg=float(galactic.l.deg),
+                galactic_b_deg=float(galactic.b.deg),
+                distance_kpc=distance_kpc,
             ),
         )
     return positions
 
 
-def _build_skycoords(positions: list[StarPosition]) -> tuple[SkyCoord, bool]:
-    ra = np.array([p.ra_deg for p in positions]) * u.deg
-    dec = np.array([p.dec_deg for p in positions]) * u.deg
-    parallax_mas = np.array([
-        p.parallax_mas if p.parallax_mas is not None else np.nan
-        for p in positions
-    ])
-
-    has_parallax = np.any(np.isfinite(parallax_mas) & (parallax_mas > 0))
-    if has_parallax:
-        plx = np.where(
-            np.isfinite(parallax_mas) & (parallax_mas > 0),
-            parallax_mas,
-            np.nan,
-        ) * u.mas
-        distance = plx.to(u.kpc, equivalencies=u.parallax())
-        distance_kpc = distance.to_value(u.kpc)
-        sky = SkyCoord(ra=ra, dec=dec, distance=distance_kpc * u.kpc, frame='icrs')
-        return sky.transform_to(Galactic()), True
-
-    sky = SkyCoord(ra=ra, dec=dec, frame='icrs')
-    return sky.transform_to(Galactic()), False
+def starmap_star_records(project, *, project_slug: str | None = None) -> list[dict[str, Any]]:
+    slug = project_slug or project.slug
+    records: list[dict[str, Any]] = []
+    for position in collect_star_positions(project):
+        records.append({
+            'pk': position.star_pk,
+            'name': position.name,
+            'ra': position.ra_deg,
+            'dec': position.dec_deg,
+            'l': position.galactic_l_deg,
+            'b': position.galactic_b_deg,
+            'parallax_mas': position.parallax_mas,
+            'distance_kpc': position.distance_kpc,
+            'url': f'/w/{slug}/systems/stars/{position.star_pk}/',
+        })
+    return records
 
 
-def _coordinates_aitoff_plot(coords: SkyCoord, *, colored_by_distance: bool):
-    fig, ax = plt.subplots(
-        figsize=(10, 5),
-        subplot_kw={'projection': 'aitoff'},
-    )
-
-    sph = coords.spherical
-    marker = marker_size(len(coords))
-    lon = -sph.lon.wrap_at(180 * u.deg).radian
-    lat = sph.lat.radian
-
-    colorbar = None
-    if colored_by_distance:
-        distances = sph.distance.to_value(u.kpc)
-        distances[~np.isfinite(distances) | (distances <= 0)] = np.nan
-        scatter = ax.scatter(
-            lon,
-            lat,
-            c=distances,
-            s=marker,
-            norm=mpl.colors.LogNorm(),
-        )
-        colorbar = fig.colorbar(scatter)
-        colorbar.set_label(f'Distance [{sph.distance.unit.to_string()}]')
-    else:
-        ax.scatter(lon, lat, c='steelblue', s=marker)
-
-    def fmt_func(x, _pos):
-        val = coord.Angle(-x * u.radian).wrap_at(360 * u.deg).degree
-        return f'${val:.0f}' + r'^{\circ}$'
-
-    ax.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(fmt_func))
-    ax.grid()
-    ax.set_xlabel('Galactic longitude [deg]')
-    ax.set_ylabel('Galactic latitude [deg]')
-    return fig, ax, colorbar
-
-
-def _figure_to_png_bytes(fig, *, dpi: int) -> bytes:
-    buffer = io.BytesIO()
-    fig.savefig(buffer, bbox_inches='tight', format='png', dpi=dpi)
-    plt.close(fig)
-    buffer.seek(0)
-    return buffer.read()
-
-
-def _strip_preview_axes(fig, ax, colorbar) -> bytes:
-    ax.xaxis.set_tick_params(labelbottom=False)
-    ax.yaxis.set_tick_params(labelleft=False)
-    ax.grid(True)
-    for axis in (ax.xaxis, ax.yaxis):
-        for tick in axis.get_major_ticks():
-            tick.tick1line.set_visible(False)
-            tick.tick2line.set_visible(False)
-            tick.label1.set_visible(False)
-            tick.label2.set_visible(False)
-    ax.xaxis.label.set_visible(False)
-    ax.yaxis.label.set_visible(False)
-    if colorbar is not None:
-        colorbar.remove()
-    return _figure_to_png_bytes(fig, dpi=100)
-
-
-def _delete_file_field(field) -> None:
-    if not field or not field.name:
-        return
-    try:
-        field.delete(save=False)
-    except SuspiciousFileOperation:
-        # Legacy starmaps from plot_star_positions.py pointed at static/, not media/.
-        logger.info(
-            'Legacy starmap path outside media storage, clearing reference: %s',
-            field.name,
-        )
-        field.name = ''
-
-
-def generate_starmap(project, *, user=None) -> StarmapResult:
-    """Build preview/full PNGs and persist them on ``project``."""
-    del user  # reserved for future history attribution
-    positions = collect_star_positions(project)
-    n_stars = len(positions)
-
-    if n_stars == 0:
-        _delete_file_field(project.preview_starmap)
-        _delete_file_field(project.full_starmap)
-        project.preview_starmap = None
-        project.full_starmap = None
-        project.starmap_generated_at = timezone.now()
-        project.save(update_fields=['preview_starmap', 'full_starmap', 'starmap_generated_at'])
-        return StarmapResult(
-            preview_url=None,
-            full_url=None,
-            generated_at=project.starmap_generated_at.isoformat(),
-            n_stars=0,
-            colored_by_distance=False,
-        )
-
-    coords, colored_by_distance = _build_skycoords(positions)
-    fig, ax, colorbar = _coordinates_aitoff_plot(coords, colored_by_distance=colored_by_distance)
-    full_bytes = _figure_to_png_bytes(fig, dpi=300)
-
-    fig, ax, colorbar = _coordinates_aitoff_plot(coords, colored_by_distance=colored_by_distance)
-    preview_bytes = _strip_preview_axes(fig, ax, colorbar)
-
-    preview_name = f'{project.slug}_preview.png'
-    full_name = f'{project.slug}_full.png'
-
-    _delete_file_field(project.preview_starmap)
-    _delete_file_field(project.full_starmap)
-
-    project.preview_starmap.save(preview_name, ContentFile(preview_bytes), save=False)
-    project.full_starmap.save(full_name, ContentFile(full_bytes), save=False)
-    project.starmap_generated_at = timezone.now()
-    project.save(update_fields=['preview_starmap', 'full_starmap', 'starmap_generated_at'])
-
-    return StarmapResult(
-        preview_url=project.preview_starmap.url,
-        full_url=project.full_starmap.url,
-        generated_at=project.starmap_generated_at.isoformat(),
-        n_stars=n_stars,
-        colored_by_distance=colored_by_distance,
-    )
-
-
-def starmap_metadata(project, *, can_edit: bool = False) -> dict[str, Any]:
+def starmap_metadata(project) -> dict[str, Any]:
     positions = collect_star_positions(project)
     colored_by_distance = any(p.parallax_mas is not None and p.parallax_mas > 0 for p in positions)
-    result = StarmapResult(
-        preview_url=project.preview_starmap.url if project.preview_starmap else None,
-        full_url=project.full_starmap.url if project.full_starmap else None,
-        generated_at=(
-            project.starmap_generated_at.isoformat()
-            if project.starmap_generated_at
-            else None
-        ),
-        n_stars=len(positions),
-        colored_by_distance=colored_by_distance,
-    )
-    payload = result.as_dict()
-    payload['can_edit'] = can_edit
-    return payload
-
-
-def regenerate_all_starmaps(*, project_queryset=None) -> dict[str, Any]:
-    from stars.models import Project
-
-    queryset = project_queryset if project_queryset is not None else Project.objects.all()
-    summary = {
-        'total': 0,
-        'ok': 0,
-        'failed': 0,
-        'errors': [],
+    return {
+        'n_stars': len(positions),
+        'colored_by_distance': colored_by_distance,
     }
-
-    for project in queryset.order_by('pk'):
-        if not project.star_set.exists():
-            continue
-        summary['total'] += 1
-        try:
-            generate_starmap(project)
-            summary['ok'] += 1
-        except Exception as exc:
-            logger.exception('Starmap generation failed for project pk=%s', project.pk)
-            summary['failed'] += 1
-            summary['errors'].append({
-                'project_pk': project.pk,
-                'project_slug': project.slug,
-                'message': str(exc),
-            })
-
-    return summary
-
-
-def schedule_starmap_regeneration(project_pk: int, *, countdown: int = STARMAP_REGEN_COUNTDOWN) -> bool:
-    """Enqueue a debounced starmap regeneration for one project."""
-    from stars.tasks import regenerate_starmap_task
-
-    cache_key = f'{STARMAP_REGEN_CACHE_PREFIX}{project_pk}'
-    if cache.get(cache_key):
-        return False
-
-    cache.set(cache_key, True, STARMAP_REGEN_CACHE_TTL)
-    regenerate_starmap_task.apply_async(args=[project_pk], countdown=countdown)
-    return True

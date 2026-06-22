@@ -15,8 +15,6 @@ interface AdminProject {
   description: string
   is_public: boolean
   logo: string | null
-  preview_starmap: string | null
-  full_starmap: string | null
   readonly_users: number[]
   readwriteown_users: number[]
   readwrite_users: number[]
@@ -35,11 +33,7 @@ const slug = ref('')
 const description = ref('')
 const isPublic = ref(true)
 const logoUrl = ref<string | null>(null)
-const previewUrl = ref<string | null>(null)
-const fullUrl = ref<string | null>(null)
 const logoFile = ref<File | null>(null)
-const previewFile = ref<File | null>(null)
-const fullFile = ref<File | null>(null)
 const readonlyUsers = ref<number[]>([])
 const readwriteownUsers = ref<number[]>([])
 const readwriteUsers = ref<number[]>([])
@@ -64,8 +58,6 @@ function applyProject(project: AdminProject) {
   description.value = project.description
   isPublic.value = project.is_public
   logoUrl.value = project.logo
-  previewUrl.value = project.preview_starmap
-  fullUrl.value = project.full_starmap
   readonlyUsers.value = project.readonly_users
   readwriteownUsers.value = project.readwriteown_users
   readwriteUsers.value = project.readwrite_users
@@ -83,8 +75,6 @@ function buildFormData(): FormData {
   form.append('readwrite_users', JSON.stringify(readwriteUsers.value))
   form.append('project_managers', JSON.stringify(projectManagers.value))
   if (logoFile.value) form.append('logo', logoFile.value)
-  if (previewFile.value) form.append('preview_starmap', previewFile.value)
-  if (fullFile.value) form.append('full_starmap', fullFile.value)
   return form
 }
 
@@ -92,7 +82,7 @@ async function save() {
   saving.value = true
   clearMessages()
   try {
-    const hasFiles = !!(logoFile.value || previewFile.value || fullFile.value)
+    const hasFiles = !!logoFile.value
     if (hasFiles || isNew.value) {
       const form = buildFormData()
       if (isNew.value) {
@@ -124,8 +114,6 @@ async function save() {
       applyProject(updated)
     }
     logoFile.value = null
-    previewFile.value = null
-    fullFile.value = null
     showSuccess(`Saved project “${name.value}”.`)
   } catch (err) {
     showError(err)
@@ -149,12 +137,9 @@ async function removeProject() {
   }
 }
 
-function onFileChange(event: Event, target: 'logo' | 'preview' | 'full') {
+function onLogoChange(event: Event) {
   const input = event.target as HTMLInputElement
-  const file = input.files?.[0] ?? null
-  if (target === 'logo') logoFile.value = file
-  if (target === 'preview') previewFile.value = file
-  if (target === 'full') fullFile.value = file
+  logoFile.value = input.files?.[0] ?? null
 }
 
 onMounted(loadProject)
@@ -183,21 +168,10 @@ onMounted(loadProject)
       </section>
 
       <section class="aots-panel space-y-3">
-        <h3 class="font-medium text-aots-heading">Files</h3>
+        <h3 class="font-medium text-aots-heading">Logo</h3>
         <div>
-          <label class="text-sm text-aots-muted">Logo</label>
           <a v-if="logoUrl" :href="logoUrl" class="block text-sm text-aots-link" target="_blank">Current file</a>
-          <input type="file" class="aots-field" @change="onFileChange($event, 'logo')" />
-        </div>
-        <div>
-          <label class="text-sm text-aots-muted">Preview starmap</label>
-          <a v-if="previewUrl" :href="previewUrl" class="block text-sm text-aots-link" target="_blank">Current file</a>
-          <input type="file" class="aots-field" @change="onFileChange($event, 'preview')" />
-        </div>
-        <div>
-          <label class="text-sm text-aots-muted">Full starmap</label>
-          <a v-if="fullUrl" :href="fullUrl" class="block text-sm text-aots-link" target="_blank">Current file</a>
-          <input type="file" class="aots-field" @change="onFileChange($event, 'full')" />
+          <input type="file" class="aots-field" @change="onLogoChange" />
         </div>
       </section>
 
@@ -219,7 +193,7 @@ onMounted(loadProject)
           :disabled="saving"
           @click="removeProject"
         >
-          Delete
+          Delete project
         </AppButton>
       </AdminFormActions>
     </form>

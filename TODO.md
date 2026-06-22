@@ -63,13 +63,13 @@ See [docs/architecture.md](docs/architecture.md) for domain models, service laye
 
 **Done:**
 
-- Central generation service (`stars/services/starmap.py`): Aitoff galactic projection, consensus parallax, fallback without parallax, PNG storage on `Project.preview_starmap` / `full_starmap`
-- API: `GET /api/dash/<slug>/starmap/`, `POST /api/dash/<slug>/starmap/regenerate/`; decoupled from HRD bootstrap
-- Regeneration: dashboard button, `manage.py regenerate_starmaps`, debounced trigger after Gaia bulk import, Celery Beat daily job (`regenerate_all_starmaps_task`, 04:00)
+- Coordinate service (`stars/services/starmap.py`): Aitoff galactic projection, consensus parallax, star metadata
+- API: `GET /api/dash/<slug>/starmap/` (Bokeh embed + optional `?format=json`); decoupled from HRD bootstrap
+- Interactive starmap: Bokeh scatter with matplotlib Aitoff x/y pre-projection, pan/zoom, click → star detail; PNG export via Bokeh save tool; theme via `?theme=dark|light`
 
 **Later:**
 
-- [ ] Interactive starmap (Bokeh or Leaflet/aladin-lite): pan/zoom, click star → star detail; optional JSON endpoint instead of static PNG only
+- [ ] Aladin-lite overlay mode for contextual DSS view around selected star (complement to all-sky Bokeh map)
 
 ## Other
 

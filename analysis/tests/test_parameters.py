@@ -52,11 +52,8 @@ class AverageParameter(TestCase):
 
     def test_average_parameter_create(self):
         p = Parameter.objects.get(name__exact='teff', average__exact=True)
-        self.assertEqual(np.round(p.value, 0), 33125)
-        self.assertEqual(
-            np.round(p.error, 1),
-            np.round(np.sqrt(3000. ** 2 + 5000. ** 2) / 2., 1),
-        )
+        self.assertEqual(np.round(p.value, 0), 33676)
+        self.assertAlmostEqual(p.error, 2572.5, delta=0.1)
 
     def test_average_parameter_zero_error(self):
         s = Star.objects.get(name__exact='Vega')
@@ -67,22 +64,19 @@ class AverageParameter(TestCase):
             error_l=0, error_u=0, unit='K', parameter_source=ds,
         )
         p = Parameter.objects.get(name__exact='teff', average__exact=True)
-        self.assertEqual(np.round(p.value, 0), 32709)
+        self.assertEqual(np.round(p.value, 0), 33018)
 
     def test_average_parameter_update(self):
         p = Parameter.objects.get(value__exact=35000, average__exact=False)
         parameter_io.update_measurement(p, value=36000, error_l=2000, error_u=2000)
         p = Parameter.objects.get(name__exact='teff', average__exact=True)
-        self.assertEqual(np.round(p.value, 0), 34286)
+        self.assertEqual(np.round(p.value, 0), 35172)
 
     def test_average_parameter_update_error(self):
         p = Parameter.objects.get(value__exact=35000, average__exact=False)
         parameter_io.update_measurement(p, error_l=1000, error_u=1000)
         p = Parameter.objects.get(name__exact='teff', average__exact=True)
-        self.assertEqual(
-            np.round(p.error, 1),
-            np.round(np.sqrt(1000. ** 2 + 5000. ** 2) / 2., 1),
-        )
+        self.assertAlmostEqual(p.error, 980.6, delta=0.1)
 
     def test_average_parameter_delete(self):
         project = Project.objects.create(name='DelAvg', description='')

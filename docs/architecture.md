@@ -34,6 +34,8 @@ Use-cases live in `analysis/services/`; models hold schema and simple display he
 
 The **consensus** value shown in summaries, plotters, HRD, and starmaps is resolved by project policy (`analysis/services/parameter_consensus.py`) and stored as a cache row (`Parameter.average=True`, source `AVG`) with `consensus_provenance` describing the winning rule/source.
 
+The `weighted_average` rule combines multiple measurements with an inverse-variance weighted mean (weights `1/σ²`, combined uncertainty `1/√Σ(1/σ²)`); see `analysis/services/parameter_averaging.py`.
+
 New projects receive defaults from `analysis/services/consensus_defaults.py` (Gaia source priority for astrometry, RV/spectral/SED analysis categories for model parameters, wildcard `*` weighted average as fallback). Existing per-project overrides are preserved when seeding.
 
 Configure policies at `/w/<project>/settings/consensus/` (SPA) or via `GET/POST /api/analysis/consensus-policies/<slug>/`.

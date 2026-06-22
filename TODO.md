@@ -55,7 +55,7 @@
 - [ ] HRD (`dash/plotting.py`): `photometry_set`-Fallback für `bp_rp` und direkte Photometrie-Reads entfernen; Achsenwerte nur noch über `get_consensus_parameter()` (nach Gaia-Import mit gespeichertem `mag` / `bp_rp` / `absolute_g_mag`)
 - [ ] Parameter overview: „active“ vs. archived measurement columns
 - [ ] Per-star policy overrides (optional)
-- [ ] Weighted average: statistisch robustere Fehlerkombination
+- [x] Weighted average: inverse-variance mean and combined uncertainty (`parameter_averaging.calculate_average`)
 
 See [docs/architecture.md](docs/architecture.md) for domain models, service layers, and I/O conventions.
 

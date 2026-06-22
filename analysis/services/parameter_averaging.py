@@ -9,23 +9,34 @@ import warnings
 
 def calculate_average(params):
     """
-    Calculates the average value and error based on the given parameters.
-    params needs to be a queryset.
+    Inverse-variance weighted mean and combined uncertainty.
+
+    For measurements x_i with symmetric uncertainties σ_i = (error_l + error_u) / 2:
+
+        w_i = 1 / σ_i²
+        x̄ = Σ(w_i x_i) / Σ(w_i)
+        σ_x̄ = 1 / sqrt(Σ w_i)
+
+    Missing uncertainties (σ_i <= 0) fall back to |x_i| / 10, then 1.0, so weights stay finite.
     """
     import numpy as np
 
-    values = np.array(params.values_list('value', flat=True))
-
-    errors_l = np.array(params.values_list('error_l', flat=True))
-    errors_u = np.array(params.values_list('error_u', flat=True))
+    values = np.asarray(params.values_list('value', flat=True), dtype=float)
+    errors_l = np.asarray(params.values_list('error_l', flat=True), dtype=float)
+    errors_u = np.asarray(params.values_list('error_u', flat=True), dtype=float)
     errors = (errors_l + errors_u) / 2.0
 
-    errors = np.where(errors == 0, values / 10., errors)
-    errors = np.where(errors == 0, 1., errors)
+    errors = np.where(errors <= 0, np.abs(values) / 10.0, errors)
+    errors = np.where(errors <= 0, 1.0, errors)
 
-    error = np.sqrt(np.sum(errors ** 2)) / len(errors)
+    weights = 1.0 / (errors ** 2)
+    weight_sum = np.sum(weights)
+    if weight_sum == 0:
+        return float(np.mean(values)), float(np.mean(errors))
 
-    return np.average(values, weights=1. / errors), error
+    value = float(np.sum(weights * values) / weight_sum)
+    error = float(1.0 / np.sqrt(weight_sum))
+    return value, error
 
 
 def delete_orphan_average(param):

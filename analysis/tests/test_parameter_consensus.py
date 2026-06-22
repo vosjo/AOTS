@@ -62,7 +62,7 @@ class ParameterConsensusTests(TestCase):
         self.assertEqual(p.consensus_provenance, 'Gaia DR3')
         self.assertEqual(p.consensus_from_id, Parameter.objects.get(parameter_source=src).pk)
 
-    def test_weighted_average_matches_legacy_behavior(self):
+    def test_weighted_average_uses_inverse_variance(self):
         parameter_io.create_measurement(
             star=self.star,
             name='teff',
@@ -85,7 +85,8 @@ class ParameterConsensusTests(TestCase):
         )
         p = get_consensus_parameter(self.star, 'teff', 1)
         self.assertIsNotNone(p)
-        self.assertEqual(np.round(p.value, 0), 33125)
+        self.assertEqual(np.round(p.value, 0), 33676)
+        self.assertAlmostEqual(p.error, 2572.5, delta=0.1)
         self.assertEqual(p.consensus_rule, ConsensusRuleKind.WEIGHTED_AVERAGE)
         self.assertIn('Weighted avg', p.consensus_provenance)
 

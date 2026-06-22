@@ -7,6 +7,7 @@ import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
 
 interface StarRef {
   pk: number
@@ -75,6 +76,7 @@ interface BokehEmbed {
 
 const route = useRoute()
 const auth = useAuthStore()
+const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const pk = computed(() => route.params.id as string)
 
@@ -101,21 +103,22 @@ const { data: spectrum, refetch } = useQuery({
 })
 
 const { data: visibilityPlot, isFetching: visibilityLoading } = useQuery({
-  queryKey: computed(() => ['spectrum-visibility', pk.value]),
+  queryKey: computed(() => ['spectrum-visibility', pk.value, themeStore.mode]),
   queryFn: () =>
     api<{ visibility: BokehEmbed }>(
-      `/api/observations/spectra/${pk.value}/plot/?part=visibility`,
+      `/api/observations/spectra/${pk.value}/plot/?part=visibility&theme=${themeStore.mode}`,
     ),
 })
 
 const { data: specPlot, isFetching: specLoading } = useQuery({
-  queryKey: computed(() => ['spectrum-spec-plot', pk.value, appliedPlot.value]),
+  queryKey: computed(() => ['spectrum-spec-plot', pk.value, appliedPlot.value, themeStore.mode]),
   queryFn: () => {
     const q = new URLSearchParams({
       part: 'spec',
       rebin: String(appliedPlot.value.rebin),
       normalize: appliedPlot.value.normalize ? 'true' : 'false',
       porder: String(appliedPlot.value.porder),
+      theme: themeStore.mode,
     })
     return api<{ spec: BokehEmbed }>(
       `/api/observations/spectra/${pk.value}/plot/?${q}`,
@@ -280,9 +283,9 @@ function yesNo(value: boolean) {
         </div>
       </div>
 
-      <div class="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,0.9fr)_minmax(180px,0.7fr)]">
-        <section class="aots-panel-compact">
-          <h2 class="text-sm font-medium mb-2">Basic data</h2>
+      <div class="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,0.9fr)_minmax(180px,0.7fr)] lg:items-stretch">
+        <section class="aots-panel-compact flex min-h-0 flex-col">
+          <h2 class="text-sm font-medium mb-2 shrink-0">Basic data</h2>
           <div class="grid sm:grid-cols-2 gap-x-4">
             <table class="aots-kv-table">
               <tbody>
@@ -328,22 +331,23 @@ function yesNo(value: boolean) {
           </div>
         </section>
 
-        <section class="aots-panel-compact">
-          <h2 class="text-sm font-medium mb-2">Visibility</h2>
-          <div class="min-h-[180px] w-full max-w-full min-w-0 overflow-hidden">
+        <section class="aots-panel-compact flex min-h-0 flex-col">
+          <h2 class="text-sm font-medium mb-2 shrink-0">Visibility</h2>
+          <div class="min-h-0 flex-1 w-full overflow-hidden">
             <div
               v-if="visibilityLoading && !visibilityPlot?.visibility"
-              class="h-[180px] rounded bg-aots-surface-muted/40 animate-pulse"
+              class="h-full min-h-[120px] rounded bg-aots-surface-muted/40 animate-pulse"
             />
             <BokehPlot
               v-else-if="visibilityPlot?.visibility"
+              fill
               :script="visibilityPlot.visibility.script"
               :div="visibilityPlot.visibility.div"
             />
           </div>
         </section>
 
-        <section class="aots-panel-compact space-y-3">
+        <section class="aots-panel-compact flex min-h-0 flex-col space-y-3">
           <div>
             <h2 class="text-sm font-medium mb-1">Files</h2>
             <ul v-if="spectrum.specfiles.length" class="text-xs space-y-1">

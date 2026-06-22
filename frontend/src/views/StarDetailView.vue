@@ -20,6 +20,7 @@ import AladinMap from '@/components/AladinMap.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
 
 interface TagRef {
   pk: number
@@ -190,6 +191,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const route = useRoute()
 const auth = useAuthStore()
+const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const starId = computed(() => route.params.id as string)
 
@@ -221,14 +223,17 @@ const { data: detail, refetch } = useQuery({
 })
 
 const { data: sed, refetch: refetchSed } = useQuery({
-  queryKey: computed(() => ['star-sed', starId.value]),
-  queryFn: () => api<BokehEmbed>(`/api/systems/stars/${starId.value}/sed/`),
+  queryKey: computed(() => ['star-sed', starId.value, themeStore.mode]),
+  queryFn: () =>
+    api<BokehEmbed>(`/api/systems/stars/${starId.value}/sed/?theme=${themeStore.mode}`),
 })
 
 const { data: analysisPlots } = useQuery({
-  queryKey: computed(() => ['star-analysis-plots', starId.value]),
+  queryKey: computed(() => ['star-analysis-plots', starId.value, themeStore.mode]),
   queryFn: () =>
-    api<{ plots: AnalysisPlot[] }>(`/api/systems/stars/${starId.value}/analysis-plots/`),
+    api<{ plots: AnalysisPlot[] }>(
+      `/api/systems/stars/${starId.value}/analysis-plots/?theme=${themeStore.mode}`,
+    ),
 })
 
 const groupedAnalysisPlots = computed(() => {

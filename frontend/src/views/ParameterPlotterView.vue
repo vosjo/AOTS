@@ -7,6 +7,7 @@ import AnalysesSectionNav from '@/components/AnalysesSectionNav.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import { api, formatApiError } from '@/api/client'
+import { useThemeStore } from '@/stores/theme'
 
 interface FormChoice {
   value: string
@@ -36,13 +37,15 @@ interface PlotterResponse {
 }
 
 const route = useRoute()
+const themeStore = useThemeStore()
 const slug = computed(() => route.params.projectSlug as string)
 const queryParams = ref<Record<string, string>>({})
 
 const { data, isFetching, isError, error } = useQuery({
-  queryKey: computed(() => ['plotter', slug.value, queryParams.value]),
+  queryKey: computed(() => ['plotter', slug.value, queryParams.value, themeStore.mode]),
   queryFn: () => {
     const q = new URLSearchParams(queryParams.value)
+    q.set('theme', themeStore.mode)
     return api<PlotterResponse>(`/api/analysis/plotter/${slug.value}/?${q}`)
   },
 })

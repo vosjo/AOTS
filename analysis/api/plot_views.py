@@ -31,6 +31,7 @@ def parameter_plotter_api(request, project_slug):
 
     figure, statistics = plot_parameters.plot_parameters(
         parameters, project=project, show_regression=show_regression,
+        theme=request.query_params.get('theme'),
     )
 
     return Response({
@@ -60,5 +61,7 @@ def analysis_plots_api(request, pk):
     analysis = get_object_if_allowed(
         Analysis, request, pk, select_related=('project', 'star'),
     )
-    all_figs = plot_analysis_detail_figures(analysis)
+    all_figs = plot_analysis_detail_figures(
+        analysis, theme=request.query_params.get('theme'),
+    )
     return Response(bokeh_embed_response(all_figs))

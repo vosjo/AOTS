@@ -1,7 +1,7 @@
 import numpy as np
 from bokeh import models as mpl
 from bokeh import plotting as bpl
-from bokeh.models import ColorBar, Range1d
+from bokeh.models import Range1d
 from bokeh.palettes import Viridis9
 from bokeh.transform import linear_cmap
 from scipy import stats
@@ -13,6 +13,12 @@ from analysis.services.parameter_consensus import (
     consensus_queryset,
     get_consensus_parameter,
     iter_project_consensus_cnames,
+)
+from dash.bokeh_theme import (
+    apply_bokeh_figure_theme,
+    resolve_bokeh_theme,
+    styled_color_bar,
+    themed_hover_tool,
 )
 from stars.models import Star
 
@@ -214,10 +220,11 @@ def get_parameter_statistics(data, xpar, ypar, unit_lookup=None):
         return "No statistics calculated"
 
 
-def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
+def plot_parameters(parameters, project=None, show_regression=False, *, theme=None, **kwargs):
     """
     Makes a simple plot of the given parameters
     """
+    plot_theme = resolve_bokeh_theme(theme)
     xpar = parameters.get('xaxis', 'parallax')
     ypar = parameters.get('yaxis', 'pmdec')
     rstr = parameters.get('size') or None
@@ -256,6 +263,7 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
     tooltips = [('System', '@system')] + \
                [(parameter_axis_label(p, unit_lookup.get(p)),
                  '@{} +- @e_{}'.format(p, p)) for p in param_names]
+    hover_rows = [(label, value) for label, value in tooltips]
 
     TOOLS = [mpl.PanTool(), mpl.WheelZoomTool(),
              mpl.BoxZoomTool(), mpl.ResetTool()]
@@ -292,10 +300,9 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
             fill_color=colors,
             line_color=colors,
         )
-        color_bar = ColorBar(
-            color_mapper=colors['transform'],
-            width=8,
-            location=(0, 0),
+        color_bar = styled_color_bar(
+            colors['transform'],
+            theme=plot_theme,
             title=parameter_axis_label(cstr, unit_lookup.get(cstr)),
         )
         fig.add_layout(color_bar, 'right')
@@ -307,6 +314,8 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
             y=ypar,
             radius='norm_' + rstr,
             alpha=0.7,
+            fill_color=plot_theme.marker_fill,
+            line_color=plot_theme.marker_line,
         )
     elif cstr is not None:
         colors = linear_cmap(
@@ -325,10 +334,9 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
             fill_color=colors,
             line_color=colors,
         )
-        color_bar = ColorBar(
-            color_mapper=colors['transform'],
-            width=8,
-            location=(0, 0),
+        color_bar = styled_color_bar(
+            colors['transform'],
+            theme=plot_theme,
             title=parameter_axis_label(cstr, unit_lookup.get(cstr)),
         )
         fig.add_layout(color_bar, 'right')
@@ -340,6 +348,8 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
             y=ypar,
             radius=default_radius,
             alpha=0.7,
+            fill_color=plot_theme.marker_fill,
+            line_color=plot_theme.marker_line,
         )
 
     _set_axis_ranges(fig, data[xpar], data[ypar])
@@ -348,12 +358,14 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
         plot_errorbars(
             fig, data[xpar], data[ypar],
             xerr=data['e_' + xpar], yerr=data['e_' + ypar],
+            line_color=plot_theme.error_line,
+            line_alpha=0.55,
         )
 
     if show_regression:
         _plot_regression_line(fig, regression)
 
-    hover = mpl.HoverTool(tooltips=tooltips, renderers=[main_plot])
+    hover = themed_hover_tool(renderers=[main_plot], rows=hover_rows, theme=plot_theme)
     fig.add_tools(hover)
 
     fig.toolbar.logo = None
@@ -362,5 +374,7 @@ def plot_parameters(parameters, project=None, show_regression=False, **kwargs):
     fig.yaxis.axis_label_text_font_size = '10pt'
     fig.xaxis.axis_label_text_font_size = '10pt'
     fig.min_border = 5
+
+    apply_bokeh_figure_theme(fig, plot_theme)
 
     return fig, statistics

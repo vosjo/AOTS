@@ -12,19 +12,26 @@ from bokeh.models import TabPanel, Tabs
 from specutils import Spectrum as SpecutilsSpectrum
 
 from observations.auxil import tools as spectools
+from dash.bokeh_theme import (
+    apply_bokeh_figure_theme,
+    resolve_bokeh_theme,
+    themed_field_hover_tool,
+    themed_status_label,
+)
 from stars.models import Star
 from stars.photometry_bands import SURVEY_PLOT_COLORS, ZEROPOINTS as zeropoints
 from .models import Spectrum, LightCurve
 
 
-def plot_visibility(observation):
+def plot_visibility(observation, *, theme=None):
     """
     Plot airmass and moondistance on the night of observations
     """
+    plot_theme = resolve_bokeh_theme(theme)
 
     fig = bpl.figure(
-        height=240,
-        sizing_mode='scale_width',
+        height=200,
+        sizing_mode='stretch_both',
         toolbar_location=None,
         y_range=(0, 90),
         x_axis_type="datetime",
@@ -41,13 +48,18 @@ def plot_visibility(observation):
     try:
 
         if observation.observatory.space_craft:
-            label = mpl.HTMLLabel(x=180, y=110, x_units='screen', y_units='screen', text='Observatory is a Space Craft',
-                              border_line_color='red', border_line_alpha=1.0, text_color='red', text_align='center',
-                              text_baseline='middle',
-                              background_fill_color='white', background_fill_alpha=1.0)
+            label = themed_status_label(
+                x=180,
+                y=110,
+                x_units='screen',
+                y_units='screen',
+                text='Observatory is a Space Craft',
+                theme=plot_theme,
+            )
 
             fig.add_layout(label)
 
+            apply_bokeh_figure_theme(fig, plot_theme)
             return fig
 
         observatory = observation.observatory.get_EarthLocation()
@@ -70,7 +82,7 @@ def plot_visibility(observation):
 
         times = times.to_datetime()
 
-        fig.line(times, star_altaz.alt, color='blue', line_width=2)
+        fig.line(times, star_altaz.alt, color=plot_theme.marker_fill, line_width=2)
         fig.line(times, moon_altaz.alt, color='orange', line_dash='dashed', line_width=2)
 
         obsstart = (time - observation.exptime / 2 * u.second).to_datetime()
@@ -82,16 +94,21 @@ def plot_visibility(observation):
 
         print(e)
 
-        label = mpl.Label(x=75, y=40, x_units='screen', text='Could not calculate visibility',
-                          border_line_color='red', border_line_alpha=1.0, text_color='red',
-                          background_fill_color='white', background_fill_alpha=1.0)
+        label = themed_status_label(
+            x=75,
+            y=40,
+            x_units='screen',
+            text='Could not calculate visibility',
+            theme=plot_theme,
+        )
 
         fig.add_layout(label)
 
+    apply_bokeh_figure_theme(fig, plot_theme)
     return fig
 
 
-def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
+def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None, *, theme=None):
     '''
     Plot spectrum
 
@@ -109,6 +126,8 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
     tabs
 
     '''
+
+    plot_theme = resolve_bokeh_theme(theme)
 
     #   Load spectrum, individual spectra (specfiles), and instrument
     spectrum = Spectrum.objects.select_related('project').get(pk=spectrum_id)
@@ -266,7 +285,7 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
         )
 
         #   Plot spectrum
-        fig.line(wave, flux, line_width=1, color="blue")
+        fig.line(wave, flux, line_width=1, color=plot_theme.marker_fill)
 
         #   Annotate He and H lines
         #   Define lines:
@@ -316,9 +335,9 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
                     text_color=h[1],
                     text_alpha=0.6,
                     text_font_size='14px',
-                    border_line_color='white',
+                    border_line_color=plot_theme.outline,
                     border_line_alpha=1.0,
-                    background_fill_color='white',
+                    background_fill_color=plot_theme.plot_border,
                     background_fill_alpha=0.3,
                 )
                 fig.add_layout(lab)
@@ -333,6 +352,8 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
         fig.xaxis.axis_label_text_font_size = '10pt'
         fig.min_border = 5
 
+        apply_bokeh_figure_theme(fig, plot_theme)
+
         #   Fill tabs list
         tabs.append(TabPanel(child=fig, title=specfile.filetype))
 
@@ -340,7 +361,8 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None):
     return Tabs(tabs=tabs, sizing_mode='scale_width')
 
 
-def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None):
+def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None, *, theme=None):
+    plot_theme = resolve_bokeh_theme(theme)
     lightcurve = LightCurve.objects.select_related('project').get(pk=lightcurve_id)
     from AOTS.project_scoping import assert_plot_belongs_to_project
     assert_plot_belongs_to_project(lightcurve, project)
@@ -348,7 +370,7 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None):
     time, flux, header = lightcurve.get_lightcurve()
 
     fig1 = bpl.figure(width=1600, height=400, sizing_mode='scale_width')
-    fig1.line(time, flux, line_width=1, color="blue")
+    fig1.line(time, flux, line_width=1, color=plot_theme.marker_fill)
 
     fig1.toolbar.logo = None
     fig1.yaxis.axis_label = 'Flux'
@@ -371,15 +393,18 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None):
         phase = np.hstack([phase, phase + 1])
         flux = np.hstack([flux, flux])
 
-        fig2.line(phase, flux, line_width=1, color="blue")
+        fig2.line(phase, flux, line_width=1, color=plot_theme.marker_fill)
 
     else:
 
-        label = mpl.HTMLLabel(x=800, y=200, x_units='screen', y_units='screen',
-                          text='No period provided, cannot phase fold lightcurve',
-                          text_align='center',
-                          border_line_color='red', border_line_alpha=1.0, text_color='red',
-                          background_fill_color='white', background_fill_alpha=1.0)
+        label = themed_status_label(
+            x=800,
+            y=200,
+            x_units='screen',
+            y_units='screen',
+            text='No period provided, cannot phase fold lightcurve',
+            theme=plot_theme,
+        )
 
         fig2.add_layout(label)
 
@@ -390,10 +415,14 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None):
     fig2.xaxis.axis_label_text_font_size = '10pt'
     fig2.min_border = 5
 
+    apply_bokeh_figure_theme(fig1, plot_theme)
+    apply_bokeh_figure_theme(fig2, plot_theme)
+
     return fig1, fig2
 
 
-def plot_sed(star_id, project=None):
+def plot_sed(star_id, project=None, *, theme=None):
+    plot_theme = resolve_bokeh_theme(theme)
 
     star = Star.objects.select_related('project').get(pk=star_id)
     from AOTS.project_scoping import assert_plot_belongs_to_project
@@ -455,8 +484,10 @@ def plot_sed(star_id, project=None):
             x=[0.5],
             y=[0.5],
             text=["No photometry available"],
-            text_align="center"
+            text_align="center",
+            text_color=plot_theme.tick_text,
         )
+        apply_bokeh_figure_theme(fig, plot_theme)
         return fig
 
     # invisible hover layer
@@ -487,14 +518,17 @@ def plot_sed(star_id, project=None):
             line_width=1.5
         )
 
-    hover = mpl.HoverTool(
+    hover = themed_field_hover_tool(
+        renderers=[main_plot],
         tooltips=[
             ("band", "@band"),
             ("magnitude", "@mag ± @err"),
         ],
-        renderers=[main_plot]
+        theme=plot_theme,
     )
 
     fig.add_tools(hover)
+
+    apply_bokeh_figure_theme(fig, plot_theme)
 
     return fig

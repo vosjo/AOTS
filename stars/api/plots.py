@@ -51,7 +51,9 @@ def _history_user_display(user):
 @permission_classes([AllowAny])
 def star_sed_plot(request, pk):
     star = get_object_if_allowed(Star, request, pk, select_related=('project',))
-    return Response(bokeh_embed_response(plot_sed(star.pk, project=star.project)))
+    return Response(bokeh_embed_response(
+        plot_sed(star.pk, project=star.project, theme=request.query_params.get('theme')),
+    ))
 
 
 @api_view(['GET'])
@@ -59,6 +61,7 @@ def star_sed_plot(request, pk):
 def star_analysis_plots(request, pk):
     star = get_object_if_allowed(Star, request, pk, select_related=('project',))
     project = star.project
+    plot_theme = request.query_params.get('theme')
     plots = []
     analyses = star.analysis_set.select_related('project').order_by('category', 'name')
     for analysis in analyses:
@@ -77,6 +80,6 @@ def star_analysis_plots(request, pk):
                 'analysis:analysis_detail',
                 kwargs={'project': project.slug, 'analysis_id': analysis.pk},
             ),
-            'embed': bokeh_embed_response(plot_analysis_figure(analysis)),
+            'embed': bokeh_embed_response(plot_analysis_figure(analysis, theme=plot_theme)),
         })
     return Response({'plots': plots})

@@ -20,14 +20,16 @@ def spectrum_plot(request, pk):
         if p.strip()
     }
     figures = {}
+    plot_theme = request.query_params.get('theme')
     if 'visibility' in parts:
-        figures['visibility'] = plot_visibility(spectrum)
+        figures['visibility'] = plot_visibility(spectrum, theme=plot_theme)
     if 'spec' in parts:
         rebin = int(request.GET.get('rebin', 1))
         normalize = request.GET.get('normalize', 'true').lower() != 'false'
         porder = int(request.GET.get('porder', 3))
         figures['spec'] = plot_spectrum(
             pk, rebin=rebin, normalize=normalize, porder=porder, project=spectrum.project,
+            theme=plot_theme,
         )
     return Response(bokeh_embed_response(figures))
 
@@ -60,11 +62,13 @@ def lightcurve_plot(request, pk):
         binsize = 0.001
 
     figures = {}
+    plot_theme = request.query_params.get('theme')
     if 'visibility' in parts:
-        figures['visibility'] = plot_visibility(lightcurve)
+        figures['visibility'] = plot_visibility(lightcurve, theme=plot_theme)
     if 'lc_time' in parts or 'lc_phase' in parts:
         lc_time, lc_phase = plot_lightcurve(
             pk, period=period, binsize=binsize, project=lightcurve.project,
+            theme=plot_theme,
         )
         if 'lc_time' in parts:
             figures['lc_time'] = lc_time

@@ -532,6 +532,11 @@
     background-color: var(--aots-surface) !important;
   }
 
+  .bokeh-plot-host.h-full .bk-root,
+  .bokeh-plot-host.h-full .bk-panel-models-tabs-Tabs {
+    height: 100% !important;
+  }
+
   [data-theme="dark"] .bokeh-plot-host .bk-root {
     color: #cbd5e1;
   }

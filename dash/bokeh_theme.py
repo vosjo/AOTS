@@ -109,6 +109,21 @@ def apply_bokeh_figure_theme(fig, theme: BokehPlotTheme) -> None:
     fig.grid.grid_line_alpha = theme.grid_line_alpha
     fig.grid.minor_grid_line_alpha = theme.grid_line_alpha * 0.65
 
+    legend = getattr(fig, 'legend', None)
+    if legend is not None:
+        try:
+            has_legend = bool(legend.items)
+        except AttributeError:
+            has_legend = len(legend) > 0
+        if has_legend:
+            legend.background_fill_color = theme.plot_border
+            legend.border_line_color = theme.outline
+            legend.label_text_color = theme.tick_text
+            legend.title_text_color = theme.axis_title
+
+    if fig.title is not None:
+        fig.title.text_color = theme.axis_title
+
 
 def styled_color_bar(color_mapper, *, theme: BokehPlotTheme, title: str, width: int = 8) -> 'ColorBar':
     from bokeh.models import ColorBar
@@ -126,6 +141,17 @@ def styled_color_bar(color_mapper, *, theme: BokehPlotTheme, title: str, width: 
     )
 
 
+def _themed_tooltip_html(body: str, theme: BokehPlotTheme) -> str:
+    return f"""<style>:host {{
+  background-color: {theme.tooltip_background};
+  color: {theme.tooltip_text};
+  border: 1px solid {theme.tooltip_border};
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.35;
+}}</style>{body}"""
+
+
 def themed_hover_tool(*, renderers, rows: list[tuple[str, str]], theme: BokehPlotTheme) -> 'HoverTool':
     """Hover tooltips styled for dark/light panel (Bokeh 3 shadow DOM :host)."""
     from bokeh.models import HoverTool
@@ -134,12 +160,47 @@ def themed_hover_tool(*, renderers, rows: list[tuple[str, str]], theme: BokehPlo
         f'<div><span style="opacity:0.8">{label}:</span> {value}</div>'
         for label, value in rows
     )
-    tooltips = f"""<style>:host {{
-  background-color: {theme.tooltip_background};
-  color: {theme.tooltip_text};
-  border: 1px solid {theme.tooltip_border};
-  padding: 6px 8px;
-  font-size: 12px;
-  line-height: 1.35;
-}}</style>{body}"""
-    return HoverTool(renderers=renderers, tooltips=tooltips)
+    return HoverTool(renderers=renderers, tooltips=_themed_tooltip_html(body, theme))
+
+
+def themed_field_hover_tool(
+    *,
+    renderers,
+    tooltips: list[tuple[str, str]],
+    theme: BokehPlotTheme,
+) -> 'HoverTool':
+    """Hover tool with Bokeh field references (@column) and themed tooltip chrome."""
+    from bokeh.models import HoverTool
+
+    body = ''.join(
+        f'<div><span style="opacity:0.8">{label}:</span> {field}</div>'
+        for label, field in tooltips
+    )
+    return HoverTool(renderers=renderers, tooltips=_themed_tooltip_html(body, theme))
+
+
+def themed_status_label(
+    *,
+    x,
+    y,
+    text: str,
+    theme: BokehPlotTheme,
+    text_color: str = '#ef4444',
+    **kwargs,
+) -> 'Label':
+    """On-plot status/error label matching panel surface."""
+    from bokeh.models import Label
+
+    return Label(
+        x=x,
+        y=y,
+        text=text,
+        text_color=text_color,
+        text_align=kwargs.pop('text_align', 'center'),
+        text_baseline=kwargs.pop('text_baseline', 'middle'),
+        background_fill_color=theme.plot_border,
+        background_fill_alpha=1.0,
+        border_line_color=theme.outline,
+        border_line_alpha=1.0,
+        **kwargs,
+    )

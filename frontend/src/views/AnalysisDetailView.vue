@@ -7,6 +7,7 @@ import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
 
 interface StarRef {
   pk: number
@@ -78,6 +79,7 @@ interface BokehEmbed {
 
 const route = useRoute()
 const auth = useAuthStore()
+const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const pk = computed(() => route.params.id as string)
 
@@ -96,8 +98,11 @@ const { data: analysis, refetch } = useQuery({
 })
 
 const { data: plots } = useQuery({
-  queryKey: computed(() => ['analysis-plots', pk.value]),
-  queryFn: () => api<Record<string, BokehEmbed>>(`/api/analysis/analyses/${pk.value}/plots/`),
+  queryKey: computed(() => ['analysis-plots', pk.value, themeStore.mode]),
+  queryFn: () =>
+    api<Record<string, BokehEmbed>>(
+      `/api/analysis/analyses/${pk.value}/plots/?theme=${themeStore.mode}`,
+    ),
 })
 
 const { data: categoryOptions } = useQuery({

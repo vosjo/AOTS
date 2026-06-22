@@ -7,6 +7,25 @@ import numpy as np
 from bokeh import models as mpl
 from bokeh import plotting as bpl
 
+from dash.bokeh_theme import (
+    apply_bokeh_figure_theme,
+    resolve_bokeh_theme,
+    themed_field_hover_tool,
+    themed_status_label,
+)
+
+
+def _finish_figure(fig, theme):
+    apply_bokeh_figure_theme(fig, resolve_bokeh_theme(theme))
+    return fig
+
+
+def _finish_figures(figures, theme):
+    plot_theme = resolve_bokeh_theme(theme)
+    for fig in figures.values():
+        apply_bokeh_figure_theme(fig, plot_theme)
+    return figures
+
 
 def plot_errorbars(fig, x, y, e, **kwargs):
     """
@@ -33,7 +52,7 @@ def get_attr(dataset, attr, default=None):
         return attr
 
 
-def plot_generic(datafile):
+def plot_generic(datafile, *, theme=None):
     """
     Generic plotting interface
     will plot the data and models as lines or circles/square.
@@ -124,10 +143,10 @@ def plot_generic(datafile):
 
     hdf.close()
 
-    return fig
+    return _finish_figure(fig, theme)
 
 
-def plot_generic_large(datafile):
+def plot_generic_large(datafile, *, theme=None):
     """
     Generic plotting interface
     will plot the data and models as lines or circles/square.
@@ -210,7 +229,11 @@ def plot_generic_large(datafile):
                 else:
                     tooltips += [(get_attr(data, "ylabel", "y"), "@" + name + "_y")]
 
-                hover_tool = mpl.HoverTool(renderers=[rend], tooltips=tooltips)
+                hover_tool = themed_field_hover_tool(
+                    renderers=[rend],
+                    tooltips=tooltips,
+                    theme=resolve_bokeh_theme(theme),
+                )
                 fig.add_tools(hover_tool)
 
     # -- plot the models
@@ -252,10 +275,10 @@ def plot_generic_large(datafile):
     # """)
     # http://stackoverflow.com/questions/39972162/dynamically-change-the-shape-of-bokeh-figure
 
-    return fig  # , button
+    return _finish_figure(fig, theme)  # , button
 
 
-def plot_generic_OC(datafile):
+def plot_generic_OC(datafile, *, theme=None):
     hdf = h5py.File(datafile, "r")
 
     TOOLS = "pan, box_zoom, wheel_zoom, reset"
@@ -312,7 +335,7 @@ def plot_generic_OC(datafile):
         hline = mpl.Span(
             location=0,
             dimension="width",
-            line_color="black",
+            line_color=resolve_bokeh_theme(theme).outline,
             line_width=2,
             line_dash="dashed",
         )
@@ -322,14 +345,14 @@ def plot_generic_OC(datafile):
         fig.xaxis.axis_label = get_attr(models, "xlabel", "x")
 
     else:
-        error_text = mpl.Label(
+        plot_theme = resolve_bokeh_theme(theme)
+        error_text = themed_status_label(
             x=400,
             y=100,
             x_units="screen",
             y_units="screen",
             text="No O-C data available.",
-            text_color="red",
-            text_align="center",
+            theme=plot_theme,
         )
 
         fig.add_layout(error_text)
@@ -341,15 +364,16 @@ def plot_generic_OC(datafile):
 
     hdf.close()
 
-    return fig
+    return _finish_figure(fig, theme)
 
 
-def plot_generic_hist(datafile):
+def plot_generic_hist(datafile, *, theme=None):
     hdf = h5py.File(datafile, "r")
 
     figures = {}
 
     if not "PARAMETERS" in hdf:
+        hdf.close()
         return figures
 
     data = hdf["PARAMETERS"]
@@ -407,15 +431,18 @@ def plot_generic_hist(datafile):
 
             figures[name] = fig
 
-    return figures
+    hdf.close()
+
+    return _finish_figures(figures, theme)
 
 
-def plot_generic_ci(datafile):
+def plot_generic_ci(datafile, *, theme=None):
     hdf = h5py.File(datafile, "r")
 
     figures = {}
 
     if not "PARAMETERS" in hdf:
+        hdf.close()
         return figures
 
     data = hdf["PARAMETERS"]
@@ -460,7 +487,9 @@ def plot_generic_ci(datafile):
 
             figures[name] = fig
 
-    return figures
+    hdf.close()
+
+    return _finish_figures(figures, theme)
 
 
 # ============================================================================================
@@ -468,84 +497,84 @@ def plot_generic_ci(datafile):
 # ============================================================================================
 
 
-def plot_error(width, height):
+def plot_error(width, height, *, theme=None):
     fig = bpl.figure(
         width=width, height=height, sizing_mode='scale_width', toolbar_location=None,
     )
 
-    error_text = mpl.Label(
+    plot_theme = resolve_bokeh_theme(theme)
+    error_text = themed_status_label(
         x=width / 2.0,
         y=height / 2.0,
         x_units="screen",
         y_units="screen",
         text="An error occured when trying to plot this dataset!",
-        text_color="red",
-        text_align="center",
+        theme=plot_theme,
     )
 
     fig.add_layout(error_text)
 
-    return fig
+    return _finish_figure(fig, theme)
 
 
-def plot_error_large():
+def plot_error_large(*, theme=None):
     fig = bpl.figure(
         width=800, height=500, sizing_mode='scale_width', toolbar_location=None,
     )
 
-    error_text = mpl.Label(
+    plot_theme = resolve_bokeh_theme(theme)
+    error_text = themed_status_label(
         x=400,
         y=250,
         x_units="screen",
         y_units="screen",
         text="An error occured when trying to plot this dataset!",
-        text_color="red",
-        text_align="center",
+        theme=plot_theme,
     )
 
     fig.add_layout(error_text)
 
-    return fig
+    return _finish_figure(fig, theme)
 
 
 import traceback
 
 
-def plot_analysis(datafile, category=None):
+def plot_analysis(datafile, category=None, *, theme=None):
     """
     General plotting function for analysis
     """
     try:
-        return plot_generic(datafile)
+        return plot_generic(datafile, theme=theme)
     except Exception as e:
         print(e)
         print(traceback.format_exc())
-        return plot_error(600, 400)
+        return plot_error(600, 400, theme=theme)
 
 
-def plot_analysis_large(datafile, category=None):
+def plot_analysis_large(datafile, category=None, *, theme=None):
     """
     General plotting function for analysis, makes the large version plot for
     the detail pages including extra info when hovering over a figure
     """
     try:
-        return plot_generic_large(datafile)
+        return plot_generic_large(datafile, theme=theme)
     except Exception as e:
         print(e)
         print(traceback.format_exc())
-        return plot_error_large()
+        return plot_error_large(theme=theme)
 
 
-def plot_analysis_oc(datafile, category=None):
+def plot_analysis_oc(datafile, category=None, *, theme=None):
     try:
-        return plot_generic_OC(datafile)
+        return plot_generic_OC(datafile, theme=theme)
     except Exception as e:
         print(e)
         print(traceback.format_exc())
-        return plot_error(800, 200)
+        return plot_error(800, 200, theme=theme)
 
 
-def plot_parameter_ci(datafile, category=None):
+def plot_parameter_ci(datafile, category=None, *, theme=None):
     """
     General plotting function for the confidence intervals of the parameters.
     This will return a figure for each confidence interval (1D) that is included
@@ -553,8 +582,8 @@ def plot_parameter_ci(datafile, category=None):
     """
 
     try:
-        return plot_generic_ci(datafile)
+        return plot_generic_ci(datafile, theme=theme)
     except Exception as e:
         print(e)
         print(traceback.format_exc())
-        return plot_error()
+        return plot_error(280, 280, theme=theme)

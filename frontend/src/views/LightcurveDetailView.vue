@@ -7,6 +7,7 @@ import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
 
 interface StarRef {
   pk: number
@@ -63,6 +64,7 @@ interface BokehEmbed {
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const pk = computed(() => route.params.id as string)
 
@@ -86,25 +88,25 @@ const { data: lc, refetch } = useQuery({
 })
 
 const { data: visibilityPlot, isFetching: visibilityLoading } = useQuery({
-  queryKey: computed(() => ['lightcurve-visibility', pk.value]),
+  queryKey: computed(() => ['lightcurve-visibility', pk.value, themeStore.mode]),
   queryFn: () =>
     api<{ visibility: BokehEmbed }>(
-      `/api/observations/lightcurves/${pk.value}/plot/?part=visibility`,
+      `/api/observations/lightcurves/${pk.value}/plot/?part=visibility&theme=${themeStore.mode}`,
     ),
 })
 
 const { data: timePlot, isFetching: timeLoading } = useQuery({
-  queryKey: computed(() => ['lightcurve-time', pk.value]),
+  queryKey: computed(() => ['lightcurve-time', pk.value, themeStore.mode]),
   queryFn: () =>
     api<{ lc_time: BokehEmbed }>(
-      `/api/observations/lightcurves/${pk.value}/plot/?part=lc_time`,
+      `/api/observations/lightcurves/${pk.value}/plot/?part=lc_time&theme=${themeStore.mode}`,
     ),
 })
 
 const { data: phasePlot, isFetching: phaseLoading } = useQuery({
-  queryKey: computed(() => ['lightcurve-phase', pk.value, appliedPhase.value]),
+  queryKey: computed(() => ['lightcurve-phase', pk.value, appliedPhase.value, themeStore.mode]),
   queryFn: () => {
-    const q = new URLSearchParams({ part: 'lc_phase' })
+    const q = new URLSearchParams({ part: 'lc_phase', theme: themeStore.mode })
     if (appliedPhase.value.period) q.set('period', appliedPhase.value.period)
     q.set('binsize', appliedPhase.value.binsize)
     return api<{ lc_phase: BokehEmbed }>(
@@ -244,9 +246,9 @@ async function remove() {
         </div>
       </div>
 
-      <div class="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,0.9fr)_minmax(180px,0.7fr)]">
-        <section class="aots-panel-compact">
-          <h2 class="text-sm font-medium mb-2">Basic data</h2>
+      <div class="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,0.9fr)_minmax(180px,0.7fr)] lg:items-stretch">
+        <section class="aots-panel-compact flex min-h-0 flex-col">
+          <h2 class="text-sm font-medium mb-2 shrink-0">Basic data</h2>
           <div class="grid sm:grid-cols-2 gap-x-4">
             <table class="aots-kv-table">
               <tbody>
@@ -287,22 +289,23 @@ async function remove() {
           </div>
         </section>
 
-        <section class="aots-panel-compact">
-          <h2 class="text-sm font-medium mb-2">Visibility</h2>
-          <div class="min-h-[180px] w-full max-w-full min-w-0 overflow-hidden">
+        <section class="aots-panel-compact flex min-h-0 flex-col">
+          <h2 class="text-sm font-medium mb-2 shrink-0">Visibility</h2>
+          <div class="min-h-0 flex-1 w-full overflow-hidden">
             <div
               v-if="visibilityLoading && !visibilityPlot?.visibility"
-              class="h-[180px] rounded bg-aots-surface-muted/40 animate-pulse"
+              class="h-full min-h-[120px] rounded bg-aots-surface-muted/40 animate-pulse"
             />
             <BokehPlot
               v-else-if="visibilityPlot?.visibility"
+              fill
               :script="visibilityPlot.visibility.script"
               :div="visibilityPlot.visibility.div"
             />
           </div>
         </section>
 
-        <section class="aots-panel-compact space-y-3">
+        <section class="aots-panel-compact flex min-h-0 flex-col space-y-3">
           <div>
             <h2 class="text-sm font-medium mb-1">Light curve files</h2>
             <ul v-if="lc.filetype" class="text-xs space-y-1">

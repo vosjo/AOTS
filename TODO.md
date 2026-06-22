@@ -57,6 +57,20 @@
 - [ ] Per-star policy overrides (optional)
 - [ ] Weighted average: statistisch robustere Fehlerkombination
 
+See [docs/architecture.md](docs/architecture.md) for domain models, service layers, and I/O conventions.
+
+## Dashboard Starmap
+
+**Done:**
+
+- Central generation service (`stars/services/starmap.py`): Aitoff galactic projection, consensus parallax, fallback without parallax, PNG storage on `Project.preview_starmap` / `full_starmap`
+- API: `GET /api/dash/<slug>/starmap/`, `POST /api/dash/<slug>/starmap/regenerate/`; decoupled from HRD bootstrap
+- Regeneration: dashboard button, `manage.py regenerate_starmaps`, debounced trigger after Gaia bulk import, Celery Beat daily job (`regenerate_all_starmaps_task`, 04:00)
+
+**Later:**
+
+- [ ] Interactive starmap (Bokeh or Leaflet/aladin-lite): pan/zoom, click star → star detail; optional JSON endpoint instead of static PNG only
+
 ## Other
 
 See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for DataTables API fields.

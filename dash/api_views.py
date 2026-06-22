@@ -3,19 +3,32 @@ from itertools import chain
 
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import make_aware
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from AOTS.bokeh_embed import bokeh_embed_response
 from AOTS.history_helpers import history_actor_for_changelog
-from rest_framework.exceptions import PermissionDenied
+from AOTS.task_helpers import run_task
 from analysis.models import Analysis
 from dash.forms import HRDPlotterForm
 from dash.plotting import plot_hrd
 from dash.views import get_modeltype, sort_modified_created, wascreated
 from observations.models import LightCurve, Spectrum
 from stars.models import Project, Star
+from stars.services.starmap import generate_starmap, starmap_metadata
+from stars.tasks import regenerate_starmap_task
+
+
+def _dashboard_project(request, project_slug):
+    project = get_object_or_404(Project, slug=project_slug)
+    if request.user.is_anonymous and not project.is_public:
+        raise PermissionDenied()
+    if not request.user.is_anonymous and not request.user.can_read(project):
+        raise PermissionDenied()
+    return project
 
 
 def _recent_changes(project, aware_datetime):
@@ -46,11 +59,7 @@ def _recent_changes(project, aware_datetime):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def dashboard_bootstrap(request, project_slug):
-    project = get_object_or_404(Project, slug=project_slug)
-    if request.user.is_anonymous and not project.is_public:
-        raise PermissionDenied()
-    if not request.user.is_anonymous and not request.user.can_read(project):
-        raise PermissionDenied()
+    project = _dashboard_project(request, project_slug)
 
     form = HRDPlotterForm(request.GET or None)
     if not form.is_valid():
@@ -97,8 +106,43 @@ def dashboard_bootstrap(request, project_slug):
                 name: list(field.choices) for name, field in form.fields.items()
             },
         },
-        'starmap': {
-            'preview_url': project.preview_starmap.url if project.preview_starmap else None,
-            'full_url': project.full_starmap.url if project.full_starmap else None,
-        },
     })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def dashboard_starmap(request, project_slug):
+    project = _dashboard_project(request, project_slug)
+    can_edit = (
+        not request.user.is_anonymous
+        and request.user.can_edit(project)
+    )
+    return Response(starmap_metadata(project, can_edit=can_edit))
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def dashboard_starmap_regenerate(request, project_slug):
+    project = _dashboard_project(request, project_slug)
+    if request.user.is_anonymous or not request.user.can_edit(project):
+        raise PermissionDenied()
+
+    async_requested = request.query_params.get('async', '').lower() in ('1', 'true', 'yes')
+    if async_requested:
+        _result, task_id = run_task(
+            regenerate_starmap_task,
+            project.pk,
+            request.user.pk,
+            async_requested=True,
+            owner_user_id=request.user.pk,
+            project_id=project.pk,
+        )
+        return Response(
+            {'status': 'pending', 'task_id': task_id},
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+    result = generate_starmap(project, user=request.user)
+    payload = result.as_dict()
+    payload['can_edit'] = True
+    return Response(payload)

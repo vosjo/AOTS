@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import BokehPlot from '@/components/BokehPlot.vue'
 import AppButton from '@/components/AppButton.vue'
-import { api } from '@/api/client'
+import { api, DEFAULT_PROJECT_LOGO, formatApiError } from '@/api/client'
 import { useElementHeight } from '@/composables/useElementHeight'
 
 /** HRD figure dimensions from dash/plotting.py plot_hrd(). */
@@ -29,7 +29,17 @@ interface StatCard {
   to: string
 }
 
+interface StarmapPayload {
+  preview_url: string | null
+  full_url: string | null
+  generated_at: string | null
+  n_stars: number
+  colored_by_distance: boolean
+  can_edit: boolean
+}
+
 const route = useRoute()
+const queryClient = useQueryClient()
 const slug = computed(() => route.params.projectSlug as string)
 const hrdParams = ref<Record<string, string>>({})
 
@@ -47,9 +57,17 @@ const { data, isFetching, refetch } = useQuery({
         values: Record<string, string>
         choices: Record<string, [string, string][]>
       }
-      starmap: { preview_url: string | null; full_url: string | null }
     }>(`/api/dash/${slug.value}/?${params}`)
   },
+})
+
+const {
+  data: starmapData,
+  isFetching: starmapFetching,
+  refetch: refetchStarmap,
+} = useQuery({
+  queryKey: computed(() => ['dashboard-starmap', slug.value]),
+  queryFn: () => api<StarmapPayload>(`/api/dash/${slug.value}/starmap/`),
 })
 
 const statCards = computed((): StatCard[] => {
@@ -91,6 +109,8 @@ const statCards = computed((): StatCard[] => {
 const form = computed(() => data.value?.hrd_form)
 const hrdFormValues = reactive<Record<string, string>>({})
 const starmapOpen = ref(false)
+const starmapRegenerating = ref(false)
+const starmapError = ref<string | null>(null)
 
 watch(
   data,
@@ -130,6 +150,42 @@ const hrdPlotFrameStyle = computed(() => {
 function updateHrd() {
   hrdParams.value = { ...hrdFormValues }
   refetch()
+}
+
+function closeStarmap() {
+  starmapOpen.value = false
+}
+
+function onStarmapKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    closeStarmap()
+  }
+}
+
+watch(starmapOpen, (open) => {
+  if (open) {
+    window.addEventListener('keydown', onStarmapKeydown)
+  } else {
+    window.removeEventListener('keydown', onStarmapKeydown)
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onStarmapKeydown)
+})
+
+async function regenerateStarmap() {
+  starmapError.value = null
+  starmapRegenerating.value = true
+  try {
+    await api(`/api/dash/${slug.value}/starmap/regenerate/`, { method: 'POST' })
+    await refetchStarmap()
+    await queryClient.invalidateQueries({ queryKey: ['projects'] })
+  } catch (error) {
+    starmapError.value = formatApiError(error)
+  } finally {
+    starmapRegenerating.value = false
+  }
 }
 </script>
 
@@ -194,14 +250,39 @@ function updateHrd() {
     </div>
 
     <div class="grid min-w-0 gap-6 lg:grid-cols-2">
-      <section v-if="data.starmap.preview_url" class="aots-panel min-w-0">
-        <h2 class="font-medium mb-2">Starmap</h2>
-        <img
-          :src="data.starmap.preview_url"
-          alt="Starmap preview"
-          class="block w-full max-w-full cursor-pointer rounded object-contain"
-          @click="starmapOpen = true"
-        />
+      <section class="aots-panel min-w-0">
+        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h2 class="font-medium">Starmap</h2>
+          <AppButton
+            v-if="starmapData?.can_edit"
+            variant="secondary"
+            :disabled="starmapRegenerating || starmapFetching"
+            @click="regenerateStarmap"
+          >
+            {{ starmapRegenerating ? 'Regenerating…' : 'Regenerate' }}
+          </AppButton>
+        </div>
+        <p v-if="starmapError" class="mb-2 text-sm text-red-400">{{ starmapError }}</p>
+        <div v-if="starmapFetching && !starmapData" class="text-sm text-aots-muted">Loading starmap…</div>
+        <template v-else-if="starmapData">
+          <img
+            v-if="starmapData.preview_url"
+            :src="starmapData.preview_url"
+            alt="Starmap preview"
+            class="block w-full max-w-full cursor-pointer rounded object-contain"
+            @click="starmapOpen = true"
+          />
+          <div v-else class="flex flex-col items-center gap-2 py-8 text-center text-sm text-aots-muted">
+            <img :src="DEFAULT_PROJECT_LOGO" alt="" class="h-16 w-16 opacity-40" aria-hidden="true" />
+            <p>No starmap yet</p>
+          </div>
+          <p
+            v-if="starmapData.generated_at"
+            class="mt-2 text-xs text-aots-faint-extra"
+          >
+            Generated {{ starmapData.generated_at.slice(0, 16).replace('T', ' ') }}
+          </p>
+        </template>
       </section>
 
       <section class="aots-panel">
@@ -216,8 +297,27 @@ function updateHrd() {
       </section>
     </div>
 
-    <dialog v-if="starmapOpen && data.starmap.full_url" open class="fixed inset-0 z-50 bg-aots-overlay-strong p-8" @click="starmapOpen = false">
-      <img :src="data.starmap.full_url" alt="Full starmap" class="max-h-full max-w-full mx-auto" @click.stop />
+    <dialog
+      v-if="starmapOpen && starmapData?.full_url"
+      open
+      class="fixed inset-0 z-50 bg-aots-overlay-strong p-8"
+      aria-label="Full starmap"
+      @click="closeStarmap"
+    >
+      <button
+        type="button"
+        class="absolute right-4 top-4 rounded border border-aots px-3 py-1 text-sm text-aots-heading hover:bg-aots-surface"
+        aria-label="Close starmap"
+        @click.stop="closeStarmap"
+      >
+        Close
+      </button>
+      <img
+        :src="starmapData.full_url"
+        alt="Full starmap"
+        class="max-h-full max-w-full mx-auto"
+        @click.stop
+      />
     </dialog>
   </div>
 </template>

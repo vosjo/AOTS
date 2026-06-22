@@ -4,6 +4,7 @@ import time
 from celery import shared_task
 
 from stars.services.gaia_import import import_gaia_dr3_for_star
+from stars.services.starmap import regenerate_all_starmaps, schedule_starmap_regeneration
 
 logger = logging.getLogger('AOTS.tasks')
 
@@ -70,4 +71,21 @@ def fetch_gaia_bulk_task(self, project_pk, star_pks, user_pk):
         if index < len(stars):
             time.sleep(GAIA_BULK_DELAY_SECONDS)
 
+    schedule_starmap_regeneration(project_pk)
     return summary
+
+
+@shared_task
+def regenerate_starmap_task(project_pk, user_pk=None):
+    from stars.models import Project
+    from stars.services.starmap import generate_starmap
+
+    del user_pk
+    project = Project.objects.get(pk=project_pk)
+    result = generate_starmap(project)
+    return result.as_dict()
+
+
+@shared_task
+def regenerate_all_starmaps_task():
+    return regenerate_all_starmaps()

@@ -138,6 +138,7 @@ def upload_analyses_api(request):
         project,
         files,
         category=upload_form.cleaned_data.get('category'),
+        history_user_id=request.user.pk,
     )
     return Response({'info': 'Data uploaded', 'messages': message_list})
 

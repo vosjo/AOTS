@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from AOTS.bokeh_embed import bokeh_embed_response
+from AOTS.history_helpers import history_actor_for_changelog
 from rest_framework.exceptions import PermissionDenied
 from analysis.models import Analysis
 from dash.forms import HRDPlotterForm
@@ -27,21 +28,19 @@ def _recent_changes(project, aware_datetime):
         all_models.append(all_mod_objs.filter(pk__in=most_recent_ids))
 
     recent = sorted(chain(*all_models), key=sort_modified_created, reverse=True)[:25]
-    return [
-        {
+    entries = []
+    for r in recent:
+        actor, label = history_actor_for_changelog(r)
+        entries.append({
             'modeltype': get_modeltype(r),
             'date': r.history.latest().history_date.isoformat(),
-            'user': (
-                r.history.latest().history_user.username
-                if r.history.latest().history_user is not None
-                else 'unknown'
-            ),
+            'user': label,
+            'user_pk': actor.pk if actor is not None else None,
             'pk': r.pk,
             'label': str(r),
             'created': wascreated(r),
-        }
-        for r in recent
-    ]
+        })
+    return entries
 
 
 @api_view(['GET'])

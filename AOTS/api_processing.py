@@ -13,11 +13,15 @@ def run_process_view(request, obj, task, serializer_class, async_kwarg='async'):
     Run a processing task sync or async; return DRF Response.
     """
     async_requested = request.query_params.get(async_kwarg) == '1'
+    task_kwargs = {}
+    if request.user.is_authenticated:
+        task_kwargs['history_user_id'] = request.user.pk
     _, task_id = run_task(
         task,
         obj.pk,
         async_requested=async_requested,
         owner_user_id=request.user.pk if request.user.is_authenticated else None,
+        **task_kwargs,
     )
     if task_id:
         return Response(

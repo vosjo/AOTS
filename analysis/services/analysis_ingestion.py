@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from django.contrib.auth import get_user_model
 from django.db.models import F, ExpressionWrapper, FloatField
 
 from analysis.auxil import process_analyses, read_analyses
@@ -15,7 +16,20 @@ class IngestResult:
     message: str
 
 
-def ingest_analysis_file(analysis_id, category_override=None) -> IngestResult:
+def _apply_history_user(instance, history_user_id):
+    if history_user_id is None:
+        return
+    user = get_user_model().objects.filter(pk=history_user_id).first()
+    if user is not None:
+        instance._history_user = user
+
+
+def _save_analysis(analfile, *, history_user_id=None, **save_kwargs):
+    _apply_history_user(analfile, history_user_id)
+    analfile.save(**save_kwargs)
+
+
+def ingest_analysis_file(analysis_id, category_override=None, history_user_id=None) -> IngestResult:
     """Validate HDF5, match star, create parameters and category-derived parameters."""
     try:
         analfile = Analysis.objects.get(pk=analysis_id)
@@ -47,7 +61,7 @@ def ingest_analysis_file(analysis_id, category_override=None) -> IngestResult:
     analfile.name = name
     analfile.note = note
     analfile.reference = reference
-    analfile.save()
+    _save_analysis(analfile, history_user_id=history_user_id)
 
     message = 'Validated the analysis file'
 
@@ -73,7 +87,7 @@ def ingest_analysis_file(analysis_id, category_override=None) -> IngestResult:
             )
         ).order_by('distance')[0]
         analfile.star = star
-        analfile.save()
+        _save_analysis(analfile, history_user_id=history_user_id)
         message += f", added to existing System {star} (_r = {star.distance})"
     else:
         star = star_io.create_star(
@@ -84,14 +98,14 @@ def ingest_analysis_file(analysis_id, category_override=None) -> IngestResult:
             classification='',
         )
         analfile.star = star
-        analfile.save()
+        _save_analysis(analfile, history_user_id=history_user_id)
         message += f", created new System {star}"
 
     try:
         npars = process_analyses.create_parameters(analfile, data)
         if npars == 0:
             analfile.fit = False
-            analfile.save()
+            _save_analysis(analfile, history_user_id=history_user_id)
             message += ', (No parameters included, no fit)'
         else:
             message += f', ({npars} parameters)'
@@ -105,7 +119,7 @@ def ingest_analysis_file(analysis_id, category_override=None) -> IngestResult:
     return IngestResult(True, message)
 
 
-def process_analysis_file(file_id):
+def process_analysis_file(file_id, history_user_id=None):
     """Backward-compatible wrapper returning (success, message) tuple."""
-    result = ingest_analysis_file(file_id)
+    result = ingest_analysis_file(file_id, history_user_id=history_user_id)
     return result.success, result.message

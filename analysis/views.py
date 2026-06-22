@@ -27,6 +27,7 @@ def analysis_list(request, project=None, **kwargs):
                 project,
                 files,
                 category=upload_form.cleaned_data.get('category'),
+                history_user_id=request.user.pk,
             )
 
             return JsonResponse(

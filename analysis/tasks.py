@@ -8,7 +8,7 @@ logger = logging.getLogger('AOTS.tasks')
 
 
 @shared_task(bind=True)
-def process_analysis_task(self, analysis_pk):
+def process_analysis_task(self, analysis_pk, history_user_id=None):
     logger.info('Processing analysis pk=%s task_id=%s', analysis_pk, self.request.id)
-    result = ingest_analysis_file(analysis_pk)
+    result = ingest_analysis_file(analysis_pk, history_user_id=history_user_id)
     return result.success, result.message

@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils.timezone import make_aware
 
 from AOTS.custom_permissions import check_user_can_view_project
+from AOTS.history_helpers import history_actor_for_changelog
 from analysis.models import Analysis
 from observations.models import Spectrum, LightCurve
 from stars.models import Project, Star
@@ -94,10 +95,18 @@ def dashboard(request, project=None, **kwargs):
         all_mod_objs_lw = all_mod_hists.filter(history_date__gte=aware_datetime)
         stats[modname + "lw"] = all_mod_objs_lw.count()
 
-    recent_changes = sorted(chain(*all_models), key=sort_modified_created, reverse=True)[:25]
-
-    recent_changes = [{"modeltype": get_modeltype(r), "date": r.history.latest().history_date, "user": r.history.latest().history_user if r.history.latest().history_user is not None else "unknown", "instance": r, "created": wascreated(r)} for r in
-                      recent_changes]
+    recent_raw = sorted(chain(*all_models), key=sort_modified_created, reverse=True)[:25]
+    recent_changes = []
+    for r in recent_raw:
+        actor, label = history_actor_for_changelog(r)
+        recent_changes.append({
+            'modeltype': get_modeltype(r),
+            'date': r.history.latest().history_date,
+            'user': actor,
+            'user_label': label,
+            'instance': r,
+            'created': wascreated(r),
+        })
     # Possible axes teff, logg, mag, bp_rp
     if len(parameters.keys()) != 0:
         figure = plot_hrd(request, project.pk, parameters["xaxis"], parameters["yaxis"], parameters["size"], parameters["color"], parameters["nsys"])

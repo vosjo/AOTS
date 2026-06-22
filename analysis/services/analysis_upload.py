@@ -1,8 +1,8 @@
-from analysis.services.analysis_ingestion import ingest_analysis_file
 from analysis.models import Analysis
+from analysis.services.analysis_ingestion import _apply_history_user, ingest_analysis_file
 
 
-def upload_analysis_files(project, files, category=None):
+def upload_analysis_files(project, files, category=None, history_user_id=None):
     """Upload HDF5 analysis files and run processing. Returns [[success, message], ...]."""
     category_override = (category or '').strip() or None
     message_list = []
@@ -11,9 +11,14 @@ def upload_analysis_files(project, files, category=None):
             datafile=f,
             project=project,
         )
+        _apply_history_user(new_analysis, history_user_id)
         new_analysis.save()
 
-        result = ingest_analysis_file(new_analysis.id, category_override=category_override)
+        result = ingest_analysis_file(
+            new_analysis.id,
+            category_override=category_override,
+            history_user_id=history_user_id,
+        )
         success = result.success
         message = str(f) + ': ' + result.message
 

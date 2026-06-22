@@ -1,5 +1,7 @@
 # AOTS
 
+AOTS is a **Django** backend (REST API, media, Celery tasks) with a **Vue 3 SPA** as the user interface. Production serves the built SPA from Django static files; nginx proxies all application routes to Gunicorn and serves `/static/` and `/media/` directly.
+
 ## Installing Django
 
 This will install AOTS using a python virtual environment to avoid conflicts with other packages.
@@ -22,6 +24,8 @@ You need the python-dev package. Moreover you should update pip:
 sudo apt install python-dev-is-python3
 pip install -U pip
 ```
+
+For the Vue frontend (local dev and production builds), install **Node.js 22** (or current LTS) and npm. On Debian/Ubuntu you can use [NodeSource](https://github.com/nodesource/distributions) or install Node in CI the same way as [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
 ### 2. Create the virtual environment
 
@@ -52,9 +56,17 @@ cd AOTS
 pip install -r requirements.txt
 ```
 
+### 5. Install frontend dependencies
+
+```
+cd frontend
+npm ci
+cd ..
+```
+
 ## Running AOTS locally
 
-To run AOTS locally, using the simple sqlite database and the included server:
+Local development uses the Django dev server plus the Vite dev server (hot reload). Production uses a static frontend build — see [Running AOTS in production](#running-aots-in-production-using-a-postgres-database).
 
 ### 1. Setup the database
 
@@ -87,17 +99,45 @@ python manage.py createsuperuser
 >>> Superuser created successfully.
 ```
 
-### 3. Start the development server
+### 3. Configure environment
 
-Set `DJANGO_ENV=development` in `AOTS/.env` (or export it in your shell).
-Production deployments should use `DJANGO_ENV=production`.
+Copy `AOTS/.env.example` to `AOTS/.env` if you have not already. For local SPA development:
+
+```
+DJANGO_ENV=development
+VITE_DEV=True
+AOTS_SPA_CUTOVER=True
+CELERY_TASK_ALWAYS_EAGER=True
+```
+
+`AOTS_SPA_CUTOVER=True` matches production URL layout (`/w/…`, not `/app/w/…`). Set `VITE_DEV=False` only when testing a production-like static build locally.
+
+### 4. Start Django and the frontend
+
+Terminal 1 — Django (project root `AOTS/`):
 
 ```
 python manage.py runserver
 ```
 
+Terminal 2 — Vite:
 
-## Setup postgres database for production
+```
+cd frontend
+npm run dev
+```
+
+Open `http://127.0.0.1:8000/w/projects/` (with cutover). For a static smoke test without Vite:
+
+```
+cd frontend && npm run build && cd ..
+python manage.py collectstatic --noinput
+# VITE_DEV=False in .env, then runserver only
+```
+
+## Running AOTS in production using a postgres database
+
+### 1. Setup postgres database
 
 This is only necessary if you want to run in production.
 
@@ -152,12 +192,7 @@ Exit the psql:
 \q
 ```
 
-## Running AOTS in production using a postgres database
-
-Instructions modified
-from: https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-18-04
-
-### 1. Create an .env file
+### 2. Create an .env file
 
 To protect secrets like the postgres database password or the Django security key they are embedded in AOTS via
 environment variables. The environment variables are defined in the .env file in the AOTS directory. As an example we
@@ -167,7 +202,7 @@ provide .env.example.
 cp AOTS/.env.example  AOTS/.env
 ```
 
-### 2. Adjust the .env file
+### 3. Adjust the .env file
 
 In .env the secret Django security key, the postgres database password, the server IP and URL, as well as the name of
 the computer used in production needs to be specified.
@@ -175,6 +210,8 @@ the computer used in production needs to be specified.
 ```
 SECRET_KEY=generate_and_add_your_secret_security_key_here
 DJANGO_ENV=production
+AOTS_SPA_CUTOVER=True
+VITE_DEV=False
 DATABASE_NAME=aotsdb
 DATABASE_USER=aotsuser
 DATABASE_PASSWORD=your_database_password
@@ -186,15 +223,16 @@ CSRF_TRUSTED_ORIGINS=https://your_server_url
 CELERY_BROKER_URL=redis://localhost:6379/0
 ```
 
+Production uses the **SPA only** (`AOTS_SPA_CUTOVER=True`): Django serves the Vue app on `/w/`, `/accounts/`, `/admin/`, etc. Legacy Django page templates are not used. `VITE_DEV` must be `False` so the shell loads `/static/dist/…`, not the Vite dev server.
+
 `DEVICE` is optional if `DJANGO_ENV=production` is set (legacy fallback: hostname match).
-`CELERY_BROKER_URL` is optional for normal operation; Redis/Celery are **infrastructure
-preparation** for later background work (see
-[Redis and background tasks (Celery)](#redis-and-background-tasks-celery) and [TODO.md](TODO.md)).
+`CELERY_BROKER_URL` is required for bulk downloads and other background jobs (see
+[Redis and background tasks (Celery)](#redis-and-background-tasks-celery)).
 
 Instructions on how to generate a secret key can be found
 here: https://tech.serhatteker.com/post/2020-01/django-create-secret-key/
 
-### 3. Setup the database
+### 4. Setup the database
 
 ```
 python manage.py migrate
@@ -202,7 +240,7 @@ python manage.py migrate
 
 In case you want a fresh start, drop the database or remove the db.sqlite3 file.
 
-### 4. Create a admin user
+### 5. Create a admin user
 
 ```
 python manage.py createsuperuser
@@ -215,10 +253,37 @@ python manage.py createsuperuser
 
 You should use a different username instead of admin to increase security.
 
-### 5. Collect static files
+### 6. Build frontend and collect static files
+
+Build the Vue SPA into `site_static/dist/`, then copy all static assets (Bokeh, Font Awesome, SPA bundle, …) into `static/` for nginx:
 
 ```
-python manage.py collectstatic
+cd frontend
+npm ci
+npm run build
+cd ..
+python manage.py collectstatic --noinput
+```
+
+Repeat **`npm run build`** and **`collectstatic`** on every deploy that changes the frontend. Node.js is only required at build time, not on the server at runtime (unless you build there).
+
+Optional one-time maintenance after upgrade (see [docs/architecture.md](docs/architecture.md)):
+
+```
+python manage.py regenerate_starmaps --all
+```
+
+### 7. Upgrading an existing installation
+
+After `git pull` or a new release tarball:
+
+```
+pip install -r requirements.txt
+python manage.py migrate
+cd frontend && npm ci && npm run build && cd ..
+python manage.py collectstatic --noinput
+sudo systemctl restart gunicorn_aots
+sudo systemctl restart celery_aots celery_beat_aots   # if used
 ```
 
 ## Setup gunicorn
@@ -317,6 +382,8 @@ sudo systemctl status gunicorn_aots
 
 ## Configure NGNIX
 
+Django returns the HTML shell for `/w/…`, `/api/…`, `/accounts/…`, etc.; nginx proxies those requests to Gunicorn. Built SPA assets live under `/static/dist/` and are served from the `static/` directory below.
+
 ```
 sudo nano /etc/nginx/sites-available/aots
 ```
@@ -332,14 +399,16 @@ server {
         log_not_found off;
     }
 
+    # collectstatic output (includes frontend/dist → static/dist/)
     location /static/ {
         root /home/aots/www/aots/AOTS;
     }
 
     location /media/ {
-      root /home/aots/www/aots/AOTS;
+        root /home/aots/www/aots/AOTS;
     }
 
+    # Django + SPA shell + REST API (Vue client-side routes must reach Gunicorn)
     location / {
         include proxy_params;
         proxy_pass http://unix:/home/aots/www/aots/run/gunicorn.sock;
@@ -421,7 +490,7 @@ Download `kind` query parameter:
 | Gaia DR3 (bulk, async) | `POST /api/systems/stars/gaia/fetch-bulk/?async=1` + header `Projectid` |
 | Consensus policies | `/w/<project>/settings/consensus/` or `/api/analysis/consensus-policies/<slug>/` |
 | Starmap regenerate | Dashboard *Regenerate*, or `python manage.py regenerate_starmaps [--project SLUG \| --all]` |
-| Superuser admin (SPA) | `/app/admin/` (`/api/admin/`, requires `is_superuser`) |
+| Superuser admin (SPA) | `/admin/` (`/api/admin/`, requires `is_superuser`; Django `/admin/` remains as fallback) |
 
 Domain models, service layers, I/O conventions, and one-time migration notes:
 [docs/architecture.md](docs/architecture.md).

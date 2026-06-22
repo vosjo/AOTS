@@ -1,14 +1,15 @@
 # SPA final cutover (Phase 5b)
 
-Parallel beta is the default: classic UI at `/w/…`, new SPA at `/app/w/…`.
+Production deployments use **`AOTS_SPA_CUTOVER=true`** (documented in the [README](../README.md)). The Vue SPA is the only user interface; legacy Django templates are retired at release.
 
 ## Enable production cutover
 
-1. Deploy with `AOTS_SPA_CUTOVER=true` in environment.
-2. Django serves the Vue SPA on `/w/`, `/users/`, `/accounts/login`, etc.
-3. `/app/*` redirects to the same path without the prefix.
+1. Set `AOTS_SPA_CUTOVER=true` and `VITE_DEV=false` in `.env`.
+2. Build the frontend (`cd frontend && npm ci && npm run build`) and run `collectstatic`.
+3. Django serves the Vue SPA on `/w/`, `/users/`, `/accounts/login`, `/admin/`, etc.
+4. `/app/*` redirects to the same path without the prefix (compatibility).
 
-## After sign-off
+## After sign-off (code cleanup)
 
 1. Remove legacy `site_static/js/*_list.js` and page-specific JS.
 2. Remove app templates under `stars/templates/`, `observations/templates/`, etc.

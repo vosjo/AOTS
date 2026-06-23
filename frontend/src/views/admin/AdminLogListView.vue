@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import { useAdminList } from '@/composables/useAdminList'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 
 interface AdminLogRow {
   id: number
@@ -23,6 +24,12 @@ const { query, page, pageSize } = useAdminList<AdminLogRow>({
 const rows = computed(() =>
   (query.data.value?.results ?? []).map((row) => ({ ...row, pk: row.id })),
 )
+const { emptyMessage } = useEmptyTableMessage({
+  query,
+  search,
+  entity: 'log entries',
+  scope: 'global',
+})
 
 const columns = [
   { id: 'action_time', header: 'Time' },
@@ -53,6 +60,7 @@ function formatActionTime(value: string): string {
     :page="page"
     :page-size="pageSize"
     :loading="query.isFetching.value"
+    :empty-message="emptyMessage"
     :selected="selected"
     :selectable="false"
     @update:page="page = $event"

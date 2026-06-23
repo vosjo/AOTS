@@ -12,6 +12,7 @@ import { api } from '@/api/client'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
@@ -74,6 +75,7 @@ const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } 
 
 const rows = computed(() => query.data.value?.results ?? [])
 const selectedIds = computed(() => [...selected.value])
+const { emptyMessage } = useEmptyTableMessage({ query, filters, entity: 'raw spec files' })
 
 const uploadOpen = ref(false)
 const uploadMode = ref<'choose' | 'simple' | 'manual'>('choose')
@@ -315,6 +317,7 @@ async function updateLinkage() {
       :page="page"
       :page-size="pageSize"
       :loading="query.isFetching.value"
+      :empty-message="emptyMessage"
       :selected="selected"
       :selectable="auth.isAuthenticated"
       @update:page="page = $event"

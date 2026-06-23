@@ -11,6 +11,7 @@ import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useListFilters } from '@/composables/useListFilters'
 import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -67,6 +68,7 @@ const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } 
 
 const rows = computed(() => query.data.value?.results ?? [])
 const selectedIds = computed(() => [...selected.value])
+const { emptyMessage } = useEmptyTableMessage({ query, filters, entity: 'analyses' })
 
 const uploadOpen = ref(false)
 const uploadFiles = ref<FileList | null>(null)
@@ -205,6 +207,7 @@ async function applyCategory() {
       :page="page"
       :page-size="pageSize"
       :loading="query.isFetching.value"
+      :empty-message="emptyMessage"
       :selected="selected"
       :selectable="auth.isAuthenticated"
       @update:page="page = $event"

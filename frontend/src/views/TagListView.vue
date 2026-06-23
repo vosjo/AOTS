@@ -7,6 +7,7 @@ import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
 import { useDataTablePage } from '@/composables/useDataTablePage'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
@@ -30,6 +31,7 @@ const { query, page, pageSize, selected, toggleRow, toggleAll } = useDataTablePa
   projectSlug,
 })
 const rows = computed(() => query.data.value?.results ?? [])
+const { emptyMessage } = useEmptyTableMessage({ query, entity: 'tags' })
 
 const columns = computed(() => {
   const cols = [
@@ -125,6 +127,7 @@ async function deleteTag(row: TagRow) {
     :page="page"
     :page-size="pageSize"
     :loading="query.isFetching.value"
+    :empty-message="emptyMessage"
     :selected="selected"
     :selectable="auth.isAuthenticated"
     @update:page="page = $event"

@@ -7,6 +7,7 @@ import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import { api, formatApiError, type PaginatedResponse } from '@/api/client'
 import { useAdminList } from '@/composables/useAdminList'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 
 interface AdminTokenRow {
   pk: number
@@ -28,6 +29,12 @@ const { query, page, pageSize } = useAdminList<AdminTokenRow>({
 })
 
 const rows = computed(() => query.data.value?.results ?? [])
+const { emptyMessage } = useEmptyTableMessage({
+  query,
+  search,
+  entity: 'tokens',
+  scope: 'global',
+})
 const selected = ref(new Set<number>())
 
 const columns = [
@@ -91,6 +98,7 @@ async function deleteToken(pk: number) {
     :page="page"
     :page-size="pageSize"
     :loading="query.isFetching.value"
+    :empty-message="emptyMessage"
     :selected="selected"
     :selectable="false"
     @update:page="page = $event"

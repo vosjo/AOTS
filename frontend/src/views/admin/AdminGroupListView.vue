@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 import { Plus } from '@lucide/vue'
 import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import { rowPk, useAdminList } from '@/composables/useAdminList'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 
 interface AdminGroupRow {
   id: number
@@ -22,6 +22,12 @@ const { query, page, pageSize } = useAdminList<AdminGroupRow>({
 const rows = computed(() =>
   (query.data.value?.results ?? []).map((row) => ({ ...row, pk: row.id })),
 )
+const { emptyMessage } = useEmptyTableMessage({
+  query,
+  search,
+  entity: 'groups',
+  scope: 'global',
+})
 
 const columns = [
   { id: 'name', header: 'Name' },
@@ -41,6 +47,7 @@ const selected = ref(new Set<number>())
     :page="page"
     :page-size="pageSize"
     :loading="query.isFetching.value"
+    :empty-message="emptyMessage"
     :selected="selected"
     :selectable="false"
     @update:page="page = $event"

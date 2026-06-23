@@ -11,6 +11,7 @@ import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { saveCarryOver } from '@/composables/useCarryOver'
 import { useDataTablePage } from '@/composables/useDataTablePage'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useGaiaFetch } from '@/composables/useGaiaFetch'
 import { useTessFetch } from '@/composables/useTessFetch'
 import { api, type PaginatedResponse } from '@/api/client'
@@ -109,6 +110,7 @@ const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } 
 })
 const rows = computed(() => query.data.value?.results ?? [])
 const selectedIds = computed(() => [...selected.value])
+const { emptyMessage } = useEmptyTableMessage({ query, filters, entity: 'systems' })
 
 const { data: allTags } = useQuery({
   queryKey: computed(() => ['tags', projectStore.currentProject?.pk]),
@@ -509,6 +511,7 @@ async function addSystem() {
     :page="page"
     :page-size="pageSize"
       :loading="query.isFetching.value"
+      :empty-message="emptyMessage"
       :selected="selected"
       :selectable="auth.isAuthenticated"
       @update:page="page = $event"

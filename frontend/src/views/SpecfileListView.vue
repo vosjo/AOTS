@@ -6,6 +6,7 @@ import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
 import { useDataTablePage } from '@/composables/useDataTablePage'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters'
 import { useAuthStore } from '@/stores/auth'
 
@@ -49,6 +50,7 @@ const { query, page, pageSize, selected, toggleRow, toggleAll } = useDataTablePa
   spectraSectionSelection: 'specfiles',
 })
 const rows = computed(() => query.data.value?.results ?? [])
+const { emptyMessage } = useEmptyTableMessage({ query, filters, entity: 'spec files' })
 
 function idFromPath(path: string, segment: string) {
   const m = path.match(new RegExp(`${segment}/(\\d+)`))
@@ -101,6 +103,7 @@ function spectrumLabel(info: SpectrumInfo) {
     :page="page"
     :page-size="pageSize"
     :loading="query.isFetching.value"
+    :empty-message="emptyMessage"
     :selected="selected"
     :selectable="auth.isAuthenticated"
     @update:page="page = $event"

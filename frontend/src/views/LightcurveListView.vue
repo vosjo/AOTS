@@ -8,6 +8,7 @@ import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useListFilters } from '@/composables/useListFilters'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -60,6 +61,12 @@ const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } 
 })
 const rows = computed(() => query.data.value?.results ?? [])
 const selectedIds = computed(() => [...selected.value])
+
+const { emptyMessage } = useEmptyTableMessage({
+  query,
+  filters,
+  entity: 'light curves',
+})
 
 const columns = computed(() => {
   const cols = [
@@ -130,6 +137,7 @@ async function uploadLightCurves() {
     :page="page"
     :page-size="pageSize"
     :loading="query.isFetching.value"
+    :empty-message="emptyMessage"
     :selected="selected"
     :selectable="auth.isAuthenticated"
     @update:page="page = $event"

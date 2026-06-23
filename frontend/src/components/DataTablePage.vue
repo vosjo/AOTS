@@ -15,6 +15,7 @@ const props = withDefaults(
     loading?: boolean
     selected: Set<number>
     selectable?: boolean
+    emptyMessage?: string
   }>(),
   {
     selectable: true,
@@ -80,7 +81,11 @@ const headerChecked = computed(() => {
           <tr v-if="loading">
             <td :colspan="colSpan" class="p-4 text-center text-aots-muted">Loading…</td>
           </tr>
-          <tr v-for="row in rows" :key="row.pk">
+          <tr v-else-if="!rows.length && emptyMessage">
+            <td :colspan="colSpan" class="p-4 text-center text-aots-muted">{{ emptyMessage }}</td>
+          </tr>
+          <template v-else>
+            <tr v-for="row in rows" :key="row.pk">
             <td v-if="showCheckboxes" class="w-10 px-2">
               <input
                 type="checkbox"
@@ -95,6 +100,7 @@ const headerChecked = computed(() => {
               </slot>
             </td>
           </tr>
+          </template>
         </tbody>
       </table>
     </div>

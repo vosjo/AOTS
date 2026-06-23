@@ -9,6 +9,7 @@ import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -59,6 +60,7 @@ const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } 
 
 const rows = computed(() => query.data.value?.results ?? [])
 const selectedIds = computed(() => [...selected.value])
+const { emptyMessage } = useEmptyTableMessage({ query, filters, entity: 'spectra' })
 const anyRaw = computed(() => rows.value.some((r) => selectedIds.value.includes(r.pk) && r.has_raw_files))
 
 async function deleteSelected() {
@@ -106,6 +108,7 @@ function formatAirmass(value: number) {
     :page="page"
     :page-size="pageSize"
     :loading="query.isFetching.value"
+    :empty-message="emptyMessage"
     :selected="selected"
     :selectable="auth.isAuthenticated"
     @update:page="page = $event"

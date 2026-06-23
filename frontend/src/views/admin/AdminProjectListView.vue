@@ -4,6 +4,7 @@ import { Plus } from '@lucide/vue'
 import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import { useAdminList } from '@/composables/useAdminList'
+import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 
 interface AdminProjectRow {
   pk: number
@@ -20,6 +21,12 @@ const { query, page, pageSize } = useAdminList<AdminProjectRow>({
 })
 
 const rows = computed(() => query.data.value?.results ?? [])
+const { emptyMessage } = useEmptyTableMessage({
+  query,
+  search,
+  entity: 'projects',
+  scope: 'global',
+})
 
 const columns = [
   { id: 'name', header: 'Name' },
@@ -41,6 +48,7 @@ const selected = ref(new Set<number>())
     :page="page"
     :page-size="pageSize"
     :loading="query.isFetching.value"
+    :empty-message="emptyMessage"
     :selected="selected"
     :selectable="false"
     @update:page="page = $event"

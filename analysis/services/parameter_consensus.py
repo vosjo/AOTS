@@ -192,6 +192,44 @@ def _provenance_label(param) -> str:
     return 'Measurement'
 
 
+def provenance_label_for_parameter(param) -> str:
+    """Public alias for measurement provenance labels in overview UIs."""
+    return _provenance_label(param)
+
+
+def list_other_measurements(star, name: str, component: int, *, catalog_only: bool = False):
+    """
+    Measurements shown under „Other measurements“ in the parameter overview.
+
+    Excludes the single winning source when consensus picks one row; for weighted
+    averages over multiple sources, all individual measurements are returned.
+    """
+    resolve = resolve_catalog_consensus if catalog_only else resolve_consensus
+    candidates_fn = (
+        list_catalog_measurement_candidates
+        if catalog_only
+        else list_measurement_candidates
+    )
+
+    candidates = candidates_fn(star, name, component).select_related(
+        'parameter_source',
+        'analysis',
+    ).order_by('parameter_source__name', 'analysis__name', 'pk')
+    candidate_list = list(candidates)
+    if len(candidate_list) <= 1:
+        return []
+
+    result = resolve(star, name, component)
+    active_pk = result.source_parameter_id if result is not None else None
+
+    others = []
+    for param in candidate_list:
+        if active_pk is not None and param.pk == active_pk:
+            continue
+        others.append(param)
+    return others
+
+
 def _result_from_winner(winner, rule: str, candidate_count: int) -> ConsensusResult:
     return ConsensusResult(
         value=winner.value,

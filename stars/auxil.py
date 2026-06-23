@@ -532,19 +532,22 @@ def _parameter_provenance_label(param) -> str:
 
 #   Get all parameters for the parameter overview
 def get_params(star_id, *, catalog_only=False):
+    from django.db.models import Q
+
     from analysis.models.parameter_source import ParameterSourceKind
     from analysis.services.parameter_consensus import (
         consensus_provenance_display,
         get_consensus_parameter,
+        list_other_measurements,
+        provenance_label_for_parameter,
         resolve_catalog_consensus,
+        resolve_consensus,
     )
 
     star = get_object_or_404(Star, pk=star_id)
     parameters = []
     component_names = {0: 'System', 1: 'Primary', 2: 'Secondary'}
-    catalog_filter = {}
-    if catalog_only:
-        catalog_filter = {'parameter_source__kind': ParameterSourceKind.CATALOG}
+    resolve = resolve_catalog_consensus if catalog_only else resolve_consensus
 
     for comp in [analModels.SYSTEM, analModels.PRIMARY, analModels.SECONDARY]:
         base_qs = star.parameter_set.filter(
@@ -552,44 +555,53 @@ def get_params(star_id, *, catalog_only=False):
             valid__exact=True,
             average=False,
         )
-        name_qs = base_qs.filter(**catalog_filter) if catalog_only else base_qs
+        if catalog_only:
+            name_qs = base_qs.filter(parameter_source__kind=ParameterSourceKind.CATALOG)
+        else:
+            name_qs = base_qs.filter(
+                Q(analysis__isnull=False)
+                | Q(parameter_source__kind=ParameterSourceKind.CATALOG),
+            )
         pNames = sorted(
             name_qs.values_list('name', flat=True).distinct(),
             key=analModels.parameter_order,
         )
 
-        allParameters = base_qs
-
         params = []
         for name in pNames:
-            if catalog_only:
-                catalog_qs = allParameters.filter(name__exact=name, **catalog_filter)
-                pinfo = catalog_qs.first()
-                if pinfo is None:
-                    continue
-                result = resolve_catalog_consensus(star, name, comp)
-                if result:
-                    display_value = _consensus_result_display(name, result)
-                    provenance = result.provenance_label
-                else:
-                    display_value = _parameter_display_value(pinfo)
-                    provenance = _parameter_provenance_label(pinfo)
+            consensus = get_consensus_parameter(star, name, comp)
+            result = resolve(star, name, comp)
+            pinfo = name_qs.filter(name__exact=name).first()
+
+            if consensus:
+                display_value = _parameter_display_value(consensus)
+                provenance = consensus_provenance_display(star, consensus, name, comp)
+            elif result:
+                display_value = _consensus_result_display(name, result)
+                provenance = result.provenance_label
+            elif pinfo:
+                display_value = _parameter_display_value(pinfo)
+                provenance = provenance_label_for_parameter(pinfo)
             else:
-                pinfo = allParameters.filter(name__exact=name).first()
-                consensus = get_consensus_parameter(star, name, comp)
-                if consensus:
-                    display_value = _parameter_display_value(consensus)
-                    provenance = consensus_provenance_display(star, consensus, name, comp)
-                else:
-                    display_value = (
-                        _parameter_display_value(pinfo) if pinfo else '/'
-                    )
-                    provenance = _parameter_provenance_label(pinfo) if pinfo else ''
+                continue
+
+            row_pinfo = pinfo or consensus
+            others = [
+                {
+                    'parameter_id': param.pk,
+                    'value': _parameter_display_value(param),
+                    'provenance': provenance_label_for_parameter(param),
+                }
+                for param in list_other_measurements(
+                    star, name, comp, catalog_only=catalog_only,
+                )
+            ]
 
             params.append({
                 'value': display_value,
-                'pinfo': pinfo,
+                'pinfo': row_pinfo,
                 'provenance': provenance,
+                'other_measurements': others,
             })
 
         parameters.append({'params': params, 'component': component_names[comp]})

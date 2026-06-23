@@ -9,6 +9,7 @@ from analysis.services.consensus_defaults import seed_project_consensus_policies
 from analysis.services.parameter_consensus import (
     get_consensus_parameter,
     get_policy,
+    list_other_measurements,
     refresh_project_consensus,
     resolve_consensus,
     sync_consensus_cache,
@@ -89,6 +90,106 @@ class ParameterConsensusTests(TestCase):
         self.assertAlmostEqual(p.error, 2572.5, delta=0.1)
         self.assertEqual(p.consensus_rule, ConsensusRuleKind.WEIGHTED_AVERAGE)
         self.assertIn('Weighted avg', p.consensus_provenance)
+
+    def test_weighted_average_lists_all_sources_as_other_measurements(self):
+        parameter_io.create_measurement(
+            star=self.star,
+            name='teff',
+            component=1,
+            value=30000,
+            error_l=5000,
+            error_u=5000,
+            unit='K',
+            parameter_source=ParameterSource.objects.create(name='src1', project=self.project),
+        )
+        parameter_io.create_measurement(
+            star=self.star,
+            name='teff',
+            component=1,
+            value=35000,
+            error_l=3000,
+            error_u=3000,
+            unit='K',
+            parameter_source=ParameterSource.objects.create(name='src2', project=self.project),
+        )
+        others = list_other_measurements(self.star, 'teff', 1)
+        self.assertEqual(len(others), 2)
+        self.assertEqual({p.value for p in others}, {30000.0, 35000.0})
+
+    def test_preferred_source_hides_winner_from_other_measurements(self):
+        ParameterConsensusPolicy.objects.update_or_create(
+            project=self.project,
+            name='parallax',
+            component=0,
+            defaults={
+                'rule': ConsensusRuleKind.PREFERRED_SOURCE,
+                'preferred_source': self.dr3,
+            },
+        )
+        dr2_param = parameter_io.create_measurement(
+            star=self.star,
+            name='parallax',
+            value=10.0,
+            error_l=0.1,
+            error_u=0.1,
+            unit='mas',
+            parameter_source=self.dr2,
+        )
+        dr3_param = parameter_io.create_measurement(
+            star=self.star,
+            name='parallax',
+            value=11.0,
+            error_l=0.1,
+            error_u=0.1,
+            unit='mas',
+            parameter_source=self.dr3,
+        )
+        sync_consensus_cache(self.star, 'parallax', 0)
+        others = list_other_measurements(self.star, 'parallax', 0)
+        self.assertEqual(len(others), 1)
+        self.assertEqual(others[0].pk, dr2_param.pk)
+        self.assertNotIn(dr3_param.pk, [p.pk for p in others])
+
+    def test_single_measurement_has_no_other_measurements(self):
+        parameter_io.create_measurement(
+            star=self.star,
+            name='parallax',
+            value=5.0,
+            error_l=0.1,
+            error_u=0.1,
+            unit='mas',
+            parameter_source=self.dr3,
+        )
+        sync_consensus_cache(self.star, 'parallax', 0)
+        self.assertEqual(list_other_measurements(self.star, 'parallax', 0), [])
+
+    def test_get_params_includes_other_measurements(self):
+        from stars.auxil import get_params
+
+        parameter_io.create_measurement(
+            star=self.star,
+            name='parallax',
+            value=10.0,
+            error_l=0.1,
+            error_u=0.1,
+            unit='mas',
+            parameter_source=self.dr2,
+        )
+        parameter_io.create_measurement(
+            star=self.star,
+            name='parallax',
+            value=11.0,
+            error_l=0.1,
+            error_u=0.1,
+            unit='mas',
+            parameter_source=self.dr3,
+        )
+        refresh_project_consensus(self.project)
+        overview = get_params(self.star.pk)
+        system_rows = overview[0]['params']
+        parallax = next(row for row in system_rows if row['pinfo'].name == 'parallax')
+        self.assertEqual(len(parallax['other_measurements']), 1)
+        self.assertEqual(parallax['other_measurements'][0]['provenance'], 'Gaia DR2')
 
     def test_preferred_source_dr3_over_dr2(self):
         ParameterConsensusPolicy.objects.update_or_create(

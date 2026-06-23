@@ -561,6 +561,24 @@
     background-color: var(--aots-table-head-bg);
   }
 
+  .aots-param-other-measurements summary {
+    list-style: none;
+  }
+
+  .aots-param-other-measurements summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .aots-param-other-measurements summary::before {
+    content: '▸ ';
+    display: inline-block;
+    transition: transform 0.15s ease;
+  }
+
+  .aots-param-other-measurements[open] summary::before {
+    transform: rotate(90deg);
+  }
+
   .aots-obs-table {
     @apply w-full text-xs;
   }

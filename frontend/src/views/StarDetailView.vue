@@ -160,6 +160,11 @@ interface ParamOverview {
       unit_display?: string
       value: string
       provenance?: string
+      other_measurements?: Array<{
+        parameter_id: number
+        value: string
+        provenance: string
+      }>
     }>
   }>
 }
@@ -676,7 +681,27 @@ watch(editableParams, (data) => {
                         {{ row.provenance }}
                       </span>
                     </th>
-                    <td class="font-mono">{{ row.value }}</td>
+                    <td class="font-mono align-top">
+                      <div>{{ row.value }}</div>
+                      <details
+                        v-if="row.other_measurements?.length"
+                        class="aots-param-other-measurements mt-1 font-sans"
+                      >
+                        <summary class="cursor-pointer text-xs text-aots-link">
+                          Other measurements ({{ row.other_measurements.length }})
+                        </summary>
+                        <ul class="mt-1 space-y-1 border-l border-aots-border-subtle pl-2">
+                          <li
+                            v-for="other in row.other_measurements"
+                            :key="other.parameter_id"
+                            class="text-xs"
+                          >
+                            <span class="block text-aots-muted">{{ other.provenance }}</span>
+                            <span class="font-mono text-aots-text">{{ other.value }}</span>
+                          </li>
+                        </ul>
+                      </details>
+                    </td>
                   </tr>
                 </template>
               </tbody>

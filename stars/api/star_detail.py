@@ -228,7 +228,7 @@ def star_detail_bootstrap(request, pk):
 @permission_classes([AllowAny])
 def star_parameters_overview(request, pk):
     get_object_if_allowed(Star, request, pk, select_related=('project',))
-    parameters = get_params(pk, catalog_only=True)
+    parameters = get_params(pk)
     return Response({
         'components': [
             {
@@ -245,6 +245,14 @@ def star_parameters_overview(request, pk):
                         'unit_display': unit_display_name(row['pinfo'].unit) if row['pinfo'] else '',
                         'value': _param_display(row.get('value') or ''),
                         'provenance': row.get('provenance') or '',
+                        'other_measurements': [
+                            {
+                                'parameter_id': other['parameter_id'],
+                                'value': _param_display(other.get('value') or ''),
+                                'provenance': other.get('provenance') or '',
+                            }
+                            for other in row.get('other_measurements') or []
+                        ],
                     }
                     for row in comp['params']
                     if row['pinfo'] is not None

@@ -53,7 +53,7 @@
 
 - [ ] HRD / Parameter-Plotter: Photometrie-Kandidaten (`bp_rp`, `mag` aus `photometry_set`) in `resolve_consensus`
 - [ ] HRD (`dash/plotting.py`): `photometry_set`-Fallback für `bp_rp` und direkte Photometrie-Reads entfernen; Achsenwerte nur noch über `get_consensus_parameter()` (nach Gaia-Import mit gespeichertem `mag` / `bp_rp` / `absolute_g_mag`)
-- [ ] Parameter overview: „active“ vs. archived measurement columns
+- [x] Parameter overview: compact Value column + expandable „Other measurements“
 - [ ] Per-star policy overrides (optional)
 - [x] Weighted average: inverse-variance mean and combined uncertainty (`parameter_averaging.calculate_average`)
 

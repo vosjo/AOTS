@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { CheckCircle2, Download, Pencil, Star, XCircle } from 'lucide-vue-next'
+import { CheckCircle2, Download, Pencil, Star, XCircle } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'

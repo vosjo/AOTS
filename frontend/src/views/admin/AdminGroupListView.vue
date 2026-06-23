@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { Plus } from 'lucide-vue-next'
+import { Plus } from '@lucide/vue'
 import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import { rowPk, useAdminList } from '@/composables/useAdminList'

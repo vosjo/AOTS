@@ -12,7 +12,7 @@ import {
   Telescope,
   User,
   type LucideIcon,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'

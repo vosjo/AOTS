@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { AlertCircle, CheckCircle2, Info, TriangleAlert } from 'lucide-vue-next'
+import { AlertCircle, CheckCircle2, Info, TriangleAlert } from '@lucide/vue'
 import { alertIconClass, alertPanelClass, type AlertKind } from '@/utils/alertStyles'
 
 const props = withDefaults(

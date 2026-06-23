@@ -91,6 +91,8 @@ def delete_analysis_parent_datasource_rows(apps, schema_editor):
 def drop_analysis_parent_fk(apps, schema_editor):
     if schema_editor.connection.vendor != 'postgresql':
         return
+    # Flush deferred FK triggers before DDL on the same table (PostgreSQL).
+    schema_editor.execute('SET CONSTRAINTS ALL IMMEDIATE')
     with schema_editor.connection.cursor() as cursor:
         cursor.execute(
             """
@@ -137,6 +139,8 @@ ANALYSIS_STANDALONE_FIELDS = [
 
 
 class Migration(migrations.Migration):
+
+    atomic = False
 
     dependencies = [
         ('analysis', '0009_rename_dataset_to_analysis'),

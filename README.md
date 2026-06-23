@@ -58,6 +58,8 @@ pip install -r requirements.txt
 
 ### 5. Install frontend dependencies
 
+Requires **Node.js 20+** (CI and `.nvmrc` use **22**). Ubuntu’s default `nodejs` package (18.x) is too old for Tailwind CSS 4 and will fail with a missing `@tailwindcss/oxide` native binding.
+
 ```
 cd frontend
 npm ci

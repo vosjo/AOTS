@@ -41,8 +41,8 @@ const themeStore = useThemeStore()
 const slug = computed(() => route.params.projectSlug as string)
 const hrdParams = ref<Record<string, string>>({})
 
-const { data, isFetching, refetch } = useQuery({
-  queryKey: computed(() => ['dashboard', slug.value, themeStore.mode, hrdParams.value]),
+const { data, isFetching, isPending, refetch } = useQuery({
+  queryKey: computed(() => ['dashboard', slug.value, themeStore.mode]),
   queryFn: async () => {
     const params = new URLSearchParams(hrdParams.value)
     params.set('theme', themeStore.mode)
@@ -144,12 +144,12 @@ const hrdPlotFrameStyle = computed(() => {
 
 function updateHrd() {
   hrdParams.value = { ...hrdFormValues }
-  refetch()
+  void refetch()
 }
 </script>
 
 <template>
-  <div v-if="isFetching && !data" class="text-aots-muted">Loading dashboard…</div>
+  <div v-if="isPending" class="text-aots-muted">Loading dashboard…</div>
   <div v-else-if="data" class="min-w-0 space-y-6">
     <h1 class="text-2xl font-semibold">Dashboard</h1>
 
@@ -192,7 +192,9 @@ function updateHrd() {
                 <option v-for="[val, label] in form.choices[field]" :key="String(val)" :value="val ?? ''">{{ label }}</option>
               </select>
             </label>
-            <AppButton variant="primary" @click="updateHrd">Update Figure</AppButton>
+            <AppButton variant="primary" :disabled="isFetching" @click="updateHrd">
+              Update Figure
+            </AppButton>
           </div>
         </div>
       </section>
@@ -203,6 +205,7 @@ function updateHrd() {
           :class="hrdPlotFrameStyle ? 'mx-auto' : ''"
           :style="hrdPlotFrameStyle"
         >
+          <div v-if="isFetching && data.hrd" class="mb-2 text-xs text-aots-muted">Updating figure…</div>
           <BokehPlot v-if="data.hrd" fill :script="data.hrd.script" :div="data.hrd.div" />
         </div>
       </section>

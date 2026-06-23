@@ -2,9 +2,6 @@ from django.conf import settings
 
 import os
 
-import time
-
-from django.db import reset_queries, connection
 import numpy as np
 from bokeh import models as mpl
 from bokeh import plotting as bpl
@@ -15,14 +12,11 @@ from django.contrib import messages
 
 from astropy.table import QTable
 
-from django.db.models import Prefetch
-
-from analysis.parameter_aliases import stored_parameter_lookup_names
 from analysis.parameter_labels import hrd_axis_label, normalize_hrd_axis_key
 from dash.bokeh_theme import apply_bokeh_figure_theme, resolve_bokeh_theme, styled_color_bar, themed_hover_tool
 from stars.models import Project, Star
 
-_ABS_G_MAG_NAMES = frozenset(stored_parameter_lookup_names('absolute_g_mag'))
+_MISSING = -1000.0
 
 
 def _consensus_axis_value(star, name, components=(1, 2, 0)):
@@ -34,6 +28,15 @@ def _consensus_axis_value(star, name, components=(1, 2, 0)):
         if param is not None:
             return param.value, (param.error_l + param.error_u) / 2.0
     return None, None
+
+
+def _consensus_axis_or_sentinel(star, name, components=(1, 2, 0)):
+    value, error = _consensus_axis_value(star, name, components)
+    if value is None:
+        return _MISSING, _MISSING
+    if error is None:
+        error = 0.0
+    return value, error
 
 
 def errors_from_coords(x, y, x_err, y_err):
@@ -70,10 +73,10 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
         cstr = normalize_hrd_axis_key(cstr)
     proj = Project.objects.get(pk=project_id)
     if nstars == "all":
-        star_list = Star.objects.filter(project=proj).prefetch_related('parameter_set', 'photometry_set')
+        star_list = Star.objects.filter(project=proj).prefetch_related('parameter_set')
     else:
         nstars = int(nstars)
-        star_list = Star.objects.filter(project=proj).prefetch_related('parameter_set', 'photometry_set')[:nstars]
+        star_list = Star.objects.filter(project=proj).prefetch_related('parameter_set')[:nstars]
 
     idents = list(star_list.values_list('name', flat=True))
     teffs = []
@@ -84,66 +87,17 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
     bp_rps_errs = []
     mags = []
     mags_errs = []
-    # idents = []
     g_mag_abss = []
     g_mag_abs_errs = []
 
     for star in star_list:
-        photset = list(star.photometry_set.values_list("band", "measurement", "error"))
-
-        mag = None
-        magerr = None
-        bp_rp = 0
-        bp_rp_err = 0
-        bp_in = False
-        rp_in = False
-
-        for band, val, err in photset:
-            if "GAIA" in band and ".G" in band:
-                mag = val
-                magerr = err
-            if ".BP" in band and not bp_in:
-                bp_rp += val
-                bp_rp_err += err
-                bp_in = True
-            if ".RP" in band and not rp_in:
-                bp_rp -= val
-                bp_rp_err += err
-                rp_in = True
-        if mag is None or magerr is None:
-            mag = magerr = -1000.
-
-        bp_rp_err /= 2
-
-        teff, tefferr = _consensus_axis_value(star, 'teff')
-        logg, loggerr = _consensus_axis_value(star, 'logg')
-        g_mag_abs, g_mag_abs_err = _consensus_axis_value(star, 'absolute_g_mag', components=(0,))
-
-        if bp_rp == 0 or bp_rp_err == 0:
-            bp_rp_cons, bp_rp_cons_err = _consensus_axis_value(star, 'bp_rp', components=(0,))
-            if bp_rp_cons is not None:
-                bp_rp = bp_rp_cons
-                bp_rp_err = bp_rp_cons_err
-
-        if teff is None or tefferr is None:
-            teff = tefferr = -1000.
-        if logg is None or loggerr is None:
-            logg = loggerr = -1000.
-        if bp_rp == 0 or bp_rp_err == 0:
-            bp_rp = bp_rp_err = -1000.
-        if g_mag_abs is None or g_mag_abs_err is None:
-            g_mag_abs = g_mag_abs_err = -1000.
-
-        # try:
-        #     g_abs = pset.filter(
-        #         name__exact='absolute_g_mag',
-        #         data_source__name="Gaia DR3"
-        #         )[0]
-        #     g_mag_abs, g_mag_abs_err = [g_abs.value, g_abs.error]
-        #     if xstr == "mag_abs" or  ystr == "mag_abs":
-        #         count += 1
-        # except:
-        #     g_mag_abs = g_mag_abs_err = -1000.
+        teff, tefferr = _consensus_axis_or_sentinel(star, 'teff')
+        logg, loggerr = _consensus_axis_or_sentinel(star, 'logg')
+        mag, magerr = _consensus_axis_or_sentinel(star, 'mag', components=(0,))
+        bp_rp, bp_rp_err = _consensus_axis_or_sentinel(star, 'bp_rp', components=(0,))
+        g_mag_abs, g_mag_abs_err = _consensus_axis_or_sentinel(
+            star, 'absolute_g_mag', components=(0,),
+        )
 
         mags.append(mag)
         mags_errs.append(magerr)
@@ -155,8 +109,6 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
         bp_rps_errs.append(bp_rp_err)
         g_mag_abss.append(g_mag_abs)
         g_mag_abs_errs.append(g_mag_abs_err)
-
-    # print(len(connection.queries))
     star_props = dict(idents=idents,
                       teff=np.array(teffs),
                       teff_errs=np.array(teffs_errs),
@@ -172,24 +124,24 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
 
     if cstr is not None:
         normcstr = star_props[cstr]
-        if sum(normcstr != -1000.) == 0:
+        if sum(normcstr != _MISSING) == 0:
             cstr = None
         else:
-            normcstr[normcstr == -1000.] = np.mean(normcstr[normcstr != -1000.])
+            normcstr[normcstr == _MISSING] = np.mean(normcstr[normcstr != _MISSING])
             star_props["norm_" + cstr] = normcstr
     if rstr is not None:
         normrstr = star_props[rstr]
-        if sum(normrstr != -1000.) == 0:
+        if sum(normrstr != _MISSING) == 0:
             rstr = None
         else:
-            normrstr[normrstr == -1000.] = np.mean(normrstr[normrstr != -1000.])
+            normrstr[normrstr == _MISSING] = np.mean(normrstr[normrstr != _MISSING])
             if np.ptp(normrstr) > 1000:
                 normrstr = np.sqrt(normrstr)
             normrstr = normrstr / np.amax(normrstr) * .025
             star_props["norm_" + rstr] = normrstr
 
     if ystr == "absolute_g_mag":
-        if sum(star_props['absolute_g_mag'] != -1000.) == 0:
+        if sum(star_props['absolute_g_mag'] != _MISSING) == 0:
             ystr = "mag"
             messages.warning(request,
                              "Absolute g-band magnitudes are not available, instead apparent magnitudes are plotted.")
@@ -330,8 +282,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
 
     fig.add_tools(hover)
 
-    x = star_props[xstr][np.where(star_props[xstr] != -1000)]
-    y = star_props[ystr][np.where(star_props[ystr] != -1000)]
+    x = star_props[xstr][np.where(star_props[xstr] != _MISSING)]
+    y = star_props[ystr][np.where(star_props[ystr] != _MISSING)]
 
     try:
         fig.x_range = Range1d(
@@ -358,8 +310,8 @@ def plot_hrd(request, project_id, xstr="bp_rp", ystr="absolute_g_mag", rstr=None
         #   Plot limits for CMD with Gaia data
         if xstr == "bp_rp" and ystr == "absolute_g_mag":
             fig.y_range = Range1d(
-                max(np.nanmax(y), np.nanmax(gaia_color)) + (np.nanmax(y) - np.nanmin(y)) * 0.05,
-                min(np.nanmin(y), np.nanmin(gaia_color)) - (np.nanmax(y) - np.nanmin(y)) * 0.05
+                max(np.nanmax(y), np.nanmax(gaia_mag)) + (np.nanmax(y) - np.nanmin(y)) * 0.05,
+                min(np.nanmin(y), np.nanmin(gaia_mag)) - (np.nanmax(y) - np.nanmin(y)) * 0.05
             )
 
             fig.x_range = Range1d(

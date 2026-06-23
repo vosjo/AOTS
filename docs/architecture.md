@@ -67,6 +67,8 @@ Catalog data is fetched from VizieR (`I/355/gaiadr3`) via `stars/services/gaia_i
 - **Photometry:** `GAIA3.G`, `GAIA3.BP`, `GAIA3.RP` in `photometry_set`
 - **Parameters** (source `Gaia DR3`): `parallax`, `pmra`, `pmdec`, plus derived `mag`, `bp_rp`, `absolute_g_mag` (stored as catalog parameters for consensus/HRD)
 
+The HRD dashboard (`dash/plotting.py`) reads `mag`, `bp_rp`, and `absolute_g_mag` only via `get_consensus_parameter()` — not from `photometry_set`.
+
 **SPA:** Star detail → Parameters → *Fetch Gaia DR3*; systems list → select rows → *Fetch Gaia DR3* (Celery bulk, ~5 s between stars).
 
 **API:**

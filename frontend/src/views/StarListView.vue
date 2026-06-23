@@ -12,7 +12,7 @@ import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { saveCarryOver } from '@/composables/useCarryOver'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useGaiaFetch } from '@/composables/useGaiaFetch'
-import { api } from '@/api/client'
+import { api, type PaginatedResponse } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 import type { AlertKind } from '@/utils/alertStyles'
@@ -118,6 +118,9 @@ const { data: allTags } = useQuery({
 
 const tagDialog = ref(false)
 const statusDialog = ref(false)
+const gaiaDialog = ref(false)
+const gaiaDialogMode = ref<'selected' | 'all'>('selected')
+const projectStarCount = ref<number | null>(null)
 const addDialog = ref(false)
 const selectedTagIds = ref<number[]>([])
 const newStatus = ref('')
@@ -186,20 +189,37 @@ async function deleteSelected() {
   await query.refetch()
 }
 
-async function fetchGaiaSelected() {
-  const project = projectStore.currentProject
-  if (!project || !selectedIds.value.length) return
-  const n = selectedIds.value.length
-  if (
-    !confirm(
-      `Fetch Gaia DR3 data for ${n} system(s)? Existing Gaia DR3 measurements will be replaced.`,
-    )
-  ) {
-    return
+async function openGaiaDialog() {
+  if (!projectStore.currentProject || gaiaFetch.busy) return
+  if (selectedIds.value.length) {
+    gaiaDialogMode.value = 'selected'
+    projectStarCount.value = null
+  } else {
+    gaiaDialogMode.value = 'all'
+    projectStarCount.value = null
+    try {
+      const res = await api<PaginatedResponse<unknown>>(
+        `/api/systems/stars/?project=${projectStore.currentProject.pk}&page_size=1`,
+      )
+      projectStarCount.value = res.count
+    } catch {
+      projectStarCount.value = null
+    }
   }
+  gaiaDialog.value = true
+}
+
+async function confirmGaiaFetch() {
+  const project = projectStore.currentProject
+  if (!project) return
+  gaiaDialog.value = false
   gaiaSummaryMessage.value = ''
   try {
-    await gaiaFetch.startBulk(selectedIds.value, project.pk)
+    if (gaiaDialogMode.value === 'all') {
+      await gaiaFetch.startBulk([], project.pk, { all: true })
+    } else {
+      await gaiaFetch.startBulk(selectedIds.value, project.pk)
+    }
     const s = gaiaFetch.lastSummary
     if (s) {
       gaiaSummaryMessage.value = `Gaia DR3 fetch complete: ${s.ok} updated, ${s.no_match} no match, ${s.partial} partial, ${s.failed} failed.`
@@ -474,10 +494,10 @@ async function addSystem() {
         </AppButton>
         <AppButton
           variant="secondary"
-          :disabled="!selectedIds.length || gaiaFetch.busy"
-          @click="fetchGaiaSelected"
+          :disabled="gaiaFetch.busy"
+          @click="openGaiaDialog"
         >
-          Fetch Gaia DR3
+          Fetch Gaia
         </AppButton>
         <BulkDownloadProgress :status="gaiaFetch.status" :busy="gaiaFetch.busy" />
         <AppButton
@@ -660,6 +680,36 @@ async function addSystem() {
       <div class="flex gap-2 mt-4">
         <AppButton variant="primary" @click="saveTags">Update</AppButton>
         <AppButton variant="ghost" @click="tagDialog = false">Cancel</AppButton>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog
+    v-if="gaiaDialog"
+    open
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
+    @click.self="gaiaDialog = false"
+  >
+    <div class="aots-panel w-full max-w-md">
+      <h3 class="font-medium mb-3">Fetch Gaia DR3</h3>
+      <p v-if="gaiaDialogMode === 'selected'" class="text-sm text-aots-muted">
+        Fetch Gaia DR3 data for {{ selectedIds.length }} selected system(s)?
+        Existing Gaia DR3 measurements will be replaced.
+      </p>
+      <template v-else>
+        <AppAlert kind="warning" class="mb-3">
+          You are about to fetch Gaia DR3 for
+          <template v-if="projectStarCount != null">{{ projectStarCount }}</template>
+          <template v-else>all</template>
+          systems in this project.
+        </AppAlert>
+        <p class="text-sm text-aots-muted">
+          Existing Gaia DR3 measurements will be replaced. This may take a while.
+        </p>
+      </template>
+      <div class="flex gap-2 mt-4">
+        <AppButton variant="primary" @click="confirmGaiaFetch">Fetch Gaia DR3</AppButton>
+        <AppButton variant="ghost" @click="gaiaDialog = false">Cancel</AppButton>
       </div>
     </div>
   </dialog>

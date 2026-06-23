@@ -125,6 +125,41 @@ def apply_bokeh_figure_theme(fig, theme: BokehPlotTheme) -> None:
         fig.title.text_color = theme.axis_title
 
 
+def apply_bokeh_tabs_theme(tabs, theme: BokehPlotTheme, *, mode: ThemeMode = 'dark') -> None:
+    """Style Bokeh ``Tabs`` headers (e.g. spectrograph arms) to match SPA panels."""
+    from bokeh.models import InlineStyleSheet
+
+    tab_hover = '#e8eef4' if mode == 'light' else '#334155'
+    tabs.css_variables = {
+        '--color': theme.axis_title,
+        '--background-color': theme.plot_border,
+        '--hover-color': tab_hover,
+        '--border-color': theme.outline,
+        '--divider-color': theme.outline,
+        '--icon-color': theme.tick_text,
+    }
+    tabs.stylesheets = [
+        InlineStyleSheet(
+            css=f"""
+:host .bk-tab {{
+  color: {theme.tick_text};
+  background-color: transparent;
+}}
+:host .bk-tab:hover,
+:host .bk-tab.bk-active:hover {{
+  color: {theme.axis_title};
+  background-color: {tab_hover};
+}}
+:host .bk-tab.bk-active {{
+  color: {theme.axis_title};
+  background-color: {theme.plot_border};
+  border-color: {theme.outline};
+}}
+""",
+        ),
+    ]
+
+
 def styled_color_bar(color_mapper, *, theme: BokehPlotTheme, title: str, width: int = 8) -> 'ColorBar':
     from bokeh.models import ColorBar
 

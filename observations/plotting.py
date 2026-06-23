@@ -14,6 +14,7 @@ from specutils import Spectrum as SpecutilsSpectrum
 from observations.auxil import tools as spectools
 from dash.bokeh_theme import (
     apply_bokeh_figure_theme,
+    apply_bokeh_tabs_theme,
     resolve_bokeh_theme,
     themed_field_hover_tool,
     themed_status_label,
@@ -358,7 +359,13 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None, 
         tabs.append(TabPanel(child=fig, title=specfile.filetype))
 
     #   Make figure from tabs list
-    return Tabs(tabs=tabs, sizing_mode='scale_width')
+    tabs_widget = Tabs(tabs=tabs, sizing_mode='scale_width')
+    apply_bokeh_tabs_theme(
+        tabs_widget,
+        plot_theme,
+        mode='light' if theme == 'light' else 'dark',
+    )
+    return tabs_widget
 
 
 def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None, *, theme=None):

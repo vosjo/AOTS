@@ -530,6 +530,11 @@
     @apply max-w-full;
     width: 100% !important;
     background-color: var(--aots-surface) !important;
+    --background-color: var(--aots-surface-solid) !important;
+    --hover-color: var(--aots-nav-hover-bg) !important;
+    --border-color: var(--aots-border-subtle) !important;
+    --divider-color: var(--aots-border-subtle) !important;
+    --color: var(--aots-text-strong) !important;
   }
 
   .bokeh-plot-host.h-full .bk-root,

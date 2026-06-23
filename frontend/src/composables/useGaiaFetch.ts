@@ -15,8 +15,8 @@ export function useGaiaFetch() {
     status: '',
     busy: false,
     lastSummary: null as GaiaBulkSummary | null,
-    async startBulk(starIds: number[], projectId: number) {
-      if (!starIds.length) return
+    async startBulk(starIds: number[], projectId: number, options?: { all?: boolean }) {
+      if (!options?.all && !starIds.length) return
       state.busy = true
       state.status = 'Starting Gaia DR3 fetch…'
       state.lastSummary = null
@@ -28,7 +28,7 @@ export function useGaiaFetch() {
             headers: {
               Projectid: String(projectId),
             },
-            body: { star_ids: starIds },
+            body: options?.all ? { all: true } : { star_ids: starIds },
           },
         )
         state.lastSummary = await pollTask(res.task_id, res.total)

@@ -3,9 +3,10 @@ import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [vue(), tailwindcss()],
-  base: '/app/',
+  // Dev server: /app/… (proxied via Django shell). Production: Django serves collectstatic at /static/dist/.
+  base: command === 'serve' ? '/app/' : '/static/dist/',
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },
@@ -32,4 +33,4 @@ export default defineConfig({
       '/static': 'http://127.0.0.1:8000',
     },
   },
-})
+}))

@@ -101,6 +101,9 @@ const columns = computed(() => {
   return cols
 })
 
+const NOTE_COLLAPSE_CHARS = 60
+
+const expandedNoteIds = ref(new Set<number>())
 const dialogOpen = ref(false)
 const editingPk = ref<number | null>(null)
 const form = ref<ObservatoryForm>(emptyForm())
@@ -124,6 +127,22 @@ function formatCoord(value: number) {
 
 function formatAltitude(value: number) {
   return Math.round(value)
+}
+
+function noteNeedsToggle(note: string) {
+  const text = note.trim()
+  return text.length > NOTE_COLLAPSE_CHARS || text.includes('\n')
+}
+
+function isNoteExpanded(pk: number) {
+  return expandedNoteIds.value.has(pk)
+}
+
+function toggleNote(pk: number) {
+  const next = new Set(expandedNoteIds.value)
+  if (next.has(pk)) next.delete(pk)
+  else next.add(pk)
+  expandedNoteIds.value = next
 }
 
 function openAdd() {
@@ -264,7 +283,31 @@ async function deleteObservatory(row: ObservatoryRow) {
     </template>
 
     <template #cell-note="{ row }">
-      <span class="text-aots-muted line-clamp-2">{{ row.note || '—' }}</span>
+      <div
+        class="min-w-0"
+        :class="isNoteExpanded(row.pk) ? 'max-w-md' : 'max-w-[14rem]'"
+      >
+        <template v-if="!row.note?.trim()">
+          <span class="text-aots-muted">—</span>
+        </template>
+        <template v-else>
+          <p
+            class="break-words whitespace-pre-wrap text-aots-muted"
+            :class="{ 'line-clamp-2': !isNoteExpanded(row.pk) && noteNeedsToggle(row.note) }"
+          >
+            {{ row.note }}
+          </p>
+          <AppButton
+            v-if="noteNeedsToggle(row.note)"
+            variant="link"
+            size="sm"
+            class="mt-0.5 p-0 text-xs"
+            @click="toggleNote(row.pk)"
+          >
+            {{ isNoteExpanded(row.pk) ? 'Hide' : 'Show note' }}
+          </AppButton>
+        </template>
+      </div>
     </template>
 
     <template v-if="auth.isAuthenticated" #cell-actions="{ row }">

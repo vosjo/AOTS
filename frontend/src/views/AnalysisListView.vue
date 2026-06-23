@@ -12,7 +12,7 @@ import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useListFilters } from '@/composables/useListFilters'
-import { api } from '@/api/client'
+import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 
@@ -73,6 +73,11 @@ const uploadFiles = ref<FileList | null>(null)
 const uploadCategory = ref('')
 const uploadBusy = ref(false)
 const uploadMessages = ref<UploadMessage[]>([])
+
+const categoryDialog = ref(false)
+const bulkCategory = ref('')
+const categoryError = ref('')
+const categoryBusy = ref(false)
 
 const { data: categoryOptions } = useQuery({
   queryKey: ['analysis-categories'],
@@ -137,6 +142,39 @@ async function deleteSelected() {
   clearSelection()
   await query.refetch()
 }
+
+function openCategoryDialog() {
+  bulkCategory.value = ''
+  categoryError.value = ''
+  categoryDialog.value = true
+}
+
+async function applyCategory() {
+  if (!bulkCategory.value) {
+    categoryError.value = 'Select a category.'
+    return
+  }
+  categoryBusy.value = true
+  categoryError.value = ''
+  try {
+    for (const pk of selectedIds.value) {
+      await api(`/api/analysis/analyses/${pk}/`, {
+        method: 'PATCH',
+        body: {
+          category: bulkCategory.value,
+          category_source: 'user',
+        },
+      })
+    }
+    categoryDialog.value = false
+    clearSelection()
+    await query.refetch()
+  } catch (e) {
+    categoryError.value = formatApiError(e)
+  } finally {
+    categoryBusy.value = false
+  }
+}
 </script>
 
 <template>
@@ -184,6 +222,14 @@ async function deleteSelected() {
         >
           <Plus class="w-4 h-4" />
           Upload analysis(es)
+        </AppButton>
+        <AppButton
+          v-if="auth.isAuthenticated"
+          variant="secondary"
+          :disabled="!selectedIds.length || categoryBusy"
+          @click="openCategoryDialog"
+        >
+          Set category
         </AppButton>
         <AppButton
           v-if="auth.isAuthenticated"
@@ -308,6 +354,46 @@ async function deleteSelected() {
             :disabled="uploadBusy"
             @click="uploadOpen = false"
           >
+            Cancel
+          </AppButton>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog
+      v-if="categoryDialog"
+      open
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
+      @click.self="categoryDialog = false"
+    >
+      <div class="aots-panel w-full max-w-md">
+        <h3 class="font-medium mb-1">Set category</h3>
+        <p class="text-sm text-aots-muted mb-4">
+          Apply a category to {{ selectedIds.length }} selected analysis(es).
+        </p>
+        <label class="block text-sm text-aots-muted">
+          Category
+          <select v-model="bulkCategory" class="aots-select w-full mt-1">
+            <option value="">Select category…</option>
+            <option
+              v-for="option in categoryOptions?.results ?? []"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+        <AppAlert v-if="categoryError" kind="error" class="mt-3">{{ categoryError }}</AppAlert>
+        <div class="flex gap-2 mt-4">
+          <AppButton
+            variant="primary"
+            :disabled="categoryBusy || !bulkCategory"
+            @click="applyCategory"
+          >
+            Apply
+          </AppButton>
+          <AppButton variant="ghost" :disabled="categoryBusy" @click="categoryDialog = false">
             Cancel
           </AppButton>
         </div>

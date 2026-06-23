@@ -3,12 +3,12 @@ import { useQuery } from '@tanstack/vue-query'
 import {
   CheckCircle2,
   Copy,
+  Download,
   Eye,
   EyeOff,
   Pencil,
   Loader2,
   Plus,
-  Sparkles,
   Trash2,
   XCircle,
 } from 'lucide-vue-next'
@@ -215,6 +215,9 @@ const photError = ref<string | null>(null)
 const paramGaiaLoading = ref(false)
 const paramGaiaMessage = ref<string | null>(null)
 const paramGaiaError = ref<string | null>(null)
+const tessFetchLoading = ref(false)
+const tessFetchMessage = ref<string | null>(null)
+const tessFetchError = ref<string | null>(null)
 const photDraft = ref<PhotDraftRow[]>([])
 const addBandOpen = ref(false)
 const copyPhotDialog = ref(false)
@@ -475,6 +478,33 @@ async function fetchGaiaDr3() {
   }
 }
 
+async function fetchTessLightcurves() {
+  tessFetchLoading.value = true
+  tessFetchError.value = null
+  tessFetchMessage.value = null
+  try {
+    const res = await api<{
+      status: string
+      detail: string
+      imported?: number[]
+      skipped_duplicates?: number
+      warnings?: string[]
+    }>(`/api/systems/stars/${starId.value}/tess/fetch/`, {
+      method: 'POST',
+    })
+    tessFetchMessage.value = res.detail
+    if (res.warnings?.length) {
+      tessFetchMessage.value += ` (${res.warnings.join(' ')})`
+    }
+    await refetch()
+  } catch (e: unknown) {
+    const err = e as { data?: { detail?: string }; message?: string }
+    tessFetchError.value = err.data?.detail ?? err.message ?? 'TESS fetch failed'
+  } finally {
+    tessFetchLoading.value = false
+  }
+}
+
 const hasParamRows = computed(
   () => (paramOverview.value?.components ?? []).some((comp) => comp.rows.length > 0),
 )
@@ -635,7 +665,7 @@ watch(editableParams, (data) => {
                 @click="fetchGaiaDr3"
               >
                 <Loader2 v-if="paramGaiaLoading" class="w-3.5 h-3.5 animate-spin" />
-                <Sparkles v-else class="w-3.5 h-3.5" />
+                <Download v-else class="w-3.5 h-3.5" />
                 {{ paramGaiaLoading ? 'Fetching…' : 'Fetch Gaia DR3' }}
               </AppButton>
               <AppButton
@@ -868,7 +898,7 @@ watch(editableParams, (data) => {
                   @click="fetchPhotometryVizier"
                 >
                   <Loader2 v-if="photVizierLoading" class="w-3.5 h-3.5 animate-spin" />
-                  <Sparkles v-else class="w-3.5 h-3.5" />
+                  <Download v-else class="w-3.5 h-3.5" />
                   {{ photVizierLoading ? 'Fetching…' : 'Fetch from VizieR' }}
                 </AppButton>
                 <AppButton
@@ -1042,9 +1072,33 @@ watch(editableParams, (data) => {
             </div>
           </div>
 
-          <div v-if="detail.lightcurves.length">
-            <h3 class="text-xs font-medium text-aots-muted mb-2">Light curves</h3>
-            <div class="overflow-x-auto">
+          <div>
+            <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-xs font-medium text-aots-muted">Light curves</h3>
+              <AppButton
+                v-if="auth.isAuthenticated"
+                variant="secondary"
+                size="sm"
+                class="inline-flex items-center gap-1"
+                :disabled="tessFetchLoading"
+                title="Download TESS sector light curves from MAST for this system"
+                @click="fetchTessLightcurves"
+              >
+                <Loader2 v-if="tessFetchLoading" class="w-3.5 h-3.5 animate-spin" />
+                <Download v-else class="w-3.5 h-3.5" />
+                {{ tessFetchLoading ? 'Fetching…' : 'Fetch TESS' }}
+              </AppButton>
+            </div>
+            <AppAlert v-if="tessFetchError" kind="error" class="mb-2 text-xs">
+              {{ tessFetchError }}
+            </AppAlert>
+            <AppAlert v-else-if="tessFetchMessage" kind="info" class="mb-2 text-xs">
+              {{ tessFetchMessage }}
+            </AppAlert>
+            <p v-if="!detail.lightcurves.length" class="text-xs text-aots-muted mb-2">
+              No light curves linked to this system yet.
+            </p>
+            <div v-else class="overflow-x-auto">
               <table class="aots-obs-table">
                 <thead>
                   <tr>

@@ -12,6 +12,7 @@ import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
 import { saveCarryOver } from '@/composables/useCarryOver'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useGaiaFetch } from '@/composables/useGaiaFetch'
+import { useTessFetch } from '@/composables/useTessFetch'
 import { api, type PaginatedResponse } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
@@ -94,7 +95,9 @@ const router = useRouter()
 const auth = useAuthStore()
 const projectStore = useProjectStore()
 const gaiaFetch = useGaiaFetch()
+const tessFetch = useTessFetch()
 const gaiaSummaryMessage = ref('')
+const tessSummaryMessage = ref('')
 const projectSlug = computed(() => route.params.projectSlug as string)
 const filterOpen = ref(false)
 const filters = ref(emptyFilters())
@@ -120,6 +123,8 @@ const tagDialog = ref(false)
 const statusDialog = ref(false)
 const gaiaDialog = ref(false)
 const gaiaDialogMode = ref<'selected' | 'all'>('selected')
+const tessDialog = ref(false)
+const tessDialogMode = ref<'selected' | 'all'>('selected')
 const projectStarCount = ref<number | null>(null)
 const addDialog = ref(false)
 const selectedTagIds = ref<number[]>([])
@@ -227,6 +232,50 @@ async function confirmGaiaFetch() {
     await query.refetch()
   } catch (e) {
     gaiaSummaryMessage.value = e instanceof Error ? e.message : 'Gaia DR3 fetch failed'
+  }
+}
+
+async function openTessDialog() {
+  if (!projectStore.currentProject || tessFetch.busy) return
+  if (selectedIds.value.length) {
+    tessDialogMode.value = 'selected'
+    projectStarCount.value = null
+  } else {
+    tessDialogMode.value = 'all'
+    projectStarCount.value = null
+    try {
+      const res = await api<PaginatedResponse<unknown>>(
+        `/api/systems/stars/?project=${projectStore.currentProject.pk}&page_size=1`,
+      )
+      projectStarCount.value = res.count
+    } catch {
+      projectStarCount.value = null
+    }
+  }
+  tessDialog.value = true
+}
+
+async function confirmTessFetch() {
+  const project = projectStore.currentProject
+  if (!project) return
+  tessDialog.value = false
+  tessSummaryMessage.value = ''
+  try {
+    if (tessDialogMode.value === 'all') {
+      await tessFetch.startBulk([], project.pk, { all: true })
+    } else {
+      await tessFetch.startBulk(selectedIds.value, project.pk)
+    }
+    const s = tessFetch.lastSummary
+    if (s) {
+      tessSummaryMessage.value =
+        `TESS fetch complete: ${s.imported_lightcurves} light curve(s) imported, ` +
+        `${s.ok} system(s) updated, ${s.no_match} no match, ${s.partial} partial, ` +
+        `${s.skipped_duplicates} duplicate(s) skipped, ${s.failed} failed.`
+    }
+    await query.refetch()
+  } catch (e) {
+    tessSummaryMessage.value = e instanceof Error ? e.message : 'TESS fetch failed'
   }
 }
 
@@ -439,6 +488,7 @@ async function addSystem() {
     <SystemsSectionNav />
 
     <AppAlert v-if="gaiaSummaryMessage" kind="info">{{ gaiaSummaryMessage }}</AppAlert>
+    <AppAlert v-if="tessSummaryMessage" kind="info">{{ tessSummaryMessage }}</AppAlert>
 
     <DataTablePage
       hide-title
@@ -500,6 +550,14 @@ async function addSystem() {
           Fetch Gaia
         </AppButton>
         <BulkDownloadProgress :status="gaiaFetch.status" :busy="gaiaFetch.busy" />
+        <AppButton
+          variant="secondary"
+          :disabled="tessFetch.busy"
+          @click="openTessDialog"
+        >
+          Fetch TESS
+        </AppButton>
+        <BulkDownloadProgress :status="tessFetch.status" :busy="tessFetch.busy" />
         <AppButton
           variant="secondary"
           :disabled="!selectedIds.length"
@@ -710,6 +768,36 @@ async function addSystem() {
       <div class="flex gap-2 mt-4">
         <AppButton variant="primary" @click="confirmGaiaFetch">Fetch Gaia DR3</AppButton>
         <AppButton variant="ghost" @click="gaiaDialog = false">Cancel</AppButton>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog
+    v-if="tessDialog"
+    open
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
+    @click.self="tessDialog = false"
+  >
+    <div class="aots-panel w-full max-w-md">
+      <h3 class="font-medium mb-3">Fetch TESS</h3>
+      <p v-if="tessDialogMode === 'selected'" class="text-sm text-aots-muted">
+        Fetch TESS light curves for {{ selectedIds.length }} selected system(s)?
+        Existing sector light curves are skipped as duplicates.
+      </p>
+      <template v-else>
+        <AppAlert kind="warning" class="mb-3">
+          You are about to fetch TESS light curves for
+          <template v-if="projectStarCount != null">{{ projectStarCount }}</template>
+          <template v-else>all</template>
+          systems in this project.
+        </AppAlert>
+        <p class="text-sm text-aots-muted">
+          Downloads can take a while depending on the number of systems and TESS sectors.
+        </p>
+      </template>
+      <div class="flex gap-2 mt-4">
+        <AppButton variant="primary" @click="confirmTessFetch">Fetch TESS</AppButton>
+        <AppButton variant="ghost" @click="tessDialog = false">Cancel</AppButton>
       </div>
     </div>
   </dialog>

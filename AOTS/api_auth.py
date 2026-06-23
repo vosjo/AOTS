@@ -53,6 +53,7 @@ def app_bootstrap(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@ensure_csrf_cookie
 def auth_login(request):
     username = request.data.get('username', '')
     password = request.data.get('password', '')
@@ -63,14 +64,21 @@ def auth_login(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     login(request, user)
-    return Response(_me_payload(user))
+    return Response({
+        **_me_payload(user),
+        'csrfToken': get_token(request),
+    })
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@ensure_csrf_cookie
 def auth_logout(request):
     logout(request)
-    return Response({'authenticated': False})
+    return Response({
+        'authenticated': False,
+        'csrfToken': get_token(request),
+    })
 
 
 @api_view(['GET', 'POST'])
@@ -96,6 +104,7 @@ def auth_api_key(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@ensure_csrf_cookie
 def password_change_api(request):
     old = request.data.get('old_password', '')
     new1 = request.data.get('new_password1', '')
@@ -109,4 +118,7 @@ def password_change_api(request):
     request.user.set_password(new1)
     request.user.save()
     login(request, request.user)
-    return Response({'detail': 'Password changed.'})
+    return Response({
+        'detail': 'Password changed.',
+        'csrfToken': get_token(request),
+    })

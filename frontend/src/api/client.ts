@@ -1,19 +1,26 @@
 import { ofetch } from 'ofetch'
 
+export function setCsrfToken(token: string): void {
+  window.__AOTS_BOOTSTRAP__ = {
+    ...window.__AOTS_BOOTSTRAP__,
+    csrfToken: token,
+  }
+}
+
 export function getCsrfToken(): string {
-  const fromBootstrap = window.__AOTS_BOOTSTRAP__?.csrfToken
-  if (fromBootstrap) return fromBootstrap
   const match = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/)
-  return match ? decodeURIComponent(match[1]) : ''
+  if (match) {
+    const fromCookie = decodeURIComponent(match[1])
+    setCsrfToken(fromCookie)
+    return fromCookie
+  }
+  return window.__AOTS_BOOTSTRAP__?.csrfToken ?? ''
 }
 
 export async function ensureCsrfToken(): Promise<void> {
   if (getCsrfToken()) return
   const data = await api<{ csrfToken: string }>('/api/auth/csrf/')
-  window.__AOTS_BOOTSTRAP__ = {
-    ...window.__AOTS_BOOTSTRAP__,
-    csrfToken: data.csrfToken,
-  }
+  setCsrfToken(data.csrfToken)
 }
 
 export function formatApiError(error: unknown): string {
@@ -75,4 +82,5 @@ export interface MeResponse {
   is_superuser?: boolean
   api_key?: string | null
   has_api_secret?: boolean
+  csrfToken?: string
 }

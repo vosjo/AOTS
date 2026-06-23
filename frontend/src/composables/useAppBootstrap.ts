@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { api } from '@/api/client'
+import { api, setCsrfToken } from '@/api/client'
 
 const testInstallationRef = ref(
   window.__AOTS_BOOTSTRAP__?.testInstallation === true,
@@ -13,6 +13,7 @@ export async function initAppBootstrap(): Promise<void> {
       csrfToken: data.csrfToken,
       testInstallation: data.testInstallation === true,
     }
+    setCsrfToken(data.csrfToken)
     testInstallationRef.value = data.testInstallation === true
   } catch {
     // Fall back to inline bootstrap from the Django SPA shell.

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
-import { api } from '@/api/client'
+import { api, setCsrfToken } from '@/api/client'
 
 const oldPassword = ref('')
 const newPassword1 = ref('')
@@ -11,7 +11,7 @@ const message = ref('')
 
 async function submit() {
   message.value = ''
-  await api('/api/auth/password-change/', {
+  const res = await api<{ detail: string; csrfToken?: string }>('/api/auth/password-change/', {
     method: 'POST',
     body: {
       old_password: oldPassword.value,
@@ -19,6 +19,9 @@ async function submit() {
       new_password2: newPassword2.value,
     },
   })
+  if (res.csrfToken) {
+    setCsrfToken(res.csrfToken)
+  }
   message.value = 'Password updated.'
 }
 </script>

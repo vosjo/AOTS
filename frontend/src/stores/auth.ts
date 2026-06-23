@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { api, type MeResponse } from '@/api/client'
+import { api, setCsrfToken, type MeResponse } from '@/api/client'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<MeResponse | null>(null)
@@ -20,11 +20,20 @@ export const useAuthStore = defineStore('auth', () => {
       method: 'POST',
       body: { username, password },
     })
+    if (user.value.csrfToken) {
+      setCsrfToken(user.value.csrfToken)
+    }
     return user.value
   }
 
   async function logout() {
-    await api('/api/auth/logout/', { method: 'POST' })
+    const data = await api<{ authenticated: boolean; csrfToken?: string }>(
+      '/api/auth/logout/',
+      { method: 'POST' },
+    )
+    if (data.csrfToken) {
+      setCsrfToken(data.csrfToken)
+    }
     user.value = { authenticated: false }
   }
 

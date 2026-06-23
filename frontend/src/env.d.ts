@@ -3,6 +3,7 @@
 interface AOTSBootstrap {
   csrfToken: string
   testInstallation?: boolean
+  routerBase?: string
 }
 
 interface Window {

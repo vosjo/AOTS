@@ -18,6 +18,7 @@
     window.__AOTS_BOOTSTRAP__ = {
       csrfToken: '{{ csrf_token }}',
       testInstallation: {{ test_installation|yesno:"true,false" }},
+      routerBase: '{{ router_base }}',
     };
   </script>
   {% if vite_dev %}

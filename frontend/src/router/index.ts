@@ -3,8 +3,11 @@ import { ensureCsrfToken } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 
+const routerBase =
+  (typeof window !== 'undefined' && window.__AOTS_BOOTSTRAP__?.routerBase) || '/app/'
+
 const router = createRouter({
-  history: createWebHistory('/app/'),
+  history: createWebHistory(routerBase),
   routes: [
     { path: '/', redirect: '/w/projects/' },
     {

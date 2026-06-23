@@ -6,8 +6,10 @@ from django.views.decorators.cache import never_cache
 
 @never_cache
 def spa_index(request, *args, **kwargs):
+    cutover = getattr(settings, 'AOTS_SPA_CUTOVER', False)
     return render(request, 'spa/index.html', {
         'csrf_token': get_token(request),
         'vite_dev': getattr(settings, 'VITE_DEV', False),
         'test_installation': getattr(settings, 'AOTS_TEST_INSTALLATION', False),
+        'router_base': '/' if cutover else '/app/',
     })

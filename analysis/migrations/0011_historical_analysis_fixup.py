@@ -10,10 +10,9 @@ def fix_historical_analysis_table(apps, schema_editor):
             for col in connection.introspection.get_table_description(cursor, table)
         }
 
-    if 'id' not in columns:
-        return
-
     if connection.vendor == 'sqlite':
+        if 'id' not in columns:
+            return
         schema_editor.execute(
             f"""
             CREATE TABLE "{table}_new" (
@@ -74,12 +73,17 @@ def fix_historical_analysis_table(apps, schema_editor):
         schema_editor.execute(
             'DROP INDEX IF EXISTS analysis_historicaldataset_id_0e6ce607'
         )
-        schema_editor.execute(
-            f'UPDATE {table} '
-            'SET datasource_ptr_id = id '
-            'WHERE datasource_ptr_id IS NULL'
-        )
-        schema_editor.execute(f'ALTER TABLE {table} DROP COLUMN id')
+        if 'id' in columns and 'datasource_ptr_id' in columns:
+            schema_editor.execute(
+                f'UPDATE {table} '
+                'SET datasource_ptr_id = id '
+                'WHERE datasource_ptr_id IS NULL'
+            )
+            schema_editor.execute(f'ALTER TABLE {table} DROP COLUMN id')
+        elif 'id' in columns:
+            schema_editor.execute(
+                f'ALTER TABLE {table} RENAME COLUMN id TO datasource_ptr_id'
+            )
 
 
 class Migration(migrations.Migration):
@@ -112,9 +116,23 @@ class Migration(migrations.Migration):
             model_name='parameter',
             name='analysis_param_star_idx',
         ),
-        migrations.RemoveField(
-            model_name='historicalanalysis',
-            name='datasource_ptr',
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.RemoveField(
+                    model_name='historicalanalysis',
+                    name='datasource_ptr',
+                ),
+                migrations.AlterField(
+                    model_name='historicalanalysis',
+                    name='id',
+                    field=models.IntegerField(
+                        blank=True,
+                        db_column='datasource_ptr_id',
+                        db_index=True,
+                    ),
+                ),
+            ],
         ),
         migrations.AlterField(
             model_name='analysis',
@@ -142,10 +160,5 @@ class Migration(migrations.Migration):
                 default='auto',
                 max_length=8,
             ),
-        ),
-        migrations.AlterField(
-            model_name='historicalanalysis',
-            name='id',
-            field=models.IntegerField(blank=True, db_column='datasource_ptr_id', db_index=True),
         ),
     ]

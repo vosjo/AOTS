@@ -1,10 +1,10 @@
 from astropy.time import Time
-from django.urls import reverse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from AOTS.bokeh_embed import bokeh_embed_response
+from AOTS.page_urls import analysis_detail_url
 from AOTS.permissions_helpers import get_object_if_allowed
 from analysis.categories import category_label
 from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
@@ -76,10 +76,7 @@ def star_analysis_plots(request, pk):
             'added_by': _history_user_display(earliest.history_user),
             'added_on': Time(earliest.history_date, precision=0).iso,
             'parameters': _analysis_parameters(analysis),
-            'detail_href': reverse(
-                'analysis:analysis_detail',
-                kwargs={'project': project.slug, 'analysis_id': analysis.pk},
-            ),
+            'detail_href': analysis_detail_url(project.slug, analysis.pk),
             'embed': bokeh_embed_response(plot_analysis_figure(analysis, theme=plot_theme)),
         })
     return Response({'plots': plots})

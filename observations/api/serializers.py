@@ -2,6 +2,12 @@ from astropy.time import Time
 from django.urls import reverse
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
+from AOTS.page_urls import (
+    lightcurve_detail_url,
+    spectrum_detail_url,
+    star_detail_url,
+)
+
 from observations.models import (
     Spectrum,
     UserInfo,
@@ -71,7 +77,7 @@ class SpectrumListSerializer(ModelSerializer):
         return False
 
     def get_href(self, obj):
-        return reverse('observations:spectrum_detail', kwargs={'project': obj.project.slug, 'spectrum_id': obj.pk})
+        return spectrum_detail_url(obj.project.slug, obj.pk)
 
 
 class SpectrumSerializer(ModelSerializer):
@@ -122,7 +128,7 @@ class SpectrumSerializer(ModelSerializer):
         return specfiles
 
     def get_href(self, obj):
-        return reverse('observations:spectrum_detail', kwargs={'project': obj.project.slug, 'spectrum_id': obj.pk})
+        return spectrum_detail_url(obj.project.slug, obj.pk)
 
 
 class SpectrumSpecFileDetailSerializer(ModelSerializer):
@@ -330,10 +336,7 @@ class UserInfoSerializer(ModelSerializer):
     def get_spectrum(self, obj):
         if obj.spectrum is None:
             return ''
-        return reverse(
-            'observations:spectrum_detail',
-            kwargs={'project': obj.project.slug, 'spectrum_id': obj.spectrum.pk},
-        )
+        return spectrum_detail_url(obj.project.slug, obj.spectrum.pk)
 
     def get_observatory(self, obj):
         try:
@@ -374,19 +377,13 @@ class SpecFileListSerializer(ModelSerializer):
     def get_star(self, obj):
         if obj.spectrum is None or obj.spectrum.star is None:
             return ''
-        link = reverse(
-            'systems:star_detail',
-            kwargs={'project': obj.project.slug, 'star_id': obj.spectrum.star.pk},
-        )
+        link = star_detail_url(obj.project.slug, obj.spectrum.star.pk)
         return {obj.spectrum.star.name: link}
 
     def get_spectrum(self, obj):
         if obj.spectrum is None:
             return ''
-        return reverse(
-            'observations:spectrum_detail',
-            kwargs={'project': obj.project.slug, 'spectrum_id': obj.spectrum.pk},
-        )
+        return spectrum_detail_url(obj.project.slug, obj.spectrum.pk)
 
     def get_spectrum_info(self, obj):
         if obj.spectrum is None:
@@ -443,10 +440,7 @@ class SpecFileSerializer(ModelSerializer):
     def get_star(self, obj):
         if obj.spectrum is None or obj.spectrum.star is None:
             return ''
-        link = reverse(
-            'systems:star_detail',
-            kwargs={'project': obj.project.slug, 'star_id': obj.spectrum.star.pk},
-        )
+        link = star_detail_url(obj.project.slug, obj.spectrum.star.pk)
         return {obj.spectrum.star.name: link}
 
     def get_star_pk(self, obj):
@@ -457,10 +451,7 @@ class SpecFileSerializer(ModelSerializer):
     def get_spectrum(self, obj):
         if obj.spectrum is None:
             return ''
-        return reverse(
-            'observations:spectrum_detail',
-            kwargs={'project': obj.project.slug, 'spectrum_id': obj.spectrum.pk},
-        )
+        return spectrum_detail_url(obj.project.slug, obj.spectrum.pk)
 
     def get_added_on(self, obj):
         return Time(obj.history.earliest().history_date, precision=0).iso
@@ -517,23 +508,14 @@ class RawSpecFileSerializer(ModelSerializer):
         #   Process specfile allocations
         for sfile in obj.specfile.all():
             if sfile.spectrum is not None and sfile.spectrum.star is not None:
-                SystemDict[sfile.spectrum.star.name] = reverse(
-                    'systems:star_detail',
-                    kwargs={
-                        'project': sfile.project.slug,
-                        'star_id': sfile.spectrum.star.pk,
-                    },
+                SystemDict[sfile.spectrum.star.name] = star_detail_url(
+                    sfile.project.slug,
+                    sfile.spectrum.star.pk,
                 )
 
         #   Process star allocations
         for star in obj.star.all():
-            SystemDict[star.name] = reverse(
-                'systems:star_detail',
-                kwargs={
-                    'project': star.project.slug,
-                    'star_id': star.pk,
-                },
-            )
+            SystemDict[star.name] = star_detail_url(star.project.slug, star.pk)
 
         return SystemDict
 
@@ -590,7 +572,7 @@ class LightCurveSerializer(ModelSerializer):
             return SimpleStarSerializer(obj.star).data
 
     def get_href(self, obj):
-        return reverse('observations:lightcurve_detail', kwargs={'project': obj.project.slug, 'lightcurve_id': obj.pk})
+        return lightcurve_detail_url(obj.project.slug, obj.pk)
 
 
 class LightCurveDetailSerializer(LightCurveSerializer):

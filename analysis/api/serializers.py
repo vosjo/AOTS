@@ -1,6 +1,6 @@
-from django.urls import reverse
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
+from AOTS.page_urls import analysis_detail_url
 from analysis.categories import category_color, category_label, category_derived_parameter_specs, has_category_derived_parameters
 from analysis.models import Analysis, DerivedParameter, Parameter
 from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
@@ -59,10 +59,7 @@ class AnalysisListSerializer(ModelSerializer):
         return category_color(obj.category)
 
     def get_href(self, obj):
-        return reverse(
-            'analysis:analysis_detail',
-            kwargs={'project': obj.project.slug, 'analysis_id': obj.pk},
-        )
+        return analysis_detail_url(obj.project.slug, obj.pk)
 
     def get_file_url(self, obj):
         return obj.datafile.url

@@ -1,8 +1,8 @@
 import numpy as np
-from django.urls import reverse
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField
 
+from AOTS.page_urls import analysis_detail_url, star_detail_url
 from stars.models import Project, Star, Tag, Identifier
 
 
@@ -167,10 +167,7 @@ class StarListSerializer(ModelSerializer):
                 {
                     'name': f"{category_label(d.category)}: {d.name}" if d.name else category_label(d.category),
                     'color': category_color(d.category),
-                    'href': reverse(
-                        'analysis:analysis_detail',
-                        kwargs={'project': d.project.slug, 'analysis_id': d.pk},
-                    ),
+                    'href': analysis_detail_url(d.project.slug, d.pk),
                 }
                 for d in analyses
             ]
@@ -183,7 +180,7 @@ class StarListSerializer(ModelSerializer):
         return 0 if len(mag) == 0 else np.round(mag[0].measurement, 2)
 
     def get_href(self, obj):
-        return reverse('systems:star_detail', kwargs={'project': obj.project.slug, 'star_id': obj.pk})
+        return star_detail_url(obj.project.slug, obj.pk)
 
     def get_nphot(self, obj):
         if hasattr(obj, 'nphot_count'):
@@ -271,7 +268,7 @@ class StarSerializer(ModelSerializer):
         return 0 if len(mag) == 0 else np.round(mag[0].measurement, 2)
 
     def get_href(self, obj):
-        return reverse('systems:star_detail', kwargs={'project': obj.project.slug, 'star_id': obj.pk})
+        return star_detail_url(obj.project.slug, obj.pk)
 
     def get_classification_type_display(self, obj):
         return obj.get_classification_type_display()
@@ -312,7 +309,7 @@ class SimpleStarSerializer(ModelSerializer):
         read_only_fields = ('pk',)
 
     def get_href(self, obj):
-        return reverse('systems:star_detail', kwargs={'project': obj.project.slug, 'star_id': obj.pk})
+        return star_detail_url(obj.project.slug, obj.pk)
 
 
 # ===============================================================

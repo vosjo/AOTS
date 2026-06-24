@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from AOTS.admin_api.task_views import admin_task_detail, admin_task_list
 from AOTS.admin_api.views import (
     AdminGroupViewSet,
     AdminLogEntryViewSet,
@@ -21,5 +22,7 @@ router.register(r'log-entries', AdminLogEntryViewSet, basename='admin-log-entry'
 urlpatterns = [
     path('users/choices/', user_choices, name='admin-user-choices'),
     path('permissions/', permissions_grouped, name='admin-permissions'),
+    path('tasks/', admin_task_list, name='admin-task-list'),
+    path('tasks/<str:task_id>/', admin_task_detail, name='admin-task-detail'),
     path('', include(router.urls)),
 ]

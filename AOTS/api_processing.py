@@ -16,11 +16,16 @@ def run_process_view(request, obj, task, serializer_class, async_kwarg='async'):
     task_kwargs = {}
     if request.user.is_authenticated:
         task_kwargs['history_user_id'] = request.user.pk
+    project_id = getattr(obj, 'project_id', None)
+    if project_id is None and getattr(obj, 'project', None) is not None:
+        project_id = obj.project.pk
     _, task_id = run_task(
         task,
         obj.pk,
         async_requested=async_requested,
         owner_user_id=request.user.pk if request.user.is_authenticated else None,
+        project_id=project_id,
+        label=f'{obj._meta.verbose_name} #{obj.pk}',
         **task_kwargs,
     )
     if task_id:

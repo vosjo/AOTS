@@ -33,6 +33,13 @@ import { RouterLink } from 'vue-router'
       <p class="mt-1 text-sm text-aots-muted">Create and revoke API tokens</p>
     </RouterLink>
     <RouterLink
+      to="/admin/tasks/"
+      class="rounded-xl border border-aots bg-aots-surface p-5 transition hover:border-aots-card hover:bg-aots-surface-muted"
+    >
+      <h2 class="text-lg font-medium">Background tasks</h2>
+      <p class="mt-1 text-sm text-aots-muted">Downloads, bulk fetches, and Celery jobs</p>
+    </RouterLink>
+    <RouterLink
       to="/admin/log/"
       class="rounded-xl border border-aots bg-aots-surface p-5 transition hover:border-aots-card hover:bg-aots-surface-muted"
     >

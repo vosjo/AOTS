@@ -9,6 +9,7 @@ const links = [
   { to: '/admin/projects/', label: 'Projects' },
   { to: '/admin/groups/', label: 'Groups' },
   { to: '/admin/tokens/', label: 'Tokens' },
+  { to: '/admin/tasks/', label: 'Tasks' },
   { to: '/admin/log/', label: 'Log' },
 ]
 

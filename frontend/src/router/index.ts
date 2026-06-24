@@ -182,6 +182,7 @@ const router = createRouter({
         { path: 'groups', name: 'admin-groups', component: () => import('@/views/admin/AdminGroupListView.vue') },
         { path: 'groups/:id', name: 'admin-group-edit', component: () => import('@/views/admin/AdminGroupFormView.vue') },
         { path: 'tokens', name: 'admin-tokens', component: () => import('@/views/admin/AdminTokenListView.vue') },
+        { path: 'tasks', name: 'admin-tasks', component: () => import('@/views/admin/AdminTaskListView.vue') },
         { path: 'log', name: 'admin-log', component: () => import('@/views/admin/AdminLogListView.vue') },
       ],
     },

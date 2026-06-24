@@ -29,6 +29,7 @@ class AdminApiPermissionTests(TestCase):
             '/api/admin/projects/',
             '/api/admin/groups/',
             '/api/admin/tokens/',
+            '/api/admin/tasks/',
             '/api/admin/log-entries/',
             '/api/admin/users/choices/',
             '/api/admin/permissions/',

@@ -12,7 +12,8 @@ from rest_framework.response import Response
 
 from AOTS.permissions_helpers import check_project_access
 from AOTS.task_helpers import run_task
-from AOTS.task_metadata import user_may_view_task
+from AOTS.task_status import build_task_status_payload
+from AOTS.task_metadata import get_task_owner, user_may_view_task
 from observations.auxil import read_lightcurve, read_spectrum
 from observations.forms import UploadSpectraDetailForm
 from observations.models import LightCurve, Observatory, SpecFile
@@ -217,6 +218,7 @@ def bulkUploadSpectra(request, **kwargs):
             async_requested=True,
             owner_user_id=request.user.pk,
             project_id=project.pk,
+            label=f'{len(specfile_pks)} specfile(s)',
         )
         return Response(
             {
@@ -339,6 +341,7 @@ def bulkDownloadStart(request, **kwargs):
         async_requested=True,
         owner_user_id=request.user.pk,
         project_id=project.pk,
+        label=f'{kind} ZIP, {len(requested_ids)} star(s)',
     )
     return Response(
         {'status': 'pending', 'task_id': task_id, 'kind': kind},
@@ -394,16 +397,4 @@ def getTaskStatus(request, task_id):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    result = AsyncResult(task_id)
-    payload = {
-        'task_id': task_id,
-        'status': result.status,
-        'ready': result.ready(),
-    }
-    if result.status == 'PROGRESS' and isinstance(result.info, dict):
-        payload['meta'] = result.info
-    if result.failed():
-        payload['error'] = str(result.result)
-    elif result.successful():
-        payload['result'] = result.result
-    return Response(payload)
+    return Response(build_task_status_payload(task_id, get_task_owner(task_id)))

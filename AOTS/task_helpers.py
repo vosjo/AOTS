@@ -6,12 +6,21 @@ import logging
 
 from django.conf import settings
 
-from AOTS.task_metadata import store_task_owner
+from AOTS.task_metadata import register_task
 
 logger = logging.getLogger('AOTS.tasks')
 
 
-def run_task(task, *args, async_requested=False, owner_user_id=None, project_id=None, **kwargs):
+def run_task(
+    task,
+    *args,
+    async_requested=False,
+    owner_user_id=None,
+    project_id=None,
+    task_name=None,
+    label=None,
+    **kwargs,
+):
     """
     Run a Celery task synchronously by default to preserve API behaviour.
     """
@@ -34,5 +43,11 @@ def run_task(task, *args, async_requested=False, owner_user_id=None, project_id=
         async_result = task.apply(args=args, kwargs=kwargs)
 
     if owner_user_id is not None:
-        store_task_owner(async_result.id, owner_user_id, project_id=project_id)
+        register_task(
+            async_result.id,
+            owner_user_id,
+            project_id=project_id,
+            task_name=task_name or task.name,
+            label=label,
+        )
     return None, async_result.id

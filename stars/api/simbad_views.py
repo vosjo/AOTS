@@ -85,6 +85,7 @@ def stars_sync_simbad_identifiers_bulk(request):
             async_requested=True,
             owner_user_id=request.user.pk,
             project_id=project.pk,
+            label=f'{len(star_ids)} star(s)',
         )
         return Response(
             {'status': 'pending', 'task_id': task_id, 'total': len(star_ids)},

@@ -61,7 +61,12 @@ const headerChecked = computed(() => {
         <slot name="actions" />
       </div>
     </div>
-    <slot name="filters" />
+    <div
+      v-if="$slots.filters"
+      class="flex flex-wrap items-center gap-x-4 gap-y-3"
+    >
+      <slot name="filters" />
+    </div>
     <div class="aots-table-wrap">
       <table class="aots-table">
         <thead>

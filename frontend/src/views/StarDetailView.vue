@@ -224,6 +224,9 @@ const copyPhotDialog = ref(false)
 const identifierDialog = ref(false)
 const newIdentifierName = ref('')
 const newIdentifierHref = ref('')
+const simbadIdentifiersLoading = ref(false)
+const simbadIdentifiersMessage = ref<string | null>(null)
+const simbadIdentifiersError = ref<string | null>(null)
 
 const { data: detail, refetch } = useQuery({
   queryKey: computed(() => ['star-detail', starId.value]),
@@ -368,6 +371,31 @@ async function addIdentifier() {
 async function deleteIdentifier(pk: number) {
   await api(`/api/systems/identifiers/${pk}/`, { method: 'DELETE' })
   refetch()
+}
+
+async function fetchSimbadIdentifiers() {
+  simbadIdentifiersLoading.value = true
+  simbadIdentifiersError.value = null
+  simbadIdentifiersMessage.value = null
+  try {
+    const res = await api<{
+      status: string
+      detail: string
+      added?: number
+      skipped?: number
+      total_simbad?: number
+    }>(`/api/systems/stars/${starId.value}/simbad/identifiers/`, {
+      method: 'POST',
+    })
+    simbadIdentifiersMessage.value = res.detail
+    await refetch()
+  } catch (e: unknown) {
+    const err = e as { data?: { detail?: string }; message?: string }
+    simbadIdentifiersError.value =
+      err.data?.detail ?? err.message ?? 'Simbad identifier sync failed'
+  } finally {
+    simbadIdentifiersLoading.value = false
+  }
 }
 
 async function copyPhotometry() {
@@ -770,32 +798,56 @@ watch(editableParams, (data) => {
 
       <div class="grid gap-3 md:grid-cols-2">
         <section class="aots-panel-compact">
-          <div class="flex justify-between items-center mb-2">
+          <div class="flex justify-between items-center mb-2 gap-2">
             <h2 class="text-sm font-medium">Aliases</h2>
-            <AppButton
-              v-if="auth.isAuthenticated"
-              variant="icon"
-              title="Add alias"
-              @click="identifierDialog = true"
-            >
-              <Plus class="w-4 h-4" />
-            </AppButton>
-          </div>
-          <div v-if="detail.identifiers.length" class="flex flex-wrap gap-2 text-xs">
-            <div
-              v-for="ident in detail.identifiers"
-              :key="ident.pk"
-              class="inline-flex items-center gap-1 rounded border border-aots px-2 py-1"
-            >
-              <a v-if="ident.href" :href="ident.href" target="_blank" rel="noopener">{{ ident.name }}</a>
-              <span v-else>{{ ident.name }}</span>
+            <div v-if="auth.isAuthenticated" class="flex items-center gap-2">
               <AppButton
-                v-if="auth.isAuthenticated"
-                variant="icon-danger"
-                @click="deleteIdentifier(ident.pk)"
+                variant="secondary"
+                size="sm"
+                class="inline-flex items-center gap-1"
+                :disabled="simbadIdentifiersLoading"
+                title="Add alternative names from Simbad"
+                @click="fetchSimbadIdentifiers"
               >
-                <Trash2 class="w-3 h-3" />
+                <Loader2 v-if="simbadIdentifiersLoading" class="w-3.5 h-3.5 animate-spin" />
+                <Download v-else class="w-3.5 h-3.5" />
+                {{ simbadIdentifiersLoading ? 'Fetching…' : 'Update from Simbad' }}
               </AppButton>
+              <AppButton
+                variant="icon"
+                title="Add alias"
+                @click="identifierDialog = true"
+              >
+                <Plus class="w-4 h-4" />
+              </AppButton>
+            </div>
+          </div>
+          <AppAlert v-if="simbadIdentifiersError" kind="error" class="mb-2 text-xs">
+            {{ simbadIdentifiersError }}
+          </AppAlert>
+          <AppAlert v-else-if="simbadIdentifiersMessage" kind="info" class="mb-2 text-xs">
+            {{ simbadIdentifiersMessage }}
+          </AppAlert>
+          <div
+            v-if="detail.identifiers.length"
+            class="max-h-20 overflow-y-auto overflow-x-hidden pr-1"
+          >
+            <div class="flex flex-wrap gap-2 text-xs">
+              <div
+                v-for="ident in detail.identifiers"
+                :key="ident.pk"
+                class="inline-flex items-center gap-1 rounded border border-aots px-2 py-1"
+              >
+                <a v-if="ident.href" :href="ident.href" target="_blank" rel="noopener">{{ ident.name }}</a>
+                <span v-else>{{ ident.name }}</span>
+                <AppButton
+                  v-if="auth.isAuthenticated"
+                  variant="icon-danger"
+                  @click="deleteIdentifier(ident.pk)"
+                >
+                  <Trash2 class="w-3 h-3" />
+                </AppButton>
+              </div>
             </div>
           </div>
           <p v-else class="text-xs text-aots-muted">None known.</p>
@@ -813,17 +865,22 @@ watch(editableParams, (data) => {
               <Pencil class="w-4 h-4" />
             </AppButton>
           </div>
-          <div class="flex flex-wrap gap-1.5">
-            <span
-              v-for="t in star.tags"
-              :key="t.pk"
-              class="text-xs px-2 py-0.5 rounded border"
-              :style="{ borderColor: t.color }"
-            >
-              {{ t.name }}
-            </span>
-            <span v-if="!star.tags.length" class="text-xs text-aots-muted">No tags</span>
+          <div
+            v-if="star.tags.length"
+            class="max-h-20 overflow-y-auto overflow-x-hidden pr-1"
+          >
+            <div class="flex flex-wrap gap-1.5">
+              <span
+                v-for="t in star.tags"
+                :key="t.pk"
+                class="text-xs px-2 py-0.5 rounded border"
+                :style="{ borderColor: t.color }"
+              >
+                {{ t.name }}
+              </span>
+            </div>
           </div>
+          <p v-else class="text-xs text-aots-muted">No tags</p>
         </section>
       </div>
 

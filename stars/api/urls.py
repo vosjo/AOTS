@@ -4,6 +4,7 @@ from rest_framework import routers
 from .gaia_views import star_fetch_gaia_dr3, stars_fetch_gaia_dr3_bulk
 from .tess_views import star_fetch_tess_lightcurves, stars_fetch_tess_bulk
 from .plots import star_analysis_plots, star_sed_plot
+from .simbad_views import star_sync_simbad_identifiers
 from .star_detail import star_detail_bootstrap, star_parameters_overview
 from .star_mutations import (
     bulk_upload_stars,
@@ -76,6 +77,11 @@ urlpatterns = [
         'stars/<int:pk>/photometry/from-vizier/',
         star_fetch_photometry_vizier,
         name='star-fetch-photometry-vizier',
+    ),
+    path(
+        'stars/<int:pk>/simbad/identifiers/',
+        star_sync_simbad_identifiers,
+        name='star-sync-simbad-identifiers',
     ),
     path(
         'stars/<int:pk>/parameters/editable/',

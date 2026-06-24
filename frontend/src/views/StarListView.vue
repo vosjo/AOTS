@@ -13,6 +13,7 @@ import { saveCarryOver } from '@/composables/useCarryOver'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useGaiaFetch } from '@/composables/useGaiaFetch'
+import { useSimbadAliasesFetch } from '@/composables/useSimbadAliasesFetch'
 import { useTessFetch } from '@/composables/useTessFetch'
 import { api, type PaginatedResponse } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -99,8 +100,10 @@ const auth = useAuthStore()
 const projectStore = useProjectStore()
 const gaiaFetch = useGaiaFetch()
 const tessFetch = useTessFetch()
+const simbadAliasesFetch = useSimbadAliasesFetch()
 const gaiaSummaryMessage = ref('')
 const tessSummaryMessage = ref('')
+const simbadSummaryMessage = ref('')
 const projectSlug = computed(() => route.params.projectSlug as string)
 const filterOpen = ref(false)
 const filters = ref(emptyFilters())
@@ -140,6 +143,8 @@ const gaiaDialog = ref(false)
 const gaiaDialogMode = ref<'selected' | 'all'>('selected')
 const tessDialog = ref(false)
 const tessDialogMode = ref<'selected' | 'all'>('selected')
+const simbadDialog = ref(false)
+const simbadDialogMode = ref<'selected' | 'all'>('selected')
 const projectStarCount = ref<number | null>(null)
 const addDialog = ref(false)
 const selectedTagIds = ref<number[]>([])
@@ -291,6 +296,50 @@ async function confirmTessFetch() {
     await query.refetch()
   } catch (e) {
     tessSummaryMessage.value = e instanceof Error ? e.message : 'TESS fetch failed'
+  }
+}
+
+async function openSimbadDialog() {
+  if (!projectStore.currentProject || simbadAliasesFetch.busy) return
+  if (selectedIds.value.length) {
+    simbadDialogMode.value = 'selected'
+    projectStarCount.value = null
+  } else {
+    simbadDialogMode.value = 'all'
+    projectStarCount.value = null
+    try {
+      const res = await api<PaginatedResponse<unknown>>(
+        `/api/systems/stars/?project=${projectStore.currentProject.pk}&page_size=1`,
+      )
+      projectStarCount.value = res.count
+    } catch {
+      projectStarCount.value = null
+    }
+  }
+  simbadDialog.value = true
+}
+
+async function confirmSimbadFetch() {
+  const project = projectStore.currentProject
+  if (!project) return
+  simbadDialog.value = false
+  simbadSummaryMessage.value = ''
+  try {
+    if (simbadDialogMode.value === 'all') {
+      await simbadAliasesFetch.startBulk([], project.pk, { all: true })
+    } else {
+      await simbadAliasesFetch.startBulk(selectedIds.value, project.pk)
+    }
+    const s = simbadAliasesFetch.lastSummary
+    if (s) {
+      simbadSummaryMessage.value =
+        `Simbad alias sync complete: ${s.ok} updated, ${s.no_match} not found, ${s.failed} failed` +
+        ` (${s.added_total} aliases added).`
+    }
+    await query.refetch()
+  } catch (e) {
+    simbadSummaryMessage.value =
+      e instanceof Error ? e.message : 'Simbad alias sync failed'
   }
 }
 
@@ -504,6 +553,7 @@ async function addSystem() {
 
     <AppAlert v-if="gaiaSummaryMessage" kind="info">{{ gaiaSummaryMessage }}</AppAlert>
     <AppAlert v-if="tessSummaryMessage" kind="info">{{ tessSummaryMessage }}</AppAlert>
+    <AppAlert v-if="simbadSummaryMessage" kind="info">{{ simbadSummaryMessage }}</AppAlert>
 
     <DataTablePage
       hide-title
@@ -574,6 +624,16 @@ async function addSystem() {
           Fetch TESS
         </AppButton>
         <BulkDownloadProgress :status="tessFetch.status" :busy="tessFetch.busy" />
+        <template v-if="auth.canSyncSimbadAliases">
+          <AppButton
+            variant="secondary"
+            :disabled="simbadAliasesFetch.busy"
+            @click="openSimbadDialog"
+          >
+            Update Simbad aliases
+          </AppButton>
+          <BulkDownloadProgress :status="simbadAliasesFetch.status" :busy="simbadAliasesFetch.busy" />
+        </template>
         <AppButton
           variant="secondary"
           :disabled="!selectedIds.length"
@@ -822,6 +882,36 @@ async function addSystem() {
       <div class="flex gap-2 mt-4">
         <AppButton variant="primary" @click="confirmTessFetch">Fetch TESS</AppButton>
         <AppButton variant="ghost" @click="tessDialog = false">Cancel</AppButton>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog
+    v-if="simbadDialog"
+    open
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
+    @click.self="simbadDialog = false"
+  >
+    <div class="aots-panel w-full max-w-md">
+      <h3 class="font-medium mb-3">Update Simbad aliases</h3>
+      <p v-if="simbadDialogMode === 'selected'" class="text-sm text-aots-muted">
+        Fetch alternative names from Simbad for {{ selectedIds.length }} selected system(s)?
+        Existing aliases are kept; only new names are added.
+      </p>
+      <template v-else>
+        <AppAlert kind="warning" class="mb-3">
+          You are about to update Simbad aliases for
+          <template v-if="projectStarCount != null">{{ projectStarCount }}</template>
+          <template v-else>all</template>
+          systems in this project.
+        </AppAlert>
+        <p class="text-sm text-aots-muted">
+          Existing aliases are kept; only new names are added. This may take a while.
+        </p>
+      </template>
+      <div class="flex gap-2 mt-4">
+        <AppButton variant="primary" @click="confirmSimbadFetch">Update aliases</AppButton>
+        <AppButton variant="ghost" @click="simbadDialog = false">Cancel</AppButton>
       </div>
     </div>
   </dialog>

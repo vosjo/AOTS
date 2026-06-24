@@ -83,3 +83,51 @@ class SimbadIdentifiersApiTests(TestCase):
         payload = response.json()
         self.assertEqual(payload['status'], 'ok')
         self.assertEqual(payload['added'], 1)
+
+
+class SimbadIdentifiersBulkApiTests(TestCase):
+    def setUp(self):
+        self.project = Project.objects.create(name='SimbadBulk', description='', is_public=True)
+        self.star = star_io.create_star(
+            name='Vega',
+            project=self.project,
+            ra=279.23,
+            dec=38.78,
+        )
+        User = get_user_model()
+        self.admin = User.objects.create_user(
+            username='simbadadmin',
+            password='pass',
+            is_superuser=True,
+        )
+        self.user = User.objects.create_user(username='simbaduser', password='pass')
+        self.project.readwrite_users.add(self.user)
+        self.project.readwrite_users.add(self.admin)
+        self.client = APIClient()
+
+    @patch('stars.services.simbad_identifiers.Simbad.query_objectids')
+    def test_bulk_requires_superuser(self, mock_query):
+        mock_query.return_value = _mock_objectids_table('Vega', 'HIP 91262')
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            '/api/systems/stars/simbad/fetch-bulk/',
+            {'star_ids': [self.star.pk]},
+            format='json',
+            HTTP_PROJECTID=str(self.project.pk),
+        )
+        self.assertEqual(response.status_code, 403)
+
+    @patch('stars.services.simbad_identifiers.Simbad.query_objectids')
+    def test_bulk_success(self, mock_query):
+        mock_query.return_value = _mock_objectids_table('Vega', 'HIP 91262')
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(
+            '/api/systems/stars/simbad/fetch-bulk/',
+            {'star_ids': [self.star.pk]},
+            format='json',
+            HTTP_PROJECTID=str(self.project.pk),
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload['ok'], 1)
+        self.assertEqual(payload['added_total'], 1)

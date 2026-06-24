@@ -4,7 +4,7 @@ from rest_framework import routers
 from .gaia_views import star_fetch_gaia_dr3, stars_fetch_gaia_dr3_bulk
 from .tess_views import star_fetch_tess_lightcurves, stars_fetch_tess_bulk
 from .plots import star_analysis_plots, star_sed_plot
-from .simbad_views import star_sync_simbad_identifiers
+from .simbad_views import star_sync_simbad_identifiers, stars_sync_simbad_identifiers_bulk
 from .star_detail import star_detail_bootstrap, star_parameters_overview
 from .star_mutations import (
     bulk_upload_stars,
@@ -40,6 +40,11 @@ urlpatterns = [
     path('stars/bulk-upload/', bulk_upload_stars, name='star-bulk-upload'),
     path('stars/gaia/fetch-bulk/', stars_fetch_gaia_dr3_bulk, name='stars-fetch-gaia-bulk'),
     path('stars/tess/fetch-bulk/', stars_fetch_tess_bulk, name='stars-fetch-tess-bulk'),
+    path(
+        'stars/simbad/fetch-bulk/',
+        stars_sync_simbad_identifiers_bulk,
+        name='stars-sync-simbad-identifiers-bulk',
+    ),
     path(
         'stars/<int:star_pk>/specfiles/',
         getStarSpecfiles,

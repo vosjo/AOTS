@@ -106,3 +106,19 @@ def sync_simbad_identifiers(star: Star) -> SimbadIdentifiersResult:
         skipped=skipped,
         total_simbad=len(names),
     )
+
+
+def accumulate_simbad_bulk_summary(summary, star, result: SimbadIdentifiersResult) -> None:
+    if result.status == 'ok':
+        summary['ok'] += 1
+        summary['added_total'] += result.added
+        return
+    if result.status == 'not_found':
+        summary['no_match'] += 1
+        return
+    summary['failed'] += 1
+    summary['errors'].append({
+        'star_pk': star.pk,
+        'star_name': star.name,
+        'message': result.message,
+    })

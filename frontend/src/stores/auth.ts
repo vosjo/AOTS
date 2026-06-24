@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => user.value?.authenticated === true)
   const isSuperuser = computed(() => user.value?.is_superuser === true)
+  const canSyncSimbadAliases = computed(() => isSuperuser.value)
 
   async function fetchMe() {
     user.value = await api<MeResponse>('/api/me/')
@@ -37,5 +38,5 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = { authenticated: false }
   }
 
-  return { user, loaded, isAuthenticated, isSuperuser, fetchMe, login, logout }
+  return { user, loaded, isAuthenticated, isSuperuser, canSyncSimbadAliases, fetchMe, login, logout }
 })

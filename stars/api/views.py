@@ -91,6 +91,14 @@ class StarViewSet(
             return StarSerializer
         return StarSerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.action == 'list':
+            name_filter = (self.request.query_params.get('name') or '').strip()
+            if name_filter:
+                context['name_filter'] = name_filter
+        return context
+
     def perform_create(self, serializer):
         star = serializer.save()
         star_io.after_star_saved(star)

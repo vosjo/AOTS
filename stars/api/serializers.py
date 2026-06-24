@@ -112,6 +112,8 @@ class StarListSerializer(ModelSerializer):
     nphot = SerializerMethodField()
     nspec = SerializerMethodField()
     nlc = SerializerMethodField()
+    name_match_basis = SerializerMethodField()
+    matched_alias = SerializerMethodField()
     classification_type_display = SerializerMethodField()
     observing_status_display = SerializerMethodField()
     tag_ids = PrimaryKeyRelatedField(
@@ -148,6 +150,8 @@ class StarListSerializer(ModelSerializer):
             'nphot',
             'nspec',
             'nlc',
+            'name_match_basis',
+            'matched_alias',
             'href',
         ]
         read_only_fields = ('pk',)
@@ -196,6 +200,19 @@ class StarListSerializer(ModelSerializer):
         if hasattr(obj, 'nlc_count'):
             return obj.nlc_count
         return obj.lightcurve_set.count()
+
+    def get_name_match_basis(self, obj):
+        if not self.context.get('name_filter'):
+            return None
+        return getattr(obj, '_name_filter_match', None)
+
+    def get_matched_alias(self, obj):
+        if not self.context.get('name_filter'):
+            return None
+        if getattr(obj, '_name_filter_match', None) != 'alias':
+            return None
+        alias = getattr(obj, '_matched_alias', None)
+        return alias or None
 
     def get_classification_type_display(self, obj):
         return obj.get_classification_type_display()

@@ -45,6 +45,8 @@ interface StarRow {
   nphot: number
   nspec: number
   nlc: number
+  name_match_basis?: 'name' | 'alias' | null
+  matched_alias?: string | null
   analyses: AnalysisBadge[]
   tags: TagRef[]
 }
@@ -102,6 +104,17 @@ const tessSummaryMessage = ref('')
 const projectSlug = computed(() => route.params.projectSlug as string)
 const filterOpen = ref(false)
 const filters = ref(emptyFilters())
+
+function nameMatchHint(row: StarRow): string | null {
+  if (!filters.value.name.trim() || !row.name_match_basis) return null
+  if (row.name_match_basis === 'alias' && row.matched_alias) {
+    return `via alias: ${row.matched_alias}`
+  }
+  if (row.name_match_basis === 'name') {
+    return 'via name'
+  }
+  return null
+}
 
 const { query, page, pageSize, selected, toggleRow, toggleAll, clearSelection } = useDataTablePage<StarRow>({
   endpoint: '/api/systems/stars/',
@@ -586,7 +599,15 @@ async function addSystem() {
     </template>
 
     <template #cell-name="{ row }">
-      <RouterLink :to="`/w/${projectSlug}/systems/stars/${row.pk}`">{{ row.name }}</RouterLink>
+      <div>
+        <RouterLink :to="`/w/${projectSlug}/systems/stars/${row.pk}`">{{ row.name }}</RouterLink>
+        <span
+          v-if="nameMatchHint(row)"
+          class="block text-[10px] leading-tight text-aots-muted"
+        >
+          {{ nameMatchHint(row) }}
+        </span>
+      </div>
     </template>
 
     <template #cell-classification="{ row }">
@@ -645,7 +666,7 @@ async function addSystem() {
     @clear="clearFilters(); query.refetch()"
     @apply="filterOpen = false; query.refetch()"
   >
-    <input v-model="filters.name" placeholder="Name (Simbad resolver)" class="aots-field" />
+    <input v-model="filters.name" placeholder="Name or alias" class="aots-field" />
     <input
       v-model="filters.coordinates"
       placeholder="Coordinates (ra -- dec)"

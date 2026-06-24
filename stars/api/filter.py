@@ -1,10 +1,9 @@
 from astropy.coordinates import Angle
-from astroquery.simbad import Simbad
-from django.db.models import Count
+from django.db.models import Case, CharField, Count, OuterRef, Q, Subquery, Value, When
 from django_filters import rest_framework as filters
 
 from AOTS.filter_scoping import project_id_from_mapping, project_pk_filter
-from stars.models import Star, Tag
+from stars.models import Identifier, Star, Tag
 
 
 # ===============================================================
@@ -146,14 +145,25 @@ class StarFilter(filters.FilterSet):
 
     #   Method definitions for the filter definitions above
     def filter_name(self, queryset, name, value):
-        try:
-            data = Simbad.query_object(value)
-            ra = Angle(data['RA'][0], unit='hour').degree
-            dec = Angle(data['DEC'][0], unit='degree').degree
-            return queryset.filter(ra__range=[ra - 15. / 3600., ra + 15. / 3600.]). \
-                filter(dec__range=[dec - 5. / 3600., dec + 5. / 3600.])
-        except Exception:
-            return queryset.filter(name__icontains=value)
+        value = (value or '').strip()
+        if not value:
+            return queryset
+
+        matched_alias_subq = Identifier.objects.filter(
+            star_id=OuterRef('pk'),
+            name__icontains=value,
+        ).order_by('name').values('name')[:1]
+
+        return queryset.filter(
+            Q(name__icontains=value) | Q(identifier__name__icontains=value),
+        ).distinct().annotate(
+            _matched_alias=Subquery(matched_alias_subq),
+            _name_filter_match=Case(
+                When(name__icontains=value, then=Value('name')),
+                default=Value('alias'),
+                output_field=CharField(),
+            ),
+        )
 
     def filter_coordinates(self, queryset, name, value):
         ra, dec = value.split('--')

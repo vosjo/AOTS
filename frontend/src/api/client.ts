@@ -27,10 +27,25 @@ export function formatApiError(error: unknown): string {
   if (error && typeof error === 'object') {
     const err = error as { data?: unknown; message?: string }
     if (typeof err.data === 'string' && err.data.trim()) return err.data
-    if (err.data && typeof err.data === 'object' && err.data !== null && 'detail' in err.data) {
-      const detail = (err.data as { detail: unknown }).detail
-      if (typeof detail === 'string') return detail
-      if (detail !== undefined) return JSON.stringify(detail, null, 2)
+    if (err.data && typeof err.data === 'object' && err.data !== null) {
+      const data = err.data as Record<string, unknown>
+      if ('detail' in data) {
+        const detail = data.detail
+        if (typeof detail === 'string') return detail
+        if (detail !== undefined) return JSON.stringify(detail, null, 2)
+      }
+      const fieldMessages = Object.entries(data)
+        .map(([field, value]) => {
+          if (Array.isArray(value)) {
+            return `${field}: ${value.join(', ')}`
+          }
+          if (typeof value === 'string') {
+            return `${field}: ${value}`
+          }
+          return `${field}: ${JSON.stringify(value)}`
+        })
+        .filter(Boolean)
+      if (fieldMessages.length) return fieldMessages.join('\n')
     }
     if (err.message) return err.message
   }

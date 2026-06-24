@@ -3,6 +3,7 @@ import json
 from django.contrib.admin.models import ADDITION, CHANGE, DELETION, LogEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
@@ -36,6 +37,12 @@ class AdminUserSerializer(serializers.ModelSerializer):
             'password',
         ]
         read_only_fields = ('id',)
+        extra_kwargs = {
+            'email': {'allow_blank': True},
+            'first_name': {'allow_blank': True},
+            'last_name': {'allow_blank': True},
+            'note': {'allow_blank': True},
+        }
 
     def validate(self, attrs):
         if self.instance is None and not attrs.get('password'):
@@ -44,14 +51,24 @@ class AdminUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        return User.objects.create_user(password=password, **validated_data)
+        try:
+            return User.objects.create_user(password=password, **validated_data)
+        except DjangoValidationError as exc:
+            if hasattr(exc, 'message_dict') and exc.message_dict:
+                raise serializers.ValidationError(exc.message_dict) from exc
+            raise serializers.ValidationError({'password': exc.messages}) from exc
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         if password:
-            instance.set_password(password)
+            try:
+                instance.set_password(password)
+            except DjangoValidationError as exc:
+                if hasattr(exc, 'message_dict') and exc.message_dict:
+                    raise serializers.ValidationError(exc.message_dict) from exc
+                raise serializers.ValidationError({'password': exc.messages}) from exc
         instance.save()
         return instance
 

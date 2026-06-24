@@ -89,6 +89,23 @@ class AdminUserApiTests(TestCase):
         delete = self.client.delete(f'/api/admin/users/{user_id}/')
         self.assertEqual(delete.status_code, status.HTTP_204_NO_CONTENT)
 
+    def test_create_user_with_empty_note(self):
+        response = self.client.post(
+            '/api/admin/users/',
+            {
+                'username': 'blanknote',
+                'email': 'blanknote@test.com',
+                'password': 'secret123',
+                'note': '',
+                'first_name': '',
+                'last_name': '',
+                'is_active': True,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(response.data['note'], '')
+
     def test_cannot_delete_self(self):
         response = self.client.delete(f'/api/admin/users/{self.superuser.pk}/')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

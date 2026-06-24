@@ -8,7 +8,13 @@ from astropy.coordinates import EarthLocation
 from astropy.coordinates.angles import Angle
 from astropy.time import Time
 
+from django.db.models import Q
+
 from observations.models import Observatory
+
+
+def _is_tess_header(header):
+    return 'TESS' in header.get('TELESCOP', '')
 
 
 def extract_header_info(header, user_info={}):
@@ -83,6 +89,8 @@ def get_observatory(header, project):
     #   Maximum tolerable deviation in the coordinates
     #   -> a difference of 0.1 degree in latitude and longitude is roughly 10 km
     d = 0.1
+    is_tess = _is_tess_header(header)
+    telescope = header.get('TELESCOP', 'UK')
 
     #    Try to find the observatory on name match
     if 'TELESCOP' in header:
@@ -91,9 +99,22 @@ def get_observatory(header, project):
                 telescopes__icontains=header['TELESCOP'],
                 project__exact=project,
             )
+            if is_tess and not obs.space_craft:
+                obs.space_craft = True
+                obs.save(update_fields=['space_craft'])
             return obs
-        except Exception as e:
-            telescope = header.get('TELESCOP', 'UK')
+        except Exception:
+            pass
+
+    if is_tess:
+        tess_obs = Observatory.objects.filter(
+            project=project,
+            space_craft=True,
+        ).filter(
+            Q(telescopes__icontains='TESS') | Q(name__icontains='TESS'),
+        ).first()
+        if tess_obs is not None:
+            return tess_obs
 
     #   Try to find observatory on location match
     if 'OBSGEO-X' in header:
@@ -148,6 +169,8 @@ def get_observatory(header, project):
         longitude__range=(loc.lon.degree - d, loc.lon.degree + d),
         project__exact=project,
     )
+    if is_tess:
+        obs = obs.filter(space_craft=True)
 
     if len(obs) > 0:
         return obs[0]
@@ -159,6 +182,8 @@ def get_observatory(header, project):
         longitude=loc.lon.degree,
         altitude=loc.height.value,
         project=project,
+        space_craft=is_tess,
+        telescopes=telescope if is_tess else '',
     )
     obs.save()
 

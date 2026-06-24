@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from observations.models import LightCurve
+from observations.models import LightCurve, Observatory
 from observations.services.tess_import import import_tess_lightcurves_for_star, query_tess_lc_products
 from stars.models import Project, Star
 
@@ -39,6 +39,33 @@ class TessImportServiceTests(TestCase):
         self.assertEqual(lc.star_id, self.star.pk)
         self.assertEqual(lc.telescope, 'TESS')
         self.assertEqual(lc.passband, 'TESS.RED')
+        self.assertTrue(lc.observatory.space_craft)
+        self.assertEqual(lc.observatory.name, 'TESS')
+        self.assertEqual(lc.observatory.telescopes, 'TESS')
+
+    @patch('observations.services.tess_import.Observations.download_products')
+    @patch('observations.services.tess_import.query_tess_lc_products')
+    def test_import_does_not_match_ground_observatory_at_null_island(self, mock_query, mock_download):
+        ground = Observatory.objects.create(
+            project=self.project,
+            name='Default site',
+            latitude=0,
+            longitude=0,
+            altitude=0,
+            space_craft=False,
+        )
+        mock_query.return_value = [{'productFilename': 'tess_sector1_lc.fits'}]
+        mock_download.side_effect = lambda row, download_dir: {
+            'Local Path': [self._write_fake_lc(download_dir, row['productFilename'])],
+        }
+
+        result = import_tess_lightcurves_for_star(self.star)
+
+        self.assertEqual(result.status, 'ok')
+        lc = LightCurve.objects.get(pk=result.imported[0])
+        self.assertNotEqual(lc.observatory_id, ground.pk)
+        self.assertTrue(lc.observatory.space_craft)
+        self.assertEqual(lc.observatory.name, 'TESS')
 
     @patch('observations.services.tess_import.Observations.download_products')
     @patch('observations.services.tess_import.query_tess_lc_products')

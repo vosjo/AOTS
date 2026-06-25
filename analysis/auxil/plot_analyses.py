@@ -176,7 +176,6 @@ def plot_generic_large(datafile, *, theme=None):
     # -- plot the data
     if "DATA" in hdf:
         data = hdf["DATA"]
-        bokehsource = bpl.ColumnDataSource()
 
         for i, (name, dataset) in enumerate(data.items()):
             xpar = get_attr(dataset, "xpar", "x")
@@ -195,8 +194,13 @@ def plot_generic_large(datafile, *, theme=None):
                 )
 
             elif get_attr(dataset, "datatype", None) == "discrete":
-                bokehsource.add(dataset[xpar], name=name + "_x")
-                bokehsource.add(dataset[ypar], name=name + "_y")
+                # Each discrete series needs its own source: Bokeh requires equal column lengths.
+                bokehsource = bpl.ColumnDataSource({
+                    name + "_x": dataset[xpar],
+                    name + "_y": dataset[ypar],
+                })
+                if ypar + "_err" in dataset.dtype.names:
+                    bokehsource.data[name + "_yerr"] = dataset[ypar + "_err"]
 
                 rend = fig.scatter(
                     name + "_x",
@@ -210,7 +214,6 @@ def plot_generic_large(datafile, *, theme=None):
 
                 tooltips = [(get_attr(data, "xlabel", "x"), "@" + name + "_x")]
                 if ypar + "_err" in dataset.dtype.names:
-                    bokehsource.add(dataset[ypar + "_err"], name=name + "_yerr")
                     tooltips += [
                         (
                             get_attr(data, "ylabel", "y"),

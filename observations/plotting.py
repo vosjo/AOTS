@@ -31,7 +31,7 @@ def plot_visibility(observation, *, theme=None):
     plot_theme = resolve_bokeh_theme(theme)
 
     fig = bpl.figure(
-        height=200,
+        height=300,
         sizing_mode='scale_width',
         toolbar_location=None,
         y_range=(0, 90),
@@ -43,7 +43,7 @@ def plot_visibility(observation, *, theme=None):
     fig.xaxis.axis_label = 'Hours from sunset'
     fig.yaxis.axis_label_text_font_size = '10pt'
     fig.xaxis.axis_label_text_font_size = '10pt'
-    fig.min_border = 5
+    fig.min_border = 10
 
     try:
 

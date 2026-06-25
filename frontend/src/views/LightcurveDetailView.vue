@@ -286,16 +286,16 @@ async function remove() {
           </div>
         </section>
 
-        <section class="aots-panel-compact flex min-h-0 flex-col">
+        <section class="aots-panel-compact flex min-h-0 flex-col lg:h-full">
           <h2 class="text-sm font-medium mb-2 shrink-0">Visibility</h2>
-          <div class="min-h-0 flex-1 w-full overflow-hidden">
+          <div class="min-h-[260px] sm:min-h-[300px] lg:min-h-0 flex-1 w-full overflow-hidden">
             <div
               v-if="visibilityLoading && !visibilityPlot?.visibility"
-              class="h-full min-h-[120px] rounded bg-aots-surface-muted/40 animate-pulse"
+              class="h-full min-h-[260px] sm:min-h-[300px] rounded bg-aots-surface-muted/40 animate-pulse"
             />
             <BokehPlot
               v-else-if="visibilityPlot?.visibility"
-              compact
+              fill
               :item="visibilityPlot.visibility.item"
             />
           </div>

@@ -295,7 +295,7 @@ async function remove() {
             />
             <BokehPlot
               v-else-if="visibilityPlot?.visibility"
-              fill
+              compact
               :item="visibilityPlot.visibility.item"
             />
           </div>

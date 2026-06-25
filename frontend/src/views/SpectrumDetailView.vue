@@ -337,7 +337,7 @@ function yesNo(value: boolean) {
             />
             <BokehPlot
               v-else-if="visibilityPlot?.visibility"
-              fill
+              compact
               :item="visibilityPlot.visibility.item"
             />
           </div>

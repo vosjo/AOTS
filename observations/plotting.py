@@ -32,16 +32,15 @@ def plot_visibility(observation, *, theme=None):
 
     fig = bpl.figure(
         height=200,
-        sizing_mode='stretch_both',
+        sizing_mode='scale_width',
         toolbar_location=None,
         y_range=(0, 90),
-        x_axis_type="datetime",
     )
 
     fig.toolbar.logo = None
     fig.title.align = 'center'
     fig.yaxis.axis_label = 'Altitude (dgr)'
-    fig.xaxis.axis_label = 'UT'
+    fig.xaxis.axis_label = 'Hours from sunset'
     fig.yaxis.axis_label_text_font_size = '10pt'
     fig.xaxis.axis_label_text_font_size = '10pt'
     fig.min_border = 5
@@ -68,9 +67,9 @@ def plot_visibility(observation, *, theme=None):
         time = Time(observation.hjd, format='jd')
 
         sunset, sunrise = observation.observatory.get_sunset_sunrise(time)
+        sunset_jd = sunset.jd
 
-        times = np.linspace(sunset.jd, sunrise.jd, 100)
-        times = Time(times, format='jd')
+        times = Time(np.linspace(sunset_jd, sunrise.jd, 100), format='jd')
 
         star = SkyCoord(ra=observation.ra * u.deg, dec=observation.dec * u.deg, )
 
@@ -81,14 +80,17 @@ def plot_visibility(observation, *, theme=None):
         moon = get_body('moon', times)
         moon_altaz = moon.transform_to(frame_star)
 
-        times = times.to_datetime()
+        hours = (times.jd - sunset_jd) * 24.0
+        star_alt = np.asarray(star_altaz.alt.to(u.deg))
+        moon_alt = np.asarray(moon_altaz.alt.to(u.deg))
 
-        fig.line(times, star_altaz.alt, color=plot_theme.marker_fill, line_width=2)
-        fig.line(times, moon_altaz.alt, color='orange', line_dash='dashed', line_width=2)
+        fig.line(hours, star_alt, color=plot_theme.marker_fill, line_width=2)
+        fig.line(hours, moon_alt, color='orange', line_dash='dashed', line_width=2)
 
-        obsstart = (time - observation.exptime / 2 * u.second).to_datetime()
-        obsend = (time + observation.exptime / 2 * u.second).to_datetime()
-        obs = mpl.BoxAnnotation(left=obsstart, right=obsend, fill_alpha=0.5, fill_color='red')
+        obs_half_jd = observation.exptime / 2.0 / 86400.0
+        obs_left = (time.jd - obs_half_jd - sunset_jd) * 24.0
+        obs_right = (time.jd + obs_half_jd - sunset_jd) * 24.0
+        obs = mpl.BoxAnnotation(left=obs_left, right=obs_right, fill_alpha=0.5, fill_color='red')
         fig.add_layout(obs)
 
     except Exception as e:

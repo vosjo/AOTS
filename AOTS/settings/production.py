@@ -43,16 +43,31 @@ MIDDLEWARE = [
     *BASE_MIDDLEWARE[1:],
 ]
 
+# Aladin Lite (StarDetailView): HiPS tiles, VizieR proxy, WASM bootstrap.
+_ALADIN_CONNECT_SRC = (
+    'https://alasky.cds.unistra.fr',
+    'https://alaskybis.cds.unistra.fr',
+    'https://alasky.unistra.fr',
+    'https://alaskybis.unistra.fr',
+    'https://aladin.cds.unistra.fr',
+    'https://cds.unistra.fr',
+    'https://vizier.unistra.fr',
+    'https://axel.cds.unistra.fr',
+    'https://simbad.cds.unistra.fr',
+    'https://dachs.ivoa.srcnet.skao.int',
+)
+
 CONTENT_SECURITY_POLICY = {
     'DIRECTIVES': {
         'default-src': ("'self'",),
         # No inline scripts in spa/index.html; Bokeh uses json_item + CDN only.
         # Do not use 'strict-dynamic' here — it disables 'self' for parser-inserted scripts.
-        'script-src': ("'self'", 'https://cdn.bokeh.org'),
+        'script-src': ("'self'", 'https://cdn.bokeh.org', "'wasm-unsafe-eval'"),
         'style-src': ("'self'", "'unsafe-inline'"),
         'img-src': ("'self'", 'data:', 'blob:', 'https:'),
         'media-src': ("'self'", 'data:', 'blob:'),
-        'connect-src': ("'self'",),
+        'connect-src': ("'self'", 'data:', 'blob:', *_ALADIN_CONNECT_SRC),
+        'worker-src': ("'self'", 'blob:'),
         'font-src': ("'self'", 'data:'),
         'frame-ancestors': ("'self'",),
     },

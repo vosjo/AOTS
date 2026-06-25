@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { CheckCircle2, Download, Pencil, Star, Trash2, XCircle } from '@lucide/vue'
+import { CheckCircle2, Download, Pencil, Star, Trash2, XCircle, FileText} from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
@@ -301,56 +301,69 @@ async function remove() {
           </div>
         </section>
 
-        <section class="aots-panel-compact flex min-h-0 flex-col space-y-3">
-          <div>
-            <h2 class="text-sm font-medium mb-1">Light curve files</h2>
-            <ul v-if="lc.filetype" class="text-xs space-y-1">
-              <li class="flex flex-wrap items-center gap-1">
-                <span>{{ lc.filetype }}</span>
-                <AppButton variant="link" @click="showHeader">
-                  (header)
-                </AppButton>
-                <AppButton
-                  v-if="auth.isAuthenticated && lc.download_url"
-                  variant="link"
-                  :href="lc.download_url"
-                  title="Download"
-                >
-                  <Download class="w-3.5 h-3.5" />
-                </AppButton>
-              </li>
-            </ul>
-            <p v-else class="text-xs text-aots-muted">No files</p>
-          </div>
+        <section class="aots-panel-compact flex h-full min-h-0 min-w-0 flex-col">
+          <div class="flex min-h-0 flex-1 flex-col gap-3">
+            <div class="min-w-0">
+              <h2 class="text-sm font-medium mb-1">Light curve files</h2>
+              <ul v-if="lc.filetype" class="text-xs space-y-1 min-w-0">
+                <li class="flex min-w-0 flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center">
+                  <span
+                    class="min-w-0 break-all font-mono text-aots leading-snug"
+                    :title="lc.filetype"
+                  >
+                    {{ lc.filetype }}
+                  </span>
+                  <span class="flex shrink-0 items-center gap-3">
+                    <AppButton variant="link" @click="showHeader">
+                      <FileText class="w-3.5 h-3.5" /> (Header)
+                    </AppButton>
+                    <AppButton
+                      v-if="auth.isAuthenticated && lc.download_url"
+                      variant="link"
+                      :href="lc.download_url"
+                      title="Download"
+                    >
+                      <Download class="w-3.5 h-3.5" /> (FITS)
+                    </AppButton>
+                  </span>
+                </li>
+              </ul>
+              <p v-else class="text-xs text-aots-muted">No files</p>
+            </div>
 
-          <div class="border-t border-aots pt-2 relative">
-            <h2 class="text-sm font-medium">Note</h2>
-            <AppButton
-              v-if="auth.isAuthenticated"
-              variant="icon"
-              class="absolute top-2 right-0"
-              title="Edit note"
-              @click="noteEdit = !noteEdit"
-            >
-              <Pencil class="w-4 h-4" />
-            </AppButton>
-            <p v-if="!noteEdit" class="text-xs text-aots-muted mt-1 whitespace-pre-wrap pr-8">
-              {{ lc.note || '—' }}
-            </p>
-            <div v-else class="mt-2 space-y-2">
-              <textarea v-model="noteText" class="aots-field text-xs" rows="4" />
-              <AppButton variant="primary" size="sm" @click="saveNote">Save</AppButton>
+            <div class="border-t border-aots pt-2 relative">
+              <h2 class="text-sm font-medium">Note</h2>
+              <AppButton
+                v-if="auth.isAuthenticated"
+                variant="icon"
+                class="absolute top-2 right-0"
+                title="Edit note"
+                @click="noteEdit = !noteEdit"
+              >
+                <Pencil class="w-4 h-4" />
+              </AppButton>
+              <p v-if="!noteEdit" class="text-xs text-aots-muted mt-1 whitespace-pre-wrap pr-8">
+                {{ lc.note || '—' }}
+              </p>
+              <div v-else class="mt-2 space-y-2">
+                <textarea v-model="noteText" class="aots-field text-xs" rows="4" />
+                <AppButton variant="primary" size="sm" @click="saveNote">Save</AppButton>
+              </div>
             </div>
           </div>
 
-          <AppButton
+          <div
             v-if="auth.isAuthenticated"
-            variant="ghost-danger"
-            size="sm"
-            @click="remove"
+            class="mt-auto shrink-0 border-t border-aots pt-2"
           >
-            Delete light curve <Trash2 class="w-3 h-3 inline-block ml-1" />
-          </AppButton>
+            <AppButton
+              variant="ghost-danger"
+              size="sm"
+              @click="remove"
+            >
+              <Trash2 class="w-3.5 h-3.5" /> Delete light curve
+            </AppButton>
+          </div>
         </section>
       </div>
 

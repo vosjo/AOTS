@@ -48,7 +48,7 @@ from csp.constants import NONCE
 CONTENT_SECURITY_POLICY = {
     'DIRECTIVES': {
         'default-src': ("'self'",),
-        'script-src': ("'self'", NONCE, 'https://cdn.bokeh.org'),
+        'script-src': ("'self'", NONCE, "'strict-dynamic'", 'https://cdn.bokeh.org'),
         'style-src': ("'self'", "'unsafe-inline'"),
         'img-src': ("'self'", 'data:', 'blob:', 'https:'),
         'media-src': ("'self'", 'data:', 'blob:'),

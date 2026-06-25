@@ -4,27 +4,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token }}" />
+  <meta name="aots-test-installation" content="{{ test_installation|yesno:'true,false' }}" />
+  <meta name="aots-router-base" content="{{ router_base }}" />
   <link rel="icon" href="{% static 'favicon.ico' %}" />
   <title>AOTS</title>
-  <script nonce="{{ request.csp_nonce }}">
-    (function () {
-      try {
-        var theme = localStorage.getItem('aots-theme');
-        document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
-      } catch (e) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      }
-    })();
-    window.__AOTS_BOOTSTRAP__ = {
-      csrfToken: '{{ csrf_token }}',
-      testInstallation: {{ test_installation|yesno:"true,false" }},
-      routerBase: '{{ router_base }}',
-    };
-  </script>
   {% if vite_dev %}
+  <script src="http://localhost:5173/app/aots-bootstrap.js"></script>
   <script type="module" src="http://localhost:5173/app/@vite/client"></script>
   <script type="module" src="http://localhost:5173/app/src/main.ts"></script>
   {% else %}
+  <script src="{% static 'dist/aots-bootstrap.js' %}"></script>
   <link rel="stylesheet" href="{% static 'dist/assets/index.css' %}" />
   <script type="module" src="{% static 'dist/assets/index.js' %}"></script>
   {% endif %}

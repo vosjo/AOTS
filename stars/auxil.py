@@ -477,35 +477,14 @@ def update_photometry(cleaned_data, project, star_id, from_vizier):
                     error=err_val,
                     unit='mag',
                 )
+        return True, ''
     else:
-        for content in catalogs.values():
-            try:
-                v = Vizier(
-                    catalog=content['simbad_id'],
-                    columns=content['columns'] + content['err_columns'],
-                )
-                photo = v.query_region(
-                    SkyCoord(ra=star.ra, dec=star.dec, unit=(u.deg, u.deg), frame='icrs'),
-                    radius=1 * u.arcsec,
-                )
-            except Exception:
-                continue
-            if len(photo) == 0:
-                continue
-            for i, column in enumerate(content['columns']):
-                values = _vizier_mag_err(photo[0], column, content['err_columns'][i])
-                if values is None:
-                    continue
-                mag, err = values
-                band_id = content['passbands'][i]
-                star.photometry_set.filter(band=band_id).delete()
-                star.photometry_set.create(
-                    band=band_id,
-                    measurement=mag,
-                    error=err,
-                    unit='mag',
-                )
-    return True, ""
+        from stars.services.vizier_photometry import import_photometry_from_vizier_for_star
+
+        result = import_photometry_from_vizier_for_star(star)
+        if result.status == 'error':
+            return False, result.message
+        return True, result.message
 
 
 def _parameter_display_value(param) -> str:

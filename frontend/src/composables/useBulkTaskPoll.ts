@@ -15,6 +15,25 @@ export interface BulkTaskPollOptions<T> {
   onProgress?: (status: TaskPollStatus<T>, total: number) => string
 }
 
+export interface BulkTaskPollState<T> {
+  status: string
+  busy: boolean
+  lastSummary: T | null
+  dispose: () => void
+}
+
+export type StartBulkOptions = { all?: boolean }
+
+export type StartBulkFn = (
+  starIds: number[],
+  projectId: number,
+  options?: StartBulkOptions,
+) => Promise<void>
+
+export interface BulkFetchState<T> extends BulkTaskPollState<T> {
+  startBulk: StartBulkFn
+}
+
 export function createBulkTaskPollState<T>() {
   let active = true
 
@@ -25,7 +44,7 @@ export function createBulkTaskPollState<T>() {
     dispose() {
       active = false
     },
-  })
+  }) as BulkTaskPollState<T>
 
   async function pollTask(taskId: string, total: number, options: BulkTaskPollOptions<T>): Promise<T> {
     for (;;) {
@@ -51,6 +70,13 @@ export function createBulkTaskPollState<T>() {
   })
 
   return { state, pollTask, isActive: () => active }
+}
+
+export function extendBulkFetchState<T>(
+  state: BulkTaskPollState<T>,
+  extensions: { startBulk: StartBulkFn },
+): BulkFetchState<T> {
+  return Object.assign(state, extensions)
 }
 
 export function progressWithMeta(label: string, total: number, meta?: TaskPollStatus<unknown>['meta']): string {

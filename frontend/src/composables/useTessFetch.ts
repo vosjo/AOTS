@@ -1,4 +1,5 @@
-import { createBulkTaskPollState, progressWithMeta } from '@/composables/useBulkTaskPoll'
+import { createBulkTaskPollState, extendBulkFetchState, progressWithMeta } from '@/composables/useBulkTaskPoll'
+import type { BulkFetchState } from '@/composables/useBulkTaskPoll'
 import { api } from '@/api/client'
 
 export interface TessBulkSummary {
@@ -12,10 +13,10 @@ export interface TessBulkSummary {
   errors: Array<{ star_pk: number; star_name?: string; message: string }>
 }
 
-export function useTessFetch() {
+export function useTessFetch(): BulkFetchState<TessBulkSummary> {
   const { state, pollTask } = createBulkTaskPollState<TessBulkSummary>()
 
-  Object.assign(state, {
+  return extendBulkFetchState(state, {
     async startBulk(starIds: number[], projectId: number, options?: { all?: boolean }) {
       if (!options?.all && !starIds.length) return
       state.busy = true
@@ -41,6 +42,4 @@ export function useTessFetch() {
       }
     },
   })
-
-  return state
 }

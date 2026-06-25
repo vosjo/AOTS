@@ -139,13 +139,17 @@ def star_fetch_photometry_vizier(request, pk):
     star = get_object_if_allowed(
         Star, request, pk, select_related=('project',), require_edit=True,
     )
+    from stars.services.vizier_photometry import import_photometry_from_vizier_for_star
+
     try:
-        success, message = update_photometry({}, star.project, star.pk, True)
+        result = import_photometry_from_vizier_for_star(star)
     except Exception as exc:
         return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    if not success:
-        return Response({'detail': message or 'VizieR fetch failed'}, status=status.HTTP_400_BAD_REQUEST)
-    return Response({'detail': message or 'Photometry updated from VizieR'})
+    if result.status == 'error':
+        return Response({'detail': result.message or 'VizieR fetch failed'}, status=status.HTTP_400_BAD_REQUEST)
+    if result.status == 'no_match':
+        return Response({'detail': result.message or 'No photometry found in VizieR'})
+    return Response({'detail': result.message or 'Photometry updated from VizieR'})
 
 
 @api_view(['GET'])

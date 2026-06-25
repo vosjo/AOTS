@@ -1,4 +1,5 @@
-import { createBulkTaskPollState, progressWithMeta } from '@/composables/useBulkTaskPoll'
+import { createBulkTaskPollState, extendBulkFetchState, progressWithMeta } from '@/composables/useBulkTaskPoll'
+import type { BulkFetchState } from '@/composables/useBulkTaskPoll'
 import { api } from '@/api/client'
 
 export interface SimbadAliasesBulkSummary {
@@ -11,10 +12,10 @@ export interface SimbadAliasesBulkSummary {
   errors: Array<{ star_pk: number; star_name?: string; message: string }>
 }
 
-export function useSimbadAliasesFetch() {
+export function useSimbadAliasesFetch(): BulkFetchState<SimbadAliasesBulkSummary> {
   const { state, pollTask } = createBulkTaskPollState<SimbadAliasesBulkSummary>()
 
-  Object.assign(state, {
+  return extendBulkFetchState(state, {
     async startBulk(starIds: number[], projectId: number, options?: { all?: boolean }) {
       if (!options?.all && !starIds.length) return
       state.busy = true
@@ -40,6 +41,4 @@ export function useSimbadAliasesFetch() {
       }
     },
   })
-
-  return state
 }

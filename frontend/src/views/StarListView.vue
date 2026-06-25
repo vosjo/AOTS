@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import { Plus } from '@lucide/vue'
+import { Plus, Menu } from '@lucide/vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
@@ -15,6 +15,7 @@ import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useGaiaFetch } from '@/composables/useGaiaFetch'
 import { useSimbadAliasesFetch } from '@/composables/useSimbadAliasesFetch'
 import { useTessFetch } from '@/composables/useTessFetch'
+import { useVizierPhotometryFetch } from '@/composables/useVizierPhotometryFetch'
 import { useSimbadResolve } from '@/composables/useSimbadResolve'
 import { api, type PaginatedResponse } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -102,11 +103,14 @@ const projectStore = useProjectStore()
 const gaiaFetch = useGaiaFetch()
 const tessFetch = useTessFetch()
 const simbadAliasesFetch = useSimbadAliasesFetch()
+const vizierPhotometryFetch = useVizierPhotometryFetch()
 const gaiaSummaryMessage = ref('')
 const tessSummaryMessage = ref('')
 const simbadSummaryMessage = ref('')
+const vizierSummaryMessage = ref('')
 const projectSlug = computed(() => route.params.projectSlug as string)
 const filterOpen = ref(false)
+const mobileActionsOpen = ref(false)
 const filters = ref(emptyFilters())
 
 function nameMatchHint(row: StarRow): string | null {
@@ -146,6 +150,8 @@ const tessDialog = ref(false)
 const tessDialogMode = ref<'selected' | 'all'>('selected')
 const simbadDialog = ref(false)
 const simbadDialogMode = ref<'selected' | 'all'>('selected')
+const vizierDialog = ref(false)
+const vizierDialogMode = ref<'selected' | 'all'>('selected')
 const projectStarCount = ref<number | null>(null)
 const addDialog = ref(false)
 const selectedTagIds = ref<number[]>([])
@@ -190,6 +196,18 @@ function toggleFilterArray(key: 'classification_type' | 'status' | 'tags', value
 function statusDot(status: string) {
   return STATUS_COLORS[status] ?? 'bg-slate-500'
 }
+
+function closeMobileActions() {
+  mobileActionsOpen.value = false
+}
+
+const anyBulkBusy = computed(
+  () =>
+    gaiaFetch.busy ||
+    tessFetch.busy ||
+    vizierPhotometryFetch.busy ||
+    simbadAliasesFetch.busy,
+)
 
 function carryTo(path: string) {
   saveCarryOver(selectedIds.value)
@@ -334,6 +352,50 @@ async function confirmSimbadFetch() {
   }
 }
 
+async function openVizierDialog() {
+  if (!projectStore.currentProject || vizierPhotometryFetch.busy) return
+  if (selectedIds.value.length) {
+    vizierDialogMode.value = 'selected'
+    projectStarCount.value = null
+  } else {
+    vizierDialogMode.value = 'all'
+    projectStarCount.value = null
+    try {
+      const res = await api<PaginatedResponse<unknown>>(
+        `/api/systems/stars/?project=${projectStore.currentProject.pk}&page_size=1`,
+      )
+      projectStarCount.value = res.count
+    } catch {
+      projectStarCount.value = null
+    }
+  }
+  vizierDialog.value = true
+}
+
+async function confirmVizierFetch() {
+  const project = projectStore.currentProject
+  if (!project) return
+  vizierDialog.value = false
+  vizierSummaryMessage.value = ''
+  try {
+    if (vizierDialogMode.value === 'all') {
+      await vizierPhotometryFetch.startBulk([], project.pk, { all: true })
+    } else {
+      await vizierPhotometryFetch.startBulk(selectedIds.value, project.pk)
+    }
+    const s = vizierPhotometryFetch.lastSummary
+    if (s) {
+      vizierSummaryMessage.value =
+        `VizieR photometry fetch complete: ${s.bands_updated_total} band(s) updated across ` +
+        `${s.ok} system(s), ${s.no_match} no match, ${s.failed} failed.`
+    }
+    await query.refetch()
+  } catch (e) {
+    vizierSummaryMessage.value =
+      e instanceof Error ? e.message : 'VizieR photometry fetch failed'
+  }
+}
+
 function openTagDialog() {
   selectedTagIds.value = []
   tagError.value = ''
@@ -464,6 +526,7 @@ async function addSystem() {
     <AppAlert v-if="gaiaSummaryMessage" kind="info">{{ gaiaSummaryMessage }}</AppAlert>
     <AppAlert v-if="tessSummaryMessage" kind="info">{{ tessSummaryMessage }}</AppAlert>
     <AppAlert v-if="simbadSummaryMessage" kind="info">{{ simbadSummaryMessage }}</AppAlert>
+    <AppAlert v-if="vizierSummaryMessage" kind="info">{{ vizierSummaryMessage }}</AppAlert>
 
     <DataTablePage
       hide-title
@@ -493,6 +556,148 @@ async function addSystem() {
     @toggle-all="toggleAll(rows)"
   >
     <template #actions>
+      <div class="flex w-full basis-full items-center gap-2 md:hidden">
+        <AppButton
+          v-if="auth.isAuthenticated"
+          variant="primary"
+          class="inline-flex shrink-0 items-center gap-1.5"
+          @click="openAddDialog"
+        >
+          <Plus class="w-4 h-4" />
+          Add system(s)
+        </AppButton>
+        <div class="relative ml-auto">
+          <button
+            type="button"
+            class="aots-btn-icon !p-2"
+            aria-label="Table actions"
+            :aria-expanded="mobileActionsOpen"
+            @click="mobileActionsOpen = !mobileActionsOpen"
+          >
+            <Menu class="h-5 w-5" />
+          </button>
+          <button
+            v-if="mobileActionsOpen"
+            type="button"
+            class="fixed inset-0 z-10 cursor-default"
+            aria-label="Close actions menu"
+            @click="closeMobileActions"
+          />
+          <div
+            v-if="mobileActionsOpen"
+            class="aots-panel absolute right-0 top-full z-20 mt-1 flex min-w-[14rem] flex-col gap-0.5 p-1 shadow-lg"
+          >
+            <AppButton
+              variant="ghost"
+              size="sm"
+              class="w-full justify-start"
+              @click="closeMobileActions(); filterOpen = true"
+            >
+              Filters
+            </AppButton>
+            <template v-if="auth.isAuthenticated">
+              <AppButton
+                variant="ghost"
+                size="sm"
+                class="w-full justify-start"
+                :disabled="!selectedIds.length"
+                @click="closeMobileActions(); openTagDialog()"
+              >
+                Edit tags
+              </AppButton>
+              <AppButton
+                variant="ghost"
+                size="sm"
+                class="w-full justify-start"
+                :disabled="!selectedIds.length"
+                @click="closeMobileActions(); openStatusDialog()"
+              >
+                Change status
+              </AppButton>
+              <AppButton
+                variant="ghost"
+                size="sm"
+                class="w-full justify-start"
+                :disabled="gaiaFetch.busy"
+                @click="closeMobileActions(); openGaiaDialog()"
+              >
+                Fetch Gaia
+              </AppButton>
+              <AppButton
+                variant="ghost"
+                size="sm"
+                class="w-full justify-start"
+                :disabled="tessFetch.busy"
+                @click="closeMobileActions(); openTessDialog()"
+              >
+                Fetch TESS
+              </AppButton>
+              <AppButton
+                variant="ghost"
+                size="sm"
+                class="w-full justify-start"
+                :disabled="vizierPhotometryFetch.busy"
+                @click="closeMobileActions(); openVizierDialog()"
+              >
+                Fetch VizieR
+              </AppButton>
+              <AppButton
+                v-if="auth.canSyncSimbadAliases"
+                variant="ghost"
+                size="sm"
+                class="w-full justify-start"
+                :disabled="simbadAliasesFetch.busy"
+                @click="closeMobileActions(); openSimbadDialog()"
+              >
+                Update Simbad aliases
+              </AppButton>
+              <AppButton
+                variant="ghost"
+                size="sm"
+                class="w-full justify-start"
+                :disabled="!selectedIds.length"
+                @click="closeMobileActions(); carryTo('spectra')"
+              >
+                Carry-over → Spectra
+              </AppButton>
+              <AppButton
+                variant="ghost"
+                size="sm"
+                class="w-full justify-start"
+                :disabled="!selectedIds.length"
+                @click="closeMobileActions(); carryTo('lightcurves')"
+              >
+                Carry-over → LC
+              </AppButton>
+              <AppButton
+                variant="danger"
+                size="sm"
+                class="w-full justify-start"
+                :disabled="!selectedIds.length"
+                @click="closeMobileActions(); deleteSelected()"
+              >
+                Delete
+              </AppButton>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-if="anyBulkBusy"
+        class="flex w-full basis-full flex-col gap-1 md:hidden"
+      >
+        <BulkDownloadProgress :status="gaiaFetch.status" :busy="gaiaFetch.busy" />
+        <BulkDownloadProgress :status="tessFetch.status" :busy="tessFetch.busy" />
+        <BulkDownloadProgress :status="vizierPhotometryFetch.status" :busy="vizierPhotometryFetch.busy" />
+        <BulkDownloadProgress
+          v-if="auth.canSyncSimbadAliases"
+          :status="simbadAliasesFetch.status"
+          :busy="simbadAliasesFetch.busy"
+        />
+      </div>
+
+      <div class="hidden md:contents">
       <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
       <AppButton
         v-if="auth.isAuthenticated"
@@ -534,6 +739,14 @@ async function addSystem() {
           Fetch TESS
         </AppButton>
         <BulkDownloadProgress :status="tessFetch.status" :busy="tessFetch.busy" />
+        <AppButton
+          variant="secondary"
+          :disabled="vizierPhotometryFetch.busy"
+          @click="openVizierDialog"
+        >
+          Fetch VizieR
+        </AppButton>
+        <BulkDownloadProgress :status="vizierPhotometryFetch.status" :busy="vizierPhotometryFetch.busy" />
         <template v-if="auth.canSyncSimbadAliases">
           <AppButton
             variant="secondary"
@@ -566,6 +779,7 @@ async function addSystem() {
           Delete
         </AppButton>
       </template>
+      </div>
     </template>
 
     <template #cell-name="{ row }">
@@ -822,6 +1036,36 @@ async function addSystem() {
       <div class="flex gap-2 mt-4">
         <AppButton variant="primary" @click="confirmSimbadFetch">Update aliases</AppButton>
         <AppButton variant="ghost" @click="simbadDialog = false">Cancel</AppButton>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog
+    v-if="vizierDialog"
+    open
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
+    @click.self="vizierDialog = false"
+  >
+    <div class="aots-panel w-full max-w-md">
+      <h3 class="font-medium mb-3">Fetch photometry from VizieR</h3>
+      <p v-if="vizierDialogMode === 'selected'" class="text-sm text-aots-muted">
+        Fetch photometry from VizieR for {{ selectedIds.length }} selected system(s)?
+        Existing values for matching bands will be replaced.
+      </p>
+      <template v-else>
+        <AppAlert kind="warning" class="mb-3">
+          You are about to fetch VizieR photometry for
+          <template v-if="projectStarCount != null">{{ projectStarCount }}</template>
+          <template v-else>all</template>
+          systems in this project.
+        </AppAlert>
+        <p class="text-sm text-aots-muted">
+          Existing values for matching bands will be replaced. This may take a while.
+        </p>
+      </template>
+      <div class="flex gap-2 mt-4">
+        <AppButton variant="primary" @click="confirmVizierFetch">Fetch from VizieR</AppButton>
+        <AppButton variant="ghost" @click="vizierDialog = false">Cancel</AppButton>
       </div>
     </div>
   </dialog>

@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from .gaia_views import star_fetch_gaia_dr3, stars_fetch_gaia_dr3_bulk
+from .photometry_views import stars_fetch_photometry_vizier_bulk
 from .tess_views import star_fetch_tess_lightcurves, stars_fetch_tess_bulk
 from .plots import star_analysis_plots, star_sed_plot
 from .simbad_views import star_sync_simbad_identifiers, stars_sync_simbad_identifiers_bulk
@@ -44,6 +45,11 @@ urlpatterns = [
         'stars/simbad/fetch-bulk/',
         stars_sync_simbad_identifiers_bulk,
         name='stars-sync-simbad-identifiers-bulk',
+    ),
+    path(
+        'stars/photometry/fetch-vizier-bulk/',
+        stars_fetch_photometry_vizier_bulk,
+        name='stars-fetch-photometry-vizier-bulk',
     ),
     path(
         'stars/<int:star_pk>/specfiles/',

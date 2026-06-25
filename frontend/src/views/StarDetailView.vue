@@ -18,7 +18,7 @@ import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import AladinMap from '@/components/AladinMap.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
-import { api } from '@/api/client'
+import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 
@@ -36,6 +36,7 @@ interface StarCore {
   ra: number
   dec: number
   classification: string
+  classification_type: string
   classification_type_display: string
   observing_status: string
   observing_status_display: string
@@ -194,6 +195,18 @@ const STATUS_COLORS: Record<string, string> = {
   RE: 'bg-red-400',
 }
 
+const CLASSIFICATION_TYPE_OPTIONS = [
+  { value: 'PH', label: 'Photometric' },
+  { value: 'SP', label: 'Spectroscopic' },
+] as const
+
+const OBSERVING_STATUS_OPTIONS = [
+  { value: 'NE', label: 'New' },
+  { value: 'ON', label: 'Ongoing' },
+  { value: 'FI', label: 'Finished' },
+  { value: 'RE', label: 'Rejected' },
+] as const
+
 const route = useRoute()
 const auth = useAuthStore()
 const themeStore = useThemeStore()
@@ -202,6 +215,17 @@ const starId = computed(() => route.params.id as string)
 
 const noteEdit = ref(false)
 const noteText = ref('')
+const basicDataDialog = ref(false)
+const basicDataSaving = ref(false)
+const basicDataError = ref('')
+const basicDataDraft = ref({
+  name: '',
+  ra: '',
+  dec: '',
+  classification: '',
+  classification_type: 'PH',
+  observing_status: 'NE',
+})
 const tagDialog = ref(false)
 const selectedTags = ref<number[]>([])
 const obsExpanded = ref(true)
@@ -335,6 +359,87 @@ async function saveNote() {
   })
   noteEdit.value = false
   refetch()
+}
+
+function parseRaDegrees(value: string): number {
+  const v = value.trim()
+  if (!v.includes(':')) return Number(v)
+  const parts = v.split(':').map((part) => Number(part))
+  if (parts.some((part) => Number.isNaN(part))) {
+    throw new Error('Invalid right ascension format')
+  }
+  const hours =
+    parts.length === 3
+      ? parts[0] + parts[1] / 60 + parts[2] / 3600
+      : parts.length === 2
+        ? parts[0] + parts[1] / 60
+        : NaN
+  if (Number.isNaN(hours)) throw new Error('Invalid right ascension format')
+  return hours * 15
+}
+
+function parseDecDegrees(value: string): number {
+  const v = value.trim()
+  const sign = v.startsWith('-') ? -1 : 1
+  const abs = v.replace(/^[+-]/, '')
+  if (!abs.includes(':')) return Number(v)
+  const parts = abs.split(':').map((part) => Number(part))
+  if (parts.some((part) => Number.isNaN(part))) {
+    throw new Error('Invalid declination format')
+  }
+  const degrees =
+    parts.length === 3
+      ? Math.abs(parts[0]) + parts[1] / 60 + parts[2] / 3600
+      : parts.length === 2
+        ? Math.abs(parts[0]) + parts[1] / 60
+        : NaN
+  if (Number.isNaN(degrees)) throw new Error('Invalid declination format')
+  return sign * degrees
+}
+
+function openBasicDataEdit() {
+  const s = star.value
+  const coords = detail.value?.coordinates
+  if (!s || !coords) return
+  basicDataError.value = ''
+  basicDataDraft.value = {
+    name: s.name,
+    ra: coords.ra_hms,
+    dec: coords.dec_dms,
+    classification: s.classification ?? '',
+    classification_type: s.classification_type || 'PH',
+    observing_status: s.observing_status || 'NE',
+  }
+  basicDataDialog.value = true
+}
+
+async function saveBasicData() {
+  basicDataSaving.value = true
+  basicDataError.value = ''
+  try {
+    const ra = parseRaDegrees(basicDataDraft.value.ra)
+    const dec = parseDecDegrees(basicDataDraft.value.dec)
+    if (Number.isNaN(ra) || Number.isNaN(dec)) {
+      throw new Error('Coordinates must be valid numbers or h:m:s / °:′:″ values')
+    }
+    await api(`/api/systems/stars/${starId.value}/`, {
+      method: 'PATCH',
+      body: {
+        name: basicDataDraft.value.name.trim(),
+        ra,
+        dec,
+        classification: basicDataDraft.value.classification,
+        classification_type: basicDataDraft.value.classification_type,
+        observing_status: basicDataDraft.value.observing_status,
+      },
+    })
+    basicDataDialog.value = false
+    await refetch()
+  } catch (err) {
+    basicDataError.value = formatApiError(err)
+  } finally {
+    basicDataSaving.value = false
+  }
 }
 
 async function saveTags() {
@@ -633,15 +738,6 @@ watch(editableParams, (data) => {
 
     <div class="flex-1 min-w-0 space-y-3">
       <div class="aots-detail-header">
-        <AppButton
-          v-if="auth.isAuthenticated"
-          variant="icon"
-          class="absolute top-1 right-1"
-          :to="`/w/${projectSlug}/systems/stars/${starId}/edit`"
-          title="Edit star"
-        >
-          <Pencil class="w-4 h-4" />
-        </AppButton>
         <h1 class="text-lg font-semibold m-0">{{ headerTitle }}</h1>
         <span class="inline-flex items-center gap-1.5 text-sm text-aots-muted">
           <i
@@ -654,7 +750,17 @@ watch(editableParams, (data) => {
 
       <div class="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
         <section class="aots-panel-compact">
-          <h2 class="text-sm font-medium mb-2">Basic data</h2>
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-sm font-medium">Basic data</h2>
+            <AppButton
+              v-if="auth.isAuthenticated"
+              variant="icon"
+              title="Edit system"
+              @click="openBasicDataEdit"
+            >
+              <Pencil class="w-4 h-4" />
+            </AppButton>
+          </div>
           <table class="aots-kv-table">
             <tbody>
               <tr><th>Name:</th><td>{{ star.name }}</td></tr>
@@ -1238,6 +1344,78 @@ watch(editableParams, (data) => {
         </article>
       </section>
     </div>
+
+    <dialog
+      v-if="basicDataDialog"
+      open
+      class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
+      @click.self="basicDataDialog = false"
+    >
+      <div class="aots-panel w-full max-w-md max-h-[80vh] overflow-y-auto">
+        <h3 class="font-medium mb-3">Edit system</h3>
+        <div class="space-y-3">
+          <label class="block">
+            <span class="aots-label">Name</span>
+            <input v-model="basicDataDraft.name" type="text" class="aots-field w-full" />
+          </label>
+          <label class="block">
+            <span class="aots-label">Right ascension</span>
+            <input
+              v-model="basicDataDraft.ra"
+              type="text"
+              class="aots-field w-full"
+              placeholder="h:m:s or degrees"
+            />
+          </label>
+          <label class="block">
+            <span class="aots-label">Declination</span>
+            <input
+              v-model="basicDataDraft.dec"
+              type="text"
+              class="aots-field w-full"
+              placeholder="°:′:″ or degrees"
+            />
+          </label>
+          <label class="block">
+            <span class="aots-label">Classification</span>
+            <input v-model="basicDataDraft.classification" type="text" class="aots-field w-full" />
+          </label>
+          <label class="block">
+            <span class="aots-label">Classification type</span>
+            <select v-model="basicDataDraft.classification_type" class="aots-select w-full">
+              <option
+                v-for="opt in CLASSIFICATION_TYPE_OPTIONS"
+                :key="opt.value"
+                :value="opt.value"
+              >
+                {{ opt.label }}
+              </option>
+            </select>
+          </label>
+          <label class="block">
+            <span class="aots-label">Observing status</span>
+            <select v-model="basicDataDraft.observing_status" class="aots-select w-full">
+              <option
+                v-for="opt in OBSERVING_STATUS_OPTIONS"
+                :key="opt.value"
+                :value="opt.value"
+              >
+                {{ opt.label }}
+              </option>
+            </select>
+          </label>
+        </div>
+        <AppAlert v-if="basicDataError" kind="error" class="mt-3 text-xs">
+          {{ basicDataError }}
+        </AppAlert>
+        <div class="flex gap-2 mt-4">
+          <AppButton variant="primary" :disabled="basicDataSaving" @click="saveBasicData">
+            Save
+          </AppButton>
+          <AppButton variant="ghost" @click="basicDataDialog = false">Cancel</AppButton>
+        </div>
+      </div>
+    </dialog>
 
     <dialog
       v-if="tagDialog"

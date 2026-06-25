@@ -72,10 +72,7 @@ interface AnalysisDetail {
   related_by_category: RelatedByCategory[]
 }
 
-interface BokehEmbed {
-  script: string
-  div: string
-}
+import type { BokehEmbed } from '@/types/bokeh'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -355,10 +352,10 @@ async function deriveParameters() {
       <div class="grid gap-4 xl:grid-cols-2">
         <section class="aots-panel-compact space-y-4 min-w-0 overflow-hidden">
           <div v-if="plots?.fit" class="w-full max-w-full min-w-0">
-            <BokehPlot compact :script="plots.fit.script" :div="plots.fit.div" />
+            <BokehPlot compact :item="plots.fit.item" />
           </div>
           <div v-if="plots?.oc" class="w-full max-w-full min-w-0">
-            <BokehPlot compact :script="plots.oc.script" :div="plots.oc.div" />
+            <BokehPlot compact :item="plots.oc.item" />
           </div>
         </section>
 
@@ -503,8 +500,7 @@ async function deriveParameters() {
               <BokehPlot
                 v-if="plots?.[key]"
                 compact
-                :script="plots[key].script"
-                :div="plots[key].div"
+                :item="plots[key].item"
               />
             </div>
           </div>

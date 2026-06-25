@@ -9,7 +9,7 @@ interface AOTSBootstrap {
 interface Window {
   __AOTS_BOOTSTRAP__?: AOTSBootstrap
   Bokeh?: {
-    embed: { embed_item: (item: unknown, el: HTMLElement) => void }
+    embed: { embed_item: (item: import('@/types/bokeh').BokehEmbedItem) => void }
     index: Record<string, { resize?: () => void }>
   }
 }

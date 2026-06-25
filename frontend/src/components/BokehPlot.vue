@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import AppAlert from '@/components/AppAlert.vue'
-import { embedBokehComponents, resizeBokehIn } from '@/composables/useBokeh'
+import { embedBokehItem, resizeBokehIn } from '@/composables/useBokeh'
+import type { BokehEmbedItem } from '@/types/bokeh'
 
 const props = withDefaults(
   defineProps<{
-    script: string
-    div: string
+    item: BokehEmbedItem
     /** When true, the host does not enforce a minimum height (better on narrow screens). */
     compact?: boolean
     /** When true, fill the parent box (used with a fixed-size plot frame). */
@@ -23,9 +23,9 @@ let renderGeneration = 0
 async function render() {
   const generation = ++renderGeneration
   error.value = null
-  if (!host.value || !props.script || !props.div) return
+  if (!host.value || !props.item) return
   try {
-    await embedBokehComponents(host.value, props.div, props.script)
+    await embedBokehItem(host.value, props.item)
     if (generation !== renderGeneration) return
   } catch (e) {
     if (generation !== renderGeneration) return
@@ -33,7 +33,7 @@ async function render() {
   }
 }
 
-watch(() => [props.script, props.div], render)
+watch(() => props.item, render, { deep: true })
 
 onMounted(() => {
   render()

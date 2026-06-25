@@ -25,8 +25,10 @@ function isChoiceGroup(entry: FormChoiceEntry): entry is FormChoiceGroup {
   return 'group' in entry && Array.isArray((entry as FormChoiceGroup).options)
 }
 
+import type { BokehEmbed } from '@/types/bokeh'
+
 interface PlotterResponse {
-  plot: { script: string; div: string }
+  plot: BokehEmbed
   statistics: string
   form: {
     fields: string[]
@@ -134,7 +136,7 @@ function updateFigure() {
       </section>
       <section class="aots-panel min-w-0 lg:col-span-2">
         <div v-if="isFetching && !data?.plot" class="text-aots-muted">Loading plot…</div>
-        <BokehPlot v-else-if="data?.plot" :script="data.plot.script" :div="data.plot.div" />
+        <BokehPlot v-else-if="data?.plot" :item="data.plot.item" />
       </section>
     </div>
   </div>

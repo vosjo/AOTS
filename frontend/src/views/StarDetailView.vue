@@ -21,6 +21,7 @@ import BokehPlot from '@/components/BokehPlot.vue'
 import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
+import type { BokehEmbed } from '@/types/bokeh'
 
 interface TagRef {
   pk: number
@@ -127,11 +128,6 @@ interface StarDetailPayload {
   }>
   identifiers: Array<{ pk: number; name: string; href: string }>
   stilism_url: string
-}
-
-interface BokehEmbed {
-  script: string
-  div: string
 }
 
 interface AnalysisPlot {
@@ -1021,7 +1017,7 @@ watch(editableParams, (data) => {
             <div class="min-w-0">
               <h3 class="text-xs font-medium text-aots-muted mb-2 text-center">SED</h3>
               <div class="min-h-[200px] relative">
-                <BokehPlot v-if="sed" compact :script="sed.script" :div="sed.div" />
+                <BokehPlot v-if="sed" compact :item="sed.item" />
                 <div
                   v-if="photVizierLoading"
                   class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded bg-aots-page/75"
@@ -1312,7 +1308,7 @@ watch(editableParams, (data) => {
           </h3>
           <div class="grid gap-3 xl:grid-cols-2">
             <div class="min-w-0">
-              <BokehPlot compact :script="plot.embed.script" :div="plot.embed.div" />
+              <BokehPlot compact :item="plot.embed.item" />
             </div>
             <div>
               <h4 class="text-xs text-aots-muted mb-1">Parameters</h4>

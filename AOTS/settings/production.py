@@ -43,12 +43,15 @@ MIDDLEWARE = [
     *BASE_MIDDLEWARE[1:],
 ]
 
+from csp.constants import NONCE
+
 CONTENT_SECURITY_POLICY = {
     'DIRECTIVES': {
         'default-src': ("'self'",),
-        'script-src': ("'self'", 'https://cdn.bokeh.org'),
+        'script-src': ("'self'", NONCE, 'https://cdn.bokeh.org'),
         'style-src': ("'self'", "'unsafe-inline'"),
         'img-src': ("'self'", 'data:', 'blob:', 'https:'),
+        'media-src': ("'self'", 'data:', 'blob:'),
         'connect-src': ("'self'",),
         'font-src': ("'self'", 'data:'),
         'frame-ancestors': ("'self'",),

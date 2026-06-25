@@ -1,3 +1,5 @@
+import type { BokehEmbedItem } from '@/types/bokeh'
+
 const BOKEH_VERSION = '3.9.1'
 
 const BOKEH_SCRIPTS = [
@@ -34,30 +36,6 @@ export async function loadBokeh(): Promise<void> {
   await loadPromise
 }
 
-/** Bokeh `components()` returns HTML with one or more script tags — not raw JS. */
-export function runBokehEmbedScript(scriptHtml: string): void {
-  const trimmed = scriptHtml.trim()
-  if (!trimmed) return
-
-  const run = (code: string) => {
-    const el = document.createElement('script')
-    el.textContent = code
-    document.body.appendChild(el)
-    document.body.removeChild(el)
-  }
-
-  if (!trimmed.startsWith('<')) {
-    run(trimmed)
-    return
-  }
-
-  const re = /<script[^>]*>([\s\S]*?)<\/script>/gi
-  let match: RegExpExecArray | null
-  while ((match = re.exec(scriptHtml)) !== null) {
-    run(match[1])
-  }
-}
-
 export function resizeBokehIn(host: HTMLElement): void {
   const Bokeh = window.Bokeh
   if (!Bokeh?.index) return
@@ -78,13 +56,13 @@ function scheduleBokehResize(host: HTMLElement): void {
   window.setTimeout(resize, 100)
 }
 
-export async function embedBokehComponents(
-  host: HTMLElement,
-  divHtml: string,
-  scriptHtml: string,
-): Promise<void> {
+export async function embedBokehItem(host: HTMLElement, item: BokehEmbedItem): Promise<void> {
   await loadBokeh()
-  host.innerHTML = divHtml
-  runBokehEmbedScript(scriptHtml)
+  host.innerHTML = `<div id="${item.target_id}"></div>`
+  const Bokeh = window.Bokeh
+  if (!Bokeh?.embed?.embed_item) {
+    throw new Error('Bokeh embed API not available')
+  }
+  Bokeh.embed.embed_item(item)
   scheduleBokehResize(host)
 }

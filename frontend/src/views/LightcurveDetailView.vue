@@ -56,10 +56,7 @@ interface LightcurveDetail {
   related_lightcurves: RelatedGroup[]
 }
 
-interface BokehEmbed {
-  script: string
-  div: string
-}
+import type { BokehEmbed } from '@/types/bokeh'
 
 const route = useRoute()
 const router = useRouter()
@@ -299,8 +296,7 @@ async function remove() {
             <BokehPlot
               v-else-if="visibilityPlot?.visibility"
               fill
-              :script="visibilityPlot.visibility.script"
-              :div="visibilityPlot.visibility.div"
+              :item="visibilityPlot.visibility.item"
             />
           </div>
         </section>
@@ -368,8 +364,7 @@ async function remove() {
           <BokehPlot
             v-else-if="timePlot?.lc_time"
             compact
-            :script="timePlot.lc_time.script"
-            :div="timePlot.lc_time.div"
+            :item="timePlot.lc_time.item"
           />
         </div>
       </section>
@@ -409,8 +404,7 @@ async function remove() {
           <BokehPlot
             v-else-if="phasePlot?.lc_phase"
             compact
-            :script="phasePlot.lc_phase.script"
-            :div="phasePlot.lc_phase.div"
+            :item="phasePlot.lc_phase.item"
           />
         </div>
       </section>

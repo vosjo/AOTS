@@ -30,10 +30,12 @@ interface StatCard {
   to: string
 }
 
+import type { BokehEmbed } from '@/types/bokeh'
+
 interface StarmapPayload {
   n_stars: number
   colored_by_distance: boolean
-  interactive: { script: string; div: string } | null
+  interactive: BokehEmbed | null
 }
 
 const route = useRoute()
@@ -49,7 +51,7 @@ const { data, isFetching, isPending, refetch } = useQuery({
     return api<{
       stats: DashboardStats
       recent_changes: Array<{ modeltype: string; date: string; user: string; label: string; created: boolean }>
-      hrd: { script: string; div: string }
+      hrd: BokehEmbed
       hrd_form: {
         fields: string[]
         labels: Record<string, string>
@@ -206,7 +208,7 @@ function updateHrd() {
           :style="hrdPlotFrameStyle"
         >
           <div v-if="isFetching && data.hrd" class="mb-2 text-xs text-aots-muted">Updating figure…</div>
-          <BokehPlot v-if="data.hrd" fill :script="data.hrd.script" :div="data.hrd.div" />
+          <BokehPlot v-if="data.hrd" fill :item="data.hrd.item" />
         </div>
       </section>
     </div>
@@ -219,8 +221,7 @@ function updateHrd() {
           <BokehPlot
             v-if="starmapData.interactive"
             compact
-            :script="starmapData.interactive.script"
-            :div="starmapData.interactive.div"
+            :item="starmapData.interactive.item"
           />
           <div v-else class="flex flex-col items-center gap-2 py-8 text-center text-sm text-aots-muted">
             <img :src="DEFAULT_PROJECT_LOGO" alt="" class="h-16 w-16 opacity-40" aria-hidden="true" />

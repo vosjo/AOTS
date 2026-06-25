@@ -69,10 +69,7 @@ interface SpectrumDetail {
   related_spectra: RelatedGroup[]
 }
 
-interface BokehEmbed {
-  script: string
-  div: string
-}
+import type { BokehEmbed } from '@/types/bokeh'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -341,8 +338,7 @@ function yesNo(value: boolean) {
             <BokehPlot
               v-else-if="visibilityPlot?.visibility"
               fill
-              :script="visibilityPlot.visibility.script"
-              :div="visibilityPlot.visibility.div"
+              :item="visibilityPlot.visibility.item"
             />
           </div>
         </section>
@@ -407,8 +403,7 @@ function yesNo(value: boolean) {
             <BokehPlot
               v-else-if="specPlot?.spec"
               compact
-              :script="specPlot.spec.script"
-              :div="specPlot.spec.div"
+              :item="specPlot.spec.item"
             />
           </div>
 

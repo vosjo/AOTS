@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="{% static 'favicon.ico' %}" />
   <title>AOTS</title>
-  <script>
+  <script nonce="{{ request.csp_nonce }}">
     (function () {
       try {
         var theme = localStorage.getItem('aots-theme');

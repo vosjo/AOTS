@@ -18,15 +18,18 @@ const props = withDefaults(
 const host = ref<HTMLElement | null>(null)
 const error = ref<string | null>(null)
 let resizeObserver: ResizeObserver | null = null
+let renderGeneration = 0
 
 async function render() {
+  const generation = ++renderGeneration
   error.value = null
   if (!host.value || !props.script || !props.div) return
   try {
     await embedBokehComponents(host.value, props.div, props.script)
+    if (generation !== renderGeneration) return
   } catch (e) {
+    if (generation !== renderGeneration) return
     error.value = e instanceof Error ? e.message : 'Plot failed to render'
-    console.error('Bokeh embed error:', e)
   }
 }
 
@@ -44,6 +47,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  renderGeneration += 1
   resizeObserver?.disconnect()
   if (host.value) host.value.innerHTML = ''
 })

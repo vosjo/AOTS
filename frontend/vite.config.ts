@@ -1,7 +1,7 @@
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig(({ command }) => ({
   plugins: [vue(), tailwindcss()],
@@ -32,5 +32,9 @@ export default defineConfig(({ command }) => ({
       '/media': 'http://127.0.0.1:8000',
       '/static': 'http://127.0.0.1:8000',
     },
+  },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
 }))

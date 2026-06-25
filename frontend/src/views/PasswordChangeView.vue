@@ -2,27 +2,33 @@
 import { ref } from 'vue'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
-import { api, setCsrfToken } from '@/api/client'
+import { api, formatApiError, setCsrfToken } from '@/api/client'
 
 const oldPassword = ref('')
 const newPassword1 = ref('')
 const newPassword2 = ref('')
 const message = ref('')
+const error = ref('')
 
 async function submit() {
   message.value = ''
-  const res = await api<{ detail: string; csrfToken?: string }>('/api/auth/password-change/', {
-    method: 'POST',
-    body: {
-      old_password: oldPassword.value,
-      new_password1: newPassword1.value,
-      new_password2: newPassword2.value,
-    },
-  })
-  if (res.csrfToken) {
-    setCsrfToken(res.csrfToken)
+  error.value = ''
+  try {
+    const res = await api<{ detail: string; csrfToken?: string }>('/api/auth/password-change/', {
+      method: 'POST',
+      body: {
+        old_password: oldPassword.value,
+        new_password1: newPassword1.value,
+        new_password2: newPassword2.value,
+      },
+    })
+    if (res.csrfToken) {
+      setCsrfToken(res.csrfToken)
+    }
+    message.value = 'Password updated.'
+  } catch (err) {
+    error.value = formatApiError(err)
   }
-  message.value = 'Password updated.'
 }
 </script>
 
@@ -36,5 +42,6 @@ async function submit() {
       <AppButton type="submit" variant="primary">Update</AppButton>
     </form>
     <AppAlert v-if="message" kind="success">{{ message }}</AppAlert>
+    <AppAlert v-if="error" kind="error">{{ error }}</AppAlert>
   </div>
 </template>

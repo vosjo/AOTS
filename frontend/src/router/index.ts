@@ -197,7 +197,14 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   await ensureCsrfToken()
   const auth = useAuthStore()
-  if (!auth.loaded) await auth.fetchMe()
+  if (!auth.loaded) {
+    try {
+      await auth.fetchMe()
+    } catch {
+      auth.user = { authenticated: false }
+      auth.loaded = true
+    }
+  }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login', query: { next: to.fullPath } }

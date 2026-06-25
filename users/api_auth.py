@@ -9,9 +9,10 @@ logger = logging.getLogger('AOTS.api_auth')
 
 
 def validate_api_key(public_key, secret_key):
-    try:
-        requesting_user = User.objects.get(api_key__iexact=public_key)
-    except User.DoesNotExist:
+    requesting_user = (
+        User.objects.filter(api_key__iexact=public_key).order_by('pk').first()
+    )
+    if requesting_user is None:
         return None, False
     if check_password(secret_key, requesting_user.api_secret):
         return requesting_user, True

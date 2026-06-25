@@ -22,7 +22,7 @@ def get_unknown_user():
 
 class User(AbstractUser):
     is_student = models.BooleanField(default=False)
-    api_key = models.CharField(max_length=120, blank=True, null=True)
+    api_key = models.CharField(max_length=120, blank=True, null=True, unique=True)
     api_secret = models.CharField(max_length=140, blank=True, null=True)
     profile_picture = models.FileField(upload_to='profile_pictures/', null=True, blank=True)
 
@@ -66,6 +66,15 @@ class User(AbstractUser):
             or self._project_in_user_set(project, 'readwrite_projects')
         )
 
+    def _object_creator(self, obj):
+        """Return the user who originally created obj, or None if unknown."""
+        if not hasattr(obj, 'history'):
+            return None
+        record = obj.history.order_by('history_date').first()
+        if record is None:
+            return None
+        return record.history_user
+
     def can_edit(self, obj):
         """
         Returns true if this user can edit this specific object
@@ -75,8 +84,12 @@ class User(AbstractUser):
         project = get_object_project(obj)
         if self._project_in_user_set(project, 'readwrite_projects'):
             return True
-        if self._project_in_user_set(project, 'readwriteown_projects') and \
-                obj.history.earliest().history_user == self:
+        creator = self._object_creator(obj)
+        if (
+            creator is not None
+            and self._project_in_user_set(project, 'readwriteown_projects')
+            and creator == self
+        ):
             return True
         return False
 
@@ -87,11 +100,18 @@ class User(AbstractUser):
         if self.is_superuser:
             return True
         project = get_object_project(obj)
-        if self._project_in_user_set(project, 'readwrite_projects') and \
-                obj.history.earliest().history_user == self:
+        creator = self._object_creator(obj)
+        if (
+            creator is not None
+            and self._project_in_user_set(project, 'readwrite_projects')
+            and creator == self
+        ):
             return True
-        if self._project_in_user_set(project, 'readwriteown_projects') and \
-                obj.history.earliest().history_user == self:
+        if (
+            creator is not None
+            and self._project_in_user_set(project, 'readwriteown_projects')
+            and creator == self
+        ):
             return True
         if self._project_in_user_set(project, 'managed_projects'):
             return True

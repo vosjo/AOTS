@@ -57,10 +57,18 @@ const query = useQuery({
   },
 })
 
+function stableTaskRowPk(taskId: string): number {
+  let hash = 0
+  for (let i = 0; i < taskId.length; i++) {
+    hash = (Math.imul(31, hash) + taskId.charCodeAt(i)) | 0
+  }
+  return Math.abs(hash) || 1
+}
+
 const rows = computed(() =>
-  (query.data.value?.results ?? []).map((row, index) => ({
+  (query.data.value?.results ?? []).map((row) => ({
     ...row,
-    pk: index + 1,
+    pk: stableTaskRowPk(row.task_id),
   })),
 )
 

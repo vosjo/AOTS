@@ -1,6 +1,7 @@
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from AOTS.page_urls import analysis_detail_url
+from AOTS.serializer_mixins import ProjectFieldGuardMixin
 from analysis.categories import category_color, category_label, category_derived_parameter_specs, has_category_derived_parameters
 from analysis.models import Analysis, DerivedParameter, Parameter
 from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
@@ -14,7 +15,7 @@ from analysis.services.parameter_consensus import consensus_queryset
 from stars.api.serializers import SimpleStarSerializer
 
 
-class AnalysisListSerializer(ModelSerializer):
+class AnalysisListSerializer(ProjectFieldGuardMixin, ModelSerializer):
     star = SerializerMethodField()
     category_label = SerializerMethodField()
     category_color = SerializerMethodField()

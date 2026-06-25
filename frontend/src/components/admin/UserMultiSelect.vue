@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { computed, ref, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { api, type PaginatedResponse } from '@/api/client'
 
 interface UserChoice {
@@ -26,6 +26,10 @@ watch(search, (value) => {
   debounceTimer = setTimeout(() => {
     debouncedSearch.value = value
   }, 300)
+})
+
+onUnmounted(() => {
+  clearTimeout(debounceTimer)
 })
 
 const choicesQuery = useQuery({

@@ -2,32 +2,47 @@
 import { onMounted, ref } from 'vue'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
-import { api } from '@/api/client'
+import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const token = ref<string | null>(null)
 const apiKey = ref<string | null>(null)
 const apiSecret = ref<string | null>(null)
+const error = ref('')
 
 onMounted(async () => {
-  await auth.fetchMe()
-  if (auth.isAuthenticated) {
-    const res = await api<{ token: string }>('/api/auth/token/')
-    token.value = res.token
+  try {
+    await auth.fetchMe()
+    if (auth.isAuthenticated) {
+      const res = await api<{ token: string }>('/api/auth/token/')
+      token.value = res.token
+    }
+  } catch (err) {
+    error.value = formatApiError(err)
   }
 })
 
 async function regenerateToken() {
-  const res = await api<{ token: string }>('/api/auth/token/', { method: 'POST' })
-  token.value = res.token
+  error.value = ''
+  try {
+    const res = await api<{ token: string }>('/api/auth/token/', { method: 'POST' })
+    token.value = res.token
+  } catch (err) {
+    error.value = formatApiError(err)
+  }
 }
 
 async function regenerateApiKey() {
-  const res = await api<{ api_key: string; api_secret: string }>('/api/auth/api-key/', { method: 'POST' })
-  apiKey.value = res.api_key
-  apiSecret.value = res.api_secret
-  await auth.fetchMe()
+  error.value = ''
+  try {
+    const res = await api<{ api_key: string; api_secret: string }>('/api/auth/api-key/', { method: 'POST' })
+    apiKey.value = res.api_key
+    apiSecret.value = res.api_secret
+    await auth.fetchMe()
+  } catch (err) {
+    error.value = formatApiError(err)
+  }
 }
 </script>
 
@@ -52,5 +67,6 @@ async function regenerateApiKey() {
     </section>
 
     <AppButton variant="link" to="/accounts/password_change/">Change password</AppButton>
+    <AppAlert v-if="error" kind="error">{{ error }}</AppAlert>
   </div>
 </template>

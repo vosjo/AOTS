@@ -5,6 +5,7 @@ djangorestframework-datatables==0.7.2
 django-filter==25.2
 django-environ==0.13.0
 django-simple-history==3.11.0
+django-csp==4.0
 drf-spectacular==0.29.0
 gunicorn==26.0.0
 psycopg2-binary==2.9.12

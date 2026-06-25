@@ -40,7 +40,7 @@ export function useDataTablePage<T extends { pk: number }>(opts: UseDataTableOpt
     page.value,
     pageSize.value,
     ordering.value,
-    opts.filters?.value,
+    JSON.stringify(opts.filters?.value ?? {}),
   ])
 
   const query = useQuery({
@@ -71,7 +71,12 @@ export function useDataTablePage<T extends { pk: number }>(opts: UseDataTableOpt
     enabled: computed(() => (opts.enabled?.value ?? true) && !!projectStore.currentProject),
   })
 
-  watch([page, pageSize, () => opts.filters?.value, ordering], () => {
+  watch([() => opts.filters?.value, ordering, pageSize], () => {
+    page.value = 1
+    if (!sectionSelection) localSelected.value = new Set()
+  })
+
+  watch([page], () => {
     if (!sectionSelection) localSelected.value = new Set()
   })
 

@@ -15,6 +15,7 @@ import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useGaiaFetch } from '@/composables/useGaiaFetch'
 import { useSimbadAliasesFetch } from '@/composables/useSimbadAliasesFetch'
 import { useTessFetch } from '@/composables/useTessFetch'
+import { useSimbadResolve } from '@/composables/useSimbadResolve'
 import { api, type PaginatedResponse } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
@@ -156,20 +157,6 @@ const addErrorKind = ref<AlertKind>('error')
 const addBusy = ref(false)
 const csvFile = ref<FileList | null>(null)
 
-interface SimbadMatch {
-  main_id: string
-  ra: string
-  dec: string
-  classification: string
-  classification_type: string
-}
-
-interface SimbadResolveResult extends Partial<SimbadMatch> {
-  status: 'unique' | 'ambiguous' | 'not_found' | 'empty'
-  matches?: SimbadMatch[]
-  best_match?: boolean
-}
-
 const addForm = ref({
   name: '',
   ra: '',
@@ -180,10 +167,14 @@ const addForm = ref({
   tag_ids: [] as number[],
 })
 
-const simbadResolving = ref(false)
-const simbadMessage = ref('')
-const simbadAmbiguous = ref<SimbadMatch[]>([])
-let simbadResolveTimer: ReturnType<typeof setTimeout> | undefined
+const {
+  simbadResolving,
+  simbadMessage,
+  simbadAmbiguous,
+  resetSimbadResolveState,
+  selectSimbadMatch,
+  resolveSimbadName,
+} = useSimbadResolve(addForm)
 
 function clearFilters() {
   filters.value = emptyFilters()
@@ -392,87 +383,6 @@ async function saveStatus() {
     statusError.value = e instanceof Error ? e.message : 'Update failed'
   }
 }
-
-function resetSimbadResolveState() {
-  simbadMessage.value = ''
-  simbadAmbiguous.value = []
-  simbadResolving.value = false
-  clearTimeout(simbadResolveTimer)
-}
-
-function applySimbadMatch(match: SimbadMatch) {
-  addForm.value.ra = match.ra
-  addForm.value.dec = match.dec
-  addForm.value.classification = match.classification
-  addForm.value.classification_type = match.classification_type
-  simbadAmbiguous.value = []
-}
-
-function selectSimbadMatch(match: SimbadMatch) {
-  addForm.value.name = match.main_id
-  applySimbadMatch(match)
-  simbadMessage.value = `Resolved: ${match.main_id}`
-}
-
-async function resolveSimbadName() {
-  const name = addForm.value.name.trim()
-  if (!name || !addForm.value.get_simbad) return
-
-  simbadResolving.value = true
-  simbadMessage.value = ''
-  simbadAmbiguous.value = []
-  try {
-    const res = await api<SimbadResolveResult>(
-      `/api/systems/stars/resolve-simbad/?name=${encodeURIComponent(name)}`,
-    )
-    if (res.status === 'unique' && res.main_id && res.ra && res.dec) {
-      applySimbadMatch(res as SimbadMatch)
-      simbadMessage.value = res.best_match
-        ? `Resolved (best match): ${res.main_id}`
-        : `Resolved: ${res.main_id}`
-    } else if (res.status === 'ambiguous' && res.matches?.length) {
-      simbadAmbiguous.value = res.matches
-      simbadMessage.value = 'Multiple Simbad matches — please select one:'
-      addForm.value.ra = ''
-      addForm.value.dec = ''
-      addForm.value.classification = ''
-    } else {
-      simbadMessage.value = 'No unique Simbad match found.'
-      addForm.value.ra = ''
-      addForm.value.dec = ''
-      addForm.value.classification = ''
-    }
-  } catch (e) {
-    simbadMessage.value = e instanceof Error ? e.message : 'Simbad lookup failed'
-  } finally {
-    simbadResolving.value = false
-  }
-}
-
-function scheduleSimbadResolve() {
-  clearTimeout(simbadResolveTimer)
-  if (!addForm.value.get_simbad) return
-  simbadResolveTimer = setTimeout(resolveSimbadName, 600)
-}
-
-watch(
-  () => addForm.value.get_simbad,
-  (useSimbad) => {
-    if (!useSimbad) {
-      resetSimbadResolveState()
-      return
-    }
-    scheduleSimbadResolve()
-  },
-)
-
-watch(
-  () => addForm.value.name,
-  () => {
-    if (!addForm.value.get_simbad) return
-    scheduleSimbadResolve()
-  },
-)
 
 function openAddDialog() {
   addForm.value = {

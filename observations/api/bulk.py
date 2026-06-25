@@ -11,6 +11,7 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 
 from AOTS.permissions_helpers import check_project_access
+from AOTS.project_resolution import resolve_project_from_request
 from AOTS.task_helpers import run_task
 from AOTS.task_status import build_task_status_payload
 from AOTS.task_metadata import get_task_owner, user_may_view_task
@@ -35,28 +36,7 @@ BULK_AUTH = [SessionAuthentication, APIKeyAuthentication]
 
 
 def _get_project_from_header(request):
-    project_pk = request.POST.get('project') or request.META.get('HTTP_PROJECTID')
-    if project_pk is None:
-        return None, Response(
-            {'detail': 'Missing project (form field or HTTP_PROJECTID header).'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    try:
-        project = Project.objects.get(pk=int(project_pk))
-    except ValueError:
-        try:
-            project = Project.objects.get(name__exact=project_pk)
-        except ObjectDoesNotExist:
-            return None, Response(
-                {'detail': 'Unknown project.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-    except ObjectDoesNotExist:
-        return None, Response(
-            {'detail': 'Unknown project.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    return project, None
+    return resolve_project_from_request(request)
 
 
 def _parse_star_id_list(request):
@@ -300,9 +280,9 @@ def bulkUploadLightCurves(request, **kwargs):
     data = ';'.join(returned_messages)
     if n_exceptions != 0:
         if n_exceptions == len(files):
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-        return Response(data, status=status.HTTP_207_MULTI_STATUS)
-    return Response(data, status=status.HTTP_200_OK)
+            return Response({'detail': data}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': data}, status=status.HTTP_207_MULTI_STATUS)
+    return Response({'detail': data}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])

@@ -3,6 +3,7 @@ import json
 from django.contrib.admin.models import ADDITION, CHANGE, DELETION, LogEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
@@ -51,12 +52,14 @@ class AdminUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
+        user = User(**validated_data)
         try:
-            return User.objects.create_user(password=password, **validated_data)
+            validate_password(password, user=user)
         except DjangoValidationError as exc:
-            if hasattr(exc, 'message_dict') and exc.message_dict:
-                raise serializers.ValidationError(exc.message_dict) from exc
-            raise serializers.ValidationError({'password': exc.messages}) from exc
+            raise serializers.ValidationError({'password': list(exc.messages)}) from exc
+        user.set_password(password)
+        user.save()
+        return user
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
@@ -64,11 +67,10 @@ class AdminUserSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         if password:
             try:
-                instance.set_password(password)
+                validate_password(password, user=instance)
             except DjangoValidationError as exc:
-                if hasattr(exc, 'message_dict') and exc.message_dict:
-                    raise serializers.ValidationError(exc.message_dict) from exc
-                raise serializers.ValidationError({'password': exc.messages}) from exc
+                raise serializers.ValidationError({'password': list(exc.messages)}) from exc
+            instance.set_password(password)
         instance.save()
         return instance
 

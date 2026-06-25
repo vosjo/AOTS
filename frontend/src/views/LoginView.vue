@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import { useAuthStore } from '@/stores/auth'
+import { safeRedirectPath } from '@/utils/safeRedirect'
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -16,8 +17,7 @@ async function submit() {
   error.value = ''
   try {
     await auth.login(username.value, password.value)
-    const next = (route.query.next as string) || '/w/projects/'
-    router.push(next)
+    router.push(safeRedirectPath(route.query.next))
   } catch {
     error.value = 'Invalid credentials.'
   }

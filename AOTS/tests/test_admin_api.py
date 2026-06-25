@@ -62,7 +62,7 @@ class AdminUserApiTests(TestCase):
             {
                 'username': 'newbie',
                 'email': 'newbie@test.com',
-                'password': 'secret123',
+                'password': 'NewbiePass123!',
                 'is_active': True,
             },
             format='json',
@@ -84,7 +84,7 @@ class AdminUserApiTests(TestCase):
         self.assertTrue(patch.data['is_student'])
 
         login_client = APIClient()
-        logged_in = login_client.login(username='newbie', password='secret123')
+        logged_in = login_client.login(username='newbie', password='NewbiePass123!')
         self.assertTrue(logged_in)
 
         delete = self.client.delete(f'/api/admin/users/{user_id}/')
@@ -96,7 +96,7 @@ class AdminUserApiTests(TestCase):
             {
                 'username': 'blanknote',
                 'email': 'blanknote@test.com',
-                'password': 'secret123',
+                'password': 'NewbiePass123!',
                 'note': '',
                 'first_name': '',
                 'last_name': '',

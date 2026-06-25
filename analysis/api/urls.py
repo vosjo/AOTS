@@ -8,7 +8,7 @@ from .consensus_views import (
     consensus_policy_detail,
 )
 from .views import (
-    ParameterViewSet, AnalysisViewSet, processAnalysis, analysis_categories_api,
+    ParameterViewSet, AnalysisViewSet, analysis_categories_api,
     upload_analyses_api, derive_analysis_parameters_api,
 )
 
@@ -52,9 +52,4 @@ urlpatterns = [
         name='analysis-derive-parameters-api',
     ),
     re_path(r'^', include(router.urls)),
-    re_path(
-        r'^analyses/(?P<pk>[\w-]+)/process/',
-        processAnalysis,
-        name='process_analysis',
-    ),
 ]

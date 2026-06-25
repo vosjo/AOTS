@@ -67,13 +67,23 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
         'users.api_auth.APIKeyAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
         'AOTS.custom_permissions.IsAllowedOnProject',
     ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': env('DRF_THROTTLE_ANON', default='100/hour'),
+        'user': env('DRF_THROTTLE_USER', default='1000/hour'),
+        'login': env('DRF_THROTTLE_LOGIN', default='10/min'),
+        'auth_api_key': env('DRF_THROTTLE_AUTH_API_KEY', default='5/min'),
+        'password_change': env('DRF_THROTTLE_PASSWORD_CHANGE', default='5/min'),
+    },
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',

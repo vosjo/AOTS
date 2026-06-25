@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { createBulkTaskPollState, progressWithMeta } from '@/composables/useBulkTaskPoll'
 import { api } from '@/api/client'
 
 export interface GaiaBulkSummary {
@@ -11,10 +11,9 @@ export interface GaiaBulkSummary {
 }
 
 export function useGaiaFetch() {
-  const state = reactive({
-    status: '',
-    busy: false,
-    lastSummary: null as GaiaBulkSummary | null,
+  const { state, pollTask } = createBulkTaskPollState<GaiaBulkSummary>()
+
+  Object.assign(state, {
     async startBulk(starIds: number[], projectId: number, options?: { all?: boolean }) {
       if (!options?.all && !starIds.length) return
       state.busy = true
@@ -25,51 +24,21 @@ export function useGaiaFetch() {
           '/api/systems/stars/gaia/fetch-bulk/?async=1',
           {
             method: 'POST',
-            headers: {
-              Projectid: String(projectId),
-            },
+            headers: { Projectid: String(projectId) },
             body: options?.all ? { all: true } : { star_ids: starIds },
           },
         )
-        state.lastSummary = await pollTask(res.task_id, res.total)
+        state.lastSummary = await pollTask(res.task_id, res.total, {
+          label: 'Fetching Gaia DR3',
+          failureMessage: 'Gaia DR3 bulk fetch failed',
+          onProgress: (s, total) => progressWithMeta('Fetching Gaia DR3', total, s.meta),
+        })
       } finally {
         state.busy = false
         state.status = ''
       }
     },
   })
-
-  async function pollTask(taskId: string, total: number): Promise<GaiaBulkSummary> {
-    for (;;) {
-      const s = await api<{
-        ready: boolean
-        status: string
-        error?: string
-        result?: GaiaBulkSummary & { error?: string }
-        meta?: { current?: number; total?: number; star_name?: string }
-      }>(`/api/observations/tasks/${taskId}/`)
-
-      if (!s.ready) {
-        const current = s.meta?.current
-        const starName = s.meta?.star_name
-        if (current != null) {
-          state.status = `Fetching Gaia DR3… ${current}/${s.meta?.total ?? total}${
-            starName ? ` (${starName})` : ''
-          }`
-        } else {
-          state.status = `Fetching Gaia DR3… ${s.status}`
-        }
-        await new Promise((r) => setTimeout(r, 2000))
-        continue
-      }
-      if (s.status === 'SUCCESS') {
-        if (s.result?.error) throw new Error(s.result.error)
-        if (!s.result) throw new Error('Gaia fetch finished without result')
-        return s.result
-      }
-      throw new Error(s.error || 'Gaia DR3 bulk fetch failed')
-    }
-  }
 
   return state
 }

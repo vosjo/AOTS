@@ -44,15 +44,18 @@ jobs:
         run: pytest
 
       - name: Ruff
-        run: ruff check AOTS stars observations analysis users dash --ignore E501
+        run: ruff check AOTS stars observations analysis users
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Build frontend
+      - name: Frontend checks
         working-directory: frontend
         run: |
           npm ci
+          npm run lint
+          npm run typecheck
+          npm run test
           npm run build

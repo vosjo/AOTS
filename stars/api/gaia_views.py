@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -10,8 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
+from AOTS.project_resolution import resolve_project_from_request
 from AOTS.task_helpers import run_task
-from stars.models import Project, Star
+from stars.models import Star
 from stars.services.gaia_import import GaiaImportResult, import_gaia_dr3_for_star
 from stars.tasks import fetch_gaia_bulk_task
 
@@ -38,28 +38,7 @@ def star_fetch_gaia_dr3(request, pk):
 
 
 def _project_from_request(request):
-    project_pk = request.data.get('project') or request.META.get('HTTP_PROJECTID')
-    if project_pk is None:
-        return None, Response(
-            {'detail': 'Missing project (body field or HTTP_PROJECTID header).'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    try:
-        project = Project.objects.get(pk=int(project_pk))
-    except ValueError:
-        try:
-            project = Project.objects.get(name__exact=project_pk)
-        except ObjectDoesNotExist:
-            return None, Response(
-                {'detail': 'Unknown project.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-    except ObjectDoesNotExist:
-        return None, Response(
-            {'detail': 'Unknown project.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    return project, None
+    return resolve_project_from_request(request, body_field='project')
 
 
 def _resolve_star_ids(project, data) -> tuple[list[int] | None, Response | None]:

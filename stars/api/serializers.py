@@ -1,8 +1,13 @@
+import logging
+
 import numpy as np
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField
 
 from AOTS.page_urls import analysis_detail_url, star_detail_url
+from AOTS.serializer_mixins import ProjectFieldGuardMixin
+
+logger = logging.getLogger('AOTS.stars.api')
 from stars.models import Project, Star, Tag, Identifier
 
 
@@ -42,7 +47,7 @@ class ProjectSerializer(ModelSerializer):
 # ===============================================================
 
 
-class TagSerializer(ModelSerializer):
+class TagSerializer(ProjectFieldGuardMixin, ModelSerializer):
     class Meta:
         model = Tag
         fields = [
@@ -104,7 +109,7 @@ def _scope_star_tag_ids_queryset(serializer):
         field.queryset = queryset
 
 
-class StarListSerializer(ModelSerializer):
+class StarListSerializer(ProjectFieldGuardMixin, ModelSerializer):
     tags = SerializerMethodField()
     analyses = SerializerMethodField()
     vmag = SerializerMethodField()
@@ -175,8 +180,8 @@ class StarListSerializer(ModelSerializer):
                 }
                 for d in analyses
             ]
-        except Exception as e:
-            print(e)
+        except Exception:
+            logger.exception('Failed to serialize analyses for star pk=%s', obj.pk)
             return []
 
     def get_vmag(self, obj):
@@ -233,7 +238,7 @@ class StarListSerializer(ModelSerializer):
         return attrs
 
 
-class StarSerializer(ModelSerializer):
+class StarSerializer(ProjectFieldGuardMixin, ModelSerializer):
     tags = SerializerMethodField()
     tag_ids = PrimaryKeyRelatedField(
         many=True,

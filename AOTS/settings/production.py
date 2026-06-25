@@ -27,6 +27,34 @@ CSRF_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
+SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=31536000)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True)
+SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', default=False)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+from .base import INSTALLED_APPS as BASE_INSTALLED_APPS
+from .base import MIDDLEWARE as BASE_MIDDLEWARE, env
+
+INSTALLED_APPS = [*BASE_INSTALLED_APPS, 'csp']
+
+MIDDLEWARE = [
+    BASE_MIDDLEWARE[0],
+    'csp.middleware.CSPMiddleware',
+    *BASE_MIDDLEWARE[1:],
+]
+
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ("'self'",),
+        'script-src': ("'self'", 'https://cdn.bokeh.org'),
+        'style-src': ("'self'", "'unsafe-inline'"),
+        'img-src': ("'self'", 'data:', 'blob:', 'https:'),
+        'connect-src': ("'self'",),
+        'font-src': ("'self'", 'data:'),
+        'frame-ancestors': ("'self'",),
+    },
+}
+
 # Shared cache for task ownership (Gunicorn workers) and optional TTL helpers
 _cache_url = env('CACHE_URL', default='')
 if not _cache_url and CELERY_BROKER_URL.startswith('redis://'):

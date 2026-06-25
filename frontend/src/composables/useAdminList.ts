@@ -19,7 +19,7 @@ export function useAdminList<T>(opts: AdminListOptions) {
     page.value,
     pageSize.value,
     ordering.value,
-    opts.filters?.value,
+    JSON.stringify(opts.filters?.value ?? {}),
     opts.search?.value,
   ])
 
@@ -42,8 +42,8 @@ export function useAdminList<T>(opts: AdminListOptions) {
     },
   })
 
-  watch([page, pageSize, () => opts.filters?.value, () => opts.search?.value, ordering], () => {
-    page.value = Math.max(1, page.value)
+  watch([() => opts.filters?.value, () => opts.search?.value, ordering, pageSize], () => {
+    page.value = 1
   })
 
   return { query, page, pageSize, ordering }

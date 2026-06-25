@@ -9,7 +9,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from AOTS.api_mixins import DualOrderingMixin, ProjectFilteredQuerysetMixin
-from AOTS.api_processing import run_process_view
 from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
 from analysis.categories import choices_for_api, has_category_derived_parameters
 from analysis.forms import UploadAnalysisFileForm
@@ -17,7 +16,6 @@ from analysis.models import Analysis, Parameter
 from analysis.services import parameter_io
 from analysis.services.analysis_upload import upload_analysis_files
 from analysis.services.parameter_derivation import sync_derived_for_analysis
-from analysis.tasks import process_analysis_task
 from stars.models import Project
 from users.api_auth import APIKeyAuthentication
 from .filter import AnalysisFilter, ParameterFilter
@@ -167,11 +165,3 @@ def derive_analysis_parameters_api(request, pk):
         'failed': result['failed'],
         'derived_parameters': serializer.data['derived_parameters'],
     })
-
-
-@api_view(['POST'])
-def processAnalysis(request, pk):
-    analysis = get_object_if_allowed(Analysis, request, pk, require_edit=True)
-    return run_process_view(
-        request, analysis, process_analysis_task, AnalysisListSerializer,
-    )

@@ -8,7 +8,7 @@ from analysis.models import Analysis, Parameter, ParameterSource
 from observations.models import LightCurve, Observatory, RawSpecFile, Spectrum
 from observations.plotting import plot_sed
 from stars.api.filter import StarFilter
-from stars.api.serializers import StarSerializer
+from stars.api.serializers import StarSerializer, TagSerializer
 from stars.models import Project, Star, Tag
 
 User = get_user_model()
@@ -141,3 +141,48 @@ class StarSerializerProjectScopingTests(TestCase):
             context={'request': request},
         )
         self.assertTrue(serializer.is_valid(), serializer.errors)
+
+    def test_star_patch_cannot_move_to_other_project(self):
+        request = self.factory.patch('/')
+        force_authenticate(request, user=self.user)
+        serializer = StarSerializer(
+            self.star,
+            data={'project': self.project_b.pk},
+            partial=True,
+            context={'request': request},
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        serializer.save()
+        self.star.refresh_from_db()
+        self.assertEqual(self.star.project_id, self.project_a.pk)
+
+    def test_star_create_rejects_foreign_project_without_add_permission(self):
+        request = self.factory.post('/')
+        force_authenticate(request, user=self.user)
+        serializer = StarSerializer(
+            data={
+                'name': 'New',
+                'project': self.project_b.pk,
+                'ra': 0,
+                'dec': 0,
+                'tag_ids': [],
+            },
+            context={'request': request},
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('project', serializer.errors)
+
+    def test_tag_patch_cannot_move_to_other_project(self):
+        tag = Tag.objects.create(name='t', project=self.project_a, color='#fff')
+        request = self.factory.patch('/')
+        force_authenticate(request, user=self.user)
+        serializer = TagSerializer(
+            tag,
+            data={'project': self.project_b.pk},
+            partial=True,
+            context={'request': request},
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        serializer.save()
+        tag.refresh_from_db()
+        self.assertEqual(tag.project_id, self.project_a.pk)

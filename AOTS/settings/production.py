@@ -43,12 +43,12 @@ MIDDLEWARE = [
     *BASE_MIDDLEWARE[1:],
 ]
 
-from csp.constants import NONCE
-
 CONTENT_SECURITY_POLICY = {
     'DIRECTIVES': {
         'default-src': ("'self'",),
-        'script-src': ("'self'", NONCE, "'strict-dynamic'", 'https://cdn.bokeh.org'),
+        # No inline scripts in spa/index.html; Bokeh uses json_item + CDN only.
+        # Do not use 'strict-dynamic' here — it disables 'self' for parser-inserted scripts.
+        'script-src': ("'self'", 'https://cdn.bokeh.org'),
         'style-src': ("'self'", "'unsafe-inline'"),
         'img-src': ("'self'", 'data:', 'blob:', 'https:'),
         'media-src': ("'self'", 'data:', 'blob:'),

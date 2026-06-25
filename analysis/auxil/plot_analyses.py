@@ -108,11 +108,13 @@ def plot_generic(datafile, *, theme=None):
                 )
 
             elif get_attr(dataset, "datatype", None) == "discrete" and mode == "MODEL":
-                fig.x(
+                fig.scatter(
                     dataset[xpar][s],
                     dataset[ypar][s],
+                    marker="x",
                     color=colors[i],
                     legend_label=name,
+                    size=8,
                 )
 
             if ypar + "_err" in dataset.dtype.names:
@@ -251,9 +253,10 @@ def plot_generic_large(datafile, *, theme=None):
                     dataset[xpar], dataset[ypar], color=colors[i], legend_label=name
                 )
             elif get_attr(dataset, "datatype", None) == "discrete":
-                fig.x(
+                fig.scatter(
                     dataset[xpar],
                     dataset[ypar],
+                    marker="x",
                     color=colors[i],
                     legend_label=name,
                     size=10,

@@ -4,7 +4,20 @@ from astropy.coordinates.angles import Angle
 from analysis.categories import uses_sed_hdf5_reader
 from analysis.models.default_values import DEFAULT_PARAMETERS, UNIT_ALIASES
 from analysis.services.metallicity import metallicity_to_feh_dex
-from analysis.services.parameter_names import resolve_ingest_parameter_name, storage_parameter_name
+from analysis.services.parameter_names import (
+    resolve_ingest_parameter_name,
+    storage_parameter_name,
+)
+
+
+def _default_parameter_unit(base: str, component: int) -> str | None:
+    """Look up the canonical unit for a resolved base/component pair."""
+    storage_name = storage_parameter_name(base, component)
+    if storage_name in DEFAULT_PARAMETERS:
+        return DEFAULT_PARAMETERS[storage_name]
+    if base in DEFAULT_PARAMETERS:
+        return DEFAULT_PARAMETERS[base]
+    return None
 
 
 # ==============================================================================================
@@ -174,7 +187,9 @@ def parameter_homogenisation(data):
         storage_name = storage_parameter_name(base, component)
         record = _parameter_record_to_dict(raw)
 
-        default_unit = DEFAULT_PARAMETERS[base]
+        default_unit = _default_parameter_unit(base, component)
+        if default_unit is None:
+            continue
         parameter_unit = unit_homogenisation(record['unit'], base)
 
         if base == 'z':

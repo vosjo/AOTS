@@ -79,11 +79,30 @@ class ParameterHomogenisationTests(SimpleTestCase):
         self.assertEqual(result['dilution1'][3], '')
         self.assertAlmostEqual(result['dilution1'][0], 0.85)
 
+    def test_k_alias_stored_as_k1(self):
+        result = parameter_homogenisation({
+            'k': {'value': 42.0, 'err_l': 1.0, 'err_u': 1.0, 'unit': 'km/s'},
+        })
+        self.assertIn('k1', result)
+        self.assertEqual(result['k1'][3], 'km/s')
+        self.assertAlmostEqual(result['k1'][0], 42.0)
+
+    def test_k2_component_suffix(self):
+        result = parameter_homogenisation({
+            'k2': {'value': 10.0, 'err_l': 0.5, 'err_u': 0.5, 'unit': 'km/s'},
+        })
+        self.assertIn('k2', result)
+        self.assertAlmostEqual(result['k2'][0], 10.0)
+
 
 class ParameterNameTests(SimpleTestCase):
     def test_met_resolves_to_z(self):
         self.assertEqual(resolve_ingest_parameter_name('met'), ('z', 0))
         self.assertEqual(resolve_ingest_parameter_name('met2'), ('z', 2))
+
+    def test_k_alias_resolves_to_k1(self):
+        self.assertEqual(resolve_ingest_parameter_name('k'), ('k1', 0))
+        self.assertEqual(resolve_ingest_parameter_name('k2'), ('k', 2))
 
     def test_z_in_default_parameters(self):
         self.assertEqual(DEFAULT_PARAMETERS['z'], 'dex')

@@ -20,6 +20,12 @@ def resolve_ingest_parameter_name(pname: str) -> tuple[str, int] | None:
             return key, component
 
     for canonical, aliases in PARAMETER_ALIASES.items():
+        if pname.lower() in (alias.lower() for alias in aliases):
+            if canonical in DEFAULT_PARAMETERS:
+                return canonical, 0
+            canonical_base, canonical_component = split_parameter_name(canonical)
+            return canonical_base, canonical_component or component
+
         canonical_base, _ = split_parameter_name(canonical)
         if base.lower() == canonical_base.lower():
             return canonical_base, component

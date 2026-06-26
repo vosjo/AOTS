@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import UserMultiSelect from '@/components/admin/UserMultiSelect.vue'
 import { api } from '@/api/client'
+import { confirmAction } from '@/composables/useConfirm'
 import { useAdminEntityRoute } from '@/composables/useAdminEntityRoute'
 import { useAdminFormFeedback } from '@/composables/useAdminFormFeedback'
 import AdminFormActions from '@/components/admin/AdminFormActions.vue'
@@ -124,7 +125,10 @@ async function save() {
 
 async function removeProject() {
   if (!projectId.value) return
-  if (!window.confirm('Delete this project and all related data?')) return
+  if (!(await confirmAction({
+    title: 'Delete project',
+    message: 'Delete this project and all related data?',
+  }))) return
   saving.value = true
   clearMessages()
   try {

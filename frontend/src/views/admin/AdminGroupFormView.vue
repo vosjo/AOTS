@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PermissionDualList, { type PermissionOption } from '@/components/admin/PermissionDualList.vue'
 import { api } from '@/api/client'
+import { confirmAction } from '@/composables/useConfirm'
 import { useAdminEntityRoute } from '@/composables/useAdminEntityRoute'
 import { useAdminFormFeedback } from '@/composables/useAdminFormFeedback'
 import AdminFormActions from '@/components/admin/AdminFormActions.vue'
@@ -90,7 +91,10 @@ async function save() {
 
 async function removeGroup() {
   if (!groupId.value) return
-  if (!window.confirm('Delete this group?')) return
+  if (!(await confirmAction({
+    title: 'Delete group',
+    message: 'Delete this group?',
+  }))) return
   saving.value = true
   clearMessages()
   try {

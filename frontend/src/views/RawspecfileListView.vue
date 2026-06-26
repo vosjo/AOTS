@@ -10,6 +10,7 @@ import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import SpectraSectionNav from '@/components/SpectraSectionNav.vue'
 import { api } from '@/api/client'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
+import { confirmAction } from '@/composables/useConfirm'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
@@ -252,7 +253,10 @@ async function uploadRawFiles(simple: boolean) {
 }
 
 async function deleteSelected() {
-  if (!confirm('Are you sure you want to delete this spectrum? This can NOT be undone!')) return
+  if (!(await confirmAction({
+    title: 'Delete spectra',
+    message: 'Are you sure you want to delete the selected spectra? This cannot be undone!',
+  }))) return
   for (const pk of selectedIds.value) {
     await api(`/api/observations/rawspecfiles/${pk}/`, { method: 'DELETE' })
   }

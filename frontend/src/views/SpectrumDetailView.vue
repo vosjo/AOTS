@@ -7,6 +7,7 @@ import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { confirmAction } from '@/composables/useConfirm'
 import { useThemeStore } from '@/stores/theme'
 
 interface StarRef {
@@ -201,7 +202,10 @@ function yesNo(value: boolean) {
 }
 
 async function remove() {
-  if (!confirm('Are you sure you want to delete this spectrum? This can NOT be undone.')) return
+  if (!(await confirmAction({
+    title: 'Delete spectrum',
+    message: 'Are you sure you want to delete this spectrum? This cannot be undone.',
+  }))) return
   await api(`/api/observations/spectra/${pk.value}/`, { method: 'DELETE' })
   router.push(`/w/${projectSlug.value}/observations/spectra/`)
 }
@@ -234,15 +238,26 @@ async function remove() {
 
     <div class="flex-1 min-w-0 space-y-3">
       <div class="aots-detail-header">
-        <AppButton
+        <div
           v-if="auth.isAuthenticated"
-          variant="icon"
-          class="absolute top-1 right-1"
-          title="Edit spectrum"
-          @click="openSpectrumEdit"
+          class="absolute top-1 right-1 flex items-center gap-2"
         >
-          <Pencil class="w-4 h-4" />
-        </AppButton>
+          <AppButton
+            variant="icon"
+            title="Edit spectrum"
+            @click="openSpectrumEdit"
+          >
+            <Pencil class="w-4 h-4" />
+          </AppButton>
+          <AppButton
+            variant="ghost-danger"
+            size="sm"
+            class="inline-flex items-center gap-1.5"
+            @click="remove"
+          >
+            <Trash2 class="w-3.5 h-3.5" /> Delete spectrum
+          </AppButton>
+        </div>
 
         <div class="flex items-center gap-2">
           <h1 class="text-lg font-semibold m-0">{{ spectrum.title }}</h1>
@@ -403,19 +418,6 @@ async function remove() {
                 <AppButton variant="primary" size="sm" @click="saveNote">Save</AppButton>
               </div>
             </div>
-          </div>
-
-          <div
-            v-if="auth.isAuthenticated"
-            class="mt-auto shrink-0 border-t border-aots pt-2"
-          >
-            <AppButton
-              variant="ghost-danger"
-              size="sm"
-              @click="remove"
-            >
-              <Trash2 class="w-3.5 h-3.5" /> Delete spectrum
-            </AppButton>
           </div>
         </section>
       </div>

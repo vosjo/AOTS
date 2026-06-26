@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '@/api/client'
+import { confirmAction } from '@/composables/useConfirm'
 import { useAdminEntityRoute } from '@/composables/useAdminEntityRoute'
 import { useAdminFormFeedback } from '@/composables/useAdminFormFeedback'
 import AdminFormActions from '@/components/admin/AdminFormActions.vue'
@@ -107,7 +108,10 @@ async function save() {
 
 async function removeUser() {
   if (!userId.value) return
-  if (!window.confirm('Delete this user permanently?')) return
+  if (!(await confirmAction({
+    title: 'Delete user',
+    message: 'Delete this user permanently?',
+  }))) return
   saving.value = true
   clearMessages()
   try {

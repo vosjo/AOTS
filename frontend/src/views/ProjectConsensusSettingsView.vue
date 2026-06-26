@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
 import { api } from '@/api/client'
+import { confirmAction } from '@/composables/useConfirm'
 import { useAuthStore } from '@/stores/auth'
 
 interface PolicyRow {
@@ -188,7 +189,10 @@ async function savePolicy() {
 
 async function deletePolicy(row: PolicyRow) {
   if (!canEdit.value) return
-  if (!window.confirm(`Delete policy for ${row.name} (component ${row.component})?`)) return
+  if (!(await confirmAction({
+    title: 'Delete policy',
+    message: `Delete policy for ${row.name} (component ${row.component})?`,
+  }))) return
   saving.value = true
   error.value = ''
   try {

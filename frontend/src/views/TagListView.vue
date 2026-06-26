@@ -6,6 +6,7 @@ import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
+import { confirmAction } from '@/composables/useConfirm'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { api } from '@/api/client'
@@ -109,7 +110,11 @@ async function saveTag() {
 }
 
 async function deleteTag(row: TagRow) {
-  if (!confirm('Are you sure you want to remove this Tag?')) return
+  if (!(await confirmAction({
+    title: 'Remove tag',
+    message: 'Are you sure you want to remove this tag?',
+    confirmLabel: 'Remove',
+  }))) return
   await api(`/api/systems/tags/${row.pk}/`, { method: 'DELETE' })
   await query.refetch()
 }

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { BookOpen, Download, Pencil, Star } from '@lucide/vue'
+import { BookOpen, Download, Pencil, Star, Trash2 } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { confirmAction } from '@/composables/useConfirm'
 import { useThemeStore } from '@/stores/theme'
 
 interface StarRef {
@@ -75,6 +76,7 @@ interface AnalysisDetail {
 import type { BokehEmbed } from '@/types/bokeh'
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
@@ -218,6 +220,15 @@ async function deriveParameters() {
     deriveBusy.value = false
   }
 }
+
+async function remove() {
+  if (!(await confirmAction({
+    title: 'Delete analysis',
+    message: 'Are you sure you want to delete this analysis? This cannot be undone.',
+  }))) return
+  await api(`/api/analysis/analyses/${pk.value}/`, { method: 'DELETE' })
+  router.push(`/w/${projectSlug.value}/analysis/analyses/`)
+}
 </script>
 
 <template>
@@ -273,15 +284,26 @@ async function deriveParameters() {
 
     <div class="flex-1 min-w-0 space-y-4">
       <div class="aots-detail-header">
-        <AppButton
+        <div
           v-if="auth.isAuthenticated"
-          variant="icon"
-          class="absolute top-1 right-1"
-          title="Edit analysis"
-          @click="openDetailsEdit"
+          class="absolute top-1 right-1 flex items-center gap-2"
         >
-          <Pencil class="w-4 h-4" />
-        </AppButton>
+          <AppButton
+            variant="icon"
+            title="Edit analysis"
+            @click="openDetailsEdit"
+          >
+            <Pencil class="w-4 h-4" />
+          </AppButton>
+          <AppButton
+            variant="ghost-danger"
+            size="sm"
+            class="inline-flex items-center gap-1.5"
+            @click="remove"
+          >
+            <Trash2 class="w-3.5 h-3.5" /> Delete analysis
+          </AppButton>
+        </div>
 
         <h1 class="text-lg font-semibold m-0 w-full xl:w-auto">
           {{ pageTitle }}<span v-if="analysis.name" class="font-medium text-aots-muted"> ({{ analysis.name }})</span>

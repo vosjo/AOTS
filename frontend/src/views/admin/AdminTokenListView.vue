@@ -6,6 +6,7 @@ import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import { api, formatApiError, type PaginatedResponse } from '@/api/client'
+import { confirmAction } from '@/composables/useConfirm'
 import { useAdminList } from '@/composables/useAdminList'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 
@@ -79,7 +80,11 @@ async function createToken() {
 }
 
 async function deleteToken(pk: number) {
-  if (!window.confirm('Revoke this token?')) return
+  if (!(await confirmAction({
+    title: 'Revoke token',
+    message: 'Revoke this token?',
+    confirmLabel: 'Revoke',
+  }))) return
   try {
     await api(`/api/admin/tokens/${pk}/`, { method: 'DELETE' })
     await queryClient.invalidateQueries({ queryKey: ['/api/admin/tokens/'] })

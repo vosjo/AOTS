@@ -9,6 +9,7 @@ import AppAlert from '@/components/AppAlert.vue'
 import AnalysesSectionNav from '@/components/AnalysesSectionNav.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
+import { confirmAction } from '@/composables/useConfirm'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
@@ -137,7 +138,11 @@ async function uploadAnalyses() {
 }
 
 async function deleteSelected() {
-  if (!confirm('Are you sure you want to remove these Analyses?')) return
+  if (!(await confirmAction({
+    title: 'Remove analyses',
+    message: 'Are you sure you want to remove these analyses?',
+    confirmLabel: 'Remove',
+  }))) return
   for (const pk of selectedIds.value) {
     await api(`/api/analysis/analyses/${pk}/`, { method: 'DELETE' })
   }

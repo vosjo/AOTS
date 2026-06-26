@@ -16,6 +16,7 @@ import { useGaiaFetch } from '@/composables/useGaiaFetch'
 import { useSimbadAliasesFetch } from '@/composables/useSimbadAliasesFetch'
 import { useTessFetch } from '@/composables/useTessFetch'
 import { useVizierPhotometryFetch } from '@/composables/useVizierPhotometryFetch'
+import { confirmAction } from '@/composables/useConfirm'
 import { useSimbadResolve } from '@/composables/useSimbadResolve'
 import { api, type PaginatedResponse } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -215,7 +216,10 @@ function carryTo(path: string) {
 }
 
 async function deleteSelected() {
-  if (!confirm('Are you sure you want to delete these Systems? This can NOT be undone!')) return
+  if (!(await confirmAction({
+    title: 'Delete systems',
+    message: 'Are you sure you want to delete these systems? This cannot be undone!',
+  }))) return
   for (const pk of selectedIds.value) {
     await api(`/api/systems/stars/${pk}/`, { method: 'DELETE' })
   }

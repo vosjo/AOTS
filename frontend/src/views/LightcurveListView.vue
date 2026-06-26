@@ -6,6 +6,7 @@ import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
 import BulkDownloadProgress from '@/components/BulkDownloadProgress.vue'
+import { confirmAction } from '@/composables/useConfirm'
 import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
@@ -89,7 +90,10 @@ function formatLcValue(value: number) {
 }
 
 async function deleteSelected() {
-  if (!confirm('Are you sure you want to delete these lightcuves? This can NOT be undone!')) return
+  if (!(await confirmAction({
+    title: 'Delete light curves',
+    message: 'Are you sure you want to delete these light curves? This cannot be undone!',
+  }))) return
   for (const pk of selectedIds.value) {
     await api(`/api/observations/lightcurves/${pk}/`, { method: 'DELETE' })
   }
@@ -98,7 +102,10 @@ async function deleteSelected() {
 }
 
 async function deleteRow(pk: number) {
-  if (!confirm('Are you sure you want to delete this light curve? This can NOT be undone.')) return
+  if (!(await confirmAction({
+    title: 'Delete light curve',
+    message: 'Are you sure you want to delete this light curve? This cannot be undone.',
+  }))) return
   await api(`/api/observations/lightcurves/${pk}/`, { method: 'DELETE' })
   await query.refetch()
 }

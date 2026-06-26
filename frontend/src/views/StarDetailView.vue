@@ -13,13 +13,14 @@ import {
   XCircle,
 } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import AladinMap from '@/components/AladinMap.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { confirmAction } from '@/composables/useConfirm'
 import { useThemeStore } from '@/stores/theme'
 import type { BokehEmbed } from '@/types/bokeh'
 
@@ -204,6 +205,7 @@ const OBSERVING_STATUS_OPTIONS = [
 ] as const
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
@@ -355,6 +357,15 @@ async function saveNote() {
   })
   noteEdit.value = false
   refetch()
+}
+
+async function remove() {
+  if (!(await confirmAction({
+    title: 'Delete system',
+    message: 'Are you sure you want to delete this system? This cannot be undone!',
+  }))) return
+  await api(`/api/systems/stars/${starId.value}/`, { method: 'DELETE' })
+  router.push(`/w/${projectSlug.value}/systems/stars/`)
 }
 
 function parseRaDegrees(value: string): number {
@@ -734,6 +745,16 @@ watch(editableParams, (data) => {
 
     <div class="flex-1 min-w-0 space-y-3">
       <div class="aots-detail-header">
+        <AppButton
+          v-if="auth.isAuthenticated"
+          variant="ghost-danger"
+          size="sm"
+          class="absolute top-1 right-1 inline-flex items-center gap-1.5"
+          @click="remove"
+        >
+          <Trash2 class="w-3.5 h-3.5" /> Delete system
+        </AppButton>
+
         <h1 class="text-lg font-semibold m-0">{{ headerTitle }}</h1>
         <span class="inline-flex items-center gap-1.5 text-sm text-aots-muted">
           <i

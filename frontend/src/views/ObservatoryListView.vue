@@ -7,6 +7,7 @@ import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import ObservatoryWorldMap from '@/components/ObservatoryWorldMap.vue'
+import { confirmAction } from '@/composables/useConfirm'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { api, type PaginatedResponse } from '@/api/client'
@@ -218,7 +219,10 @@ async function saveObservatory() {
 }
 
 async function deleteObservatory(row: ObservatoryRow) {
-  if (!confirm('Are you sure you want to delete this Observatory? This cannot be undone')) return
+  if (!(await confirmAction({
+    title: 'Delete observatory',
+    message: 'Are you sure you want to delete this observatory? This cannot be undone.',
+  }))) return
   try {
     await api(`/api/observations/observatories/${row.pk}/`, { method: 'DELETE' })
     await refreshObservatories()

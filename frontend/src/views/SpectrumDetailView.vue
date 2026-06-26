@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { CheckCircle2, Download, Pencil, Star, XCircle, FileText } from '@lucide/vue'
+import { CheckCircle2, Download, Pencil, Star, Trash2, XCircle, FileText } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
@@ -72,6 +72,7 @@ interface SpectrumDetail {
 import type { BokehEmbed } from '@/types/bokeh'
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
@@ -197,6 +198,12 @@ async function showHeader(file: SpecFileRef) {
 
 function yesNo(value: boolean) {
   return value ? 'Yes' : 'No'
+}
+
+async function remove() {
+  if (!confirm('Are you sure you want to delete this spectrum? This can NOT be undone.')) return
+  await api(`/api/observations/spectra/${pk.value}/`, { method: 'DELETE' })
+  router.push(`/w/${projectSlug.value}/observations/spectra/`)
 }
 </script>
 
@@ -343,46 +350,72 @@ function yesNo(value: boolean) {
           </div>
         </section>
 
-        <section class="aots-panel-compact flex min-h-0 flex-col space-y-3">
-          <div>
-            <h2 class="text-sm font-medium mb-1">Files</h2>
-            <ul v-if="spectrum.specfiles.length" class="text-xs space-y-1">
-              <li v-for="file in spectrum.specfiles" :key="file.pk" class="flex flex-wrap items-center gap-1">
-                <span>{{ file.filetype }}</span>
-                <AppButton variant="link" @click="showHeader(file)">
-                  <FileText class="w-3.5 h-3.5" /> (Header)
-                </AppButton>
-                <AppButton
-                  v-if="auth.isAuthenticated && file.download_url"
-                  variant="link"
-                  :href="file.download_url"
-                  title="Download"
+        <section class="aots-panel-compact flex h-full min-h-0 min-w-0 flex-col">
+          <div class="flex min-h-0 flex-1 flex-col gap-3">
+            <div class="min-w-0">
+              <h2 class="text-sm font-medium mb-1">Files</h2>
+              <ul v-if="spectrum.specfiles.length" class="text-xs space-y-1 min-w-0">
+                <li
+                  v-for="file in spectrum.specfiles"
+                  :key="file.pk"
+                  class="flex min-w-0 flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center"
                 >
-                  <Download class="w-3.5 h-3.5" />
-                </AppButton>
-              </li>
-            </ul>
-            <p v-else class="text-xs text-aots-muted">No files</p>
+                  <span
+                    class="min-w-0 break-all font-mono text-aots leading-snug"
+                    :title="file.filetype"
+                  >
+                    {{ file.filetype }}
+                  </span>
+                  <span class="flex shrink-0 items-center gap-3">
+                    <AppButton variant="link" @click="showHeader(file)">
+                      <FileText class="w-3.5 h-3.5" /> (Header)
+                    </AppButton>
+                    <AppButton
+                      v-if="auth.isAuthenticated && file.download_url"
+                      variant="link"
+                      :href="file.download_url"
+                      title="Download"
+                    >
+                      <Download class="w-3.5 h-3.5" /> (FITS)
+                    </AppButton>
+                  </span>
+                </li>
+              </ul>
+              <p v-else class="text-xs text-aots-muted">No files</p>
+            </div>
+
+            <div class="border-t border-aots pt-2 relative">
+              <h2 class="text-sm font-medium">Note</h2>
+              <AppButton
+                v-if="auth.isAuthenticated"
+                variant="icon"
+                class="absolute top-2 right-0"
+                title="Edit note"
+                @click="noteEdit = !noteEdit"
+              >
+                <Pencil class="w-4 h-4" />
+              </AppButton>
+              <p v-if="!noteEdit" class="text-xs text-aots-muted mt-1 whitespace-pre-wrap pr-8">
+                {{ spectrum.note || '—' }}
+              </p>
+              <div v-else class="mt-2 space-y-2">
+                <textarea v-model="noteText" class="aots-field text-xs" rows="4" />
+                <AppButton variant="primary" size="sm" @click="saveNote">Save</AppButton>
+              </div>
+            </div>
           </div>
 
-          <div class="border-t border-aots pt-2 relative">
-            <h2 class="text-sm font-medium">Note</h2>
+          <div
+            v-if="auth.isAuthenticated"
+            class="mt-auto shrink-0 border-t border-aots pt-2"
+          >
             <AppButton
-              v-if="auth.isAuthenticated"
-              variant="icon"
-              class="absolute top-2 right-0"
-              title="Edit note"
-              @click="noteEdit = !noteEdit"
+              variant="ghost-danger"
+              size="sm"
+              @click="remove"
             >
-              <Pencil class="w-4 h-4" />
+              <Trash2 class="w-3.5 h-3.5" /> Delete spectrum
             </AppButton>
-            <p v-if="!noteEdit" class="text-xs text-aots-muted mt-1 whitespace-pre-wrap pr-8">
-              {{ spectrum.note || '—' }}
-            </p>
-            <div v-else class="mt-2 space-y-2">
-              <textarea v-model="noteText" class="aots-field text-xs" rows="4" />
-              <AppButton variant="primary" size="sm" @click="saveNote">Save</AppButton>
-            </div>
           </div>
         </section>
       </div>

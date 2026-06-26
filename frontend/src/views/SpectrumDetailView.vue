@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { CheckCircle2, Download, Pencil, Star, XCircle } from '@lucide/vue'
+import { CheckCircle2, Download, Pencil, Star, XCircle, FileText } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
@@ -350,7 +350,7 @@ function yesNo(value: boolean) {
               <li v-for="file in spectrum.specfiles" :key="file.pk" class="flex flex-wrap items-center gap-1">
                 <span>{{ file.filetype }}</span>
                 <AppButton variant="link" @click="showHeader(file)">
-                  (header)
+                  <FileText class="w-3.5 h-3.5" /> (Header)
                 </AppButton>
                 <AppButton
                   v-if="auth.isAuthenticated && file.download_url"

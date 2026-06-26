@@ -639,7 +639,7 @@ async function addSystem() {
                 :disabled="vizierPhotometryFetch.busy"
                 @click="closeMobileActions(); openVizierDialog()"
               >
-                Fetch VizieR
+                Fetch Photometry
               </AppButton>
               <AppButton
                 v-if="auth.canSyncSimbadAliases"
@@ -649,7 +649,7 @@ async function addSystem() {
                 :disabled="simbadAliasesFetch.busy"
                 @click="closeMobileActions(); openSimbadDialog()"
               >
-                Update Simbad aliases
+                Update aliases
               </AppButton>
               <AppButton
                 variant="ghost"
@@ -744,7 +744,7 @@ async function addSystem() {
           :disabled="vizierPhotometryFetch.busy"
           @click="openVizierDialog"
         >
-          Fetch VizieR
+          Fetch Photometry
         </AppButton>
         <BulkDownloadProgress :status="vizierPhotometryFetch.status" :busy="vizierPhotometryFetch.busy" />
         <template v-if="auth.canSyncSimbadAliases">
@@ -753,7 +753,7 @@ async function addSystem() {
             :disabled="simbadAliasesFetch.busy"
             @click="openSimbadDialog"
           >
-            Update Simbad aliases
+            Update aliases
           </AppButton>
           <BulkDownloadProgress :status="simbadAliasesFetch.status" :busy="simbadAliasesFetch.busy" />
         </template>
@@ -1017,7 +1017,7 @@ async function addSystem() {
     @click.self="simbadDialog = false"
   >
     <div class="aots-panel w-full max-w-md">
-      <h3 class="font-medium mb-3">Update Simbad aliases</h3>
+      <h3 class="font-medium mb-3">Update aliases from Simbad</h3>
       <p v-if="simbadDialogMode === 'selected'" class="text-sm text-aots-muted">
         Fetch alternative names from Simbad for {{ selectedIds.length }} selected system(s)?
         Existing aliases are kept; only new names are added.
@@ -1034,7 +1034,7 @@ async function addSystem() {
         </p>
       </template>
       <div class="flex gap-2 mt-4">
-        <AppButton variant="primary" @click="confirmSimbadFetch">Update aliases</AppButton>
+        <AppButton variant="primary" @click="confirmSimbadFetch">Update from Simbad</AppButton>
         <AppButton variant="ghost" @click="simbadDialog = false">Cancel</AppButton>
       </div>
     </div>

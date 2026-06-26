@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Literal
 
@@ -214,28 +215,143 @@ def themed_field_hover_tool(
     return HoverTool(renderers=renderers, tooltips=_themed_tooltip_html(body, theme))
 
 
+def _theme_mode(theme: BokehPlotTheme) -> ThemeMode:
+    return 'light' if theme.plot_background == THEMES['light'].plot_background else 'dark'
+
+
+def _status_label_style(kind: Literal['info', 'warning', 'error'], theme: BokehPlotTheme) -> dict[str, object]:
+    mode = _theme_mode(theme)
+    if kind == 'info':
+        return {
+            'text_color': theme.axis_title,
+            'background_fill_color': theme.plot_border,
+            'background_fill_alpha': 0.94,
+            'border_line_color': theme.outline,
+        }
+    if kind == 'warning':
+        if mode == 'light':
+            return {
+                'text_color': '#92400e',
+                'background_fill_color': '#fffbeb',
+                'background_fill_alpha': 0.96,
+                'border_line_color': '#f59e0b',
+            }
+        return {
+            'text_color': '#fcd34d',
+            'background_fill_color': '#422006',
+            'background_fill_alpha': 0.92,
+            'border_line_color': '#b45309',
+        }
+    if mode == 'light':
+        return {
+            'text_color': '#b91c1c',
+            'background_fill_color': '#fef2f2',
+            'background_fill_alpha': 0.96,
+            'border_line_color': '#f87171',
+        }
+    return {
+        'text_color': '#fca5a5',
+        'background_fill_color': '#450a0a',
+        'background_fill_alpha': 0.9,
+        'border_line_color': '#ef4444',
+    }
+
+
 def themed_status_label(
     *,
     x,
     y,
     text: str,
     theme: BokehPlotTheme,
-    text_color: str = '#ef4444',
+    kind: Literal['info', 'warning', 'error'] = 'error',
+    text_color: str | None = None,
     **kwargs,
 ) -> 'Label':
-    """On-plot status/error label matching panel surface."""
+    """On-plot status label matching panel surface."""
     from bokeh.models import Label
+
+    style = _status_label_style(kind, theme)
+    if text_color is not None:
+        style['text_color'] = text_color
 
     return Label(
         x=x,
         y=y,
         text=text,
-        text_color=text_color,
+        text_color=style['text_color'],
         text_align=kwargs.pop('text_align', 'center'),
         text_baseline=kwargs.pop('text_baseline', 'middle'),
-        background_fill_color=theme.plot_border,
-        background_fill_alpha=1.0,
-        border_line_color=theme.outline,
+        text_font_size=kwargs.pop('text_font_size', '12pt'),
+        text_font_style=kwargs.pop('text_font_style', 'normal'),
+        background_fill_color=style['background_fill_color'],
+        background_fill_alpha=style['background_fill_alpha'],
+        border_line_color=style['border_line_color'],
         border_line_alpha=1.0,
+        border_line_width=1,
+        border_radius=kwargs.pop('border_radius', 6),
+        padding=kwargs.pop('padding', (10, 12)),
         **kwargs,
     )
+
+
+def soften_plot_axes_for_notice(fig) -> None:
+    """Keep plot context visible but de-emphasize axes when showing a notice only."""
+    for axis in (fig.xaxis, fig.yaxis):
+        axis.major_label_text_alpha = 0.28
+        axis.axis_label_text_alpha = 0.35
+        axis.major_tick_line_alpha = 0.2
+        axis.minor_tick_line_alpha = 0.12
+        axis.axis_line_alpha = 0.25
+    grid_alpha = fig.grid.grid_line_alpha
+    if isinstance(grid_alpha, (int, float)):
+        fig.grid.grid_line_alpha = min(grid_alpha, 0.12)
+    else:
+        fig.grid.grid_line_alpha = 0.12
+
+
+def _range_center(rng, default: tuple[float, float]) -> tuple[float, float, bool]:
+    """Return range midpoint when start/end are known; otherwise signal fallback."""
+    start = getattr(rng, 'start', None)
+    end = getattr(rng, 'end', None)
+    try:
+        start_f, end_f = float(start), float(end)
+    except (TypeError, ValueError):
+        return 0.5 * (default[0] + default[1]), False
+    if not all(math.isfinite(v) for v in (start_f, end_f)):
+        return 0.5 * (default[0] + default[1]), False
+    return 0.5 * (start_f + end_f), True
+
+
+def add_centered_plot_notice(
+    fig,
+    *,
+    theme: BokehPlotTheme,
+    title: str,
+    detail: str | None = None,
+    kind: Literal['info', 'warning', 'error'] = 'info',
+) -> None:
+    """Place a short notice in the middle of the plot."""
+    x_center, x_ok = _range_center(fig.x_range, (0.0, 1.0))
+    y_center, y_ok = _range_center(fig.y_range, (0.0, 1.0))
+    text = title if not detail else f'{title}\n{detail}'
+
+    label_kwargs: dict[str, object] = {}
+    if not (x_ok and y_ok):
+        width = fig.width or 400
+        height = fig.height or 300
+        x_center = width / 2
+        y_center = height / 2
+        label_kwargs['x_units'] = 'screen'
+        label_kwargs['y_units'] = 'screen'
+
+    fig.add_layout(
+        themed_status_label(
+            x=x_center,
+            y=y_center,
+            text=text,
+            theme=theme,
+            kind=kind,
+            **label_kwargs,
+        ),
+    )
+    soften_plot_axes_for_notice(fig)

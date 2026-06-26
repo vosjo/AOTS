@@ -8,11 +8,12 @@ from astropy.coordinates import SkyCoord, AltAz, get_body
 from astropy.time import Time
 from bokeh import models as mpl
 from bokeh import plotting as bpl
-from bokeh.models import TabPanel, Tabs
+from bokeh.models import TabPanel, Tabs, Range1d
 from specutils import Spectrum as SpecutilsSpectrum
 
 from observations.auxil import tools as spectools
 from dash.bokeh_theme import (
+    add_centered_plot_notice,
     apply_bokeh_figure_theme,
     apply_bokeh_tabs_theme,
     resolve_bokeh_theme,
@@ -44,20 +45,18 @@ def plot_visibility(observation, *, theme=None):
     fig.yaxis.axis_label_text_font_size = '10pt'
     fig.xaxis.axis_label_text_font_size = '10pt'
     fig.min_border = 10
+    fig.x_range = Range1d(0, 24)
 
     try:
 
         if observation.observatory.space_craft:
-            label = themed_status_label(
-                x=180,
-                y=110,
-                x_units='screen',
-                y_units='screen',
-                text='Observatory is a Space Craft',
+            add_centered_plot_notice(
+                fig,
                 theme=plot_theme,
+                title='Space-based observatory',
+                detail='The visibility plot does not apply.',
+                kind='info',
             )
-
-            fig.add_layout(label)
 
             apply_bokeh_figure_theme(fig, plot_theme)
             return fig
@@ -97,15 +96,13 @@ def plot_visibility(observation, *, theme=None):
 
         print(e)
 
-        label = themed_status_label(
-            x=75,
-            y=40,
-            x_units='screen',
-            text='Could not calculate visibility',
+        add_centered_plot_notice(
+            fig,
             theme=plot_theme,
+            title='Visibility plot unavailable',
+            detail='Could not compute altitude curves.',
+            kind='warning',
         )
-
-        fig.add_layout(label)
 
     apply_bokeh_figure_theme(fig, plot_theme)
     return fig
@@ -389,6 +386,7 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None, *, t
     fig1.min_border = 5
 
     fig2 = bpl.figure(width=1600, height=400, sizing_mode='scale_width')
+    fig2.x_range = Range1d(0, 1)
 
     if not period is None:
         # calculate phase and sort on phase
@@ -406,16 +404,22 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None, *, t
 
     else:
 
-        label = themed_status_label(
-            x=800,
-            y=200,
-            x_units='screen',
-            y_units='screen',
-            text='No period provided, cannot phase fold lightcurve',
-            theme=plot_theme,
-        )
+        if flux.size:
+            flux_min = float(np.nanmin(flux))
+            flux_max = float(np.nanmax(flux))
+            if np.isfinite(flux_min) and np.isfinite(flux_max) and flux_min != flux_max:
+                pad = 0.05 * (flux_max - flux_min)
+                fig2.y_range = Range1d(flux_min - pad, flux_max + pad)
+            elif np.isfinite(flux_min):
+                fig2.y_range = Range1d(flux_min - 1.0, flux_min + 1.0)
 
-        fig2.add_layout(label)
+        add_centered_plot_notice(
+            fig2,
+            theme=plot_theme,
+            title='No period set',
+            detail='Set a period to show the folded light curve.',
+            kind='info',
+        )
 
     fig2.toolbar.logo = None
     fig2.yaxis.axis_label = 'Flux'

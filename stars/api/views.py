@@ -42,9 +42,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return qs.filter(is_public=True)
         if user.is_superuser:
             return qs
-        return qs.filter(
-            pk__in=user.get_read_projects().values('pk')
-        ) | qs.filter(is_public=True).distinct()
+        return (
+            qs.filter(pk__in=user.get_read_projects().values('pk'))
+            | qs.filter(is_public=True)
+        ).distinct()
 
     def list(self, request):
         queryset = self.get_queryset()

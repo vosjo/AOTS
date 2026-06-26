@@ -3,6 +3,37 @@
 from rest_framework import serializers
 
 
+class ProjectCapabilityMixin(serializers.Serializer):
+    """Per-user project capabilities for list/detail API responses."""
+
+    can_add = serializers.SerializerMethodField()
+
+    def get_can_add(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return request.user.can_add(obj)
+
+
+class ObjectPermissionFieldsMixin(serializers.Serializer):
+    """Per-object edit/delete flags for the authenticated user."""
+
+    can_edit = serializers.SerializerMethodField()
+    can_delete = serializers.SerializerMethodField()
+
+    def get_can_edit(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return request.user.can_edit(obj)
+
+    def get_can_delete(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return request.user.can_delete(obj)
+
+
 class ProjectFieldGuardMixin:
     """
     Prevent moving existing rows to another project via the API and require

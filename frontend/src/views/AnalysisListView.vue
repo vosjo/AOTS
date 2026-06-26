@@ -17,6 +17,7 @@ import { useListFilters } from '@/composables/useListFilters'
 import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
+import { useProjectPermissions } from '@/composables/useProjectPermissions'
 
 interface StarBrief {
   pk: number
@@ -49,6 +50,7 @@ interface CategoryOption {
 
 const route = useRoute()
 const auth = useAuthStore()
+const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const bulk = useBulkDownload()
@@ -223,7 +225,7 @@ async function applyCategory() {
       <template #actions>
         <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
         <AppButton
-          v-if="auth.isAuthenticated"
+          v-if="canAdd"
           variant="primary"
           class="inline-flex items-center gap-1.5"
           @click="uploadOpen = true"
@@ -232,7 +234,7 @@ async function applyCategory() {
           Upload analysis(es)
         </AppButton>
         <AppButton
-          v-if="auth.isAuthenticated"
+          v-if="canAdd"
           variant="secondary"
           :disabled="!selectedIds.length || categoryBusy"
           @click="openCategoryDialog"
@@ -248,7 +250,7 @@ async function applyCategory() {
           Download analysis
         </AppButton>
         <AppButton
-          v-if="auth.isAuthenticated"
+          v-if="canAdd"
           variant="danger"
           :disabled="!selectedIds.length"
           @click="deleteSelected"

@@ -9,15 +9,17 @@ import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
 import { confirmAction } from '@/composables/useConfirm'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
-import { api } from '@/api/client'
+import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
+import { useProjectPermissions } from '@/composables/useProjectPermissions'
 
 interface TagRow {
   pk: number
   name: string
   description: string
   color: string
+  can_delete?: boolean
 }
 
 const DEFAULT_COLOR = '#8B0000'
@@ -25,6 +27,7 @@ const DEFAULT_COLOR = '#8B0000'
 const route = useRoute()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const auth = useAuthStore()
+const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 
 const { query, page, pageSize, selected, toggleRow, toggleAll } = useDataTablePage<TagRow>({
@@ -40,7 +43,7 @@ const columns = computed(() => {
     { id: 'description', header: 'Description' },
     { id: 'color', header: 'Color' },
   ]
-  if (auth.isAuthenticated) cols.push({ id: 'actions', header: 'Action' })
+  if (canAdd.value) cols.push({ id: 'actions', header: 'Action' })
   return cols
 })
 
@@ -134,13 +137,13 @@ async function deleteTag(row: TagRow) {
     :loading="query.isFetching.value"
     :empty-message="emptyMessage"
     :selected="selected"
-    :selectable="auth.isAuthenticated"
+    :selectable="canAdd"
     @update:page="page = $event"
     @update:page-size="pageSize = $event"
     @toggle-row="toggleRow"
     @toggle-all="toggleAll(rows)"
   >
-    <template v-if="auth.isAuthenticated" #actions>
+    <template v-if="canAdd" #actions>
       <AppButton variant="primary" class="inline-flex items-center gap-1.5" @click="openAdd">
         <Plus class="w-4 h-4" />
         Add tag
@@ -161,7 +164,7 @@ async function deleteTag(row: TagRow) {
       </span>
     </template>
 
-    <template v-if="auth.isAuthenticated" #cell-actions="{ row }">
+    <template v-if="canAdd" #cell-actions="{ row }">
       <div class="flex items-center gap-2">
         <AppButton
           variant="icon"

@@ -2,12 +2,43 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from rest_framework.test import APIClient
 
+from observations.models import LightCurve
 from stars.models import Project, Star
 
 User = get_user_model()
+
+
+def _minimal_tess_lc_bytes():
+    import io
+
+    from astropy.io import fits
+    import numpy as np
+
+    buf = io.BytesIO()
+    cols = fits.ColDefs([
+        fits.Column(name='TIME', format='D', array=np.array([100.0, 100.001])),
+        fits.Column(name='PDCSAP_FLUX', format='E', array=np.array([1.0, 1.01], dtype='f4')),
+    ])
+    hdu = fits.BinTableHDU.from_columns(cols)
+    primary = fits.PrimaryHDU()
+    for key, value in {
+        'TELESCOP': 'TESS',
+        'INSTRUME': 'TESS Photometer',
+        'TSTART': 100.0,
+        'TSTOP': 200.0,
+        'RA_OBJ': 10.0,
+        'DEC_OBJ': 20.0,
+        'OBJECT': 'UploadStar',
+        'CREATOR': 'Lightkurve',
+    }.items():
+        primary.header[key] = value
+        hdu.header[key] = value
+    fits.HDUList([primary, hdu]).writeto(buf, overwrite=True)
+    return buf.getvalue()
 
 
 class BulkApiTests(TestCase):
@@ -108,3 +139,49 @@ class BulkApiTests(TestCase):
             HTTP_SECRETAPIKEY='secret-test-key',
         )
         self.assertEqual(response.status_code, 400)
+
+    def test_lc_upload_readwriteown_user(self):
+        own_user = User.objects.create_user(username='lcown', password='testpass123')
+        self.project.readwriteown_users.add(own_user)
+        self.client.force_authenticate(user=own_user)
+        content = _minimal_tess_lc_bytes()
+        response = self.client.post(
+            '/api/observations/api-lc-upload/',
+            {
+                'project': str(self.project.pk),
+                'lcfile': SimpleUploadedFile('sector1_lc.fits', content),
+            },
+            format='multipart',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('New light curve', response.data['detail'])
+        lc = LightCurve.objects.get()
+        self.assertTrue(lc.lcfile)
+        self.assertEqual(lc.project_id, self.project.pk)
+
+    def test_lc_upload_duplicate_returns_clear_message(self):
+        content = _minimal_tess_lc_bytes()
+        self.client.force_authenticate(user=self.user)
+        first = self.client.post(
+            '/api/observations/api-lc-upload/',
+            {
+                'project': str(self.project.pk),
+                'lcfile': SimpleUploadedFile('a.fits', content),
+            },
+            format='multipart',
+        )
+        self.assertEqual(first.status_code, 200)
+        second = self.client.post(
+            '/api/observations/api-lc-upload/',
+            {
+                'project': str(self.project.pk),
+                'lcfile': SimpleUploadedFile('b.fits', content),
+            },
+            format='multipart',
+        )
+        self.assertEqual(second.status_code, 400)
+        self.assertEqual(
+            second.data['detail'],
+            'This light curve is a duplicate and was not added!',
+        )
+        self.assertEqual(LightCurve.objects.count(), 1)

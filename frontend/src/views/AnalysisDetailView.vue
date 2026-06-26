@@ -67,6 +67,7 @@ interface AnalysisDetail {
   derived_parameters: AnalysisParameter[]
   has_derived_definitions: boolean
   can_edit: boolean
+  can_delete: boolean
   file_url: string
   datafile: string
   related_analyses: RelatedAnalysis[]
@@ -78,6 +79,8 @@ import type { BokehEmbed } from '@/types/bokeh'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const canEdit = computed(() => analysis.value?.can_edit === true)
+const canDelete = computed(() => analysis.value?.can_delete === true)
 const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const pk = computed(() => route.params.id as string)
@@ -285,10 +288,11 @@ async function remove() {
     <div class="flex-1 min-w-0 space-y-4">
       <div class="aots-detail-header">
         <div
-          v-if="auth.isAuthenticated"
+          v-if="canEdit || canDelete"
           class="absolute top-1 right-1 flex items-center gap-2"
         >
           <AppButton
+            v-if="canEdit"
             variant="icon"
             title="Edit analysis"
             @click="openDetailsEdit"
@@ -296,6 +300,7 @@ async function remove() {
             <Pencil class="w-4 h-4" />
           </AppButton>
           <AppButton
+            v-if="canDelete"
             variant="ghost-danger"
             size="sm"
             class="inline-flex items-center gap-1.5"
@@ -356,7 +361,7 @@ async function remove() {
           <span>Fit</span>
         </div>
 
-        <div v-if="analysis.file_url" class="flex items-center gap-1.5">
+        <div v-if="analysis.file_url && auth.isAuthenticated" class="flex items-center gap-1.5">
           <AppButton
             variant="secondary"
             size="sm"
@@ -409,7 +414,7 @@ async function remove() {
                         type="checkbox"
                         class="accent-aots"
                         :checked="param.valid"
-                        :disabled="!auth.isAuthenticated"
+                        :disabled="!canEdit"
                         @change="toggleParameterValid(param.pk, ($event.target as HTMLInputElement).checked)"
                       />
                     </td>
@@ -423,7 +428,7 @@ async function remove() {
             <div class="flex items-center justify-between gap-2 mb-2">
               <h2 class="text-sm font-medium m-0">Derived parameters</h2>
               <AppButton
-                v-if="analysis.can_edit && star"
+                v-if="canEdit && star"
                 variant="secondary"
                 size="sm"
                 :disabled="deriveBusy"
@@ -449,7 +454,7 @@ async function remove() {
                   <tr v-if="!analysis.derived_parameters.length">
                     <td colspan="3" class="text-aots-muted">
                       Not calculated yet
-                      <template v-if="analysis.can_edit"> — use the button above</template>
+                      <template v-if="canEdit"> — use the button above</template>
                     </td>
                   </tr>
                   <tr v-for="param in analysis.derived_parameters" :key="param.pk">
@@ -467,7 +472,7 @@ async function remove() {
           <section class="aots-panel-compact relative">
             <h2 class="text-sm font-medium mb-2">Notes</h2>
             <AppButton
-              v-if="auth.isAuthenticated"
+              v-if="canEdit"
               variant="icon"
               class="absolute top-2 right-2"
               title="Edit note"

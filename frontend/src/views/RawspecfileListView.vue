@@ -17,6 +17,7 @@ import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
+import { useProjectPermissions } from '@/composables/useProjectPermissions'
 
 interface RawSpecfileRow {
   pk: number
@@ -49,6 +50,7 @@ interface UploadMessage {
 
 const route = useRoute()
 const auth = useAuthStore()
+const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const bulk = useBulkDownload()
@@ -332,7 +334,7 @@ async function updateLinkage() {
       <template #actions>
         <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
         <AppButton
-          v-if="auth.isAuthenticated"
+          v-if="canAdd"
           variant="primary"
           class="inline-flex items-center gap-1.5"
           @click="openUploadDialog"
@@ -340,7 +342,7 @@ async function updateLinkage() {
           <Plus class="w-4 h-4" />
           Upload raw spectra
         </AppButton>
-        <template v-if="auth.isAuthenticated">
+        <template v-if="canAdd">
           <AppButton
             variant="secondary"
             :disabled="!selectedIds.length"
@@ -357,6 +359,7 @@ async function updateLinkage() {
           </AppButton>
         </template>
         <AppButton
+          v-if="auth.isAuthenticated"
           variant="secondary"
           :disabled="!selectedIds.length || bulk.busy"
           @click="bulk.start('rawspecfiles', selectedIds, projectStore.currentProject!.pk)"

@@ -5,7 +5,11 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField
 
 from AOTS.page_urls import analysis_detail_url, star_detail_url
-from AOTS.serializer_mixins import ProjectFieldGuardMixin
+from AOTS.serializer_mixins import (
+    ObjectPermissionFieldsMixin,
+    ProjectCapabilityMixin,
+    ProjectFieldGuardMixin,
+)
 
 logger = logging.getLogger('AOTS.stars.api')
 from stars.models import Project, Star, Tag, Identifier
@@ -15,7 +19,7 @@ from stars.models import Project, Star, Tag, Identifier
 # PROJECTS
 # ===============================================================
 
-class ProjectListSerializer(ModelSerializer):
+class ProjectListSerializer(ProjectCapabilityMixin, ModelSerializer):
     class Meta:
         model = Project
         fields = [
@@ -25,8 +29,9 @@ class ProjectListSerializer(ModelSerializer):
             'pk',
             'is_public',
             'logo',
+            'can_add',
         ]
-        read_only_fields = ('pk',)
+        read_only_fields = ('pk', 'can_add')
 
 
 class ProjectSerializer(ModelSerializer):
@@ -47,7 +52,7 @@ class ProjectSerializer(ModelSerializer):
 # ===============================================================
 
 
-class TagSerializer(ProjectFieldGuardMixin, ModelSerializer):
+class TagSerializer(ObjectPermissionFieldsMixin, ProjectFieldGuardMixin, ModelSerializer):
     class Meta:
         model = Tag
         fields = [
@@ -56,8 +61,10 @@ class TagSerializer(ProjectFieldGuardMixin, ModelSerializer):
             'description',
             'color',
             'pk',
+            'can_edit',
+            'can_delete',
         ]
-        read_only_fields = ('pk',)
+        read_only_fields = ('pk', 'can_edit', 'can_delete')
 
 
 class SimpleTagSerializer(ModelSerializer):
@@ -109,7 +116,7 @@ def _scope_star_tag_ids_queryset(serializer):
         field.queryset = queryset
 
 
-class StarListSerializer(ProjectFieldGuardMixin, ModelSerializer):
+class StarListSerializer(ObjectPermissionFieldsMixin, ProjectFieldGuardMixin, ModelSerializer):
     tags = SerializerMethodField()
     analyses = SerializerMethodField()
     vmag = SerializerMethodField()
@@ -158,8 +165,10 @@ class StarListSerializer(ProjectFieldGuardMixin, ModelSerializer):
             'name_match_basis',
             'matched_alias',
             'href',
+            'can_edit',
+            'can_delete',
         ]
-        read_only_fields = ('pk',)
+        read_only_fields = ('pk', 'can_edit', 'can_delete')
 
         datatables_always_serialize = ('href', 'pk')
 

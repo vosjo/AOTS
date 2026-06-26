@@ -7,6 +7,7 @@ from AOTS.page_urls import (
     spectrum_detail_url,
     star_detail_url,
 )
+from AOTS.serializer_mixins import ObjectPermissionFieldsMixin
 
 from observations.models import (
     Spectrum,
@@ -156,7 +157,7 @@ class SpectrumSpecFileDetailSerializer(ModelSerializer):
         return reverse('observations-api:specfile_header', kwargs={'specfile_pk': obj.pk})
 
 
-class SpectrumDetailSerializer(SpectrumSerializer):
+class SpectrumDetailSerializer(ObjectPermissionFieldsMixin, SpectrumSerializer):
     title = SerializerMethodField()
     target_coords = SerializerMethodField()
     obs_coords = SerializerMethodField()
@@ -201,6 +202,8 @@ class SpectrumDetailSerializer(SpectrumSerializer):
             'barycor_bool',
             'default_rebin',
             'related_spectra',
+            'can_edit',
+            'can_delete',
         ]
         read_only_fields = SpectrumSerializer.Meta.read_only_fields + (
             'title',
@@ -543,7 +546,7 @@ class RawSpecFileSerializer(ModelSerializer):
 # Licht Curves
 # ===============================================================
 
-class LightCurveSerializer(ModelSerializer):
+class LightCurveSerializer(ObjectPermissionFieldsMixin, ModelSerializer):
     star = SerializerMethodField()
     href = SerializerMethodField()
 
@@ -561,8 +564,10 @@ class LightCurveSerializer(ModelSerializer):
             'valid',
             'note',
             'href',
+            'can_edit',
+            'can_delete',
         ]
-        read_only_fields = ('pk',)
+        read_only_fields = ('pk', 'can_edit', 'can_delete')
         datatables_always_serialize = ('pk', 'telescope', 'href')
 
     def get_star(self, obj):
@@ -748,7 +753,7 @@ class LightCurveDetailSerializer(LightCurveSerializer):
 # Observatory
 # ===============================================================
 
-class ObservatorySerializer(ModelSerializer):
+class ObservatorySerializer(ObjectPermissionFieldsMixin, ModelSerializer):
     class Meta:
         model = Observatory
         fields = [
@@ -764,5 +769,7 @@ class ObservatorySerializer(ModelSerializer):
             'note',
             'url',
             'weatherurl',
+            'can_edit',
+            'can_delete',
         ]
-        read_only_fields = ('pk',)
+        read_only_fields = ('pk', 'can_edit', 'can_delete')

@@ -79,9 +79,62 @@ function classifyFormatError(message: string, lower: string): UploadFeedbackItem
   return null
 }
 
+function classifyLightCurveMessage(message: string, lower: string): UploadFeedbackItem | null {
+  if (lower.includes('light curve is a duplicate')) {
+    return {
+      kind: 'warning',
+      title: 'Duplicate light curve',
+      detail: message,
+    }
+  }
+
+  if (lower.includes('new light curve') && lower.includes('added to')) {
+    return {
+      kind: 'success',
+      title: 'Light curve imported',
+      detail: message,
+    }
+  }
+
+  if (lower.includes('unsupported light curve format') || lower.includes('no time column found')) {
+    const { filename, detail } = splitFilenameAndDetail(message)
+    return {
+      kind: 'error',
+      title: 'Invalid light curve file',
+      filename,
+      detail: detail || message,
+    }
+  }
+
+  if (lower.includes('empty or invalid fits')) {
+    const { filename, detail } = splitFilenameAndDetail(message)
+    return {
+      kind: 'error',
+      title: 'Invalid FITS file',
+      filename,
+      detail: detail || message,
+    }
+  }
+
+  if (lower.includes('could not be stored')) {
+    const { filename, detail } = splitFilenameAndDetail(message)
+    return {
+      kind: 'error',
+      title: 'Upload failed',
+      filename,
+      detail: detail || message,
+    }
+  }
+
+  return null
+}
+
 function classifyUploadMessage(rawMessage: string): UploadFeedbackItem {
   const message = normalizeMessage(rawMessage)
   const lower = message.toLowerCase()
+
+  const lightCurveMessage = classifyLightCurveMessage(message, lower)
+  if (lightCurveMessage) return lightCurveMessage
 
   const duplicateMatch = message.match(/Specfile\s+(\S+)\s+is a duplicate/i)
   if (duplicateMatch) {
@@ -148,6 +201,15 @@ function classifyUploadMessage(rawMessage: string): UploadFeedbackItem {
     filename,
     detail: detail || message,
   }
+}
+
+export function extractUploadDetail(res: unknown): string {
+  if (typeof res === 'string') return res
+  if (res && typeof res === 'object' && 'detail' in res) {
+    const detail = (res as { detail?: unknown }).detail
+    if (typeof detail === 'string') return detail
+  }
+  return ''
 }
 
 export function parseUploadFeedback(raw: string): UploadFeedbackItem[] {

@@ -18,9 +18,10 @@ import { useTessFetch } from '@/composables/useTessFetch'
 import { useVizierPhotometryFetch } from '@/composables/useVizierPhotometryFetch'
 import { confirmAction } from '@/composables/useConfirm'
 import { useSimbadResolve } from '@/composables/useSimbadResolve'
-import { api, type PaginatedResponse } from '@/api/client'
+import { api, formatApiError, type PaginatedResponse } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
+import { useProjectPermissions } from '@/composables/useProjectPermissions'
 import type { AlertKind } from '@/utils/alertStyles'
 
 interface TagRef {
@@ -100,12 +101,14 @@ const emptyFilters = () => ({
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 const gaiaFetch = useGaiaFetch()
 const tessFetch = useTessFetch()
 const simbadAliasesFetch = useSimbadAliasesFetch()
 const vizierPhotometryFetch = useVizierPhotometryFetch()
 const gaiaSummaryMessage = ref('')
+const listActionError = ref('')
 const tessSummaryMessage = ref('')
 const simbadSummaryMessage = ref('')
 const vizierSummaryMessage = ref('')
@@ -220,11 +223,16 @@ async function deleteSelected() {
     title: 'Delete systems',
     message: 'Are you sure you want to delete these systems? This cannot be undone!',
   }))) return
-  for (const pk of selectedIds.value) {
-    await api(`/api/systems/stars/${pk}/`, { method: 'DELETE' })
+  listActionError.value = ''
+  try {
+    for (const pk of selectedIds.value) {
+      await api(`/api/systems/stars/${pk}/`, { method: 'DELETE' })
+    }
+    clearSelection()
+    await query.refetch()
+  } catch (e) {
+    listActionError.value = formatApiError(e)
   }
-  clearSelection()
-  await query.refetch()
 }
 
 async function openGaiaDialog() {
@@ -264,7 +272,7 @@ async function confirmGaiaFetch() {
     }
     await query.refetch()
   } catch (e) {
-    gaiaSummaryMessage.value = e instanceof Error ? e.message : 'Gaia DR3 fetch failed'
+    gaiaSummaryMessage.value = formatApiError(e)
   }
 }
 
@@ -308,7 +316,7 @@ async function confirmTessFetch() {
     }
     await query.refetch()
   } catch (e) {
-    tessSummaryMessage.value = e instanceof Error ? e.message : 'TESS fetch failed'
+    tessSummaryMessage.value = formatApiError(e)
   }
 }
 
@@ -527,6 +535,7 @@ async function addSystem() {
   <div class="space-y-4">
     <SystemsSectionNav />
 
+    <AppAlert v-if="listActionError" kind="error">{{ listActionError }}</AppAlert>
     <AppAlert v-if="gaiaSummaryMessage" kind="info">{{ gaiaSummaryMessage }}</AppAlert>
     <AppAlert v-if="tessSummaryMessage" kind="info">{{ tessSummaryMessage }}</AppAlert>
     <AppAlert v-if="simbadSummaryMessage" kind="info">{{ simbadSummaryMessage }}</AppAlert>
@@ -553,7 +562,7 @@ async function addSystem() {
       :loading="query.isFetching.value"
       :empty-message="emptyMessage"
       :selected="selected"
-      :selectable="auth.isAuthenticated"
+      :selectable="canAdd"
       @update:page="page = $event"
     @update:page-size="pageSize = $event"
     @toggle-row="toggleRow"
@@ -562,7 +571,7 @@ async function addSystem() {
     <template #actions>
       <div class="flex w-full basis-full items-center gap-2 md:hidden">
         <AppButton
-          v-if="auth.isAuthenticated"
+          v-if="canAdd"
           variant="primary"
           class="inline-flex shrink-0 items-center gap-1.5"
           @click="openAddDialog"
@@ -599,7 +608,7 @@ async function addSystem() {
             >
               Filters
             </AppButton>
-            <template v-if="auth.isAuthenticated">
+            <template v-if="canAdd">
               <AppButton
                 variant="ghost"
                 size="sm"
@@ -704,7 +713,7 @@ async function addSystem() {
       <div class="hidden md:contents">
       <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
       <AppButton
-        v-if="auth.isAuthenticated"
+        v-if="canAdd"
         variant="primary"
         class="inline-flex items-center gap-1.5"
         @click="openAddDialog"
@@ -712,7 +721,7 @@ async function addSystem() {
         <Plus class="w-4 h-4" />
         Add system(s)
       </AppButton>
-      <template v-if="auth.isAuthenticated">
+      <template v-if="canAdd">
         <AppButton
           variant="secondary"
           :disabled="!selectedIds.length"

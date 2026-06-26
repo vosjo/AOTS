@@ -127,7 +127,7 @@ def _observation_counts(star):
     }
 
 
-def build_star_detail_payload(star):
+def build_star_detail_payload(star, request=None):
     ra = star.ra
     dec = star.dec
     ra_deg = f'{ra:.4f}' if ra is not None else ''
@@ -175,8 +175,16 @@ def build_star_detail_payload(star):
         for lc in star.lightcurve_set.all().order_by('hjd')
     ]
 
+    user = getattr(request, 'user', None) if request is not None else None
+    authenticated = user is not None and user.is_authenticated
+    permissions = {
+        'can_edit': user.can_edit(star) if authenticated else False,
+        'can_delete': user.can_delete(star) if authenticated else False,
+    }
+
     return {
-        'star': StarSerializer(star).data,
+        'permissions': permissions,
+        'star': StarSerializer(star, context={'request': request}).data,
         'coordinates': {
             'ra_hms': star.ra_hms(),
             'dec_dms': star.dec_dms(),
@@ -221,7 +229,7 @@ def star_detail_bootstrap(request, pk):
     permission = IsAllowedOnProject()
     if not permission.has_object_permission(request, None, star):
         raise PermissionDenied()
-    return Response(build_star_detail_payload(star))
+    return Response(build_star_detail_payload(star, request))
 
 
 @api_view(['GET'])

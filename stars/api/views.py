@@ -49,7 +49,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         queryset = self.get_queryset()
-        serializer = ProjectListSerializer(queryset, many=True)
+        serializer = ProjectListSerializer(
+            queryset,
+            many=True,
+            context={'request': request},
+        )
         return Response(serializer.data)
 
 

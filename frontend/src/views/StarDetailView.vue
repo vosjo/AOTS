@@ -64,6 +64,10 @@ interface RelatedStar {
 }
 
 interface StarDetailPayload {
+  permissions: {
+    can_edit: boolean
+    can_delete: boolean
+  }
   star: StarCore
   coordinates: {
     ra_hms: string
@@ -207,6 +211,8 @@ const OBSERVING_STATUS_OPTIONS = [
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const canEdit = computed(() => detail.value?.permissions?.can_edit === true)
+const canDelete = computed(() => detail.value?.permissions?.can_delete === true)
 const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const starId = computed(() => route.params.id as string)
@@ -298,7 +304,7 @@ const { data: editableParams, refetch: refetchEditableParams } = useQuery({
     api<{ parameters: EditableParameter[] }>(
       `/api/systems/stars/${starId.value}/parameters/editable/`,
     ),
-  enabled: computed(() => paramDialog.value && auth.isAuthenticated),
+  enabled: computed(() => paramDialog.value && canEdit.value),
 })
 
 const { data: photBandOptions } = useQuery({
@@ -310,7 +316,7 @@ const { data: photBandOptions } = useQuery({
     }>(
       `/api/systems/stars/${starId.value}/photometry/options/`,
     ),
-  enabled: computed(() => photEdit.value && auth.isAuthenticated),
+  enabled: computed(() => photEdit.value && canEdit.value),
 })
 
 const star = computed(() => detail.value?.star)
@@ -746,7 +752,7 @@ watch(editableParams, (data) => {
     <div class="flex-1 min-w-0 space-y-3">
       <div class="aots-detail-header">
         <AppButton
-          v-if="auth.isAuthenticated"
+          v-if="canDelete"
           variant="ghost-danger"
           size="sm"
           class="absolute top-1 right-1 inline-flex items-center gap-1.5"
@@ -770,7 +776,7 @@ watch(editableParams, (data) => {
           <div class="flex justify-between items-center mb-2">
             <h2 class="text-sm font-medium">Basic data</h2>
             <AppButton
-              v-if="auth.isAuthenticated"
+              v-if="canEdit"
               variant="icon"
               title="Edit system"
               @click="openBasicDataEdit"
@@ -807,7 +813,7 @@ watch(editableParams, (data) => {
         <section class="aots-panel-compact">
           <div class="flex justify-between items-center mb-2 gap-2">
             <h2 class="text-sm font-medium">Parameters</h2>
-            <div v-if="auth.isAuthenticated" class="flex items-center gap-2">
+            <div v-if="canEdit" class="flex items-center gap-2">
               <AppButton
                 variant="secondary"
                 size="sm"
@@ -894,7 +900,7 @@ watch(editableParams, (data) => {
         <section class="aots-panel-compact relative">
           <h2 class="text-sm font-medium mb-1">Notes</h2>
           <AppButton
-            v-if="auth.isAuthenticated"
+            v-if="canEdit"
             variant="icon"
             class="absolute top-2 right-2"
             title="Edit note"
@@ -923,7 +929,7 @@ watch(editableParams, (data) => {
         <section class="aots-panel-compact">
           <div class="flex justify-between items-center mb-2 gap-2">
             <h2 class="text-sm font-medium">Aliases</h2>
-            <div v-if="auth.isAuthenticated" class="flex items-center gap-2">
+            <div v-if="canEdit" class="flex items-center gap-2">
               <AppButton
                 variant="secondary"
                 size="sm"
@@ -964,7 +970,7 @@ watch(editableParams, (data) => {
                 <a v-if="ident.href" :href="ident.href" target="_blank" rel="noopener">{{ ident.name }}</a>
                 <span v-else>{{ ident.name }}</span>
                 <AppButton
-                  v-if="auth.isAuthenticated"
+                  v-if="canEdit"
                   variant="icon-danger"
                   @click="deleteIdentifier(ident.pk)"
                 >
@@ -980,7 +986,7 @@ watch(editableParams, (data) => {
           <div class="flex justify-between items-center mb-2">
             <h2 class="text-sm font-medium">Tags</h2>
             <AppButton
-              v-if="auth.isAuthenticated"
+              v-if="canEdit"
               variant="icon"
               title="Edit tags"
               @click="openTags"
@@ -1069,7 +1075,7 @@ watch(editableParams, (data) => {
                   Copy
                 </AppButton>
                 <AppButton
-                  v-if="auth.isAuthenticated"
+                  v-if="canEdit"
                   variant="secondary"
                   size="sm"
                   class="inline-flex items-center gap-1"
@@ -1082,7 +1088,7 @@ watch(editableParams, (data) => {
                   {{ photVizierLoading ? 'Fetching…' : 'Fetch from VizieR' }}
                 </AppButton>
                 <AppButton
-                  v-if="auth.isAuthenticated && !photEdit"
+                  v-if="canEdit && !photEdit"
                   variant="secondary"
                   size="sm"
                   class="inline-flex items-center gap-1"
@@ -1256,7 +1262,7 @@ watch(editableParams, (data) => {
             <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
               <h3 class="text-xs font-medium text-aots-muted">Light curves</h3>
               <AppButton
-                v-if="auth.isAuthenticated"
+                v-if="canEdit"
                 variant="secondary"
                 size="sm"
                 class="inline-flex items-center gap-1"

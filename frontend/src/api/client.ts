@@ -23,10 +23,16 @@ export async function ensureCsrfToken(): Promise<void> {
   setCsrfToken(data.csrfToken)
 }
 
+export const PERMISSION_DENIED_MESSAGE =
+  'You do not have permission to perform this action.'
+
 export function formatApiError(error: unknown): string {
   if (error && typeof error === 'object') {
-    const err = error as { data?: unknown; message?: string }
-    if (typeof err.data === 'string' && err.data.trim()) return err.data
+    const err = error as { data?: unknown; message?: string; statusCode?: number; status?: number }
+    const status = err.statusCode ?? err.status
+    if (typeof err.data === 'string' && err.data.trim()) {
+      return status === 403 ? err.data : err.data
+    }
     if (err.data && typeof err.data === 'object' && err.data !== null) {
       const data = err.data as Record<string, unknown>
       if ('detail' in data) {
@@ -47,6 +53,7 @@ export function formatApiError(error: unknown): string {
         .filter(Boolean)
       if (fieldMessages.length) return fieldMessages.join('\n')
     }
+    if (status === 403) return PERMISSION_DENIED_MESSAGE
     if (err.message) return err.message
   }
   return String(error)
@@ -79,6 +86,7 @@ export interface ProjectSummary {
   is_public: boolean
   description?: string
   logo?: string | null
+  can_add?: boolean
 }
 
 const DEFAULT_PROJECT_LOGO = '/static/images/default_logo.png'

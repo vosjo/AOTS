@@ -15,6 +15,7 @@ import { useSpectraSectionFilters } from '@/composables/useSpectraSectionFilters
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
+import { useProjectPermissions } from '@/composables/useProjectPermissions'
 
 interface SpectrumRow {
   pk: number
@@ -30,6 +31,7 @@ interface SpectrumRow {
 
 const route = useRoute()
 const auth = useAuthStore()
+const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const bulk = useBulkDownload()
@@ -123,6 +125,7 @@ function formatAirmass(value: number) {
     <template #actions>
       <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
       <AppButton
+        v-if="canAdd"
         variant="primary"
         class="inline-flex items-center gap-1.5"
         :to="`/w/${projectSlug}/observations/spectra/upload`"
@@ -146,6 +149,8 @@ function formatAirmass(value: number) {
         >
           Download raw
         </AppButton>
+      </template>
+      <template v-if="canAdd">
         <AppButton
           variant="danger"
           :disabled="!selectedIds.length"

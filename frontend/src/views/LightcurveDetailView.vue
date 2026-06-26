@@ -56,6 +56,8 @@ interface LightcurveDetail {
   exptime: number
   related_lightcurves: RelatedGroup[]
   default_phase_period_days: number | null
+  can_edit: boolean
+  can_delete: boolean
 }
 
 import type { BokehEmbed } from '@/types/bokeh'
@@ -63,6 +65,8 @@ import type { BokehEmbed } from '@/types/bokeh'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const canEdit = computed(() => lc.value?.can_edit === true)
+const canDelete = computed(() => lc.value?.can_delete === true)
 const themeStore = useThemeStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const pk = computed(() => route.params.id as string)
@@ -221,10 +225,11 @@ async function remove() {
     <div class="flex-1 min-w-0 space-y-3">
       <div class="aots-detail-header">
         <div
-          v-if="auth.isAuthenticated"
+          v-if="canEdit || canDelete"
           class="absolute top-1 right-1 flex items-center gap-2"
         >
           <AppButton
+            v-if="canEdit"
             variant="icon"
             title="Edit light curve"
             @click="openLcEdit"
@@ -232,6 +237,7 @@ async function remove() {
             <Pencil class="w-4 h-4" />
           </AppButton>
           <AppButton
+            v-if="canDelete"
             variant="ghost-danger"
             size="sm"
             class="inline-flex items-center gap-1.5"
@@ -359,7 +365,7 @@ async function remove() {
             <div class="border-t border-aots pt-2 relative">
               <h2 class="text-sm font-medium">Note</h2>
               <AppButton
-                v-if="auth.isAuthenticated"
+                v-if="canEdit"
                 variant="icon"
                 class="absolute top-2 right-0"
                 title="Edit note"

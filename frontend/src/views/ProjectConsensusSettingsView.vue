@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
 import { api } from '@/api/client'
 import { confirmAction } from '@/composables/useConfirm'
+import { useProjectPermissions } from '@/composables/useProjectPermissions'
 import { useAuthStore } from '@/stores/auth'
 
 interface PolicyRow {
@@ -62,6 +63,7 @@ interface Meta {
 
 const route = useRoute()
 const auth = useAuthStore()
+const { canAdd } = useProjectPermissions()
 const slug = computed(() => route.params.projectSlug as string)
 const loading = ref(true)
 const saving = ref(false)
@@ -84,7 +86,7 @@ const form = reactive({
   priority: 0,
 })
 
-const canEdit = computed(() => auth.isAuthenticated)
+const canEdit = computed(() => canAdd.value)
 
 function apiBase() {
   return `/api/analysis/consensus-policies/${slug.value}`

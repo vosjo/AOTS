@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from AOTS.page_urls import analysis_detail_url
-from AOTS.serializer_mixins import ProjectFieldGuardMixin
+from AOTS.serializer_mixins import ObjectPermissionFieldsMixin, ProjectFieldGuardMixin
 from analysis.categories import category_color, category_label, category_derived_parameter_specs, has_category_derived_parameters
 from analysis.models import Analysis, DerivedParameter, Parameter
 from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
@@ -15,7 +15,7 @@ from analysis.services.parameter_consensus import consensus_queryset
 from stars.api.serializers import SimpleStarSerializer
 
 
-class AnalysisListSerializer(ProjectFieldGuardMixin, ModelSerializer):
+class AnalysisListSerializer(ObjectPermissionFieldsMixin, ProjectFieldGuardMixin, ModelSerializer):
     star = SerializerMethodField()
     category_label = SerializerMethodField()
     category_color = SerializerMethodField()
@@ -41,8 +41,10 @@ class AnalysisListSerializer(ProjectFieldGuardMixin, ModelSerializer):
             'file_url',
             'datafile',
             'added_on',
+            'can_edit',
+            'can_delete',
         ]
-        read_only_fields = ('pk', 'file_url', 'category_label', 'category_color')
+        read_only_fields = ('pk', 'file_url', 'category_label', 'category_color', 'can_edit', 'can_delete')
         datatables_always_serialize = ('pk', 'href', 'file_url', 'category', 'category_label')
 
     def get_added_on(self, obj):
@@ -111,7 +113,6 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
     parameters = SerializerMethodField()
     derived_parameters = SerializerMethodField()
     has_derived_definitions = SerializerMethodField()
-    can_edit = SerializerMethodField()
     related_analyses = SerializerMethodField()
     related_by_category = SerializerMethodField()
     added_by = SerializerMethodField()
@@ -125,7 +126,6 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
             'parameters',
             'derived_parameters',
             'has_derived_definitions',
-            'can_edit',
             'related_analyses',
             'related_by_category',
             'added_by',
@@ -155,12 +155,6 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
 
     def get_has_derived_definitions(self, obj):
         return has_category_derived_parameters(obj.category)
-
-    def get_can_edit(self, obj):
-        request = self.context.get('request')
-        if not request or not request.user.is_authenticated:
-            return False
-        return request.user.can_edit(obj)
 
     def get_related_analyses(self, obj):
         if not obj.star_id:

@@ -13,6 +13,7 @@ import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { api, type PaginatedResponse } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
+import { useProjectPermissions } from '@/composables/useProjectPermissions'
 
 interface ObservatoryRow {
   pk: number
@@ -57,6 +58,7 @@ const emptyForm = (): ObservatoryForm => ({
 const route = useRoute()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const auth = useAuthStore()
+const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 
 const { query, page, pageSize, selected, toggleRow, toggleAll } = useDataTablePage<ObservatoryRow>({
@@ -98,7 +100,7 @@ const columns = computed(() => {
     { id: 'space_craft', header: 'Space craft' },
     { id: 'note', header: 'Note' },
   ]
-  if (auth.isAuthenticated) cols.push({ id: 'actions', header: 'Action' })
+  if (canAdd.value) cols.push({ id: 'actions', header: 'Action' })
   return cols
 })
 
@@ -257,7 +259,7 @@ async function deleteObservatory(row: ObservatoryRow) {
           @toggle-row="toggleRow"
           @toggle-all="toggleAll(rows)"
         >
-    <template v-if="auth.isAuthenticated" #actions>
+    <template v-if="canAdd" #actions>
       <AppButton variant="primary" class="inline-flex items-center gap-1.5" @click="openAdd">
         <Plus class="w-4 h-4" />
         Add observatory
@@ -314,7 +316,7 @@ async function deleteObservatory(row: ObservatoryRow) {
       </div>
     </template>
 
-    <template v-if="auth.isAuthenticated" #cell-actions="{ row }">
+    <template v-if="canAdd" #cell-actions="{ row }">
       <div class="flex items-center gap-2">
         <AppButton
           variant="icon"

@@ -5,6 +5,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import { api, formatApiError } from '@/api/client'
+import { useProjectPermissions } from '@/composables/useProjectPermissions'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 import {
@@ -90,6 +91,7 @@ const emptyForm = (): UploadForm => ({
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 
@@ -237,6 +239,10 @@ async function upload() {
 
     <p v-if="!auth.isAuthenticated" class="aots-panel text-aots-muted">
       Log in to upload files.
+    </p>
+
+    <p v-else-if="!canAdd" class="aots-panel text-aots-muted">
+      You do not have permission to upload spectra in this project.
     </p>
 
     <template v-else>

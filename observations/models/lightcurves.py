@@ -100,10 +100,9 @@ class LightCurve(models.Model):
 @receiver(post_delete, sender=LightCurve)
 def specFile_post_delete_handler(sender, **kwargs):
     lc = kwargs['instance']
-
-    # delete the actual specfile
+    if not lc.lcfile:
+        return
     try:
-        storage, path = lc.lcfile.storage, lc.lcfile.path
-        storage.delete(path)
-    except Exception as e:
-        print(e)
+        lc.lcfile.delete(save=False)
+    except OSError:
+        pass

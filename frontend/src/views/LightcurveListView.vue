@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { Plus, Trash2 } from '@lucide/vue'
+import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
@@ -11,9 +12,15 @@ import { useBulkDownload } from '@/composables/useBulkDownload'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
 import { useListFilters } from '@/composables/useListFilters'
-import { api } from '@/api/client'
+import { api, formatApiError } from '@/api/client'
+import {
+  extractUploadDetail,
+  parseUploadFeedback,
+  type UploadFeedbackItem,
+} from '@/utils/uploadFeedback'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
+import { useProjectPermissions } from '@/composables/useProjectPermissions'
 
 interface StarBrief {
   pk: number
@@ -30,10 +37,12 @@ interface LcRow {
   exptime: number
   cadence: number
   star: StarBrief | string
+  can_delete?: boolean
 }
 
 const route = useRoute()
 const auth = useAuthStore()
+const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const bulk = useBulkDownload()
@@ -41,7 +50,9 @@ const filterOpen = ref(false)
 const uploadOpen = ref(false)
 const uploadFiles = ref<FileList | null>(null)
 const uploadBusy = ref(false)
-const uploadStatus = ref('')
+const uploading = ref(false)
+const uploadFeedback = ref<UploadFeedbackItem[]>([])
+const actionError = ref('')
 const { filters, clearFilters } = useListFilters(
   {
     target: '',
@@ -77,7 +88,7 @@ const columns = computed(() => {
     { id: 'exptime', header: 'Exposure time' },
     { id: 'cadence', header: 'Cadence' },
   ]
-  if (auth.isAuthenticated) cols.push({ id: 'actions', header: 'Action' })
+  if (canAdd.value) cols.push({ id: 'actions', header: 'Action' })
   return cols
 })
 
@@ -94,11 +105,16 @@ async function deleteSelected() {
     title: 'Delete light curves',
     message: 'Are you sure you want to delete these light curves? This cannot be undone!',
   }))) return
-  for (const pk of selectedIds.value) {
-    await api(`/api/observations/lightcurves/${pk}/`, { method: 'DELETE' })
+  actionError.value = ''
+  try {
+    for (const pk of selectedIds.value) {
+      await api(`/api/observations/lightcurves/${pk}/`, { method: 'DELETE' })
+    }
+    clearSelection()
+    await query.refetch()
+  } catch (e) {
+    actionError.value = formatApiError(e)
   }
-  clearSelection()
-  await query.refetch()
 }
 
 async function deleteRow(pk: number) {
@@ -106,36 +122,61 @@ async function deleteRow(pk: number) {
     title: 'Delete light curve',
     message: 'Are you sure you want to delete this light curve? This cannot be undone.',
   }))) return
-  await api(`/api/observations/lightcurves/${pk}/`, { method: 'DELETE' })
-  await query.refetch()
+  actionError.value = ''
+  try {
+    await api(`/api/observations/lightcurves/${pk}/`, { method: 'DELETE' })
+    await query.refetch()
+  } catch (e) {
+    actionError.value = formatApiError(e)
+  }
+}
+
+function openUploadDialog() {
+  uploadOpen.value = true
+  uploadFeedback.value = []
+  uploading.value = false
 }
 
 function onUploadFilesChange(event: Event) {
   uploadFiles.value = (event.target as HTMLInputElement).files
+  uploadFeedback.value = []
 }
 
 async function uploadLightCurves() {
   if (!uploadFiles.value?.length || !projectStore.currentProject) return
   uploadBusy.value = true
-  uploadStatus.value = 'Uploading…'
+  uploading.value = true
+  uploadFeedback.value = []
   const fd = new FormData()
   fd.append('project', String(projectStore.currentProject.pk))
   for (const f of uploadFiles.value) fd.append('lcfile', f)
   try {
-    const res = await api<string>('/api/observations/api-lc-upload/', { method: 'POST', body: fd })
-    uploadStatus.value = typeof res === 'string' ? res : 'Done.'
-    uploadOpen.value = false
-    uploadFiles.value = null
-    await query.refetch()
+    const res = await api<{ detail?: string } | string>('/api/observations/api-lc-upload/', {
+      method: 'POST',
+      body: fd,
+    })
+    const feedback = parseUploadFeedback(extractUploadDetail(res))
+    if (feedback.length && feedback.every((item) => item.kind === 'success')) {
+      uploadOpen.value = false
+      uploadFiles.value = null
+      await query.refetch()
+      return
+    }
+    uploadFeedback.value = feedback.length
+      ? feedback
+      : [{ kind: 'success', title: 'Upload complete', detail: 'All light curves were imported.' }]
   } catch (e) {
-    uploadStatus.value = e instanceof Error ? e.message : String(e)
+    uploadFeedback.value = parseUploadFeedback(formatApiError(e))
   } finally {
     uploadBusy.value = false
+    uploading.value = false
   }
 }
 </script>
 
 <template>
+  <AppAlert v-if="actionError" kind="error" class="mb-4">{{ actionError }}</AppAlert>
+
   <DataTablePage
     title="Light curves"
     :columns="columns"
@@ -155,10 +196,10 @@ async function uploadLightCurves() {
     <template #actions>
       <AppButton variant="secondary" @click="filterOpen = true">Filters</AppButton>
       <AppButton
-        v-if="auth.isAuthenticated"
+        v-if="canAdd"
         variant="primary"
         class="inline-flex items-center gap-1.5"
-        @click="uploadOpen = true"
+        @click="openUploadDialog"
       >
         <Plus class="w-4 h-4" />
         Upload lightcurve(s)
@@ -171,7 +212,7 @@ async function uploadLightCurves() {
         Download selected
       </AppButton>
       <AppButton
-        v-if="auth.isAuthenticated"
+        v-if="canAdd"
         variant="danger"
         :disabled="!selectedIds.length"
         @click="deleteSelected"
@@ -207,8 +248,9 @@ async function uploadLightCurves() {
     <template #cell-exptime="{ row }">{{ formatLcValue(row.exptime) }}</template>
     <template #cell-cadence="{ row }">{{ formatLcValue(row.cadence) }}</template>
 
-    <template v-if="auth.isAuthenticated" #cell-actions="{ row }">
+    <template v-if="canAdd" #cell-actions="{ row }">
       <AppButton
+        v-if="row.can_delete"
         variant="icon-danger"
         title="Delete light curve"
         @click="deleteRow(row.pk)"
@@ -249,7 +291,24 @@ async function uploadLightCurves() {
         <legend class="text-sm text-aots-muted mb-2">Select light curve files</legend>
         <input type="file" multiple class="aots-field w-full" @change="onUploadFilesChange" />
       </fieldset>
-      <p v-if="uploadStatus" class="mt-3 text-sm text-aots-muted whitespace-pre-wrap">{{ uploadStatus }}</p>
+      <p v-if="uploading" class="mt-3 text-sm text-aots-muted">Uploading and processing files…</p>
+
+      <div v-if="uploadFeedback.length" class="mt-3 space-y-3">
+        <AppAlert
+          v-for="(item, index) in uploadFeedback"
+          :key="index"
+          :kind="item.kind"
+          :title="item.title"
+        >
+          <p v-if="item.filename" class="font-mono text-xs break-all opacity-90">
+            {{ item.filename }}
+          </p>
+          <p v-if="item.detail" class="leading-relaxed opacity-90 whitespace-pre-wrap">
+            {{ item.detail }}
+          </p>
+        </AppAlert>
+      </div>
+
       <div class="flex gap-2 mt-4">
         <AppButton
           variant="primary"

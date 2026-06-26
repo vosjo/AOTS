@@ -94,6 +94,33 @@ def _specfile_basename(specfile_pk):
     return ''
 
 
+def _format_lc_upload_error(exc, filename=''):
+    message = str(exc)
+    lower = message.lower()
+    label = filename or 'The uploaded file'
+
+    if 'no file associated' in lower:
+        return (
+            f'{label}: the uploaded file could not be stored. '
+            'Try again or use a different browser.'
+        )
+
+    if 'empty or corrupt fits file' in lower:
+        return f'{label}: empty or invalid FITS file.'
+
+    if "key 'time'" in lower or (
+        'time' in lower and 'does not exist' in lower
+    ):
+        return (
+            f'{label}: unsupported light curve format — no time column found. '
+            'AOTS expects a TESS-style FITS file (TIME and PDCSAP_FLUX columns).'
+        )
+
+    if filename:
+        return f'{label}: {message}'
+    return message
+
+
 def _format_spec_upload_error(exc, specfile_pk=None):
     message = str(exc)
     lower = message.lower()
@@ -262,8 +289,12 @@ def bulkUploadLightCurves(request, **kwargs):
     n_exceptions = 0
 
     for f in files:
-        newlc = LightCurve(lcfile=f, project=project)
-        newlc.save()
+        newlc = LightCurve(project=project)
+        newlc.lcfile.save(f.name, f, save=True)
+        if not newlc.lcfile:
+            returned_messages.append(f'Could not store uploaded file: {f.name}')
+            n_exceptions += 1
+            continue
         try:
             success, message = read_lightcurve.process_lightcurve(
                 newlc.pk,
@@ -273,8 +304,9 @@ def bulkUploadLightCurves(request, **kwargs):
             if not success:
                 n_exceptions += 1
         except Exception as exc:
-            newlc.delete()
-            returned_messages.append(f'Exception occured when adding: {f}: {exc}')
+            if newlc.pk:
+                newlc.delete()
+            returned_messages.append(_format_lc_upload_error(exc, f.name))
             n_exceptions += 1
 
     data = ';'.join(returned_messages)

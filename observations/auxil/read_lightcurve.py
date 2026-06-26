@@ -133,8 +133,9 @@ def process_lightcurve(lightcurve_id, create_new_star=True):
         .filter(project__exact=lightcurve.project.pk)
 
     if len(duplicates) > 0:
-        # this specfile already exists, so remove it
-        lightcurve.lcfile.delete()
+        # this light curve already exists, so remove the new upload
+        if lightcurve.lcfile:
+            lightcurve.lcfile.delete(save=False)
         lightcurve.delete()
         return False, "This light curve is a duplicate and was not added!"
 
@@ -156,7 +157,8 @@ def process_lightcurve(lightcurve_id, create_new_star=True):
     else:
 
         if not create_new_star:
-            lightcurve.lcfile.delete()
+            if lightcurve.lcfile:
+                lightcurve.lcfile.delete(save=False)
             lightcurve.delete()
             message += ", no star found, light curve NOT added to database."
             return False, message

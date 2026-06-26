@@ -338,7 +338,7 @@ async function remove() {
                     >
                       {{ spectrum.observatory_short_name }}
                     </a>
-                    <span v-else>NA</span>
+                    <span v-else>—</span>
                   </td>
                 </tr>
                 <tr><th>Normalized:</th><td>{{ yesNo(spectrum.normalized) }}</td></tr>

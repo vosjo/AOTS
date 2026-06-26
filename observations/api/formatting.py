@@ -1,6 +1,8 @@
 from astropy.coordinates import Angle
 from astropy.time import Time
 
+EMPTY_DISPLAY = '—'
+
 
 def dgr2hms(value):
     try:
@@ -34,7 +36,7 @@ def hjd2datetime(hjd):
 
 def dgr2cardinal(degrees):
     if degrees < 0 or degrees > 360:
-        return 'NA'
+        return EMPTY_DISPLAY
     if degrees > 337.5 or degrees < 22.5:
         return 'N'
     if degrees < 67.5:
@@ -54,7 +56,7 @@ def dgr2cardinal(degrees):
 
 def format_float_negative_na(value, decimals=0, unit=''):
     if value is None or value < 0:
-        return 'NA'
+        return EMPTY_DISPLAY
     formatted = f'{value:.{decimals}f}'
     if unit:
         return f'{formatted} {unit}'
@@ -63,12 +65,12 @@ def format_float_negative_na(value, decimals=0, unit=''):
 
 def format_wind_direction(direction):
     if direction is None or direction < 0:
-        return 'NA'
+        return EMPTY_DISPLAY
     return f'{direction:.0f}° ({dgr2cardinal(direction)})'
 
 
 def format_wind(speed, direction):
     speed_str = format_float_negative_na(speed, decimals=1, unit='km/s')
-    if speed_str == 'NA':
+    if speed_str == EMPTY_DISPLAY:
         return speed_str
     return f'{speed_str} {format_wind_direction(direction)}'

@@ -303,7 +303,7 @@ async function remove() {
                     >
                       {{ lc.observatory_short_name }}
                     </a>
-                    <span v-else>NA</span>
+                    <span v-else>—</span>
                   </td>
                 </tr>
               </tbody>

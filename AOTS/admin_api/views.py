@@ -2,6 +2,7 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
+from django.db.models.deletion import ProtectedError
 from django_filters import rest_framework as filters
 from rest_framework import mixins, viewsets
 from rest_framework.exceptions import ValidationError
@@ -63,6 +64,14 @@ class AdminProjectViewSet(viewsets.ModelViewSet):
     search_fields = ('name', 'slug', 'description')
     ordering_fields = ('name', 'slug')
     ordering = ('name',)
+
+    def perform_destroy(self, instance):
+        try:
+            instance.delete()
+        except ProtectedError as exc:
+            raise ValidationError(
+                'Cannot delete this project because related observation data is still in use.',
+            ) from exc
 
 
 class AdminGroupViewSet(viewsets.ModelViewSet):

@@ -16,6 +16,8 @@ CELERY_TASK_STORE_EAGER_RESULT = True
 CELERY_BROKER_URL = 'memory://'
 CELERY_RESULT_BACKEND = 'cache+memory://'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 CSRF_TRUSTED_ORIGINS = [

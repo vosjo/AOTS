@@ -10,9 +10,9 @@
   <link rel="icon" href="{% static 'favicon.ico' %}" />
   <title>AOTS</title>
   {% if vite_dev %}
-  <script src="http://localhost:5173/app/aots-bootstrap.js"></script>
-  <script type="module" src="http://localhost:5173/app/@vite/client"></script>
-  <script type="module" src="http://localhost:5173/app/src/main.ts"></script>
+  <script src="http://localhost:5173/aots-bootstrap.js"></script>
+  <script type="module" src="http://localhost:5173/@vite/client"></script>
+  <script type="module" src="http://localhost:5173/src/main.ts"></script>
   {% else %}
   <script src="{% static 'dist/aots-bootstrap.js' %}"></script>
   <link rel="stylesheet" href="{% static 'dist/assets/index.css' %}" />

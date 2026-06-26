@@ -5,8 +5,8 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig(({ command }) => ({
   plugins: [vue(), tailwindcss()],
-  // Dev server: /app/… (proxied via Django shell). Production: Django serves collectstatic at /static/dist/.
-  base: command === 'serve' ? '/app/' : '/static/dist/',
+  // Dev server: same URL layout as production (/w/…). Production assets: /static/dist/.
+  base: command === 'serve' ? '/' : '/static/dist/',
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },
@@ -31,6 +31,7 @@ export default defineConfig(({ command }) => ({
       '/users': 'http://127.0.0.1:8000',
       '/media': 'http://127.0.0.1:8000',
       '/static': 'http://127.0.0.1:8000',
+      '/django-admin': 'http://127.0.0.1:8000',
     },
   },
   test: {

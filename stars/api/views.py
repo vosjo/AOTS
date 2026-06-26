@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
-from AOTS.api_mixins import DualOrderingMixin, ProjectFilteredQuerysetMixin
+from AOTS.api_mixins import ProjectFilteredQuerysetMixin
 from AOTS.permissions_helpers import get_object_if_allowed
 from stars.models import Project, Star, Identifier, Tag
 from stars.services import star_io
@@ -63,7 +63,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 class StarViewSet(
     ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     """
@@ -73,10 +72,8 @@ class StarViewSet(
 
     queryset = Star.objects.select_related('project')
     serializer_class = StarSerializer
-    default_ordering = ('name',)
     ordering = ('name',)
     ordering_fields = ['pk', 'name', 'ra', 'dec', 'classification', 'observing_status']
-    allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = StarFilter
@@ -137,12 +134,10 @@ def getStarSpecfiles(request, star_pk):
 
 class TagViewSet(
     ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = Tag.objects.select_related('project')
     serializer_class = TagSerializer
-    default_ordering = ('name',)
     ordering = ('name',)
     ordering_fields = ['pk', 'name', 'color']
 

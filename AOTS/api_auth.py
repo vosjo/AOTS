@@ -1,10 +1,16 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.mail import send_mail
 from django.conf import settings
 from django.middleware.csrf import get_token
+from django.template.loader import render_to_string
 from django.utils.crypto import get_random_string
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -29,6 +35,46 @@ class AuthApiKeyRateThrottle(UserRateThrottle):
 class PasswordChangeRateThrottle(UserRateThrottle):
     scope = 'password_change'
     rate = '5/min'
+
+
+class PasswordResetRateThrottle(AnonRateThrottle):
+    scope = 'password_reset'
+    rate = '5/hour'
+
+
+def _password_reset_url(request, user):
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    protocol = 'https' if request.is_secure() else 'http'
+    domain = request.get_host()
+    return f'{protocol}://{domain}/accounts/reset/{uid}/{token}/'
+
+
+def _send_password_reset_emails(form, request):
+    email_field = form.cleaned_data['email']
+    for user in form.get_users(email_field):
+        context = {
+            'user': user,
+            'reset_url': _password_reset_url(request, user),
+            'site_name': 'AOTS',
+        }
+        subject = render_to_string('emails/password_reset_subject.txt', context).strip()
+        body = render_to_string('emails/password_reset_body.txt', context)
+        send_mail(
+            subject,
+            body,
+            None,
+            [user.email],
+            fail_silently=False,
+        )
+
+
+def _user_from_reset_uid(uidb64):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        return User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return None
 
 
 def _me_payload(user):
@@ -145,3 +191,64 @@ def password_change_api(request):
         'detail': 'Password changed.',
         'csrfToken': get_token(request),
     })
+
+
+@ensure_csrf_cookie
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@throttle_classes([PasswordResetRateThrottle])
+def password_reset_request(request):
+    email = (request.data.get('email') or '').strip()
+    form = PasswordResetForm({'email': email})
+    if not form.is_valid():
+        return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+    _send_password_reset_emails(form, request)
+    return Response({
+        'detail': (
+            'If an account exists with that email address, '
+            'you will receive a password reset link shortly.'
+        ),
+    })
+
+
+@ensure_csrf_cookie
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def password_reset_validate(request):
+    uidb64 = request.query_params.get('uid', '')
+    token = request.query_params.get('token', '')
+    user = _user_from_reset_uid(uidb64)
+    if user is None or not default_token_generator.check_token(user, token):
+        return Response(
+            {'detail': 'Invalid or expired reset link.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    return Response({'valid': True, 'username': user.username})
+
+
+@ensure_csrf_cookie
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@throttle_classes([PasswordResetRateThrottle])
+def password_reset_confirm(request):
+    uidb64 = request.data.get('uid', '')
+    token = request.data.get('token', '')
+    new1 = request.data.get('new_password1', '')
+    new2 = request.data.get('new_password2', '')
+
+    user = _user_from_reset_uid(uidb64)
+    if user is None or not default_token_generator.check_token(user, token):
+        return Response(
+            {'detail': 'Invalid or expired reset link.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if new1 != new2:
+        return Response({'new_password2': ['Passwords do not match.']}, status=400)
+    try:
+        validate_password(new1, user=user)
+    except DjangoValidationError as exc:
+        return Response({'new_password1': list(exc.messages)}, status=400)
+
+    user.set_password(new1)
+    user.save()
+    return Response({'detail': 'Password has been reset.'})

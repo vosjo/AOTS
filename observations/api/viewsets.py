@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
 
-from AOTS.api_mixins import DualOrderingMixin, ProjectFilteredQuerysetMixin
+from AOTS.api_mixins import ProjectFilteredQuerysetMixin
 from observations.models import (
     Spectrum,
     UserInfo,
@@ -35,20 +35,17 @@ from .serializers import (
 
 class SpectrumViewSet(
     ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = Spectrum.objects.select_related('project', 'star', 'observatory').prefetch_related(
         'specfile_set__rawspecfile_set',
     )
     serializer_class = SpectrumSerializer
-    default_ordering = ('hjd',)
     ordering = ('hjd',)
     ordering_fields = [
         'pk', 'hjd', 'instrument', 'resolution', 'airmass', 'exptime',
         'telescope', 'valid', 'fluxcal',
     ]
-    allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = SpectrumFilter
@@ -63,15 +60,12 @@ class SpectrumViewSet(
 
 class UserInfoViewSet(
     ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = UserInfo.objects.select_related('project', 'spectrum', 'spectrum__star', 'observatory')
     serializer_class = UserInfoSerializer
-    default_ordering = ('hjd',)
     ordering = ('hjd',)
     ordering_fields = ['pk', 'hjd', 'instrument', 'telescope', 'fluxcal']
-    allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = UserInfoFilter
@@ -79,15 +73,12 @@ class UserInfoViewSet(
 
 class SpecFileViewSet(
     ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = SpecFile.objects.select_related('project', 'spectrum', 'spectrum__star')
     serializer_class = SpecFileSerializer
-    default_ordering = ('hjd',)
     ordering = ('hjd',)
     ordering_fields = ['pk', 'hjd', 'instrument', 'filetype', 'exptime', 'resolution']
-    allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = SpecFileFilter
@@ -100,7 +91,6 @@ class SpecFileViewSet(
 
 class RawSpecFileViewSet(
     ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = RawSpecFile.objects.select_related('project').prefetch_related(
@@ -110,10 +100,8 @@ class RawSpecFileViewSet(
         'specfile__spectrum__star',
     )
     serializer_class = RawSpecFileSerializer
-    default_ordering = ('hjd',)
     ordering = ('hjd',)
     ordering_fields = ['pk', 'hjd', 'obs_date', 'instrument', 'filetype', 'exptime']
-    allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = RawSpecFileFilter
@@ -121,15 +109,12 @@ class RawSpecFileViewSet(
 
 class LightCurveViewSet(
     ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = LightCurve.objects.select_related('project', 'star', 'observatory')
     serializer_class = LightCurveSerializer
-    default_ordering = ('hjd',)
     ordering = ('hjd',)
     ordering_fields = ['pk', 'hjd', 'exptime', 'instrument', 'telescope', 'valid']
-    allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = LightCurveFilter
@@ -142,15 +127,12 @@ class LightCurveViewSet(
 
 class ObservatoryViewSet(
     ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = Observatory.objects.select_related('project')
     serializer_class = ObservatorySerializer
-    default_ordering = ('name',)
     ordering = ('name',)
     ordering_fields = ['pk', 'name', 'short_name']
-    allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = ObservatoryFilter

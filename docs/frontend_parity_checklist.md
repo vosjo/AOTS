@@ -1,6 +1,6 @@
 # Frontend parity checklist
 
-Gate for Phase 5a sign-off. Each item must pass in the Vue SPA at `/app/…`.
+Gate for Phase 5a sign-off. Each item must pass in the Vue SPA at `/w/…`.
 
 ## Global
 

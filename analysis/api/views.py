@@ -8,7 +8,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from AOTS.api_mixins import DualOrderingMixin, ProjectFilteredQuerysetMixin
+from AOTS.api_mixins import ProjectFilteredQuerysetMixin
 from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
 from analysis.categories import choices_for_api, has_category_derived_parameters
 from analysis.forms import UploadAnalysisFileForm
@@ -28,17 +28,14 @@ from .serializers import (
 
 class AnalysisViewSet(
     ProjectFilteredQuerysetMixin,
-    DualOrderingMixin,
     viewsets.ModelViewSet,
 ):
     queryset = Analysis.objects.select_related('project', 'star').prefetch_related(
         'parameter_set',
     )
     serializer_class = AnalysisListSerializer
-    default_ordering = ('name',)
     ordering = ('name',)
     ordering_fields = ['pk', 'name', 'fit', 'category']
-    allowed_order_fields = frozenset(ordering_fields)
 
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filterset_class = AnalysisFilter

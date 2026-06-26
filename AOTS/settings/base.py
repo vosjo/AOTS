@@ -29,7 +29,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_framework_datatables',
     'django_filters',
     'simple_history',
     'drf_spectacular',
@@ -83,17 +82,17 @@ REST_FRAMEWORK = {
         'login': env('DRF_THROTTLE_LOGIN', default='10/min'),
         'auth_api_key': env('DRF_THROTTLE_AUTH_API_KEY', default='5/min'),
         'password_change': env('DRF_THROTTLE_PASSWORD_CHANGE', default='5/min'),
+        'password_reset': env('DRF_THROTTLE_PASSWORD_RESET', default='5/hour'),
     },
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
-        'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.OrderingFilter',
     ),
-    'DEFAULT_PAGINATION_CLASS': 'AOTS.pagination.DualFormatPagination',
+    'DEFAULT_PAGINATION_CLASS': 'AOTS.pagination.AOTSPageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -107,8 +106,6 @@ SPECTACULAR_SETTINGS = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-# SPA: False = beta at /app/ only; True = SPA on production URLs (/w/, etc.)
-AOTS_SPA_CUTOVER = env.bool('AOTS_SPA_CUTOVER', default=False)
 VITE_DEV = env.bool('VITE_DEV', default=False)
 
 LOGIN_URL = '/accounts/login'

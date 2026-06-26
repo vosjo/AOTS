@@ -33,6 +33,12 @@ class Project(models.Model):
     # -- bookkeeping
     history = HistoricalRecords(cascade_delete_history=True)
 
+    def delete(self, using=None, keep_parents=False):
+        from stars.services.project_io import prepare_project_deletion
+
+        prepare_project_deletion(self)
+        return super().delete(using=using, keep_parents=keep_parents)
+
     # -- representation of self
     def __str__(self):
         return self.name

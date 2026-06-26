@@ -154,6 +154,25 @@ class AdminProjectApiTests(TestCase):
         delete = self.client.delete(f'/api/admin/projects/{pk}/')
         self.assertEqual(delete.status_code, status.HTTP_204_NO_CONTENT)
 
+    def test_delete_project_with_protected_observatory_references(self):
+        from observations.models import LightCurve, Observatory
+
+        project = Project.objects.create(name='LC Project', slug='lc-project')
+        observatory = Observatory.objects.create(
+            project=project,
+            name='TESS',
+            latitude=0,
+            longitude=0,
+            altitude=0,
+            space_craft=True,
+        )
+        LightCurve.objects.create(project=project, observatory=observatory)
+
+        response = self.client.delete(f'/api/admin/projects/{project.pk}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Project.objects.filter(pk=project.pk).exists())
+        self.assertFalse(Observatory.objects.filter(pk=observatory.pk).exists())
+
 
 class AdminGroupTokenLogTests(TestCase):
     def setUp(self):

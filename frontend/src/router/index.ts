@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 
 const routerBase =
-  (typeof window !== 'undefined' && window.__AOTS_BOOTSTRAP__?.routerBase) || '/app/'
+  (typeof window !== 'undefined' && window.__AOTS_BOOTSTRAP__?.routerBase) || '/'
 
 const router = createRouter({
   history: createWebHistory(routerBase),
@@ -27,9 +27,39 @@ const router = createRouter({
       meta: { guest: true },
     },
     {
+      path: '/accounts/password_reset/',
+      name: 'password-reset',
+      component: () => import('@/views/PasswordResetRequestView.vue'),
+      meta: { guest: true },
+    },
+    {
+      path: '/accounts/password_reset/done/',
+      name: 'password-reset-done',
+      component: () => import('@/views/PasswordResetDoneView.vue'),
+      meta: { guest: true },
+    },
+    {
+      path: '/accounts/reset/:uidb64/:token/',
+      name: 'password-reset-confirm',
+      component: () => import('@/views/PasswordResetConfirmView.vue'),
+      meta: { guest: true },
+    },
+    {
+      path: '/accounts/reset/done/',
+      name: 'password-reset-complete',
+      component: () => import('@/views/PasswordResetCompleteView.vue'),
+      meta: { guest: true },
+    },
+    {
       path: '/accounts/password_change/',
       name: 'password-change',
       component: () => import('@/views/PasswordChangeView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/accounts/password_change/done/',
+      name: 'password-change-done',
+      component: () => import('@/views/PasswordChangeDoneView.vue'),
       meta: { requiresAuth: true },
     },
     {

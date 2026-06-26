@@ -170,8 +170,6 @@ class StarListSerializer(ObjectPermissionFieldsMixin, ProjectFieldGuardMixin, Mo
         ]
         read_only_fields = ('pk', 'can_edit', 'can_delete')
 
-        datatables_always_serialize = ('href', 'pk')
-
     def get_tags(self, obj):
         tags = TagSerializer(obj.tags, many=True).data
         return tags

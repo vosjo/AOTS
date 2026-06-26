@@ -59,13 +59,6 @@ class RestListContractTests(TestCase):
         for key in ('name', 'ra', 'dec', 'nphot', 'nspec', 'nlc'):
             self.assertIn(key, row)
 
-    def test_datatables_still_works(self):
-        response = self.client.get(
-            f'/api/systems/stars/?format=datatables&project={self.project.pk}',
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('data', response.data)
-
     def test_ordering_param(self):
         response = self.client.get(
             f'/api/systems/stars/?project={self.project.pk}&ordering=-name',

@@ -21,10 +21,6 @@ Standard list responses use DRF page-number pagination:
 | `project` | Required project PK (django-filter) |
 | Filter fields | Per-endpoint; see filter classes |
 
-## Legacy DataTables
-
-During the parallel beta, `?format=datatables` still returns `{ draw, recordsTotal, recordsFiltered, data }` for the classic UI.
-
 ## Endpoints
 
 | Endpoint | Default ordering |

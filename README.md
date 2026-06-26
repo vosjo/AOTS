@@ -108,11 +108,10 @@ Copy `AOTS/.env.example` to `AOTS/.env` if you have not already. For local SPA d
 ```
 DJANGO_ENV=development
 VITE_DEV=True
-AOTS_SPA_CUTOVER=True
 CELERY_TASK_ALWAYS_EAGER=True
 ```
 
-`AOTS_SPA_CUTOVER=True` matches production URL layout (`/w/…`, not `/app/w/…`). Set `VITE_DEV=False` only when testing a production-like static build locally.
+Set `VITE_DEV=False` only when testing a production-like static build locally.
 
 ### 4. Start Django and the frontend
 
@@ -129,7 +128,7 @@ cd frontend
 npm run dev
 ```
 
-Open `http://127.0.0.1:8000/w/projects/` (with cutover). For a static smoke test without Vite:
+Open `http://127.0.0.1:8000/w/projects/`. For a static smoke test without Vite:
 
 ```
 cd frontend && npm run build && cd ..
@@ -212,7 +211,6 @@ the computer used in production needs to be specified.
 ```
 SECRET_KEY=generate_and_add_your_secret_security_key_here
 DJANGO_ENV=production
-AOTS_SPA_CUTOVER=True
 VITE_DEV=False
 DATABASE_NAME=aotsdb
 DATABASE_USER=aotsuser
@@ -225,7 +223,7 @@ CSRF_TRUSTED_ORIGINS=https://your_server_url
 CELERY_BROKER_URL=redis://localhost:6379/0
 ```
 
-Production uses the **SPA only** (`AOTS_SPA_CUTOVER=True`): Django serves the Vue app on `/w/`, `/accounts/`, `/admin/`, etc. Legacy Django page templates are not used. `VITE_DEV` must be `False` so the shell loads `/static/dist/…`, not the Vite dev server.
+Production uses the **Vue SPA only**: Django serves the app on `/w/`, `/accounts/`, `/admin/`, etc. `VITE_DEV` must be `False` so the shell loads `/static/dist/…`, not the Vite dev server. Django’s built-in admin UI is at `/django-admin/` if needed.
 
 `DEVICE` is optional if `DJANGO_ENV=production` is set (legacy fallback: hostname match).
 `CELERY_BROKER_URL` is required for bulk downloads and other background jobs (see
@@ -491,7 +489,7 @@ Download `kind` query parameter:
 Domain models, service layers, I/O conventions, and one-time migration notes:
 [docs/architecture.md](docs/architecture.md).
 
-List API field contracts: [docs/api_datatables_contract.md](docs/api_datatables_contract.md).
+List API field contracts: [docs/api_list_contract.md](docs/api_list_contract.md).
 
 ## Redis and background tasks (Celery)
 

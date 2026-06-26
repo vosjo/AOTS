@@ -1,8 +1,6 @@
 """Canonical /w/… page URLs for API serializers and embed payloads.
 
-Legacy Django views and the Vue SPA share the same path layout under /w/.
-Serializers must not call reverse() on legacy URL namespaces when AOTS_SPA_CUTOVER
-is enabled, because those includes are not registered.
+The Vue SPA uses these paths; serializers build hrefs here instead of reverse().
 """
 
 

@@ -28,10 +28,11 @@ async function submit() {
   <div class="max-w-sm mx-auto mt-16 space-y-4">
     <h1 class="text-2xl font-semibold">Login</h1>
     <form class="space-y-3" @submit.prevent="submit">
-      <input v-model="username" class="aots-field" placeholder="Username" />
-      <input v-model="password" type="password" class="aots-field" placeholder="Password" />
+      <input v-model="username" class="aots-field" placeholder="Username" autocomplete="username" />
+      <input v-model="password" type="password" class="aots-field" placeholder="Password" autocomplete="current-password" />
       <AppButton type="submit" variant="primary" class="w-full">Sign in</AppButton>
     </form>
+    <AppButton variant="link" to="/accounts/password_reset/">Forgot password?</AppButton>
     <AppAlert v-if="error" kind="error">{{ error }}</AppAlert>
   </div>
 </template>

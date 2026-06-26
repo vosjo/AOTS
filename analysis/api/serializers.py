@@ -45,7 +45,6 @@ class AnalysisListSerializer(ObjectPermissionFieldsMixin, ProjectFieldGuardMixin
             'can_delete',
         ]
         read_only_fields = ('pk', 'file_url', 'category_label', 'category_color', 'can_edit', 'can_delete')
-        datatables_always_serialize = ('pk', 'href', 'file_url', 'category', 'category_label')
 
     def get_added_on(self, obj):
         return earliest_iso(obj)

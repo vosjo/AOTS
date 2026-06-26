@@ -14,7 +14,7 @@ from analysis.models import Analysis
 from dash.forms import HRDPlotterForm
 from dash.plotting import plot_hrd
 from dash.starmap_plotting import plot_interactive_starmap
-from dash.views import get_modeltype, sort_modified_created, wascreated
+from dash.changelog import get_modeltype, sort_modified_created, wascreated
 from observations.models import LightCurve, Spectrum
 from stars.models import Project, Star
 from stars.services.starmap import starmap_metadata, starmap_star_records

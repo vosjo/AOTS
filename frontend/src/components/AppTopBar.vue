@@ -16,7 +16,6 @@ import {
 import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
-import { useClassicToggle } from '@/composables/useClassicToggle'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 import { useThemeStore } from '@/stores/theme'
@@ -25,7 +24,6 @@ const route = useRoute()
 const auth = useAuthStore()
 const projectStore = useProjectStore()
 const theme = useThemeStore()
-const { toClassic } = useClassicToggle()
 const mobileOpen = ref(false)
 
 const slug = computed(() => route.params.projectSlug as string | undefined)
@@ -109,7 +107,6 @@ async function logout() {
           <Shield class="h-4 w-4" />
           Admin
         </AppButton>
-        <AppButton variant="secondary" size="sm" :href="toClassic()">Classic UI</AppButton>
         <AppButton
           v-if="auth.isAuthenticated"
           variant="icon"

@@ -35,7 +35,7 @@
 - [x] **Parameter I/O:** domain bookkeeping (AVG sync, derived refresh) via `analysis/services/parameter_io.py` at API, ingestion, star edit, and scripts — not Django signals on `Parameter`/`DerivedParameter`
 - [x] **Star I/O:** primary identifier bookkeeping via `stars/services/star_io.py` at API, ingestion, observation upload, and scripts — not Django signals on `Star`
 - [x] **Release 3:** PK column `id`, flatten AVG MTI (`ParameterSource.kind`), upload path `analyses/`, `relocate_analysis_files` + `cleanup_orphan_analysis_sources` commands
-- [ ] **Release 4:** remove legacy analysis views/templates/JS — gated on [frontend parity checklist](docs/frontend_parity_checklist.md) Analysis section
+- [x] **Release 4:** remove legacy views/templates/JS — SPA is the only user interface
 
 ## Parameter consensus (Konsens-Schicht)
 
@@ -72,4 +72,4 @@ See [docs/architecture.md](docs/architecture.md) for domain models, service laye
 
 ## Other
 
-See [docs/api_datatables_contract.md](docs/api_datatables_contract.md) for DataTables API fields.
+See [docs/api_list_contract.md](docs/api_list_contract.md) for REST list API fields.

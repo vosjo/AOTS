@@ -56,9 +56,6 @@ class SpectrumListSerializer(ModelSerializer):
             'airmass',
             'resolution',
         ]
-        datatables_always_serialize = (
-            'pk', 'specfiles', 'has_raw_files', 'telescope', 'href',
-        )
         read_only_fields = ('pk',)
 
     def get_star(self, obj):
@@ -568,7 +565,6 @@ class LightCurveSerializer(ObjectPermissionFieldsMixin, ModelSerializer):
             'can_delete',
         ]
         read_only_fields = ('pk', 'can_edit', 'can_delete')
-        datatables_always_serialize = ('pk', 'telescope', 'href')
 
     def get_star(self, obj):
         if obj.star is None:
@@ -667,7 +663,6 @@ class LightCurveDetailSerializer(LightCurveSerializer):
             'telescope',
             'project',
         )
-        datatables_always_serialize = ('pk', 'telescope', 'href')
 
     def get_title(self, obj):
         return str(obj)

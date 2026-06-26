@@ -50,7 +50,7 @@ def lightcurve_plot(request, pk):
     period_raw = request.GET.get('period')
     if period_raw is not None and period_raw != '':
         try:
-            period = float(period_raw) / 24.0
+            period = float(period_raw)
         except (TypeError, ValueError):
             period = None
 

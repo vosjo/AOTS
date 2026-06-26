@@ -367,9 +367,35 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None, 
     return tabs_widget
 
 
+def consensus_orbital_period_days(star) -> float | None:
+    """Orbital period P from star consensus parameters, in days (light-curve time axis)."""
+    if star is None:
+        return None
+    from analysis.services.parameter_consensus import get_consensus_parameter
+
+    param = get_consensus_parameter(star, 'p', component=0)
+    if param is None or not param.valid:
+        return None
+    try:
+        value = float(param.value)
+    except (TypeError, ValueError):
+        return None
+    if value <= 0:
+        return None
+
+    unit = (param.unit or 'd').strip().lower()
+    if unit in ('h', 'hr', 'hour', 'hours'):
+        return value / 24.0
+    return value
+
+
+def default_phase_period_days_for_star(star) -> float | None:
+    return consensus_orbital_period_days(star)
+
+
 def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None, *, theme=None):
     plot_theme = resolve_bokeh_theme(theme)
-    lightcurve = LightCurve.objects.select_related('project').get(pk=lightcurve_id)
+    lightcurve = LightCurve.objects.select_related('project', 'star').get(pk=lightcurve_id)
     from AOTS.project_scoping import assert_plot_belongs_to_project
     assert_plot_belongs_to_project(lightcurve, project)
 
@@ -388,9 +414,11 @@ def plot_lightcurve(lightcurve_id, period=None, binsize=0.01, project=None, *, t
     fig2 = bpl.figure(width=1600, height=400, sizing_mode='scale_width')
     fig2.x_range = Range1d(0, 1)
 
-    if not period is None:
+    phase_period = period
+
+    if phase_period is not None:
         # calculate phase and sort on phase
-        phase = time % period / period
+        phase = time % phase_period / phase_period
         inds = phase.argsort()
         phase, flux = phase[inds], flux[inds]
 

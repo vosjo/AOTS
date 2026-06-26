@@ -592,6 +592,7 @@ class LightCurveDetailSerializer(LightCurveSerializer):
     download_url = SerializerMethodField()
     header_url = SerializerMethodField()
     related_lightcurves = SerializerMethodField()
+    default_phase_period_days = SerializerMethodField()
 
     class Meta(LightCurveSerializer.Meta):
         fields = LightCurveSerializer.Meta.fields + [
@@ -622,6 +623,7 @@ class LightCurveDetailSerializer(LightCurveSerializer):
             'download_url',
             'header_url',
             'related_lightcurves',
+            'default_phase_period_days',
         ]
         read_only_fields = LightCurveSerializer.Meta.read_only_fields + (
             'title',
@@ -651,6 +653,7 @@ class LightCurveDetailSerializer(LightCurveSerializer):
             'download_url',
             'header_url',
             'related_lightcurves',
+            'default_phase_period_days',
             'star',
             'href',
             'hjd',
@@ -732,6 +735,13 @@ class LightCurveDetailSerializer(LightCurveSerializer):
                 ],
             })
         return grouped
+
+    def get_default_phase_period_days(self, obj):
+        if obj.star_id is None:
+            return None
+        from observations.plotting import default_phase_period_days_for_star
+
+        return default_phase_period_days_for_star(obj.star)
 
 
 # ===============================================================

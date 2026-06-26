@@ -54,6 +54,7 @@ interface LightcurveDetail {
   header_url: string
   exptime: number
   related_lightcurves: RelatedGroup[]
+  default_phase_period_days: number | null
 }
 
 import type { BokehEmbed } from '@/types/bokeh'
@@ -78,7 +79,7 @@ const headerLoading = ref(false)
 const formPeriod = ref('')
 const formBinsize = ref('0.001')
 const appliedPhase = ref({ period: '', binsize: '0.001' })
-
+const phaseDefaultsAppliedForPk = ref<string | null>(null)
 const { data: lc, refetch } = useQuery({
   queryKey: computed(() => ['lightcurve', pk.value]),
   queryFn: () => api<LightcurveDetail>(`/api/observations/lightcurves/${pk.value}/`),
@@ -117,10 +118,19 @@ const star = computed(() => {
   return s && typeof s === 'object' ? s : null
 })
 
-watch(lc, (data) => {
-  if (!data) return
+watch([lc, pk], ([data, id]) => {
+  if (!data || String(data.pk) !== id) return
   noteText.value = data.note || ''
   editExptime.value = data.exptime >= 0 ? String(data.exptime) : ''
+
+  if (phaseDefaultsAppliedForPk.value === id) return
+  phaseDefaultsAppliedForPk.value = id
+
+  if (data.default_phase_period_days != null) {
+    formPeriod.value = String(data.default_phase_period_days)
+  } else {
+    formPeriod.value = ''
+  }
 }, { immediate: true })
 
 function updatePhasePlot() {
@@ -385,7 +395,7 @@ async function remove() {
       <section class="aots-panel-compact space-y-3">
         <form class="text-xs flex flex-wrap items-end gap-x-4 gap-y-2" @submit.prevent="updatePhasePlot">
           <label class="flex flex-col gap-1">
-            <span class="text-aots-muted">Period (hours)</span>
+            <span class="text-aots-muted">Period (days)</span>
             <input
               v-model="formPeriod"
               type="number"

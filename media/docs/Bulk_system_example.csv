@@ -1,28 +1,21 @@
-# EXAMPLE .CSV FILE
-# USE THE FOLLOWING HEADER-KEYWORDS, AS SHOWN BELOW:
-# main_id : Main ID of the system
-# source_id : GAIA DR2 ID
-# ra : right ascension
-# dec : declination
-# main_type : Type of the Object, for Example: Star, V*, PM*, sdB ...
-# sp_type : Spectral classification of the Object
-# JNAME : JNAME
-# parallax : Parallax
-# parallax_error : Parallax error
-# pmra_x : Proper motion right ascension
-# pmra_error : Proper motion right ascension error
-# pmdec_x : Proper motion declination
-# pmdec_error : Proper motion declination error
-# phot_g_mean_mag : G-band mean magnitude
-# phot_bp_mean_mag : Integrated BP mean magnitude
-# phot_rp_mean_mag : Integrated RP mean magnitude
-# Jmag, Hmag, Kmag : JHK-Photometry
-# W1mag-W4mag : WISE-Photometry
-# NUV, FUV : Near UV and Far UV Photometry (Galex)
-# Umag,Vmag,Bmag : SKYMAP Photometry
-# APBmag,APVmag,APGmag,APRmag,APImag : APASS Photometry
-# SDSSUmag,SDSSGmag,SDSSRmag,SDSSImag,SDSSZmag : SDSS Photometry
-# PANGmag,PANRmag,PANImag,PANZmag,PANYmag : PANSTAR Photometry
-# EXAMPLE FOR THE CSV-HEADER WITH AN EXAMPLE SYSTEM:
-main_id    ,source_id          ,ra               ,dec              ,main_type,sp_type,JNAME              ,parallax,parallax_error     ,pmra_x,pmra_error,pmdec_x           ,pmdec_error,phot_g_mean_mag,phot_bp_mean_mag  ,phot_rp_mean_mag,Jmag ,Hmag ,Kmag             ,W1mag             ,W2mag,W3mag,W4mag,FUV,NUV,Umag,Vmag,Bmag,APBmag,APVmag,APGmag,APRmag,APImag,SDSSUmag,SDSSGmag,SDSSRmag,SDSSImag,SDSSZmag,PANGmag,PANRmag,PANImag,PANZmag,PANYmag
-BD+05  2782,3714916986124865408,205.4131938734694,4.998644372973828,Star     ,K0     ,J134139.17+045955.1,2.4094  ,0.11699999999999999,0.985 ,0.26      ,3.3539999999999996,0.154      ,9.641225       ,10.182091999999999,8.984745        ,8.119,7.604,7.462999999999999,7.4079999999999995,7.501,7.44 ,7.403,   ,   ,    ,    ,    ,      ,      ,      ,      ,      ,        ,        ,        ,        ,        ,       ,       ,       ,       ,
+# EXAMPLE .CSV FILE FOR BULK SYSTEM UPLOAD
+# Required columns (unless using Simbad lookup via the single-system form):
+#   main_id : system name / Simbad identifier
+#   ra      : right ascension in degrees
+#   dec     : declination in degrees
+# Optional columns:
+#   sp_type : spectral type (e.g. K0, G2V)
+#   JNAME   : additional identifier (e.g. Gaia-style name)
+#   parallax, parallax_error : Gaia DR3 parallax (mas)
+#   pmra_x, pmra_error, pmdec_x, pmdec_error : proper motion (mas/yr)
+# Gaia DR3 photometry:
+#   phot_g_mean_mag, phot_bp_mean_mag, phot_rp_mean_mag
+#   phot_g_mean_magerr, phot_bp_mean_magerr, phot_rp_mean_magerr (optional)
+# Other photometry (magnitude columns; matching *err columns optional):
+#   Jmag, Hmag, Kmag | W1mag-W4mag | FUV, NUV | Umag, Vmag, Bmag
+#   APBmag, APVmag, APGmag, APRmag, APImag
+#   SDSSUmag, SDSSGmag, SDSSRmag, SDSSImag, SDSSZmag
+#   PANGmag, PANRmag, PANImag, PANZmag, PANYmag
+# Use comma-separated values; do not pad column names with spaces.
+main_id,ra,dec,sp_type,JNAME,parallax,parallax_error,pmra_x,pmra_error,pmdec_x,pmdec_error,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,Jmag,Hmag,Kmag,W1mag,W2mag,W3mag,W4mag,FUV,NUV,Umag,Vmag,Bmag,APBmag,APVmag,APGmag,APRmag,APImag,SDSSUmag,SDSSGmag,SDSSRmag,SDSSImag,SDSSZmag,PANGmag,PANRmag,PANImag,PANZmag,PANYmag
+BD+05 2782,205.4131938734694,4.998644372973828,K0,J134139.17+045955.1,2.4094,0.117,0.985,0.26,3.354,0.154,9.641225,10.182092,8.984745,8.119,7.604,7.463,7.408,7.501,7.44,7.403,,,,,,,,,,,,,,,,,,,,

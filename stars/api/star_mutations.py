@@ -27,6 +27,21 @@ from stars.services import star_io
 PHOTNAME_BY_BAND = CSV_MAG_BY_BAND
 
 
+def _normalize_csv_row(row):
+    """Strip header keys and string values from csv.DictReader rows."""
+    normalized = {}
+    for key, value in row.items():
+        norm_key = (key or '').strip()
+        if not norm_key:
+            continue
+        if isinstance(value, str):
+            value = value.strip()
+            if value == '':
+                value = None
+        normalized[norm_key] = value
+    return normalized
+
+
 def _build_photometry_cleaned_data(measurements):
     cleaned = {}
     for entry in measurements:
@@ -283,6 +298,7 @@ def bulk_upload_stars(request):
             continue
         systems = csv.DictReader(io.TextIOWrapper(uploaded.file, encoding='utf-8-sig'))
         for row in systems:
+            row = _normalize_csv_row(row)
             main_id = (row.get('main_id') or '').strip()
             if not main_id:
                 continue

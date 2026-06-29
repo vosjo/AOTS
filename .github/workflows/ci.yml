@@ -1,9 +1,12 @@
 name: CI
 
+# Temporarily disabled: GitHub runners deprecate Node 20 used by checkout/setup-python.
+# Re-enable push/pull_request after updating Node and action versions.
 on:
-  push:
-    branches: [main, master]
-  pull_request:
+  workflow_dispatch:
+  # push:
+  #   branches: [main, master]
+  # pull_request:
 
 jobs:
   test:

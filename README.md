@@ -73,22 +73,8 @@ Local development uses the Django dev server plus the Vite dev server (hot reloa
 ### 1. Setup the database
 
 ```
-python manage.py makemigrations users
-python manage.py makemigrations stars
-python manage.py makemigrations observations
-python manage.py makemigrations analysis
-python manage.py makemigrations dash
 python manage.py migrate
 ```
-
-In case you want a fresh start, run:
-
-```
-find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
-find . -path "*/migrations/*.pyc"  -delete
-```
-
-and drop the database or remove the db.sqlite3 file.
 
 ### 2. Create a admin user
 

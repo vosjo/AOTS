@@ -2,7 +2,8 @@ from unittest.mock import patch
 
 import numpy as np
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from rest_framework import status
 from rest_framework.test import APIClient
 
 from analysis.models import ParameterSource
@@ -14,6 +15,7 @@ from stars.models import Project, Star
 from stars.services.starmap import (
     build_aitoff_grid,
     collect_star_positions,
+    downsample_positions,
     galactic_aitoff_xy,
     starmap_metadata,
     starmap_star_records,
@@ -123,6 +125,35 @@ class StarmapServiceTests(TestCase):
         self.assertIsNotNone(figure)
         self.assertGreater(len(figure.renderers), 0)
 
+    def test_collect_star_positions_uses_bounded_queries(self):
+        Star.objects.bulk_create([
+            Star(name=f'Star{i}', project=self.project, ra=float(i % 360), dec=float((i % 180) - 90))
+            for i in range(60)
+        ])
+        with self.assertNumQueries(2):
+            positions = collect_star_positions(self.project)
+        self.assertEqual(len(positions), 60)
+
+    @override_settings(STARMAP_MAX_POINTS=100)
+    def test_downsample_positions_caps_plot_points(self):
+        from stars.services.starmap import StarPosition
+
+        positions = [
+            StarPosition(
+                star_pk=index,
+                name=f'S{index}',
+                ra_deg=float(index % 360),
+                dec_deg=0.0,
+                parallax_mas=None,
+                galactic_l_deg=0.0,
+                galactic_b_deg=0.0,
+                distance_kpc=None,
+            )
+            for index in range(150)
+        ]
+        sampled = downsample_positions(positions, 100)
+        self.assertEqual(len(sampled), 100)
+
 
 class StarmapApiTests(TestCase):
     def setUp(self):
@@ -141,10 +172,45 @@ class StarmapApiTests(TestCase):
     def test_get_starmap_public(self):
         response = self.client.get(f'/api/dash/{self.project.slug}/starmap/')
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'ready')
         self.assertIn('n_stars', response.data)
         self.assertIn('interactive', response.data)
         self.assertIsNotNone(response.data['interactive'])
         self.assertNotIn('preview_url', response.data)
+
+    @override_settings(
+        CACHES={
+            'default': {
+                'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            },
+        },
+    )
+    def test_get_starmap_returns_cached_payload(self):
+        from dash.starmap_cache import set_cached_starmap_embed
+
+        cached = {
+            'n_stars': 1,
+            'n_stars_total': 1,
+            'n_stars_plotted': 1,
+            'downsampled': False,
+            'colored_by_distance': False,
+            'interactive': {'item': {'type': 'object', 'data': {}}},
+        }
+        set_cached_starmap_embed(self.project, 'dark', cached)
+        with patch('dash.api_views.build_starmap_cache_payload') as mock_build:
+            response = self.client.get(f'/api/dash/{self.project.slug}/starmap/?theme=dark')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'ready')
+        mock_build.assert_not_called()
+
+    @override_settings(STARMAP_SYNC_MAX_STARS=0, CELERY_TASK_ALWAYS_EAGER=False)
+    @patch('dash.api_views.build_starmap_cache_task.delay')
+    def test_get_starmap_large_project_returns_pending(self, mock_delay):
+        mock_delay.return_value.id = 'pending-task'
+        response = self.client.get(f'/api/dash/{self.project.slug}/starmap/')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.data['status'], 'pending')
+        self.assertEqual(response.data['task_id'], 'pending-task')
 
     def test_get_starmap_accepts_theme_query(self):
         for theme in ('dark', 'light', 'invalid'):
@@ -176,13 +242,18 @@ class GaiaBulkTaskTests(TestCase):
         self.project = Project.objects.create(name='Schedule', slug='schedule', description='')
 
     @patch('stars.tasks.import_gaia_dr3_for_star')
-    def test_gaia_bulk_completes_without_starmap_regeneration(self, mock_import):
+    def test_gaia_bulk_invalidates_starmap_cache(self, mock_import):
+        from dash.starmap_cache import set_cached_starmap_embed
         from stars.services.gaia_import import GaiaImportResult
 
         star = Star.objects.create(name='G1', project=self.project, ra=1.0, dec=1.0)
+        set_cached_starmap_embed(self.project, 'dark', {'interactive': {'item': {}}})
+        version_before = self.project.starmap_cache_version
         mock_import.return_value = GaiaImportResult(status='ok', message='ok', fields_updated=[])
 
         with patch.object(fetch_gaia_bulk_task, 'update_state'):
             summary = fetch_gaia_bulk_task.run(self.project.pk, [star.pk], None)
 
         self.assertEqual(summary['ok'], 1)
+        self.project.refresh_from_db()
+        self.assertGreater(self.project.starmap_cache_version, version_before)

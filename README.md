@@ -519,7 +519,7 @@ Download `kind` query parameter:
 | Gaia DR3 (single star) | `POST /api/systems/stars/<pk>/gaia/fetch/` |
 | Gaia DR3 (bulk, async) | `POST /api/systems/stars/gaia/fetch-bulk/?async=1` + header `Projectid` |
 | Consensus policies | `/w/<project>/settings/consensus/` or `/api/analysis/consensus-policies/<slug>/` |
-| Dashboard starmap | `/w/<project>/dash/` — interactive Bokeh map; PNG via plot save tool |
+| Dashboard starmap | `/w/<project>/dash/` — cached Bokeh map (Celery build for large projects); PNG via plot save tool |
 | Superuser admin (SPA) | `/admin/` (`/api/admin/`, requires `is_superuser`; Django `/admin/` remains as fallback) |
 
 Domain models, service layers, I/O conventions, and one-time migration notes:

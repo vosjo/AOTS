@@ -24,6 +24,8 @@ class Project(models.Model):
 
     is_public = models.BooleanField(default=True)
 
+    starmap_cache_version = models.PositiveIntegerField(default=0)
+
     readonly_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readonly_projects', blank=True)
     readwriteown_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='readwriteown_projects',
                                                 blank=True)

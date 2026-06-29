@@ -33,7 +33,12 @@ interface StatCard {
 import type { BokehEmbed } from '@/types/bokeh'
 
 interface StarmapPayload {
+  status?: 'ready' | 'pending'
+  task_id?: string
   n_stars: number
+  n_stars_total?: number
+  n_stars_plotted?: number
+  downsampled?: boolean
   colored_by_distance: boolean
   interactive: BokehEmbed | null
 }
@@ -65,9 +70,19 @@ const { data, isFetching, isPending, refetch } = useQuery({
 const {
   data: starmapData,
   isFetching: starmapFetching,
+  refetch: refetchStarmap,
 } = useQuery({
   queryKey: computed(() => ['dashboard-starmap', slug.value, themeStore.mode]),
   queryFn: () => api<StarmapPayload>(`/api/dash/${slug.value}/starmap/?theme=${themeStore.mode}`),
+  refetchInterval: ({ state }) => (state.data?.status === 'pending' ? 2500 : false),
+})
+
+const starmapPending = computed(() => starmapData.value?.status === 'pending')
+
+const starmapDownsampleNotice = computed(() => {
+  const payload = starmapData.value
+  if (!payload?.downsampled || !payload.n_stars_total || !payload.n_stars_plotted) return null
+  return `${payload.n_stars_total.toLocaleString()} systems, ${payload.n_stars_plotted.toLocaleString()} shown`
 })
 
 const statCards = computed((): StatCard[] => {
@@ -217,6 +232,12 @@ function updateHrd() {
       <section class="aots-panel min-w-0">
         <h2 class="mb-2 font-medium">Starmap</h2>
         <div v-if="starmapFetching && !starmapData" class="text-sm text-aots-muted">Loading starmap…</div>
+        <div v-else-if="starmapPending" class="space-y-2 text-sm text-aots-muted">
+          <p>Starmap is being prepared…</p>
+          <p v-if="starmapData?.n_stars_total" class="text-xs text-aots-faint-extra">
+            {{ starmapData.n_stars_total?.toLocaleString() }} systems
+          </p>
+        </div>
         <template v-else-if="starmapData">
           <BokehPlot
             v-if="starmapData.interactive"
@@ -227,10 +248,22 @@ function updateHrd() {
             <img :src="DEFAULT_PROJECT_LOGO" alt="" class="h-16 w-16 opacity-40" aria-hidden="true" />
             <p>No stars with coordinates to plot</p>
           </div>
+          <p v-if="starmapDownsampleNotice" class="mt-2 text-xs text-aots-faint-extra">
+            {{ starmapDownsampleNotice }}
+          </p>
           <p v-if="starmapData.interactive" class="mt-2 text-xs text-aots-faint-extra">
             Aitoff projection (galactic). Pan/zoom with the mouse; click a star to open its page.
             Export PNG via the save tool in the plot toolbar.
           </p>
+          <AppButton
+            v-if="!starmapData.interactive && starmapData.n_stars_total"
+            variant="secondary"
+            size="sm"
+            class="mt-2"
+            @click="refetchStarmap()"
+          >
+            Retry
+          </AppButton>
         </template>
       </section>
 

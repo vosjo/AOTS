@@ -82,16 +82,19 @@ Task status: `GET /api/observations/tasks/<task_id>/` (includes `meta` while `PR
 
 **CLI:** `scripts/update_stars_gaia-dr3.py` wraps the same service (optional skip if DR3 parallax exists).
 
-After a bulk Gaia import, the dashboard starmap reflects updated coordinates on the next load (live Bokeh plot).
+After a bulk Gaia import, the dashboard starmap cache is invalidated; the next load rebuilds the map.
 
 ### Starmap
 
 Coordinate helpers and metadata live in `stars/services/starmap.py`:
 
-- Aitoff projection in galactic coordinates; parallax from consensus (`get_consensus_parameter`)
-- Distance colour when parallax is available; uniform colour fallback when only RA/Dec exist
+- Bulk DB queries (stars + consensus parallax) and vectorized galactic/Aitoff projection
+- Plot cap via `STARMAP_MAX_POINTS` (default 20 000); metadata includes `n_stars_total`, `n_stars_plotted`, `downsampled`
+- Cached Bokeh embed payloads in Redis (`dash/starmap_cache.py`), keyed by project, theme, and `Project.starmap_cache_version`
+- Large projects (`STARMAP_SYNC_MAX_STARS`, default 5 000): `GET /api/dash/<slug>/starmap/` returns `202` + `task_id`; Celery task `dash.tasks.build_starmap_cache_task` builds the cache without blocking Gunicorn
+- Cache invalidation: star coordinate changes (signal), end of Gaia bulk import
 
-**Interactive map:** `GET /api/dash/<slug>/starmap/` embeds a Bokeh figure (`interactive` key). Bokeh has no native Aitoff projection; galactic `l,b` are projected server-side with the same transform as matplotlib (`galactic_aitoff_xy`). Star positions as JSON: `?format=json` (`stars` array with `pk`, `ra`, `dec`, `l`, `b`, `distance_kpc`, `url`). PNG export uses Bokeh’s built-in save tool in the plot toolbar. Theme query: `?theme=dark|light`.
+**Interactive map:** `GET /api/dash/<slug>/starmap/` returns `status: ready` with Bokeh `interactive` embed, or `status: pending` while the cache is built. Star positions as JSON: `?format=json`. Theme query: `?theme=dark|light`.
 
 ## One-time migration notes
 

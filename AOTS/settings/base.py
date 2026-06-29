@@ -160,3 +160,9 @@ BULK_DOWNLOAD_DELETE_AFTER_SEND = env.bool('BULK_DOWNLOAD_DELETE_AFTER_SEND', de
 
 # SPA: show test-installation banner on the project list when true
 AOTS_TEST_INSTALLATION = env.bool('AOTS_TEST_INSTALLATION', default=False)
+
+# Dashboard starmap: plot cap, sync-vs-async threshold, embed cache TTL
+STARMAP_MAX_POINTS = env.int('STARMAP_MAX_POINTS', default=20_000)
+STARMAP_SYNC_MAX_STARS = env.int('STARMAP_SYNC_MAX_STARS', default=5_000)
+STARMAP_CACHE_TTL_SECONDS = env.int('STARMAP_CACHE_TTL_SECONDS', default=7 * 24 * 3600)
+STARMAP_BUILD_LOCK_TTL_SECONDS = env.int('STARMAP_BUILD_LOCK_TTL_SECONDS', default=600)

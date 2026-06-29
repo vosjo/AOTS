@@ -74,6 +74,9 @@ def fetch_gaia_bulk_task(self, project_pk, star_pks, user_pk):
         if index < len(stars):
             time.sleep(GAIA_BULK_DELAY_SECONDS)
 
+    from dash.starmap_cache import invalidate_starmap_cache
+
+    invalidate_starmap_cache(project)
     return summary
 
 

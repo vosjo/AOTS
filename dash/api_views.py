@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from itertools import chain
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import make_aware
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
@@ -13,11 +15,23 @@ from AOTS.history_helpers import history_actor_for_changelog
 from analysis.models import Analysis
 from dash.forms import HRDPlotterForm
 from dash.plotting import plot_hrd
-from dash.starmap_plotting import plot_interactive_starmap
+from dash.starmap_cache import (
+    get_cached_starmap_embed,
+    get_starmap_build_task_id,
+    set_cached_starmap_embed,
+    set_starmap_build_task_id,
+)
 from dash.changelog import get_modeltype, sort_modified_created, wascreated
+from dash.tasks import build_starmap_cache_task
 from observations.models import LightCurve, Spectrum
 from stars.models import Project, Star
-from stars.services.starmap import starmap_metadata, starmap_star_records
+from stars.services.starmap import (
+    build_starmap_cache_payload,
+    collect_star_positions,
+    count_starmap_stars,
+    starmap_payload_from_positions,
+    starmap_star_records,
+)
 
 
 def _dashboard_project(request, project_slug):
@@ -52,6 +66,28 @@ def _recent_changes(project, aware_datetime):
             'created': wascreated(r),
         })
     return entries
+
+
+def _build_starmap_embed_sync(project, theme):
+    payload = build_starmap_cache_payload(project, theme)
+    if payload.get('interactive') is not None:
+        set_cached_starmap_embed(project, theme, payload)
+    return payload
+
+
+def _dispatch_starmap_build(project, theme):
+    existing_task_id = get_starmap_build_task_id(project, theme)
+    if existing_task_id:
+        return existing_task_id
+
+    eager = getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False)
+    if eager:
+        build_starmap_cache_task.apply(args=[project.pk, theme])
+        return None
+
+    async_result = build_starmap_cache_task.delay(project.pk, theme)
+    set_starmap_build_task_id(project, theme, async_result.id)
+    return async_result.id
 
 
 @api_view(['GET'])
@@ -113,12 +149,40 @@ def dashboard_bootstrap(request, project_slug):
 @permission_classes([AllowAny])
 def dashboard_starmap(request, project_slug):
     project = _dashboard_project(request, project_slug)
-    payload = starmap_metadata(project)
+    theme = request.query_params.get('theme')
 
     if request.query_params.get('format') == 'json':
-        payload['stars'] = starmap_star_records(project)
+        all_positions = collect_star_positions(project, for_plot=False)
+        payload = starmap_payload_from_positions(all_positions, total_count=len(all_positions))
+        payload['stars'] = starmap_star_records(project, positions=all_positions)
         return Response(payload)
 
-    figure = plot_interactive_starmap(project, theme=request.query_params.get('theme'))
-    payload['interactive'] = bokeh_embed_response(figure) if figure is not None else None
+    cached_payload = get_cached_starmap_embed(project, theme)
+    if cached_payload is not None:
+        return Response({**cached_payload, 'status': 'ready'})
+
+    n_stars = count_starmap_stars(project)
+    sync_max = getattr(settings, 'STARMAP_SYNC_MAX_STARS', 5_000)
+    if n_stars > sync_max:
+        _dispatch_starmap_build(project, theme)
+        cached_payload = get_cached_starmap_embed(project, theme)
+        if cached_payload is not None:
+            return Response({**cached_payload, 'status': 'ready'})
+        task_id = get_starmap_build_task_id(project, theme)
+        return Response(
+            {
+                'status': 'pending',
+                'task_id': task_id,
+                'n_stars': 0,
+                'n_stars_total': n_stars,
+                'n_stars_plotted': 0,
+                'downsampled': n_stars > getattr(settings, 'STARMAP_MAX_POINTS', 20_000),
+                'colored_by_distance': False,
+                'interactive': None,
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+    payload = _build_starmap_embed_sync(project, theme)
+    payload['status'] = 'ready'
     return Response(payload)

@@ -110,7 +110,7 @@ def _distance_color_mapper(distances_kpc: np.ndarray) -> LogColorMapper | None:
     )
 
 
-def plot_interactive_starmap(project, *, theme: str | None = None):
+def plot_interactive_starmap(project, *, theme: str | None = None, positions=None):
     """
     Bokeh scatter in Aitoff plane (galactic coordinates).
 
@@ -119,7 +119,8 @@ def plot_interactive_starmap(project, *, theme: str | None = None):
     explicitly to match the static matplotlib starmap styling.
     """
     plot_theme = resolve_bokeh_theme(theme)
-    positions = collect_star_positions(project)
+    if positions is None:
+        positions = collect_star_positions(project, for_plot=True)
     if not positions:
         return None
 
@@ -140,18 +141,18 @@ def plot_interactive_starmap(project, *, theme: str | None = None):
     size = marker_size(len(positions))
 
     grid = build_aitoff_grid()
-    grid_x = (
-        [value for line in grid.meridian_xs + grid.parallel_xs for value in line]
-        + grid.outline_xs
+    grid_x_arr = np.array(
+        [value for line in grid.meridian_xs + grid.parallel_xs for value in line] + grid.outline_xs,
+        dtype=float,
     )
-    grid_y = (
-        [value for line in grid.meridian_ys + grid.parallel_ys for value in line]
-        + grid.outline_ys
+    grid_y_arr = np.array(
+        [value for line in grid.meridian_ys + grid.parallel_ys for value in line] + grid.outline_ys,
+        dtype=float,
     )
-    x_min = min(grid_x + x.tolist())
-    x_max = max(grid_x + x.tolist())
-    y_min = min(grid_y + y.tolist())
-    y_max = max(grid_y + y.tolist())
+    x_min = float(min(np.min(grid_x_arr), np.min(x)))
+    x_max = float(max(np.max(grid_x_arr), np.max(x)))
+    y_min = float(min(np.min(grid_y_arr), np.min(y)))
+    y_max = float(max(np.max(grid_y_arr), np.max(y)))
     plot_w = x_max - x_min
     plot_h = y_max - y_min
     # Outline sampling slightly undershoots the true Aitoff rim on the right; pad asymmetrically.

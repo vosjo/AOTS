@@ -62,9 +62,9 @@ See [docs/architecture.md](docs/architecture.md) for domain models, service laye
 
 **Done:**
 
-- Coordinate service (`stars/services/starmap.py`): Aitoff galactic projection, consensus parallax, star metadata
-- API: `GET /api/dash/<slug>/starmap/` (Bokeh embed + optional `?format=json`); decoupled from HRD bootstrap
-- Interactive starmap: Bokeh scatter with matplotlib Aitoff x/y pre-projection, pan/zoom, click → star detail; PNG export via Bokeh save tool; theme via `?theme=dark|light`
+- Coordinate service (`stars/services/starmap.py`): bulk queries, Aitoff projection, consensus parallax, downsampling
+- API: `GET /api/dash/<slug>/starmap/` (cached Bokeh embed + optional `?format=json`); large projects via Celery
+- Redis cache + `Project.starmap_cache_version`; interactive Bokeh map with pan/zoom, click → star detail
 
 **Later:**
 

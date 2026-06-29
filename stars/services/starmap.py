@@ -11,8 +11,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import Galactic, SkyCoord
+from django.conf import settings
 
-from analysis.services.parameter_consensus import get_consensus_parameter
+from analysis.models.default_values import SYSTEM
+from analysis.services.parameter_consensus import consensus_queryset
+from stars.models import Star
 
 mpl.use('Agg')
 
@@ -77,19 +80,19 @@ def _aitoff_outline_xy(*, lat_samples: int = 181) -> tuple[list[float], list[flo
     l_right = np.linspace(181, 359, 361)
     l_left = np.linspace(0, 179, 361)
 
-    right_l = np.broadcast_to(l_right, (lat_samples, l_right.size))
-    right_b = np.broadcast_to(latitudes[:, None], (lat_samples, l_right.size))
+    right_l = np.broadcast_to(l_right, (latitudes.size, l_right.size))
+    right_b = np.broadcast_to(latitudes[:, None], (latitudes.size, l_right.size))
     x_right, y_right = galactic_aitoff_xy(right_l.ravel(), right_b.ravel())
-    x_right = x_right.reshape(lat_samples, l_right.size)
-    y_right = y_right.reshape(lat_samples, l_right.size)
+    x_right = x_right.reshape(latitudes.size, l_right.size)
+    y_right = y_right.reshape(latitudes.size, l_right.size)
     right_idx = np.argmax(x_right, axis=1)
-    row_idx = np.arange(lat_samples)
+    row_idx = np.arange(latitudes.size)
 
-    left_l = np.broadcast_to(l_left, (lat_samples, l_left.size))
-    left_b = np.broadcast_to(latitudes[::-1][:, None], (lat_samples, l_left.size))
+    left_l = np.broadcast_to(l_left, (latitudes.size, l_left.size))
+    left_b = np.broadcast_to(latitudes[::-1][:, None], (latitudes.size, l_left.size))
     x_left, y_left = galactic_aitoff_xy(left_l.ravel(), left_b.ravel())
-    x_left = x_left.reshape(lat_samples, l_left.size)
-    y_left = y_left.reshape(lat_samples, l_left.size)
+    x_left = x_left.reshape(latitudes.size, l_left.size)
+    y_left = y_left.reshape(latitudes.size, l_left.size)
     left_idx = np.argmin(x_left, axis=1)
 
     outline_x = x_right[row_idx, right_idx].tolist()
@@ -161,43 +164,119 @@ def build_aitoff_grid(*, lon_step: int = 30, lat_step: int = 30) -> AitoffGrid:
     )
 
 
-def collect_star_positions(project) -> list[StarPosition]:
+def _parallax_by_star_id(project) -> dict[int, float]:
+    qs = (
+        consensus_queryset(project=project)
+        .filter(
+            derivedparameter__isnull=True,
+            component=SYSTEM,
+            name__iexact='parallax',
+            value__gt=0,
+        )
+        .values_list('star_id', 'value')
+    )
+    return {star_id: float(value) for star_id, value in qs}
+
+
+def _load_starmap_inputs(project) -> list[Star]:
+    return list(
+        Star.objects.filter(
+            project=project,
+            ra__isnull=False,
+            dec__isnull=False,
+        )
+        .only('pk', 'name', 'ra', 'dec')
+        .order_by('pk'),
+    )
+
+
+def _positions_from_stars(stars: list[Star], parallax_by_star: dict[int, float]) -> list[StarPosition]:
+    if not stars:
+        return []
+
+    ra_deg = np.array([star.ra for star in stars], dtype=float)
+    dec_deg = np.array([star.dec for star in stars], dtype=float)
+    galactic = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg, frame='icrs').transform_to(Galactic())
+    l_deg = np.asarray(galactic.l.deg, dtype=float)
+    b_deg = np.asarray(galactic.b.deg, dtype=float)
+
     positions: list[StarPosition] = []
-    for star in project.star_set.all().order_by('pk'):
-        if star.ra is None or star.dec is None:
-            continue
-        consensus = get_consensus_parameter(star, 'parallax', 0)
-        parallax_mas = None
+    for index, star in enumerate(stars):
+        parallax_mas = parallax_by_star.get(star.pk)
         distance_kpc = None
-        if consensus is not None and consensus.value is not None and consensus.value > 0:
-            parallax_mas = float(consensus.value)
+        if parallax_mas is not None and parallax_mas > 0:
             distance_kpc = float(
                 (parallax_mas * u.mas).to_value(u.kpc, equivalencies=u.parallax()),
             )
-        galactic = SkyCoord(
-            ra=star.ra * u.deg,
-            dec=star.dec * u.deg,
-            frame='icrs',
-        ).transform_to(Galactic())
         positions.append(
             StarPosition(
                 star_pk=star.pk,
                 name=star.name,
-                ra_deg=float(star.ra),
-                dec_deg=float(star.dec),
+                ra_deg=float(ra_deg[index]),
+                dec_deg=float(dec_deg[index]),
                 parallax_mas=parallax_mas,
-                galactic_l_deg=float(galactic.l.deg),
-                galactic_b_deg=float(galactic.b.deg),
+                galactic_l_deg=float(l_deg[index]),
+                galactic_b_deg=float(b_deg[index]),
                 distance_kpc=distance_kpc,
             ),
         )
     return positions
 
 
-def starmap_star_records(project, *, project_slug: str | None = None) -> list[dict[str, Any]]:
+def downsample_positions(positions: list[StarPosition], max_points: int) -> list[StarPosition]:
+    if len(positions) <= max_points:
+        return positions
+    indices = np.linspace(0, len(positions) - 1, max_points, dtype=int)
+    return [positions[i] for i in indices]
+
+
+def collect_star_positions(project, *, for_plot: bool = False) -> list[StarPosition]:
+    """
+    Load star positions for the starmap.
+
+    When for_plot=True, apply STARMAP_MAX_POINTS downsampling for rendering.
+    """
+    stars = _load_starmap_inputs(project)
+    positions = _positions_from_stars(stars, _parallax_by_star_id(project))
+    if for_plot:
+        max_points = getattr(settings, 'STARMAP_MAX_POINTS', 20_000)
+        return downsample_positions(positions, max_points)
+    return positions
+
+
+def starmap_payload_from_positions(positions: list[StarPosition], *, total_count: int | None = None) -> dict[str, Any]:
+    n_total = total_count if total_count is not None else len(positions)
+    n_plotted = len(positions)
+    colored_by_distance = any(p.parallax_mas is not None and p.parallax_mas > 0 for p in positions)
+    return {
+        'n_stars': n_plotted,
+        'n_stars_total': n_total,
+        'n_stars_plotted': n_plotted,
+        'downsampled': n_plotted < n_total,
+        'colored_by_distance': colored_by_distance,
+    }
+
+
+def starmap_metadata(project) -> dict[str, Any]:
+    all_positions = collect_star_positions(project, for_plot=False)
+    plot_positions = downsample_positions(
+        all_positions,
+        getattr(settings, 'STARMAP_MAX_POINTS', 20_000),
+    )
+    return starmap_payload_from_positions(plot_positions, total_count=len(all_positions))
+
+
+def starmap_star_records(
+    project,
+    *,
+    project_slug: str | None = None,
+    positions: list[StarPosition] | None = None,
+) -> list[dict[str, Any]]:
     slug = project_slug or project.slug
+    if positions is None:
+        positions = collect_star_positions(project, for_plot=False)
     records: list[dict[str, Any]] = []
-    for position in collect_star_positions(project):
+    for position in positions:
         records.append({
             'pk': position.star_pk,
             'name': position.name,
@@ -212,10 +291,25 @@ def starmap_star_records(project, *, project_slug: str | None = None) -> list[di
     return records
 
 
-def starmap_metadata(project) -> dict[str, Any]:
-    positions = collect_star_positions(project)
-    colored_by_distance = any(p.parallax_mas is not None and p.parallax_mas > 0 for p in positions)
-    return {
-        'n_stars': len(positions),
-        'colored_by_distance': colored_by_distance,
-    }
+def build_starmap_cache_payload(project, theme: str | None):
+    """Build interactive embed + metadata for caching."""
+    from AOTS.bokeh_embed import bokeh_embed_response
+    from dash.starmap_plotting import plot_interactive_starmap
+
+    all_positions = collect_star_positions(project, for_plot=False)
+    plot_positions = downsample_positions(
+        all_positions,
+        getattr(settings, 'STARMAP_MAX_POINTS', 20_000),
+    )
+    figure = plot_interactive_starmap(project, theme=theme, positions=plot_positions)
+    payload = starmap_payload_from_positions(plot_positions, total_count=len(all_positions))
+    payload['interactive'] = bokeh_embed_response(figure) if figure is not None else None
+    return payload
+
+
+def count_starmap_stars(project) -> int:
+    return Star.objects.filter(
+        project=project,
+        ra__isnull=False,
+        dec__isnull=False,
+    ).count()

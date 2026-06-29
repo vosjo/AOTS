@@ -23,7 +23,7 @@ interface AdminTaskRow {
 }
 
 const search = ref('')
-const activeOnly = ref(true)
+const activeOnly = ref(false)
 const statusFilter = ref('')
 const page = ref(1)
 const pageSize = ref(20)

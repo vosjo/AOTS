@@ -404,8 +404,18 @@ server {
 
     # Django + SPA shell + REST API (Vue client-side routes must reach Gunicorn)
     location / {
+        if (-f /var/www/aots/maintenance.on) {
+            return 503;
+        }
         include proxy_params;
         proxy_pass http://unix:/home/aots/www/aots/run/gunicorn.sock;
+    }
+
+    error_page 503 @maintenance;
+    location @maintenance {
+        root /var/www/aots;
+        rewrite ^ /maintenance.html break;
+        add_header Retry-After 300 always;
     }
 
 }
@@ -447,6 +457,46 @@ Finally, we need to open up our firewall to normal traffic on port 80
 ```
 sudo ufw allow 'Nginx Full'
 ```
+
+## Maintenance mode (deployments)
+
+During upgrades, nginx can serve a static maintenance page instead of proxying to Gunicorn.
+The HTML file lives in the repo at `deploy/maintenance.html`.
+
+**One-time setup on the server:**
+
+```
+sudo mkdir -p /var/www/aots
+sudo cp deploy/maintenance.html /var/www/aots/maintenance.html
+```
+
+The nginx `location /` block above already checks for a flag file and returns HTTP 503 with that page.
+After editing `/etc/nginx/sites-available/aots`, run `sudo nginx -t` and `sudo systemctl reload nginx`.
+
+**Enable maintenance** (before `git pull`, migrations, frontend build, or Gunicorn restart):
+
+```
+sudo touch /var/www/aots/maintenance.on
+```
+
+**Disable maintenance** (after Gunicorn is back and you have smoke-tested):
+
+```
+sudo rm /var/www/aots/maintenance.on
+```
+
+Typical rollout with maintenance:
+
+```
+sudo touch /var/www/aots/maintenance.on
+# … pip install, migrate, npm run build, collectstatic …
+sudo systemctl restart gunicorn_aots
+sudo systemctl restart celery_aots celery_beat_aots   # if used
+curl -I -H "Host: a15.astro.physik.uni-potsdam.de" http://127.0.0.1/w/projects/
+sudo rm /var/www/aots/maintenance.on
+```
+
+While maintenance is on, `/static/` and `/media/` are still served by nginx; only proxied routes (SPA, API, login) show the maintenance page.
 
 
 ## API authentication and bulk I/O

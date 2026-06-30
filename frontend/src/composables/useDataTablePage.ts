@@ -1,11 +1,19 @@
 import { useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch, type Ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { api, type PaginatedResponse } from '@/api/client'
 import {
   useSpectraSectionSelection,
   type SpectraSectionKind,
 } from '@/composables/useSpectraSectionSelection'
 import { useProjectStore } from '@/stores/project'
+import {
+  buildListRouteQuery,
+  managedListRouteKeys,
+  mergeListRouteQuery,
+  normalizeRouteQuery,
+  readListStateFromQuery,
+} from '@/utils/listRouteQuery'
 
 export interface ListColumn<T> {
   id: string
@@ -20,10 +28,15 @@ export interface UseDataTableOptions {
   ordering?: Ref<string>
   enabled?: Ref<boolean>
   spectraSectionSelection?: SpectraSectionKind
+  /** Sync page, page size, filters, and ordering with the route query (default: true). */
+  persistInRoute?: boolean
 }
 
 export function useDataTablePage<T extends { pk: number }>(opts: UseDataTableOptions) {
+  const route = useRoute()
+  const router = useRouter()
   const projectStore = useProjectStore()
+  const persistInRoute = opts.persistInRoute ?? true
   const page = ref(1)
   const pageSize = ref(20)
   const sectionSelection = opts.spectraSectionSelection ? useSpectraSectionSelection() : null
@@ -33,6 +46,61 @@ export function useDataTablePage<T extends { pk: number }>(opts: UseDataTableOpt
     ? computed(() => sectionSelection.getSelectedSet(sectionKind))
     : localSelected
   const ordering = opts.ordering ?? ref('')
+
+  const filterKeys = computed(() => Object.keys(opts.filters?.value ?? {}))
+  const managedKeys = computed(() =>
+    managedListRouteKeys(filterKeys.value, !!opts.ordering),
+  )
+
+  let routeSyncDepth = 0
+
+  function applyRouteQuery(query: Record<string, string | string[] | undefined>) {
+    routeSyncDepth++
+    try {
+      const parsed = readListStateFromQuery(
+        query,
+        opts.filters?.value as Record<string, string | number | boolean | string[] | undefined> | undefined,
+      )
+      page.value = parsed.page
+      pageSize.value = parsed.pageSize
+      if (opts.ordering) {
+        ordering.value = parsed.ordering
+      }
+      if (opts.filters && parsed.filters) {
+        for (const key of Object.keys(opts.filters.value)) {
+          opts.filters.value[key] = parsed.filters[key] as typeof opts.filters.value[string]
+        }
+      }
+    } finally {
+      routeSyncDepth--
+    }
+  }
+
+  function syncRouteQuery() {
+    if (!persistInRoute) return
+    const listQuery = buildListRouteQuery({
+      page: page.value,
+      pageSize: pageSize.value,
+      ordering: ordering.value || undefined,
+      filters: opts.filters?.value,
+    })
+    const merged = mergeListRouteQuery(
+      normalizeRouteQuery(route.query),
+      listQuery,
+      managedKeys.value,
+    )
+    const current = mergeListRouteQuery(
+      normalizeRouteQuery(route.query),
+      {},
+      managedKeys.value,
+    )
+    if (JSON.stringify(merged) === JSON.stringify(current)) return
+    void router.replace({ query: merged })
+  }
+
+  if (persistInRoute) {
+    applyRouteQuery(normalizeRouteQuery(route.query))
+  }
 
   const queryKey = computed(() => [
     opts.endpoint,
@@ -71,7 +139,20 @@ export function useDataTablePage<T extends { pk: number }>(opts: UseDataTableOpt
     enabled: computed(() => (opts.enabled?.value ?? true) && !!projectStore.currentProject),
   })
 
+  watch(
+    () => route.query,
+    (query) => {
+      if (!persistInRoute) return
+      applyRouteQuery(normalizeRouteQuery(query))
+    },
+  )
+
+  watch([page, pageSize, ordering, () => opts.filters?.value], () => {
+    syncRouteQuery()
+  }, { deep: true })
+
   watch([() => opts.filters?.value, ordering, pageSize], () => {
+    if (routeSyncDepth > 0) return
     page.value = 1
     if (!sectionSelection) localSelected.value = new Set()
   })

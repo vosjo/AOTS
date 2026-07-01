@@ -17,6 +17,7 @@ from stars.services.starmap import (
     collect_star_positions,
     downsample_positions,
     galactic_aitoff_xy,
+    marker_size,
     starmap_metadata,
     starmap_star_records,
 )
@@ -99,6 +100,15 @@ class StarmapServiceTests(TestCase):
         self.assertEqual(len(x), 2)
         self.assertTrue(np.all(np.isfinite(x)))
         self.assertTrue(np.all(np.isfinite(y)))
+
+    def test_marker_size_decays_faster_after_100_systems(self):
+        self.assertEqual(marker_size(50), 10.0)
+        self.assertEqual(marker_size(99), 10.0)
+        self.assertAlmostEqual(marker_size(100), 10.0)
+        self.assertLess(marker_size(1000), 9.5)
+        self.assertLess(marker_size(5000), 6.0)
+        self.assertEqual(marker_size(10_000), 1.0)
+        self.assertEqual(marker_size(62_366), 1.0)
 
     def test_build_aitoff_grid_has_meridians_and_labels(self):
         grid = build_aitoff_grid()

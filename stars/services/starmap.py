@@ -32,12 +32,16 @@ class StarPosition:
     distance_kpc: float | None
 
 
+_MARKER_SIZE_FLOOR_AT = 10_000
+
+
 def marker_size(nstars: int) -> float:
     if nstars < 100:
         return 10.0
-    if nstars < 50000:
-        return -0.00018 * nstars + 10.018
-    return 1.0
+    if nstars >= _MARKER_SIZE_FLOOR_AT:
+        return 1.0
+    # Linear from 10 @ 100 systems to 1 @ _MARKER_SIZE_FLOOR_AT (steeper than the old 50k knee).
+    return 10.0 - 9.0 * (nstars - 100) / (_MARKER_SIZE_FLOOR_AT - 100)
 
 
 @dataclass(frozen=True)

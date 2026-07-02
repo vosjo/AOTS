@@ -1,7 +1,7 @@
 import { computed, type Ref } from 'vue'
 
 interface QueryLike {
-  isFetching: Ref<boolean>
+  isPending: Ref<boolean>
   data: Ref<{ count?: number } | undefined>
 }
 
@@ -25,7 +25,7 @@ export function useEmptyTableMessage(opts: {
   scope?: 'project' | 'global'
 }) {
   const emptyMessage = computed(() => {
-    if (opts.query.isFetching.value || (opts.query.data.value?.count ?? 0) > 0) return ''
+    if (opts.query.isPending.value || (opts.query.data.value?.count ?? 0) > 0) return ''
     if (hasActiveFilterValues(opts.filters?.value ?? {}, opts.search)) {
       return `No ${opts.entity} match the current filters.`
     }

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/vue-query'
+import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch, type Ref } from 'vue'
 import { api, type PaginatedResponse } from '@/api/client'
 
@@ -40,6 +40,7 @@ export function useAdminList<T>(opts: AdminListOptions) {
       }
       return api<PaginatedResponse<T>>(`${opts.endpoint}?${params}`)
     },
+    placeholderData: keepPreviousData,
   })
 
   watch([() => opts.filters?.value, () => opts.search?.value, ordering, pageSize], () => {

@@ -213,7 +213,7 @@ async function applyCategory() {
       :count="query.data.value?.count ?? 0"
       :page="page"
       :page-size="pageSize"
-      :loading="query.isFetching.value"
+      :loading="query.isLoading.value"
       :empty-message="emptyMessage"
       :selected="selected"
       :selectable="auth.isAuthenticated"

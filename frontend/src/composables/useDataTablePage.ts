@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/vue-query'
+import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api, type PaginatedResponse } from '@/api/client'
@@ -137,6 +137,7 @@ export function useDataTablePage<T extends { pk: number }>(opts: UseDataTableOpt
       return api<PaginatedResponse<T>>(`${opts.endpoint}?${params}`)
     },
     enabled: computed(() => (opts.enabled?.value ?? true) && !!projectStore.currentProject),
+    placeholderData: keepPreviousData,
   })
 
   watch(

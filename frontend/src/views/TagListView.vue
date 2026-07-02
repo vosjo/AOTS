@@ -134,7 +134,7 @@ async function deleteTag(row: TagRow) {
     :count="query.data.value?.count ?? 0"
     :page="page"
     :page-size="pageSize"
-    :loading="query.isFetching.value"
+    :loading="query.isLoading.value"
     :empty-message="emptyMessage"
     :selected="selected"
     :selectable="canAdd"

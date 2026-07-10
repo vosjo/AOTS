@@ -64,12 +64,12 @@ def iter_default_consensus_policy_templates() -> list[dict]:
         templates.append(_source_priority_template(name))
 
     for name in RV_SYSTEM_PARAMETERS:
-        templates.append(_analysis_category_template(name, AnalysisCategory.RV_SOLUTION))
+        templates.append(_analysis_category_template(name, AnalysisCategory.RV_CURVE))
 
     for component in (PRIMARY, SECONDARY):
         for name in RV_COMPONENT_PARAMETERS:
             templates.append(
-                _analysis_category_template(name, AnalysisCategory.RV_SOLUTION, component=component),
+                _analysis_category_template(name, AnalysisCategory.RV_CURVE, component=component),
             )
 
     for name in SPECTRAL_PARAMETERS:

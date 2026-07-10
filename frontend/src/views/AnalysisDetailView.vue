@@ -46,6 +46,21 @@ interface RelatedByCategory {
   is_current: boolean
 }
 
+interface RvFitOption {
+  id: string
+  label: string
+  is_best_fit: boolean
+  method: string
+}
+
+interface ObservationRef {
+  pk: number
+  hjd: number
+  instrument: string
+  telescope: string
+  passband?: string
+}
+
 interface AnalysisDetail {
   pk: number
   name: string
@@ -72,6 +87,9 @@ interface AnalysisDetail {
   datafile: string
   related_analyses: RelatedAnalysis[]
   related_by_category: RelatedByCategory[]
+  rv_fits: RvFitOption[]
+  spectrum: ObservationRef | null
+  lightcurve: ObservationRef | null
 }
 
 import type { BokehEmbed } from '@/types/bokeh'
@@ -93,6 +111,7 @@ const categoryValue = ref('')
 const fitValue = ref(true)
 const deriveBusy = ref(false)
 const deriveMessage = ref('')
+const selectedRvFitId = ref('')
 
 const { data: analysis, refetch } = useQuery({
   queryKey: computed(() => ['analysis', pk.value]),
@@ -100,12 +119,30 @@ const { data: analysis, refetch } = useQuery({
 })
 
 const { data: plots } = useQuery({
-  queryKey: computed(() => ['analysis-plots', pk.value, themeStore.mode]),
-  queryFn: () =>
-    api<Record<string, BokehEmbed>>(
-      `/api/analysis/analyses/${pk.value}/plots/?theme=${themeStore.mode}`,
-    ),
+  queryKey: computed(() => ['analysis-plots', pk.value, themeStore.mode, selectedRvFitId.value]),
+  queryFn: () => {
+    const params = new URLSearchParams({ theme: themeStore.mode })
+    if (selectedRvFitId.value) params.set('fit_id', selectedRvFitId.value)
+    return api<Record<string, BokehEmbed>>(
+      `/api/analysis/analyses/${pk.value}/plots/?${params}`,
+    )
+  },
 })
+
+watch(
+  () => analysis.value?.rv_fits,
+  (fits) => {
+    if (!fits?.length) {
+      selectedRvFitId.value = ''
+      return
+    }
+    const best = fits.find((f) => f.is_best_fit) ?? fits[0]
+    if (!selectedRvFitId.value || !fits.some((f) => f.id === selectedRvFitId.value)) {
+      selectedRvFitId.value = best.id
+    }
+  },
+  { immediate: true },
+)
 
 const { data: categoryOptions } = useQuery({
   queryKey: ['analysis-categories'],
@@ -378,6 +415,21 @@ async function remove() {
 
       <div class="grid gap-4 xl:grid-cols-2">
         <section class="aots-panel-compact space-y-4 min-w-0 overflow-hidden">
+          <div
+            v-if="analysis.rv_fits.length > 1"
+            class="flex flex-wrap items-center gap-2 text-sm"
+          >
+            <label for="rv-fit-select" class="text-aots-muted">Orbital fit</label>
+            <select
+              id="rv-fit-select"
+              v-model="selectedRvFitId"
+              class="aots-input text-sm"
+            >
+              <option v-for="fit in analysis.rv_fits" :key="fit.id" :value="fit.id">
+                {{ fit.label }}{{ fit.is_best_fit ? ' (best)' : '' }}
+              </option>
+            </select>
+          </div>
           <div v-if="plots?.fit" class="w-full max-w-full min-w-0">
             <BokehPlot compact :item="plots.fit.item" />
           </div>

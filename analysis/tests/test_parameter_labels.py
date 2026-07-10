@@ -20,7 +20,7 @@ class ParameterLabelsTests(SimpleTestCase):
         self.assertEqual(cname_display_label('k_2'), 'Semiamplitude K₂')
 
     def test_derived_parameter_display(self):
-        self.assertEqual(cname_display_label('q'), 'Mass ratio q')
+        self.assertEqual(cname_display_label('q'), 'Mass ratio (q)')
         self.assertEqual(
             cname_display_label('msini_1'),
             'Minimum mass M sin i₁',
@@ -108,6 +108,13 @@ class ParameterLabelsTests(SimpleTestCase):
 
     def test_unknown_parameter_falls_back_to_name(self):
         self.assertEqual(parameter_display_name('custom_param'), 'custom_param')
+
+    def test_omega_label_with_degrees(self):
+        self.assertEqual(
+            parameter_label_with_unit('omega', 'deg'),
+            'Argument of periastron ω [°]',
+        )
+        self.assertEqual(unit_display_name('deg'), '°')
 
     def test_t0_epoch_alias_and_labels(self):
         from analysis.parameter_labels import (

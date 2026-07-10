@@ -13,7 +13,6 @@ from analysis.models.default_values import GENERIC, SED
 
 
 class AnalysisCategory(models.TextChoices):
-    RV_SOLUTION = 'rv_solution', 'RV solution'
     RV_CURVE = 'rv_curve', 'RV curve'
     SED_FIT = 'sed_fit', 'SED fit'
     LIGHTCURVE_FIT = 'lightcurve_fit', 'Light curve fit'
@@ -38,18 +37,15 @@ class CategoryMeta:
 
 
 CATEGORY_META: dict[str, CategoryMeta] = {
-    AnalysisCategory.RV_SOLUTION: CategoryMeta(
-        label='RV solution',
-        color='#1e88e5',
-        data_type=GENERIC,
-        file_type_aliases=frozenset({'RV', 'rv', 'rv_solution'}),
-        derived_parameters='q,msini1,msini2,asini1,asini2',
-    ),
     AnalysisCategory.RV_CURVE: CategoryMeta(
         label='RV curve',
-        color='#26a69a',
+        color='#1e88e5',
         data_type=GENERIC,
-        file_type_aliases=frozenset({'RC', 'rv_curve', 'rvcurve'}),
+        file_type_aliases=frozenset({
+            'RV', 'rv', 'rv_solution',
+            'RC', 'rv_curve', 'rvcurve',
+        }),
+        derived_parameters='q,msini1,msini2,asini1,asini2',
     ),
     AnalysisCategory.SED_FIT: CategoryMeta(
         label='SED fit',
@@ -213,9 +209,14 @@ def category_for_hdf5(data: dict) -> str:
     return AnalysisCategory.GENERIC
 
 
+def is_isis_sed_hdf5_layout(data: dict) -> bool:
+    """True when the file uses the ISIS SED-fit layout (info/results/master)."""
+    return _is_sed_hdf5_layout(data)
+
+
 def uses_sed_hdf5_reader(data: dict) -> bool:
-    """Whether basic info / parameters should use the SED HDF5 reader."""
-    return category_data_type(category_for_hdf5(data)) == SED
+    """Whether basic info / parameters should use the ISIS SED HDF5 reader."""
+    return is_isis_sed_hdf5_layout(data)
 
 
 def upload_category_choices() -> list[tuple[str, str]]:

@@ -9,6 +9,24 @@ def calculate(dpar):
     return derivation_auxil.calculate(dpar)
 
 
+def analysis_supports_derived_parameters(analysis) -> bool:
+    """
+    True when this analysis can drive category-derived parameters.
+
+    Requires a linked star, a successful fit flag, and at least one valid
+    parameter stored on the analysis (e.g. RV orbital elements, not measurements-only).
+    """
+    from analysis.categories import has_category_derived_parameters
+
+    if not has_category_derived_parameters(analysis.category):
+        return False
+    if not analysis.star_id:
+        return False
+    if not analysis.fit:
+        return False
+    return analysis.parameter_set.filter(valid=True).exists()
+
+
 def refresh_derived_for(param):
     """Recalculate derived parameters that depend on param."""
     if not param.derived_parameters.exists():
@@ -48,10 +66,10 @@ def sync_derived_for_analysis(analysis):
     Returns counts and names that could not be calculated.
     """
     from analysis.auxil.process_analyses import create_derived_parameters
-    from analysis.categories import category_derived_parameter_specs, has_category_derived_parameters
+    from analysis.categories import category_derived_parameter_specs
     from analysis.models import DerivedParameter
 
-    if not analysis.star_id or not has_category_derived_parameters(analysis.category):
+    if not analysis_supports_derived_parameters(analysis):
         return {'created': 0, 'updated': 0, 'failed': []}
 
     from analysis.services.parameter_consensus import sync_consensus_for_star

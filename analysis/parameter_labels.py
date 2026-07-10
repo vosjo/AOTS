@@ -11,6 +11,7 @@ from analysis.models.default_values import (
     PARAMETER_ALIASES,
     STORED_PARAMETER_ALIASES,
     UNIT_ALIASES,
+    canonical_parameter_base,
     split_parameter_name,
 )
 
@@ -77,6 +78,7 @@ UNIT_DISPLAY: dict[str, str] = {
     'pc': 'pc',
     'mag': 'mag',
     'K': 'K',
+    'deg': '°',
     'dex': 'dex',
 }
 
@@ -145,6 +147,40 @@ def cname_display_label(cname: str) -> str:
     """Display label for a stored combined parameter name (cname)."""
     base, component = parse_cname(cname)
     return parameter_display_name(base, component)
+
+
+def default_parameter_unit(name: str) -> str | None:
+    """Canonical storage unit for a parameter base or cname key."""
+    base, component = parse_cname(name)
+    if base == name and '_' not in name:
+        base, component = split_parameter_name(name)
+    base = normalize_parameter_name(base)
+    if base in DEFAULT_PARAMETERS:
+        return DEFAULT_PARAMETERS[base]
+    canonical = canonical_parameter_base(base)
+    if canonical in DEFAULT_PARAMETERS:
+        return DEFAULT_PARAMETERS[canonical]
+    for key, unit in DEFAULT_PARAMETERS.items():
+        key_base, key_component = split_parameter_name(key)
+        if canonical_parameter_base(key_base) == canonical and key_component == component:
+            return unit
+    return None
+
+
+def effective_parameter_unit(
+    name_or_cname: str,
+    unit: str | None = None,
+    *,
+    from_cname: bool = False,
+) -> str | None:
+    """Stored unit, or canonical default when the database unit is empty."""
+    if unit:
+        return unit
+    if from_cname:
+        base, _component = parse_cname(name_or_cname)
+    else:
+        base, _component = split_parameter_name(name_or_cname)
+    return default_parameter_unit(base)
 
 
 def unit_display_name(unit: str | None) -> str:

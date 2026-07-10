@@ -50,7 +50,7 @@ DEFAULT_PARAMETERS = {
     'e': '',
     'k1': 'km/s',
     'k2': 'km/s',
-    'omega': '',
+    'omega': 'deg',
     'p': 'd',
     't0': 'd',
     'v01': 'km/s',

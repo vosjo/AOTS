@@ -7,6 +7,7 @@ import numpy as np
 from bokeh import models as mpl
 from bokeh import plotting as bpl
 
+from analysis.auxil.plot_axis_labels import resolve_axis_labels
 from dash.bokeh_theme import (
     apply_bokeh_figure_theme,
     resolve_bokeh_theme,
@@ -52,7 +53,7 @@ def get_attr(dataset, attr, default=None):
         return attr
 
 
-def plot_generic(datafile, *, theme=None):
+def plot_generic(datafile, *, theme=None, category=None):
     """
     Generic plotting interface
     will plot the data and models as lines or circles/square.
@@ -65,6 +66,8 @@ def plot_generic(datafile, *, theme=None):
     yscale = (
         get_attr(hdf["DATA"], "yscale", default="linear") if "DATA" in hdf else "linear"
     )
+
+    x_label, y_label = resolve_axis_labels(hdf, category=category)
 
     fig = bpl.figure(
         width=600,
@@ -137,8 +140,8 @@ def plot_generic(datafile, *, theme=None):
         plot(data, mode="MODEL")
 
     fig.toolbar.logo = None
-    fig.yaxis.axis_label = get_attr(data, "ylabel", "y")
-    fig.xaxis.axis_label = get_attr(data, "xlabel", "x")
+    fig.yaxis.axis_label = y_label
+    fig.xaxis.axis_label = x_label
     fig.yaxis.axis_label_text_font_size = "10pt"
     fig.xaxis.axis_label_text_font_size = "10pt"
     fig.min_border = 5
@@ -148,7 +151,7 @@ def plot_generic(datafile, *, theme=None):
     return _finish_figure(fig, theme)
 
 
-def plot_generic_large(datafile, *, theme=None):
+def plot_generic_large(datafile, *, theme=None, category=None):
     """
     Generic plotting interface
     will plot the data and models as lines or circles/square.
@@ -163,6 +166,8 @@ def plot_generic_large(datafile, *, theme=None):
     yscale = (
         get_attr(hdf["DATA"], "yscale", default="linear") if "DATA" in hdf else "linear"
     )
+
+    x_label, y_label = resolve_axis_labels(hdf, category=category)
 
     fig = bpl.figure(
         width=800,
@@ -182,6 +187,7 @@ def plot_generic_large(datafile, *, theme=None):
         for i, (name, dataset) in enumerate(data.items()):
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
+            legend = get_attr(dataset, 'label', None) or name
 
             # we might evenutally need this to convert bytes crap from hdf5 to string
             # datatable = astropy.io.misc.hdf5.read_table_hdf5(dataset, path=None, character_as_bytes=False)
@@ -192,7 +198,7 @@ def plot_generic_large(datafile, *, theme=None):
                     dataset[ypar],
                     color=colors[i],
                     line_dash="dashed",
-                    legend_label=name,
+                    legend_label=legend,
                 )
 
             elif get_attr(dataset, "datatype", None) == "discrete":
@@ -214,11 +220,11 @@ def plot_generic_large(datafile, *, theme=None):
                     legend_label=name,
                 )
 
-                tooltips = [(get_attr(data, "xlabel", "x"), "@" + name + "_x")]
+                tooltips = [(x_label, "@" + name + "_x")]
                 if ypar + "_err" in dataset.dtype.names:
                     tooltips += [
                         (
-                            get_attr(data, "ylabel", "y"),
+                            y_label,
                             "@" + name + "_y +- @" + name + "_yerr",
                         )
                     ]
@@ -232,7 +238,7 @@ def plot_generic_large(datafile, *, theme=None):
                         color=colors[i],
                     )
                 else:
-                    tooltips += [(get_attr(data, "ylabel", "y"), "@" + name + "_y")]
+                    tooltips += [(y_label, "@" + name + "_y")]
 
                 hover_tool = themed_field_hover_tool(
                     renderers=[rend],
@@ -248,9 +254,10 @@ def plot_generic_large(datafile, *, theme=None):
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
 
+            legend = get_attr(dataset, 'label', None) or name
             if get_attr(dataset, "datatype", None) == "continuous":
                 fig.line(
-                    dataset[xpar], dataset[ypar], color=colors[i], legend_label=name
+                    dataset[xpar], dataset[ypar], color=colors[i], legend_label=legend
                 )
             elif get_attr(dataset, "datatype", None) == "discrete":
                 fig.scatter(
@@ -258,13 +265,13 @@ def plot_generic_large(datafile, *, theme=None):
                     dataset[ypar],
                     marker="x",
                     color=colors[i],
-                    legend_label=name,
+                    legend_label=legend,
                     size=10,
                 )
 
     fig.toolbar.logo = None
-    fig.yaxis.axis_label = get_attr(data, "ylabel", "y")
-    fig.xaxis.axis_label = get_attr(data, "xlabel", "x")
+    fig.yaxis.axis_label = y_label
+    fig.xaxis.axis_label = x_label
     fig.yaxis.axis_label_text_font_size = "10pt"
     fig.xaxis.axis_label_text_font_size = "10pt"
     fig.min_border = 5
@@ -284,7 +291,7 @@ def plot_generic_large(datafile, *, theme=None):
     return _finish_figure(fig, theme)  # , button
 
 
-def plot_generic_OC(datafile, *, theme=None):
+def plot_generic_OC(datafile, *, theme=None, category=None):
     hdf = h5py.File(datafile, "r")
 
     TOOLS = "pan, box_zoom, wheel_zoom, reset"
@@ -314,10 +321,11 @@ def plot_generic_OC(datafile, *, theme=None):
         for i, (name, dataset) in enumerate(models.items()):
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
+            legend = get_attr(dataset, 'label', None) or name
 
             if get_attr(dataset, "datatype", None) == "continuous":
                 fig.line(
-                    dataset[xpar], dataset[ypar], color=colors[i], legend_label=name
+                    dataset[xpar], dataset[ypar], color=colors[i], legend_label=legend
                 )
             elif get_attr(dataset, "datatype", None) == "discrete":
                 fig.scatter(
@@ -325,7 +333,7 @@ def plot_generic_OC(datafile, *, theme=None):
                     dataset[ypar],
                     marker="circle",
                     color=colors[i],
-                    legend_label=name,
+                    legend_label=legend,
                     size=7,
                 )
 
@@ -347,8 +355,9 @@ def plot_generic_OC(datafile, *, theme=None):
         )
         fig.add_layout(hline)
 
-        fig.yaxis.axis_label = get_attr(models, "ylabel", "y")
-        fig.xaxis.axis_label = get_attr(models, "xlabel", "x")
+        oc_x, oc_y = resolve_axis_labels(hdf, category=category)
+        fig.yaxis.axis_label = oc_y
+        fig.xaxis.axis_label = oc_x
 
     else:
         plot_theme = resolve_bokeh_theme(theme)
@@ -543,28 +552,91 @@ def plot_error_large(*, theme=None):
     return _finish_figure(fig, theme)
 
 
+def plot_rv_curve(datafile, *, theme=None, fit_id=None, large=False, category=None):
+    """Plot RV measurements and optional model curve from v2 or legacy layout."""
+    from analysis.auxil.fileio import read2dict
+    from analysis.auxil.rv_hdf5 import get_best_fit_id, get_measurements_table, is_rv_curve_v2, list_rv_fits
+
+    data = read2dict(datafile)
+    fit_id = fit_id or get_best_fit_id(data)
+
+    width = 800 if large else 600
+    height = 500 if large else 400
+    fig_kwargs = dict(
+        width=width,
+        height=height,
+        sizing_mode='scale_width',
+        toolbar_location='right' if large else None,
+    )
+    if large:
+        fig_kwargs['tools'] = 'pan, box_zoom, wheel_zoom, reset'
+    fig = bpl.figure(**fig_kwargs)
+
+    if is_rv_curve_v2(data):
+        mtable = get_measurements_table(data)
+        if mtable is not None:
+            x = mtable['time']
+            y = mtable['rv']
+            err = mtable.get('err_formal')
+            fig.scatter(x, y, size=6, color='red', legend_label='Measurements')
+            if err is not None:
+                plot_errorbars(fig, x, y, err, color='red')
+
+        if fit_id:
+            fit_group = data.get('FITS', {}).get(fit_id, {})
+            model = fit_group.get('MODEL') if isinstance(fit_group, dict) else None
+            if isinstance(model, dict):
+                for i, (name, dataset) in enumerate(model.items()):
+                    if hasattr(dataset, 'dtype') and getattr(dataset.dtype, 'names', None):
+                        names = dataset.dtype.names
+                        xpar = 'time' if 'time' in names else names[0]
+                        ypar = 'rv' if 'rv' in names else names[1]
+                        fig.line(
+                            dataset[xpar], dataset[ypar],
+                            color=['blue', 'green', 'orange'][i % 3],
+                            legend_label=name,
+                        )
+    else:
+        return plot_generic_large(datafile, theme=theme, category=category) if large else plot_generic(datafile, theme=theme, category=category)
+
+    fits = list_rv_fits(data)
+    if fit_id and fits:
+        label = next((f['label'] for f in fits if f['id'] == fit_id), fit_id)
+        fig.title.text = f'RV curve — {label}'
+
+    fig.xaxis.axis_label = 'Time'
+    fig.yaxis.axis_label = 'RV (km/s)'
+    return _finish_figure(fig, theme)
+
+
 import traceback
 
 
-def plot_analysis(datafile, category=None, *, theme=None):
+def plot_analysis(datafile, category=None, *, theme=None, fit_id=None):
     """
     General plotting function for analysis
     """
     try:
-        return plot_generic(datafile, theme=theme)
+        from analysis.categories import AnalysisCategory
+        if category == AnalysisCategory.RV_CURVE:
+            return plot_rv_curve(datafile, theme=theme, fit_id=fit_id, large=False, category=category)
+        return plot_generic(datafile, theme=theme, category=category)
     except Exception as e:
         print(e)
         print(traceback.format_exc())
         return plot_error(600, 400, theme=theme)
 
 
-def plot_analysis_large(datafile, category=None, *, theme=None):
+def plot_analysis_large(datafile, category=None, *, theme=None, fit_id=None):
     """
     General plotting function for analysis, makes the large version plot for
     the detail pages including extra info when hovering over a figure
     """
     try:
-        return plot_generic_large(datafile, theme=theme)
+        from analysis.categories import AnalysisCategory
+        if category == AnalysisCategory.RV_CURVE:
+            return plot_rv_curve(datafile, theme=theme, fit_id=fit_id, large=True, category=category)
+        return plot_generic_large(datafile, theme=theme, category=category)
     except Exception as e:
         print(e)
         print(traceback.format_exc())
@@ -573,7 +645,7 @@ def plot_analysis_large(datafile, category=None, *, theme=None):
 
 def plot_analysis_oc(datafile, category=None, *, theme=None):
     try:
-        return plot_generic_OC(datafile, theme=theme)
+        return plot_generic_OC(datafile, theme=theme, category=category)
     except Exception as e:
         print(e)
         print(traceback.format_exc())

@@ -14,7 +14,7 @@ from stars.models import Project, Star
 
 class CategoryResolutionTests(TestCase):
     def test_resolve_category(self):
-        self.assertEqual(resolve_category('RV')[0], AnalysisCategory.RV_SOLUTION)
+        self.assertEqual(resolve_category('RV')[0], AnalysisCategory.RV_CURVE)
         self.assertEqual(resolve_category('RC')[0], AnalysisCategory.RV_CURVE)
         self.assertEqual(resolve_category('sedfit')[0], AnalysisCategory.SED_FIT)
         self.assertEqual(resolve_category('GF')[0], AnalysisCategory.GENERIC)
@@ -24,8 +24,8 @@ class CategoryResolutionTests(TestCase):
         self.assertEqual(category, AnalysisCategory.UNKNOWN)
 
     def test_category_label_and_color(self):
-        self.assertEqual(category_label(AnalysisCategory.RV_SOLUTION), 'RV solution')
-        self.assertTrue(category_color(AnalysisCategory.RV_SOLUTION).startswith('#'))
+        self.assertEqual(category_label(AnalysisCategory.RV_CURVE), 'RV curve')
+        self.assertTrue(category_color(AnalysisCategory.RV_CURVE).startswith('#'))
 
     def test_category_for_hdf5_sed_layout(self):
         sed_data = {
@@ -37,7 +37,7 @@ class CategoryResolutionTests(TestCase):
 
     def test_category_for_hdf5_generic_type(self):
         generic_data = {'type': 'RV', 'systemname': 'star', 'ra': 0.0, 'dec': 0.0}
-        self.assertEqual(category_for_hdf5(generic_data), AnalysisCategory.RV_SOLUTION)
+        self.assertEqual(category_for_hdf5(generic_data), AnalysisCategory.RV_CURVE)
         self.assertFalse(uses_sed_hdf5_reader(generic_data))
 
 
@@ -53,9 +53,9 @@ class AnalysisCategoryModelTests(TestCase):
             name='rv1',
             project=self.project,
             star=self.star,
-            category=AnalysisCategory.RV_SOLUTION,
+            category=AnalysisCategory.RV_CURVE,
         )
         self.assertEqual(
-            Analysis.objects.filter(star=self.star, category=AnalysisCategory.RV_SOLUTION).count(),
+            Analysis.objects.filter(star=self.star, category=AnalysisCategory.RV_CURVE).count(),
             1,
         )

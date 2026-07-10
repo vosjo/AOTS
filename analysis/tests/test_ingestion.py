@@ -54,7 +54,7 @@ class IngestionTests(TestCase):
         result = ingest_analysis_file(analysis.pk)
         self.assertTrue(result.success)
         analysis.refresh_from_db()
-        self.assertEqual(analysis.category, AnalysisCategory.RV_SOLUTION)
+        self.assertEqual(analysis.category, AnalysisCategory.RV_CURVE)
         self.assertIn('derived parameters', result.message)
 
         derived = DerivedParameter.objects.filter(star=self.star).order_by('name', 'component')
@@ -70,7 +70,7 @@ class IngestionTests(TestCase):
         self.assertGreater(q.source_parameters.count(), 0)
 
     def test_rv_category_defines_derived_parameters(self):
-        params = category_derived_parameters(AnalysisCategory.RV_SOLUTION)
+        params = category_derived_parameters(AnalysisCategory.RV_CURVE)
         self.assertEqual(params, 'q,msini1,msini2,asini1,asini2')
 
     @patch('analysis.services.analysis_ingestion.read_analyses.get_basic_info')
@@ -94,11 +94,11 @@ class IngestionTests(TestCase):
         )
         result = ingest_analysis_file(
             analysis.pk,
-            category_override=AnalysisCategory.RV_SOLUTION,
+            category_override=AnalysisCategory.RV_CURVE,
         )
         self.assertTrue(result.success)
         analysis.refresh_from_db()
-        self.assertEqual(analysis.category, AnalysisCategory.RV_SOLUTION)
+        self.assertEqual(analysis.category, AnalysisCategory.RV_CURVE)
         self.assertEqual(analysis.category_source, 'user')
         self.assertIn('derived parameters', result.message)
         self.assertEqual(DerivedParameter.objects.filter(star=self.star).count(), 5)

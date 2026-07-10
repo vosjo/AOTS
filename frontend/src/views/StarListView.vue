@@ -16,6 +16,7 @@ import { useGaiaFetch } from '@/composables/useGaiaFetch'
 import { useSimbadAliasesFetch } from '@/composables/useSimbadAliasesFetch'
 import { useTessFetch } from '@/composables/useTessFetch'
 import { useVizierPhotometryFetch } from '@/composables/useVizierPhotometryFetch'
+import { useAstraExport } from '@/composables/useAstraExport'
 import { confirmAction } from '@/composables/useConfirm'
 import { useSimbadResolve } from '@/composables/useSimbadResolve'
 import { api, formatApiError, type PaginatedResponse } from '@/api/client'
@@ -107,6 +108,7 @@ const gaiaFetch = useGaiaFetch()
 const tessFetch = useTessFetch()
 const simbadAliasesFetch = useSimbadAliasesFetch()
 const vizierPhotometryFetch = useVizierPhotometryFetch()
+const astraExport = useAstraExport()
 const gaiaSummaryMessage = ref('')
 const listActionError = ref('')
 const tessSummaryMessage = ref('')
@@ -156,6 +158,8 @@ const simbadDialog = ref(false)
 const simbadDialogMode = ref<'selected' | 'all'>('selected')
 const vizierDialog = ref(false)
 const vizierDialogMode = ref<'selected' | 'all'>('selected')
+const astraExportDialog = ref(false)
+const astraExportError = ref('')
 const projectStarCount = ref<number | null>(null)
 const addDialog = ref(false)
 const selectedTagIds = ref<number[]>([])
@@ -210,7 +214,8 @@ const anyBulkBusy = computed(
     gaiaFetch.busy ||
     tessFetch.busy ||
     vizierPhotometryFetch.busy ||
-    simbadAliasesFetch.busy,
+    simbadAliasesFetch.busy ||
+    astraExport.state.busy,
 )
 
 function carryTo(path: string) {
@@ -253,6 +258,24 @@ async function openGaiaDialog() {
     }
   }
   gaiaDialog.value = true
+}
+
+function openAstraExportDialog() {
+  if (!projectStore.currentProject || !selectedIds.value.length || astraExport.state.busy) return
+  astraExportError.value = ''
+  astraExportDialog.value = true
+}
+
+async function confirmAstraExport() {
+  const project = projectStore.currentProject
+  if (!project || !selectedIds.value.length) return
+  astraExportDialog.value = false
+  astraExportError.value = ''
+  try {
+    await astraExport.exportStars(selectedIds.value, project.pk)
+  } catch (e) {
+    astraExportError.value = formatApiError(e)
+  }
 }
 
 async function confirmGaiaFetch() {
@@ -579,6 +602,22 @@ async function addSystem() {
           <Plus class="w-4 h-4" />
           Add system(s)
         </AppButton>
+        <RouterLink
+          v-if="canAdd"
+          :to="`/w/${projectSlug}/interop/import/`"
+          class="aots-btn-secondary inline-flex shrink-0 items-center gap-1.5 text-sm"
+        >
+          ASTRA import
+        </RouterLink>
+        <AppButton
+          v-if="canAdd"
+          variant="secondary"
+          class="inline-flex shrink-0 items-center gap-1.5"
+          :disabled="!selectedIds.length || astraExport.state.busy"
+          @click="openAstraExportDialog"
+        >
+          ASTRA export
+        </AppButton>
         <div class="relative ml-auto">
           <button
             type="button"
@@ -708,6 +747,7 @@ async function addSystem() {
           :status="simbadAliasesFetch.status"
           :busy="simbadAliasesFetch.busy"
         />
+        <BulkDownloadProgress :status="astraExport.state.status" :busy="astraExport.state.busy" />
       </div>
 
       <div class="hidden md:contents">
@@ -770,6 +810,22 @@ async function addSystem() {
           </AppButton>
           <BulkDownloadProgress :status="simbadAliasesFetch.status" :busy="simbadAliasesFetch.busy" />
         </template>
+        <RouterLink
+          v-if="canAdd"
+          :to="`/w/${projectSlug}/interop/import/`"
+          class="aots-btn-secondary inline-flex items-center gap-1.5"
+        >
+          ASTRA import
+        </RouterLink>
+        <AppButton
+          v-if="canAdd"
+          variant="secondary"
+          :disabled="!selectedIds.length || astraExport.state.busy"
+          @click="openAstraExportDialog"
+        >
+          ASTRA export
+        </AppButton>
+        <BulkDownloadProgress :status="astraExport.state.status" :busy="astraExport.state.busy" />
         <AppButton
           variant="secondary"
           :disabled="!selectedIds.length"
@@ -962,6 +1018,27 @@ async function addSystem() {
       </div>
     </div>
   </dialog>
+
+  <dialog
+    v-if="astraExportDialog"
+    open
+    class="fixed inset-0 z-50 m-0 flex items-center justify-center bg-aots-overlay p-4 w-full max-w-none h-full max-h-none"
+    @click.self="astraExportDialog = false"
+  >
+    <div class="aots-panel w-full max-w-md">
+      <h3 class="font-medium mb-3">Export ASTRA package</h3>
+      <p class="text-sm text-aots-muted">
+        Export {{ selectedIds.length }} selected system(s) as a <code>.astra</code> file
+        compatible with ASTRA.
+      </p>
+      <div class="flex gap-2 mt-4">
+        <AppButton variant="primary" @click="confirmAstraExport">Export</AppButton>
+        <AppButton variant="ghost" @click="astraExportDialog = false">Cancel</AppButton>
+      </div>
+    </div>
+  </dialog>
+
+  <AppAlert v-if="astraExportError" kind="error" class="mt-2">{{ astraExportError }}</AppAlert>
 
   <dialog
     v-if="gaiaDialog"

@@ -2,6 +2,7 @@ from astropy import units as u
 from astropy.coordinates.angles import Angle
 
 from analysis.categories import uses_sed_hdf5_reader
+from analysis.auxil.rv_hdf5 import get_fit_parameters_dict
 from analysis.models.default_values import DEFAULT_PARAMETERS, UNIT_ALIASES
 from analysis.services.metallicity import metallicity_to_feh_dex
 from analysis.services.parameter_names import (
@@ -154,6 +155,8 @@ def unit_homogenisation(unit, parameter_name):
         return 'dex'
     if parameter_name in ('vmicro', 'vrot') and unit == '':
         return 'km/s'
+    if parameter_name == 'omega' and unit == '':
+        return 'deg'
     for default_unit, aliases in UNIT_ALIASES.items():
         if unit in aliases:
             return default_unit
@@ -282,11 +285,37 @@ def get_parameters_generic(data):
     returns:
     { parname: [value, error_l, error_u, unit],}
     """
+    from analysis.auxil.rv_hdf5 import is_rv_curve_v2
+
+    if is_rv_curve_v2(data):
+        pars = get_fit_parameters_dict(data)
+        return parameter_homogenisation(_table_params_to_dict(pars))
+
     if not 'PARAMETERS' in data:
         return {}
 
     pars = data['PARAMETERS']
     return parameter_homogenisation(pars)
+
+
+def _table_params_to_dict(pars: dict) -> dict:
+    """Convert astropy table entries from read2dict into plain dicts."""
+    out = {}
+    for name, raw in pars.items():
+        if isinstance(raw, dict):
+            out[name] = raw
+        elif hasattr(raw, 'dtype') and raw.dtype.names:
+            row = raw[0]
+            unit = ''
+            out[name] = {
+                'value': float(row['value']),
+                'err_l': float(row['err_l']),
+                'err_u': float(row['err_u']),
+                'unit': unit,
+            }
+        else:
+            out[name] = raw
+    return out
 
 
 def get_parameters(data):

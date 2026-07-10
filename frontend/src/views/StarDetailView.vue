@@ -20,6 +20,8 @@ import AladinMap from '@/components/AladinMap.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api, formatApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { useProjectStore } from '@/stores/project'
+import { useAstraExport, astraDownloadFilename } from '@/composables/useAstraExport'
 import { confirmAction } from '@/composables/useConfirm'
 import { useThemeStore } from '@/stores/theme'
 import type { BokehEmbed } from '@/types/bokeh'
@@ -211,6 +213,8 @@ const OBSERVING_STATUS_OPTIONS = [
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const projectStore = useProjectStore()
+const astraExport = useAstraExport()
 const canEdit = computed(() => detail.value?.permissions?.can_edit === true)
 const canDelete = computed(() => detail.value?.permissions?.can_delete === true)
 const themeStore = useThemeStore()
@@ -255,6 +259,7 @@ const newIdentifierHref = ref('')
 const simbadIdentifiersLoading = ref(false)
 const simbadIdentifiersMessage = ref<string | null>(null)
 const simbadIdentifiersError = ref<string | null>(null)
+const astraExportError = ref<string | null>(null)
 
 const { data: detail, refetch } = useQuery({
   queryKey: computed(() => ['star-detail', starId.value]),
@@ -363,6 +368,20 @@ async function saveNote() {
   })
   noteEdit.value = false
   refetch()
+}
+
+async function exportAstra() {
+  const project = projectStore.currentProject
+  const currentStar = detail.value?.star
+  if (!project || !currentStar?.pk) return
+  astraExportError.value = null
+  try {
+    await astraExport.exportStars([currentStar.pk], project.pk, {
+      download_filename: astraDownloadFilename(currentStar.name),
+    })
+  } catch (e) {
+    astraExportError.value = formatApiError(e)
+  }
 }
 
 async function remove() {
@@ -751,15 +770,30 @@ watch(editableParams, (data) => {
 
     <div class="flex-1 min-w-0 space-y-3">
       <div class="aots-detail-header">
-        <AppButton
-          v-if="canDelete"
-          variant="ghost-danger"
-          size="sm"
-          class="absolute top-1 right-1 inline-flex items-center gap-1.5"
-          @click="remove"
-        >
-          <Trash2 class="w-3.5 h-3.5" /> Delete system
-        </AppButton>
+        <div class="absolute top-1 right-1 flex items-center gap-2">
+          <AppButton
+            v-if="canEdit"
+            variant="secondary"
+            size="sm"
+            class="inline-flex items-center gap-1"
+            :disabled="astraExport.state.busy"
+            title="Export this system as an ASTRA .astra package"
+            @click="exportAstra"
+          >
+            <Loader2 v-if="astraExport.state.busy" class="w-3.5 h-3.5 animate-spin" />
+            <Download v-else class="w-3.5 h-3.5" />
+            {{ astraExport.state.busy ? 'Exporting…' : 'ASTRA export' }}
+          </AppButton>
+          <AppButton
+            v-if="canDelete"
+            variant="ghost-danger"
+            size="sm"
+            class="inline-flex items-center gap-1.5"
+            @click="remove"
+          >
+            <Trash2 class="w-3.5 h-3.5" /> Delete system
+          </AppButton>
+        </div>
 
         <h1 class="text-lg font-semibold m-0">{{ headerTitle }}</h1>
         <span class="inline-flex items-center gap-1.5 text-sm text-aots-muted">
@@ -769,6 +803,8 @@ watch(editableParams, (data) => {
           />
           {{ star.observing_status_display }}
         </span>
+        <AppAlert v-if="astraExportError" kind="error" class="mt-2">{{ astraExportError }}</AppAlert>
+        <p v-if="astraExport.state.busy" class="text-sm text-aots-muted mt-1">{{ astraExport.state.status }}</p>
       </div>
 
       <div class="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
@@ -1343,6 +1379,7 @@ watch(editableParams, (data) => {
                 <thead>
                   <tr>
                     <th>Parameter</th>
+                    <th>Unit</th>
                     <th v-if="plot.parameters.component.length">Prim.</th>
                     <th v-if="plot.parameters.component.length">Sec.</th>
                     <th v-else>Value</th>
@@ -1351,10 +1388,12 @@ watch(editableParams, (data) => {
                 <tbody>
                   <tr v-for="p in plot.parameters.system" :key="`ds-${plot.analysis_id}-sys-${p.name}`">
                     <th>{{ p.display_label }}</th>
+                    <td>{{ p.unit_display }}</td>
                     <td :colspan="plot.parameters.component.length ? 2 : 1">{{ p.value }}</td>
                   </tr>
                   <tr v-for="p in plot.parameters.component" :key="`ds-${plot.analysis_id}-cmp-${p.name}`">
                     <th>{{ p.display_label }}</th>
+                    <td>{{ p.unit_display }}</td>
                     <td>{{ p.primary }}</td>
                     <td>{{ p.secondary }}</td>
                   </tr>

@@ -28,6 +28,26 @@ from .formatting import (
 )
 
 
+def _linked_analyses_payload(observation, *, spectrum: bool):
+    from analysis.categories import category_label
+    from analysis.models import Analysis
+
+    if spectrum:
+        qs = Analysis.objects.filter(spectrum=observation)
+    else:
+        qs = Analysis.objects.filter(lightcurve=observation)
+    return [
+        {
+            'pk': item.pk,
+            'name': item.name,
+            'category': item.category,
+            'category_label': category_label(item.category),
+            'is_best_fit': item.is_best_fit,
+        }
+        for item in qs.order_by('-is_best_fit', 'name')
+    ]
+
+
 # ===============================================================
 # SPECTRA
 # ===============================================================
@@ -172,6 +192,7 @@ class SpectrumDetailSerializer(ObjectPermissionFieldsMixin, SpectrumSerializer):
     observatory_short_name = SerializerMethodField()
     default_rebin = SerializerMethodField()
     related_spectra = SerializerMethodField()
+    linked_analyses = SerializerMethodField()
 
     class Meta(SpectrumSerializer.Meta):
         fields = SpectrumSerializer.Meta.fields + [
@@ -199,6 +220,7 @@ class SpectrumDetailSerializer(ObjectPermissionFieldsMixin, SpectrumSerializer):
             'barycor_bool',
             'default_rebin',
             'related_spectra',
+            'linked_analyses',
             'can_edit',
             'can_delete',
         ]
@@ -319,6 +341,9 @@ class SpectrumDetailSerializer(ObjectPermissionFieldsMixin, SpectrumSerializer):
                 ],
             })
         return grouped
+
+    def get_linked_analyses(self, obj):
+        return _linked_analyses_payload(obj, spectrum=True)
 
     def get_specfiles(self, obj):
         return SpectrumSpecFileDetailSerializer(obj.specfile_set.all(), many=True).data
@@ -593,6 +618,7 @@ class LightCurveDetailSerializer(LightCurveSerializer):
     download_url = SerializerMethodField()
     header_url = SerializerMethodField()
     related_lightcurves = SerializerMethodField()
+    linked_analyses = SerializerMethodField()
     default_phase_period_days = SerializerMethodField()
 
     class Meta(LightCurveSerializer.Meta):
@@ -624,6 +650,7 @@ class LightCurveDetailSerializer(LightCurveSerializer):
             'download_url',
             'header_url',
             'related_lightcurves',
+            'linked_analyses',
             'default_phase_period_days',
         ]
         read_only_fields = LightCurveSerializer.Meta.read_only_fields + (
@@ -735,6 +762,9 @@ class LightCurveDetailSerializer(LightCurveSerializer):
                 ],
             })
         return grouped
+
+    def get_linked_analyses(self, obj):
+        return _linked_analyses_payload(obj, spectrum=False)
 
     def get_default_phase_period_days(self, obj):
         if obj.star_id is None:

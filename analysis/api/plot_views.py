@@ -61,7 +61,8 @@ def analysis_plots_api(request, pk):
     analysis = get_object_if_allowed(
         Analysis, request, pk, select_related=('project', 'star'),
     )
+    fit_id = request.query_params.get('fit_id') or None
     all_figs = plot_analysis_detail_figures(
-        analysis, theme=request.query_params.get('theme'),
+        analysis, theme=request.query_params.get('theme'), fit_id=fit_id,
     )
     return Response(bokeh_embed_response(all_figs))

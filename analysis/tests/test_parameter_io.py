@@ -18,7 +18,7 @@ class ParameterIoApiTests(TestCase):
         self.project.readwrite_users.add(self.user)
         self.star = Star.objects.create(name='S1', project=self.project, ra=1.0, dec=2.0)
         self.analysis = Analysis.objects.create(
-            project=self.project, star=self.star, name='rv', category=AnalysisCategory.RV_SOLUTION,
+            project=self.project, star=self.star, name='rv', category=AnalysisCategory.RV_CURVE,
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)

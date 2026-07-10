@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from django.contrib.auth import get_user_model
 from django.db.models import F, ExpressionWrapper, FloatField
 
-from analysis.auxil import process_analyses, read_analyses
-from analysis.categories import CategorySource, category_derived_parameters, resolve_category, valid_category_codes
+from analysis.auxil.sed_hdf5 import ensure_sedfit_axis_metadata
+from analysis.auxil.rv_hdf5 import has_rv_fits
+from analysis.categories import AnalysisCategory, CategorySource, category_derived_parameters, resolve_category, valid_category_codes
 from analysis.models import Analysis
 from stars.models import Star
 from stars.services import star_io
@@ -40,6 +41,13 @@ def ingest_analysis_file(analysis_id, category_override=None, history_user_id=No
         data = analfile.get_data()
     except Exception:
         return IngestResult(False, 'Not added, file has wrong format / file is unreadable')
+
+    try:
+        if analfile.datafile.path:
+            ensure_sedfit_axis_metadata(analfile.datafile.path)
+            data = analfile.get_data()
+    except Exception:
+        pass
 
     try:
         systemname, ra, dec, name, note, reference, atype = read_analyses.get_basic_info(data)
@@ -103,16 +111,27 @@ def ingest_analysis_file(analysis_id, category_override=None, history_user_id=No
 
     try:
         npars = process_analyses.create_parameters(analfile, data)
-        if npars == 0:
+        if analfile.category == AnalysisCategory.RV_CURVE:
+            analfile.fit = has_rv_fits(data)
+            _save_analysis(analfile, history_user_id=history_user_id)
+            if not analfile.fit:
+                message += ', (RV measurements only, no fit)'
+            elif npars == 0:
+                message += ', (Fit present, no scalar parameters extracted)'
+            else:
+                message += f', ({npars} parameters)'
+        elif npars == 0:
             analfile.fit = False
             _save_analysis(analfile, history_user_id=history_user_id)
             message += ', (No parameters included, no fit)'
         else:
+            analfile.fit = True
             message += f', ({npars} parameters)'
-            if category_derived_parameters(analfile.category).strip():
-                nderived = process_analyses.create_derived_parameters(analfile)
-                if nderived:
-                    message += f', ({nderived} derived parameters)'
+
+        if npars > 0 and category_derived_parameters(analfile.category).strip():
+            nderived = process_analyses.create_derived_parameters(analfile)
+            if nderived:
+                message += f', ({nderived} derived parameters)'
     except Exception:
         raise
 

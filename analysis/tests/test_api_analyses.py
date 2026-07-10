@@ -47,7 +47,8 @@ class AnalysisApiTests(TestCase):
         self.assertIsNone(row['analysis'])
 
     def test_analysis_detail_includes_derived_parameters(self):
-        self.analysis.category = AnalysisCategory.RV_SOLUTION
+        self.analysis.category = AnalysisCategory.RV_CURVE
+        self.analysis.fit = True
         self.analysis.save()
         avg = get_or_create_avg_source(self.project)
         src = ParameterSource.objects.create(name='src', project=self.project)
@@ -59,8 +60,8 @@ class AnalysisApiTests(TestCase):
             )
             parameter_io.create_measurement(
                 star=self.star, name='K', component=comp, value=val,
-                error_l=0.5, error_u=0.5, unit='km/s', average=False, parameter_source=src,
-                run_after=False,
+                error_l=0.5, error_u=0.5, unit='km/s', average=False,
+                analysis=self.analysis, run_after=False,
             )
         for name, val in (('p', 10.0), ('e', 0.0)):
             parameter_io.create_measurement(
@@ -83,7 +84,8 @@ class AnalysisApiTests(TestCase):
     def test_derive_parameters_endpoint_requires_write_access(self):
         user = User.objects.create_user(username='rw', password='x')
         self.project.readwrite_users.add(user)
-        self.analysis.category = AnalysisCategory.RV_SOLUTION
+        self.analysis.category = AnalysisCategory.RV_CURVE
+        self.analysis.fit = True
         self.analysis.save()
         avg = get_or_create_avg_source(self.project)
         for comp, val, err in ((1, 5.0, 0.5), (2, 10.0, 1.0)):
@@ -91,6 +93,11 @@ class AnalysisApiTests(TestCase):
                 star=self.star, name='K', component=comp, value=val,
                 error_l=err, error_u=err, unit='km/s', average=True, parameter_source=avg,
                 run_after=False,
+            )
+            parameter_io.create_measurement(
+                star=self.star, name='K', component=comp, value=val,
+                error_l=err, error_u=err, unit='km/s', average=False,
+                analysis=self.analysis, run_after=False,
             )
         parameter_io.create_measurement(
             star=self.star, name='p', component=0, value=10.0,
@@ -123,3 +130,12 @@ class AnalysisApiTests(TestCase):
             f'/api/analysis/analyses/{self.analysis.pk}/derive-parameters/',
         )
         self.assertEqual(response.status_code, 400)
+
+    def test_rv_without_fit_hides_derived_definitions(self):
+        self.analysis.category = AnalysisCategory.RV_CURVE
+        self.analysis.fit = False
+        self.analysis.save()
+        response = self.client.get(f'/api/analysis/analyses/{self.analysis.pk}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.data['has_derived_definitions'])
+        self.assertEqual(response.data['derived_parameters'], [])

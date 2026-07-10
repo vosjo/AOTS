@@ -2,9 +2,19 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from AOTS.page_urls import analysis_detail_url
 from AOTS.serializer_mixins import ObjectPermissionFieldsMixin, ProjectFieldGuardMixin
-from analysis.categories import category_color, category_label, category_derived_parameter_specs, has_category_derived_parameters
+from analysis.categories import (
+    AnalysisCategory,
+    category_color,
+    category_derived_parameter_specs,
+    category_label,
+)
+from analysis.services.parameter_derivation import analysis_supports_derived_parameters
 from analysis.models import Analysis, DerivedParameter, Parameter
-from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
+from analysis.parameter_labels import (
+    effective_parameter_unit,
+    parameter_label_with_unit,
+    unit_display_name,
+)
 from analysis.services.analysis_history import (
     added_by_display,
     earliest_iso,
@@ -36,6 +46,7 @@ class AnalysisListSerializer(ObjectPermissionFieldsMixin, ProjectFieldGuardMixin
             'category_source',
             'file_type',
             'fit',
+            'is_best_fit',
             'project',
             'href',
             'file_url',
@@ -95,10 +106,12 @@ class AnalysisParameterSerializer(ModelSerializer):
         )
 
     def get_display_label(self, obj):
-        return parameter_label_with_unit(obj.cname, obj.unit, from_cname=True)
+        unit = effective_parameter_unit(obj.cname, obj.unit, from_cname=True)
+        return parameter_label_with_unit(obj.cname, unit, from_cname=True)
 
     def get_unit_display(self, obj):
-        return unit_display_name(obj.unit)
+        unit = effective_parameter_unit(obj.cname, obj.unit, from_cname=True)
+        return unit_display_name(unit)
 
     def get_rvalue(self, obj):
         return obj.rvalue()
@@ -117,6 +130,9 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
     added_by = SerializerMethodField()
     last_modified = SerializerMethodField()
     modified_by = SerializerMethodField()
+    rv_fits = SerializerMethodField()
+    spectrum = SerializerMethodField()
+    lightcurve = SerializerMethodField()
 
     class Meta(AnalysisListSerializer.Meta):
         fields = AnalysisListSerializer.Meta.fields + [
@@ -130,6 +146,9 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
             'added_by',
             'last_modified',
             'modified_by',
+            'rv_fits',
+            'spectrum',
+            'lightcurve',
         ]
 
     def get_reference_url(self, obj):
@@ -139,7 +158,7 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
         return AnalysisParameterSerializer(obj.parameter_set.order_by(), many=True).data
 
     def get_derived_parameters(self, obj):
-        if not obj.star_id or not has_category_derived_parameters(obj.category):
+        if not analysis_supports_derived_parameters(obj):
             return []
         specs = set(category_derived_parameter_specs(obj.category))
         derived = (
@@ -153,7 +172,7 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
         ).data
 
     def get_has_derived_definitions(self, obj):
-        return has_category_derived_parameters(obj.category)
+        return analysis_supports_derived_parameters(obj)
 
     def get_related_analyses(self, obj):
         if not obj.star_id:
@@ -195,6 +214,34 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
 
     def get_modified_by(self, obj):
         return modified_by_username(obj)
+
+    def get_rv_fits(self, obj):
+        if obj.category != AnalysisCategory.RV_CURVE:
+            return []
+        try:
+            from analysis.auxil.rv_hdf5 import list_rv_fits
+            return list_rv_fits(obj.get_data())
+        except Exception:
+            return []
+
+    def _observation_ref(self, obs, *, instrument_field='instrument'):
+        if obs is None:
+            return None
+        return {
+            'pk': obs.pk,
+            'hjd': getattr(obs, 'hjd', None),
+            'instrument': getattr(obs, instrument_field, '') or '',
+            'telescope': getattr(obs, 'telescope', '') or '',
+        }
+
+    def get_spectrum(self, obj):
+        return self._observation_ref(obj.spectrum)
+
+    def get_lightcurve(self, obj):
+        ref = self._observation_ref(obj.lightcurve)
+        if ref and obj.lightcurve:
+            ref['passband'] = obj.lightcurve.passband
+        return ref
 
 
 class ParameterListSerializer(ModelSerializer):

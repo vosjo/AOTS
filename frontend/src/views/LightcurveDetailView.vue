@@ -27,6 +27,13 @@ interface RelatedGroup {
   lightcurves: RelatedLightcurve[]
 }
 
+interface LinkedAnalysis {
+  pk: number
+  name: string
+  category_label: string
+  is_best_fit: boolean
+}
+
 interface LightcurveDetail {
   pk: number
   title: string
@@ -55,6 +62,7 @@ interface LightcurveDetail {
   header_url: string
   exptime: number
   related_lightcurves: RelatedGroup[]
+  linked_analyses: LinkedAnalysis[]
   default_phase_period_days: number | null
   can_edit: boolean
   can_delete: boolean
@@ -360,6 +368,21 @@ async function remove() {
                 </li>
               </ul>
               <p v-else class="text-xs text-aots-muted">No files</p>
+            </div>
+
+            <div class="border-t border-aots pt-2" v-if="lc.linked_analyses.length">
+              <h2 class="text-sm font-medium mb-1">Linked analyses</h2>
+              <ul class="text-xs space-y-1">
+                <li v-for="item in lc.linked_analyses" :key="item.pk">
+                  <RouterLink
+                    :to="`/w/${projectSlug}/analysis/analyses/${item.pk}/`"
+                    class="hover:text-aots-brand"
+                  >
+                    {{ item.name || item.category_label }}
+                    <span v-if="item.is_best_fit" class="text-aots-muted"> (best fit)</span>
+                  </RouterLink>
+                </li>
+              </ul>
             </div>
 
             <div class="border-t border-aots pt-2 relative">

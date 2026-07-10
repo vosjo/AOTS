@@ -339,7 +339,7 @@ async function applyCategory() {
           </label>
           <p class="text-xs text-aots-faint-extra">
             Choose a category when the file type is not detected automatically
-            (e.g. to create derived parameters for RV solutions).
+            (e.g. to create derived parameters for RV curves).
           </p>
         </fieldset>
         <div v-if="uploadMessages.length" class="mt-3 space-y-2">

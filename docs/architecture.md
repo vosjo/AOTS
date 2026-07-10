@@ -105,3 +105,25 @@ python manage.py relocate_analysis_files
 ```
 
 Optional on PostgreSQL: `cleanup_orphan_analysis_sources` to remove leftover MTI parent `ParameterSource` rows.
+
+After the RV consolidation release, migrate legacy RV HDF5 files to the v2 multi-fit layout:
+
+```
+python manage.py migrate_rv_hdf5_layout
+```
+
+## Interoperability (`interop` app)
+
+Bidirectional exchange with [ASTRA](https://github.com/schedar/ASTRA) `.astra` star packages. User-facing docs: [`docs/interoperability.md`](interoperability.md).
+
+| Layer | Modules | Responsibility |
+| --- | --- | --- |
+| API | `interop/api/views.py` | Async import/export Celery tasks, file download |
+| Services | `import_service.py`, `export_service.py` | Parse manifest, star matching, create observations/analyses |
+| Package I/O | `astra_package.py`, `blob_pool.py` | zlib-compressed manifest + binary blob pool (ASTRAPKG v1.0) |
+| Converters | `converters/` | ASTRA JSON ↔ AOTS HDF5/FITS (RV v2, spectral fits, SED, LC) |
+| Provenance | `InteropRecord`, `InteropImportBatch` | Stable ASTRA UUIDs for roundtrip |
+
+**RV curves:** one `Analysis(rv_curve)` per star; multiple orbital fits live inside HDF5 v2 (`analysis/auxil/rv_hdf5.py`). Spectral/LC/SED fits use separate `Analysis` rows with `spectrum` / `lightcurve` FKs and `is_best_fit`.
+
+**API:** `POST /api/interop/astra/import/`, `POST /api/interop/astra/export/`, task status via `GET /api/observations/tasks/<task_id>/`.

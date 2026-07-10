@@ -82,6 +82,11 @@ urlpatterns = [
         include('analysis.api.urls', namespace='analysis-api'),
     ),
 
+    path(
+        'api/interop/',
+        include('interop.api.urls', namespace='interop-api'),
+    ),
+
     path('django-admin/', admin.site.urls),
 
     path('', RedirectView.as_view(url='/w/projects/', permanent=False)),

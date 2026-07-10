@@ -94,6 +94,12 @@ const router = createRouter({
       meta: { requiresProject: true },
     },
     {
+      path: '/w/:projectSlug/interop/import/',
+      name: 'astra-import',
+      component: () => import('@/views/AstraImportView.vue'),
+      meta: { requiresProject: true, requiresAuth: true },
+    },
+    {
       path: '/w/:projectSlug/systems/stars/:id',
       name: 'star-detail',
       component: () => import('@/views/StarDetailView.vue'),

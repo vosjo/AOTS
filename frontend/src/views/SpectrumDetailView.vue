@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/vue-query'
 import { CheckCircle2, Download, Pencil, Star, Trash2, XCircle, FileText } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api } from '@/api/client'
@@ -32,6 +32,13 @@ interface RelatedSpectrum {
 interface RelatedGroup {
   instrument: string
   spectra: RelatedSpectrum[]
+}
+
+interface LinkedAnalysis {
+  pk: number
+  name: string
+  category_label: string
+  is_best_fit: boolean
 }
 
 interface SpectrumDetail {
@@ -68,6 +75,7 @@ interface SpectrumDetail {
   specfiles: SpecFileRef[]
   default_rebin: number
   related_spectra: RelatedGroup[]
+  linked_analyses: LinkedAnalysis[]
   can_edit: boolean
   can_delete: boolean
 }
@@ -403,6 +411,21 @@ async function remove() {
                 </li>
               </ul>
               <p v-else class="text-xs text-aots-muted">No files</p>
+            </div>
+
+            <div class="border-t border-aots pt-2" v-if="spectrum.linked_analyses.length">
+              <h2 class="text-sm font-medium mb-1">Linked analyses</h2>
+              <ul class="text-xs space-y-1">
+                <li v-for="item in spectrum.linked_analyses" :key="item.pk">
+                  <RouterLink
+                    :to="`/w/${projectSlug}/analysis/analyses/${item.pk}/`"
+                    class="hover:text-aots-brand"
+                  >
+                    {{ item.name || item.category_label }}
+                    <span v-if="item.is_best_fit" class="text-aots-muted"> (best fit)</span>
+                  </RouterLink>
+                </li>
+              </ul>
             </div>
 
             <div class="border-t border-aots pt-2 relative">

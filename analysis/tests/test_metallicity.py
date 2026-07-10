@@ -25,6 +25,13 @@ class MetallicityConversionTests(SimpleTestCase):
 
 
 class ParameterHomogenisationTests(SimpleTestCase):
+    def test_omega_homogenisation_uses_degrees(self):
+        result = parameter_homogenisation({
+            'omega': {'value': 90.0, 'err_l': 5.0, 'err_u': 5.0, 'unit': ''},
+        })
+        self.assertIn('omega', result)
+        self.assertEqual(result['omega'][3], 'deg')
+
     def test_met_alias_stored_as_z_in_dex(self):
         result = parameter_homogenisation({
             'met1': {'value': -0.3, 'err_l': 0.05, 'err_u': 0.05, 'unit': 'dex'},

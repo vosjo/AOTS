@@ -7,7 +7,12 @@ from AOTS.bokeh_embed import bokeh_embed_response
 from AOTS.page_urls import analysis_detail_url
 from AOTS.permissions_helpers import get_object_if_allowed
 from analysis.categories import category_label
-from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
+from analysis.parameter_labels import (
+    effective_parameter_unit,
+    parameter_display_name,
+    unit_display_name,
+)
+from analysis.models.default_values import split_parameter_name
 from analysis.services.analysis_display import get_component_parameters, get_system_parameters
 from analysis.services.analysis_plotting import plot_analysis_figure
 from stars.api.star_detail import _param_display
@@ -15,13 +20,18 @@ from stars.models import Star
 from observations.plotting import plot_sed
 
 
+def _parameter_row_label(name: str) -> str:
+    base, component = split_parameter_name(name)
+    return parameter_display_name(base, component)
+
+
 def _analysis_parameters(analysis):
     system = [
         {
             'name': name,
-            'display_label': parameter_label_with_unit(name, unit),
-            'unit': unit,
-            'unit_display': unit_display_name(unit),
+            'display_label': _parameter_row_label(name),
+            'unit': effective_parameter_unit(name, unit) or '',
+            'unit_display': unit_display_name(effective_parameter_unit(name, unit)),
             'value': _param_display(value),
         }
         for name, unit, value in get_system_parameters(analysis)
@@ -29,9 +39,9 @@ def _analysis_parameters(analysis):
     component = [
         {
             'name': name,
-            'display_label': parameter_label_with_unit(name, unit),
-            'unit': unit,
-            'unit_display': unit_display_name(unit),
+            'display_label': _parameter_row_label(name),
+            'unit': effective_parameter_unit(name, unit) or '',
+            'unit_display': unit_display_name(effective_parameter_unit(name, unit)),
             'primary': _param_display(primary),
             'secondary': _param_display(secondary),
         }

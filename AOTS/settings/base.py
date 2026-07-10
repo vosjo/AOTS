@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'stars.apps.StarsConfig',
     'observations.apps.ObservationsConfig',
     'analysis.apps.AnalysisConfig',
+    'interop.apps.InteropConfig',
     'users.apps.UsersConfig',
     'dash.apps.DashConfig',
     'django.contrib.admin',

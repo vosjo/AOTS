@@ -285,9 +285,9 @@ def get_parameters_generic(data):
     returns:
     { parname: [value, error_l, error_u, unit],}
     """
-    from analysis.auxil.rv_hdf5 import is_rv_curve_v2
+    from analysis.auxil.multi_fit_hdf5 import get_fit_parameters_dict, is_multi_fit_v2
 
-    if is_rv_curve_v2(data):
+    if is_multi_fit_v2(data):
         pars = get_fit_parameters_dict(data)
         return parameter_homogenisation(_table_params_to_dict(pars))
 

@@ -13,6 +13,7 @@ from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
 from analysis.categories import choices_for_api
 from analysis.forms import UploadAnalysisFileForm
 from analysis.models import Analysis, Parameter
+from analysis.models.analysis_redirect import AnalysisRedirect
 from analysis.services import parameter_io
 from analysis.services.analysis_upload import upload_analysis_files
 from analysis.services.parameter_derivation import analysis_supports_derived_parameters, sync_derived_for_analysis
@@ -161,4 +162,31 @@ def derive_analysis_parameters_api(request, pk):
         'updated': result['updated'],
         'failed': result['failed'],
         'derived_parameters': serializer.data['derived_parameters'],
+    })
+
+
+@api_view(['GET'])
+def analysis_redirect_api(request, pk):
+    """Resolve legacy analysis PK to container + fit_id after multi-fit migration."""
+    try:
+        redirect = AnalysisRedirect.objects.select_related('container', 'container__project').get(
+            old_analysis_id=int(pk),
+        )
+    except (AnalysisRedirect.DoesNotExist, ValueError):
+        return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    container = redirect.container
+    try:
+        check_project_access(request.user, container.project, require_add=False)
+    except PermissionDenied:
+        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+
+    from AOTS.page_urls import analysis_detail_url
+    url = analysis_detail_url(container.project.slug, container.pk)
+    if redirect.fit_id:
+        url = f'{url}?fit_id={redirect.fit_id}'
+    return Response({
+        'container_pk': container.pk,
+        'fit_id': redirect.fit_id,
+        'url': url,
     })

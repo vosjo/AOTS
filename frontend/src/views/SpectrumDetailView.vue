@@ -97,6 +97,8 @@ const spectrumEdit = ref(false)
 const editValid = ref(true)
 const editFluxcal = ref(false)
 const editFluxUnits = ref('')
+const fitContributeBusy = ref(false)
+const fitFileInput = ref<HTMLInputElement | null>(null)
 
 const headerDialog = ref(false)
 const headerTitle = ref('')
@@ -211,6 +213,26 @@ async function showHeader(file: SpecFileRef) {
 
 function yesNo(value: boolean) {
   return value ? 'Yes' : 'No'
+}
+
+function triggerFitContribute() {
+  fitFileInput.value?.click()
+}
+
+async function onFitContributeSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  fitContributeBusy.value = true
+  try {
+    const form = new FormData()
+    form.append('datafile', file)
+    await api(`/api/analysis/contribute/spectral/${pk.value}/`, { method: 'POST', body: form })
+    await refetch()
+  } finally {
+    fitContributeBusy.value = false
+    input.value = ''
+  }
 }
 
 async function remove() {
@@ -426,6 +448,25 @@ async function remove() {
                   </RouterLink>
                 </li>
               </ul>
+            </div>
+
+            <div v-if="canEdit" class="border-t border-aots pt-2">
+              <h2 class="text-sm font-medium mb-1">Contribute fit</h2>
+              <input
+                ref="fitFileInput"
+                type="file"
+                accept=".h5,.hdf5"
+                class="hidden"
+                @change="onFitContributeSelected"
+              />
+              <AppButton
+                variant="secondary"
+                size="sm"
+                :disabled="fitContributeBusy"
+                @click="triggerFitContribute"
+              >
+                Contribute fit
+              </AppButton>
             </div>
 
             <div class="border-t border-aots pt-2 relative">

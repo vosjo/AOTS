@@ -1,13 +1,14 @@
-"""ASTRA LC fit → generic AOTS HDF5."""
+"""ASTRA LC fit → AOTS multi-fit HDF5 v2."""
 
 from __future__ import annotations
 
 import os
 import tempfile
+import uuid
 
-import h5py
 import numpy as np
 
+from analysis.auxil.multi_fit_hdf5 import write_multi_fit_v2
 from interop.astra_errors import read_astra_param_errors
 from interop.blob_pool import BlobReader
 
@@ -27,6 +28,9 @@ def build_lc_fit_hdf5(
     ra: float,
     dec: float,
     output_path: str | None = None,
+    passband: str = '',
+    uploaded_by_user_id: int | None = None,
+    uploaded_by_username: str = '',
 ) -> str:
     if output_path is None:
         fd, output_path = tempfile.mkstemp(suffix='.h5')
@@ -37,50 +41,74 @@ def build_lc_fit_hdf5(
     in_ph, in_fl, in_fe = _lc_data_to_arrays(input_data, reader)
     mo_ph, mo_fl, mo_fe = _lc_data_to_arrays(model_data, reader)
 
-    with h5py.File(output_path, 'w') as hdf:
-        hdf.attrs['type'] = 'LC'
-        hdf.attrs['systemname'] = star_name
-        hdf.attrs['ra'] = ra
-        hdf.attrs['dec'] = dec
-        hdf.attrs['name'] = lc_fit.get('label') or f'LC fit — {star_name}'
+    measurements_data = None
+    data_attrs = {'xlabel': 'phase', 'ylabel': 'flux'}
+    if len(in_ph):
+        err = in_fe if len(in_fe) == len(in_ph) else np.zeros(len(in_ph))
+        dtype = np.dtype([('phase', 'f8'), ('flux', 'f8'), ('flux_err', 'f8')])
+        arr = np.array(list(zip(in_ph, in_fl, err)), dtype=dtype)
+        measurements_data = {
+            'observed': {
+                'data': arr,
+                'attrs': {
+                    'datatype': 'discrete',
+                    'xpar': 'phase',
+                    'ypar': 'flux',
+                },
+            },
+        }
 
-        if len(in_ph):
-            data_grp = hdf.create_group('DATA')
-            dtype = np.dtype([('phase', 'f8'), ('flux', 'f8'), ('flux_err', 'f8')])
-            err = in_fe if len(in_fe) == len(in_ph) else np.zeros(len(in_ph))
-            ds = data_grp.create_dataset('observed', data=np.array(list(zip(in_ph, in_fl, err)), dtype=dtype))
-            ds.attrs['datatype'] = 'discrete'
-            ds.attrs['xpar'] = 'phase'
-            ds.attrs['ypar'] = 'flux'
+    model = {}
+    if len(mo_ph):
+        err = mo_fe if len(mo_fe) == len(mo_ph) else None
+        model['model'] = (mo_ph, mo_fl, err)
 
-        if len(mo_ph):
-            model_grp = hdf.create_group('MODEL')
-            dtype = np.dtype([('phase', 'f8'), ('flux', 'f8')])
-            ds = model_grp.create_dataset('model', data=np.array(list(zip(mo_ph, mo_fl)), dtype=dtype))
-            ds.attrs['datatype'] = 'continuous'
-            ds.attrs['xpar'] = 'phase'
-            ds.attrs['ypar'] = 'flux'
+    parameters: dict[str, tuple] = {}
+    lc_param_map = (
+        ('p', 'period', 'periodErr', 'd'),
+        ('q', 'q', 'qErr', ''),
+        ('incl', 'incl', 'inclErr', 'deg'),
+        ('r1', 'r1', 'r1Err', ''),
+        ('r2', 'r2', 'r2Err', ''),
+        ('vscale', 'vscale', 'vscaleErr', 'km/s'),
+        ('t1', 't1', 't1Err', ''),
+        ('t2', 't2', 't2Err', ''),
+        ('t0', 't0BJD', 't0BJDErr', 'd'),
+    )
+    for pname, vkey, ekey, unit in lc_param_map:
+        if vkey not in lc_fit:
+            continue
+        value = float(lc_fit.get(vkey, 0) or 0)
+        _, err_l, err_u = read_astra_param_errors(lc_fit, ekey)
+        parameters[pname] = (value, err_l, err_u, unit)
 
-        params_grp = hdf.create_group('PARAMETERS')
-        lc_param_map = (
-            ('p', 'period', 'periodErr', 'd'),
-            ('q', 'q', 'qErr', ''),
-            ('incl', 'incl', 'inclErr', 'deg'),
-            ('r1', 'r1', 'r1Err', ''),
-            ('r2', 'r2', 'r2Err', ''),
-            ('vscale', 'vscale', 'vscaleErr', 'km/s'),
-            ('t1', 't1', 't1Err', ''),
-            ('t2', 't2', 't2Err', ''),
-            ('t0', 't0BJD', 't0BJDErr', 'd'),
-        )
-        for pname, vkey, ekey, unit in lc_param_map:
-            if vkey not in lc_fit:
-                continue
-            value = float(lc_fit.get(vkey, 0) or 0)
-            _, err_l, err_u = read_astra_param_errors(lc_fit, ekey)
-            dtype = np.dtype([('value', 'f8'), ('err_l', 'f8'), ('err_u', 'f8')])
-            ds = params_grp.create_dataset(pname, data=np.array([(value, err_l, err_u)], dtype=dtype))
-            if unit:
-                ds.attrs['unit'] = unit
+    fit_id = lc_fit.get('id') or str(uuid.uuid4())
+    fits = [{
+        'id': fit_id,
+        'label': lc_fit.get('label') or f'LC fit — {star_name}',
+        'is_best_fit': bool(lc_fit.get('isBestFit')),
+        'method': lc_fit.get('method') or '',
+        'external_id': fit_id,
+        'parameters': parameters,
+        'model': model,
+        'model_xlabel': 'phase',
+        'model_ylabel': 'flux',
+        'uploaded_by_user_id': uploaded_by_user_id,
+        'uploaded_by_username': uploaded_by_username,
+    }]
+    if passband:
+        fits[0]['method'] = passband
 
+    write_multi_fit_v2(
+        output_path,
+        category='lightcurve_fit',
+        hdf5_type='LC',
+        measurements_data=measurements_data,
+        data_group_attrs=data_attrs if measurements_data else None,
+        fits=fits,
+        systemname=star_name,
+        ra=ra,
+        dec=dec,
+        name=lc_fit.get('label') or f'LC fit — {star_name}',
+    )
     return output_path

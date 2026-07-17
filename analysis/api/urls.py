@@ -9,7 +9,16 @@ from .consensus_views import (
 )
 from .views import (
     ParameterViewSet, AnalysisViewSet, analysis_categories_api,
-    upload_analyses_api, derive_analysis_parameters_api,
+    upload_analyses_api, derive_analysis_parameters_api, analysis_redirect_api,
+)
+from .fit_views import (
+    analysis_fits_api,
+    analysis_fit_detail_api,
+    analysis_best_fit_api,
+    analysis_fit_parameters_api,
+    contribute_spectral_fit_api,
+    contribute_lc_fit_api,
+    contribute_star_fit_api,
 )
 
 app_name = 'analysis-api'
@@ -44,12 +53,52 @@ urlpatterns = [
         analysis_plots_api,
         name='analysis-plots-api',
     ),
-    re_path(r'^categories/$', analysis_categories_api, name='analysis-categories-api'),
+    re_path(
+        r'^analyses/(?P<pk>[\w-]+)/redirect/$',
+        analysis_redirect_api,
+        name='analysis-redirect-api',
+    ),
     re_path(r'^analyses/upload/$', upload_analyses_api, name='analysis-upload-api'),
     re_path(
         r'^analyses/(?P<pk>[\w-]+)/derive-parameters/$',
         derive_analysis_parameters_api,
         name='analysis-derive-parameters-api',
     ),
+    re_path(
+        r'^analyses/(?P<pk>[\w-]+)/fits/$',
+        analysis_fits_api,
+        name='analysis-fits-api',
+    ),
+    re_path(
+        r'^analyses/(?P<pk>[\w-]+)/fits/(?P<fit_id>[^/]+)/$',
+        analysis_fit_detail_api,
+        name='analysis-fit-detail-api',
+    ),
+    re_path(
+        r'^analyses/(?P<pk>[\w-]+)/best-fit/$',
+        analysis_best_fit_api,
+        name='analysis-best-fit-api',
+    ),
+    re_path(
+        r'^analyses/(?P<pk>[\w-]+)/fit-parameters/$',
+        analysis_fit_parameters_api,
+        name='analysis-fit-parameters-api',
+    ),
+    re_path(
+        r'^contribute/spectral/(?P<spectrum_pk>[\w-]+)/$',
+        contribute_spectral_fit_api,
+        name='contribute-spectral-fit-api',
+    ),
+    re_path(
+        r'^contribute/lightcurve/(?P<lightcurve_pk>[\w-]+)/$',
+        contribute_lc_fit_api,
+        name='contribute-lc-fit-api',
+    ),
+    re_path(
+        r'^contribute/star/(?P<star_pk>[\w-]+)/$',
+        contribute_star_fit_api,
+        name='contribute-star-fit-api',
+    ),
+    re_path(r'^categories/$', analysis_categories_api, name='analysis-categories-api'),
     re_path(r'^', include(router.urls)),
 ]

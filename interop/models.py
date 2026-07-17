@@ -50,3 +50,39 @@ class InteropRecord(models.Model):
 
     def __str__(self):
         return f'{self.source}:{self.external_id} -> {self.content_type_id}:{self.object_id}'
+
+
+class InteropSubFitRecord(models.Model):
+    """Maps ASTRA fit UUIDs to HDF5 FITS/<fit_id> inside a container Analysis."""
+
+    SOURCE_ASTRA = 'astra'
+
+    source = models.CharField(max_length=32, default=SOURCE_ASTRA)
+    external_id = models.CharField(max_length=128)
+    analysis = models.ForeignKey(
+        'analysis.Analysis',
+        on_delete=models.CASCADE,
+        related_name='interop_sub_fits',
+    )
+    fit_id = models.CharField(max_length=128)
+    import_batch = models.ForeignKey(
+        InteropImportBatch,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sub_fit_records',
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['source', 'external_id'],
+                name='interop_subfit_unique_external',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['source', 'external_id']),
+        ]
+
+    def __str__(self):
+        return f'{self.source}:{self.external_id} -> {self.analysis_id}:{self.fit_id}'

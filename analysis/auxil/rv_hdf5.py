@@ -1,15 +1,7 @@
 """
 RV curve HDF5 v2 layout (multi-fit) helpers.
 
-Layout::
-    /
-      type: "RC"
-      rv_curve_format_version: 2
-      best_fit_id: "<fit_id>"
-      DATA/measurements/   # columns: time, rv, err_formal, err_sys (optional)
-      FITS/<fit_id>/       # attrs: isBestFit, method, label, created
-        PARAMETERS/        # parameter datasets
-        MODEL/             # optional model curve groups
+Delegates generic multi-fit I/O to analysis.auxil.multi_fit_hdf5.
 """
 
 from __future__ import annotations
@@ -20,90 +12,42 @@ from typing import Any
 import h5py
 import numpy as np
 
-RV_CURVE_FORMAT_VERSION = 2
-LEGACY_FIT_ID = 'legacy'
+from analysis.auxil.multi_fit_hdf5 import (
+    LEGACY_FIT_ID,
+    MULTI_FIT_FORMAT_VERSION,
+    append_fit,
+    get_best_fit_id as _get_best_fit_id,
+    get_fit_parameters_dict as _get_fit_parameters_dict,
+    has_fits,
+    is_multi_fit_v2,
+    list_fits,
+    remove_fit,
+    set_best_fit,
+    update_fit_metadata,
+    write_multi_fit_v2,
+)
+
+RV_CURVE_FORMAT_VERSION = MULTI_FIT_FORMAT_VERSION
 
 
 def is_rv_curve_v2(data: dict) -> bool:
-    if data.get('rv_curve_format_version') == RV_CURVE_FORMAT_VERSION:
-        return True
-    fits = data.get('FITS')
-    return isinstance(fits, dict) and bool(fits)
-
-
-def _fit_attrs(fit_group: dict) -> dict[str, Any]:
-    attrs = {}
-    for key in ('isBestFit', 'method', 'label', 'created'):
-        if key in fit_group:
-            attrs[key] = fit_group[key]
-    return attrs
+    return is_multi_fit_v2(data, 'rv_curve')
 
 
 def list_rv_fits(data: dict) -> list[dict[str, Any]]:
-    """Return fit metadata for API/UI."""
-    if not is_rv_curve_v2(data):
-        if 'PARAMETERS' in data:
-            return [{
-                'id': LEGACY_FIT_ID,
-                'label': 'Fit',
-                'is_best_fit': True,
-                'method': '',
-            }]
-        return []
-
-    fits_block = data.get('FITS', {})
-    best_id = data.get('best_fit_id') or ''
-    result = []
-    for fit_id, fit_group in fits_block.items():
-        if not isinstance(fit_group, dict):
-            continue
-        attrs = _fit_attrs(fit_group)
-        is_best = bool(attrs.get('isBestFit')) or fit_id == best_id
-        result.append({
-            'id': fit_id,
-            'label': attrs.get('label') or fit_id,
-            'is_best_fit': is_best,
-            'method': attrs.get('method') or '',
-        })
-    if result and not any(f['is_best_fit'] for f in result):
-        result[0]['is_best_fit'] = True
-    return sorted(result, key=lambda f: (not f['is_best_fit'], f['label']))
+    return list_fits(data, category='rv_curve')
 
 
 def get_best_fit_id(data: dict) -> str | None:
-    if not is_rv_curve_v2(data):
-        return LEGACY_FIT_ID if 'PARAMETERS' in data else None
-
-    best_id = data.get('best_fit_id')
-    if best_id and best_id in data.get('FITS', {}):
-        return best_id
-
-    for fit_id, fit_group in data.get('FITS', {}).items():
-        if isinstance(fit_group, dict) and fit_group.get('isBestFit'):
-            return fit_id
-    fits = list_rv_fits(data)
-    return fits[0]['id'] if fits else None
+    return _get_best_fit_id(data, category='rv_curve')
 
 
 def get_fit_parameters_dict(data: dict, fit_id: str | None = None) -> dict:
-    """Raw PARAMETERS mapping for a specific fit (or best/legacy)."""
-    if is_rv_curve_v2(data):
-        fit_id = fit_id or get_best_fit_id(data)
-        if not fit_id:
-            return {}
-        fit_group = data.get('FITS', {}).get(fit_id, {})
-        if not isinstance(fit_group, dict):
-            return {}
-        params = fit_group.get('PARAMETERS', {})
-        return params if isinstance(params, dict) else {}
-
-    return data.get('PARAMETERS', {}) if isinstance(data.get('PARAMETERS'), dict) else {}
+    return _get_fit_parameters_dict(data, fit_id, category='rv_curve')
 
 
 def has_rv_fits(data: dict) -> bool:
-    if is_rv_curve_v2(data):
-        return bool(data.get('FITS'))
-    return bool(data.get('PARAMETERS'))
+    return has_fits(data, category='rv_curve')
 
 
 _DATA_META_KEYS = frozenset({'xlabel', 'ylabel', 'xscale', 'yscale'})
@@ -188,7 +132,6 @@ def get_measurements_table(data: dict) -> dict[str, np.ndarray] | None:
 
 
 def get_fit_model_table(data: dict, fit_id: str | None = None) -> dict[str, np.ndarray] | None:
-    """Return time/rv columns from a fit's MODEL group (fallback when DATA is empty)."""
     fit_id = fit_id or get_best_fit_id(data)
     if not fit_id:
         return None
@@ -205,7 +148,6 @@ def get_fit_model_table(data: dict, fit_id: str | None = None) -> dict[str, np.n
 
 
 def _write_parameters_group(parent: h5py.Group, parameters: dict[str, tuple]) -> None:
-    """Write PARAMETERS group from {name: (value, err_l, err_u, unit)}."""
     if not parameters:
         return
     grp = parent.create_group('PARAMETERS')
@@ -248,66 +190,44 @@ def write_rv_curve_v2(
     note: str = '',
     reference: str = '',
 ) -> None:
-    """
-    Write an RV curve v2 HDF5 file.
+    measurements_data = None
+    data_attrs = {'xlabel': 'time', 'ylabel': 'rv'}
+    if measurements:
+        cols = []
+        names = []
+        for col_name, values in measurements.items():
+            names.append(col_name)
+            cols.append(np.asarray(values, dtype='f8'))
+        dtype = np.dtype([(n, 'f8') for n in names])
+        arr = np.array([tuple(row) for row in zip(*cols)], dtype=dtype)
+        measurements_data = {
+            'measurements': {
+                'data': arr,
+                'attrs': {
+                    'datatype': 'discrete',
+                    'xpar': 'time',
+                    'ypar': 'rv',
+                },
+            },
+        }
 
-    Each fit dict: id, label, is_best_fit, method, created, parameters, model (optional)
-    parameters: {name: (value, err_l, err_u, unit)}
-    model: {series_name: (x, y, err)}
-    """
-    fits = fits or []
-    best_id = ''
-    for fit in fits:
-        if fit.get('is_best_fit'):
-            best_id = fit.get('id') or ''
-            break
-    if not best_id and fits:
-        best_id = fits[0].get('id') or str(uuid.uuid4())
-
-    with h5py.File(path, 'w') as hdf:
-        hdf.attrs['type'] = 'RC'
-        hdf.attrs['rv_curve_format_version'] = RV_CURVE_FORMAT_VERSION
-        hdf.attrs['best_fit_id'] = best_id
-        hdf.attrs['systemname'] = systemname
-        hdf.attrs['ra'] = ra
-        hdf.attrs['dec'] = dec
-        hdf.attrs['name'] = name
-        hdf.attrs['note'] = note
-        hdf.attrs['reference'] = reference
-
-        if measurements:
-            data_grp = hdf.create_group('DATA')
-            data_grp.attrs['xlabel'] = 'time'
-            data_grp.attrs['ylabel'] = 'rv'
-            cols = []
-            names = []
-            for col_name, values in measurements.items():
-                names.append(col_name)
-                cols.append(np.asarray(values, dtype='f8'))
-            dtype = np.dtype([(n, 'f8') for n in names])
-            arr = np.array([tuple(row) for row in zip(*cols)], dtype=dtype)
-            mds = data_grp.create_dataset('measurements', data=arr)
-            mds.attrs['datatype'] = 'discrete'
-            mds.attrs['xpar'] = 'time'
-            mds.attrs['ypar'] = 'rv'
-
-        if fits:
-            fits_grp = hdf.create_group('FITS')
-            for fit in fits:
-                fit_id = fit.get('id') or str(uuid.uuid4())
-                fgrp = fits_grp.create_group(fit_id)
-                fgrp.attrs['isBestFit'] = bool(fit.get('is_best_fit'))
-                fgrp.attrs['label'] = fit.get('label') or fit_id
-                fgrp.attrs['method'] = fit.get('method') or ''
-                if fit.get('created'):
-                    fgrp.attrs['created'] = fit['created']
-                _write_parameters_group(fgrp, fit.get('parameters') or {})
-                if fit.get('model'):
-                    _write_model_group(fgrp, fit['model'])
+    write_multi_fit_v2(
+        path,
+        category='rv_curve',
+        hdf5_type='RC',
+        measurements_data=measurements_data,
+        data_group_attrs=data_attrs if measurements else None,
+        fits=fits,
+        systemname=systemname,
+        ra=ra,
+        dec=dec,
+        name=name,
+        note=note,
+        reference=reference,
+    )
 
 
 def migrate_legacy_to_v2(data: dict) -> dict:
-    """Convert in-memory legacy layout to v2 structure (for migration command)."""
     if is_rv_curve_v2(data):
         return data
 
@@ -359,8 +279,7 @@ def write_migrated_v2_file(source_path: str, dest_path: str) -> bool:
                     )
                 elif hasattr(raw, 'dtype') and raw.dtype.names:
                     row = raw[0]
-                    unit = ''
-                    parameters[pname] = (float(row['value']), float(row['err_l']), float(row['err_u']), unit)
+                    parameters[pname] = (float(row['value']), float(row['err_l']), float(row['err_u']), '')
 
             fits.append({
                 'id': fit_id,
@@ -368,6 +287,9 @@ def write_migrated_v2_file(source_path: str, dest_path: str) -> bool:
                 'is_best_fit': fit_meta['is_best_fit'],
                 'method': fit_meta['method'],
                 'parameters': parameters,
+                'uploaded_by_user_id': fit_meta.get('uploaded_by_user_id'),
+                'uploaded_by_username': fit_meta.get('uploaded_by_username', ''),
+                'external_id': fit_meta.get('external_id', ''),
             })
 
         write_rv_curve_v2(
@@ -383,3 +305,23 @@ def write_migrated_v2_file(source_path: str, dest_path: str) -> bool:
         )
         return True
     return False
+
+
+__all__ = [
+    'RV_CURVE_FORMAT_VERSION',
+    'LEGACY_FIT_ID',
+    'append_fit',
+    'get_best_fit_id',
+    'get_fit_model_table',
+    'get_fit_parameters_dict',
+    'get_measurements_table',
+    'has_rv_fits',
+    'is_rv_curve_v2',
+    'list_rv_fits',
+    'migrate_legacy_to_v2',
+    'remove_fit',
+    'set_best_fit',
+    'update_fit_metadata',
+    'write_migrated_v2_file',
+    'write_rv_curve_v2',
+]

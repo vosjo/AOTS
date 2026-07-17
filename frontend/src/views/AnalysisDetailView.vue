@@ -46,6 +46,36 @@ interface RelatedByCategory {
   is_current: boolean
 }
 
+interface FitOption {
+  id: string
+  label: string
+  is_best_fit: boolean
+  method: string
+  external_id?: string
+  uploaded_by?: { pk: number; username: string } | null
+  uploaded_on?: string
+  can_edit?: boolean
+  can_delete?: boolean
+}
+
+interface FitParameter {
+  cname: string
+  display_label: string
+  value: number
+  error_l: number
+  error_u: number
+  unit_display: string
+}
+
+interface DisplayedParameter {
+  key: string
+  display_label: string
+  value: number
+  error: number
+  valid: boolean | null
+  parameterPk?: number
+}
+
 interface RvFitOption {
   id: string
   label: string
@@ -88,6 +118,8 @@ interface AnalysisDetail {
   related_analyses: RelatedAnalysis[]
   related_by_category: RelatedByCategory[]
   rv_fits: RvFitOption[]
+  fits: FitOption[]
+  can_set_best_fit: boolean
   spectrum: ObservationRef | null
   lightcurve: ObservationRef | null
 }
@@ -112,6 +144,21 @@ const fitValue = ref(true)
 const deriveBusy = ref(false)
 const deriveMessage = ref('')
 const selectedRvFitId = ref('')
+const selectedFitId = ref('')
+const fitParams = ref<FitParameter[]>([])
+const fitActionBusy = ref(false)
+const fitFileInput = ref<HTMLInputElement | null>(null)
+
+const displayFits = computed(() => {
+  const fits = analysis.value?.fits ?? []
+  if (fits.length) return fits
+  return (analysis.value?.rv_fits ?? []).map((f) => ({
+    ...f,
+    uploaded_by: null,
+    can_edit: false,
+    can_delete: false,
+  }))
+})
 
 const { data: analysis, refetch } = useQuery({
   queryKey: computed(() => ['analysis', pk.value]),
@@ -119,10 +166,11 @@ const { data: analysis, refetch } = useQuery({
 })
 
 const { data: plots } = useQuery({
-  queryKey: computed(() => ['analysis-plots', pk.value, themeStore.mode, selectedRvFitId.value]),
+  queryKey: computed(() => ['analysis-plots', pk.value, themeStore.mode, selectedFitId.value]),
   queryFn: () => {
     const params = new URLSearchParams({ theme: themeStore.mode })
-    if (selectedRvFitId.value) params.set('fit_id', selectedRvFitId.value)
+    const fitId = selectedFitId.value
+    if (fitId) params.set('fit_id', fitId)
     return api<Record<string, BokehEmbed>>(
       `/api/analysis/analyses/${pk.value}/plots/?${params}`,
     )
@@ -130,19 +178,71 @@ const { data: plots } = useQuery({
 })
 
 watch(
-  () => analysis.value?.rv_fits,
+  () => route.query.fit_id,
+  (fitId) => {
+    if (typeof fitId === 'string' && fitId) selectedFitId.value = fitId
+  },
+  { immediate: true },
+)
+
+watch(
+  () => displayFits.value,
   (fits) => {
     if (!fits?.length) {
+      selectedFitId.value = ''
       selectedRvFitId.value = ''
       return
     }
     const best = fits.find((f) => f.is_best_fit) ?? fits[0]
-    if (!selectedRvFitId.value || !fits.some((f) => f.id === selectedRvFitId.value)) {
-      selectedRvFitId.value = best.id
+    if (!selectedFitId.value || !fits.some((f) => f.id === selectedFitId.value)) {
+      selectedFitId.value = best.id
     }
+    selectedRvFitId.value = selectedFitId.value
   },
   { immediate: true },
 )
+
+watch(selectedFitId, async (fitId) => {
+  if (!analysis.value || !fitId || displayFits.value.length <= 1) {
+    fitParams.value = []
+    return
+  }
+  const best = displayFits.value.find((f) => f.is_best_fit)
+  if (best && fitId === best.id) {
+    fitParams.value = []
+    return
+  }
+  try {
+    const res = await api<{ parameters: FitParameter[] }>(
+      `/api/analysis/analyses/${pk.value}/fit-parameters/?fit_id=${encodeURIComponent(fitId)}`,
+    )
+    fitParams.value = res.parameters
+  } catch {
+    fitParams.value = []
+  }
+})
+
+const displayedParameters = computed((): DisplayedParameter[] => {
+  if (fitParams.value.length) {
+    return fitParams.value.map((param, idx) => ({
+      key: `${param.cname}-${idx}`,
+      display_label: param.display_label,
+      value: param.value,
+      error: (param.error_u + param.error_l) / 2,
+      valid: null,
+    }))
+  }
+  return (analysis.value?.parameters ?? []).map((param) => ({
+    key: String(param.pk),
+    display_label: param.display_label,
+    value: param.rvalue,
+    error: param.rerror,
+    valid: param.valid,
+    parameterPk: param.pk,
+  }))
+})
+
+const showFitSelector = computed(() => displayFits.value.length > 1)
 
 const { data: categoryOptions } = useQuery({
   queryKey: ['analysis-categories'],
@@ -268,6 +368,56 @@ async function remove() {
   }))) return
   await api(`/api/analysis/analyses/${pk.value}/`, { method: 'DELETE' })
   router.push(`/w/${projectSlug.value}/analysis/analyses/`)
+}
+
+async function setBestFit(fitId: string) {
+  if (!analysis.value?.can_set_best_fit) return
+  fitActionBusy.value = true
+  try {
+    await api(`/api/analysis/analyses/${pk.value}/best-fit/`, {
+      method: 'POST',
+      body: { fit_id: fitId },
+    })
+    await refetch()
+  } finally {
+    fitActionBusy.value = false
+  }
+}
+
+async function deleteFit(fitId: string) {
+  if (!(await confirmAction({
+    title: 'Delete fit',
+    message: 'Remove this fit from the container?',
+  }))) return
+  fitActionBusy.value = true
+  try {
+    await api(`/api/analysis/analyses/${pk.value}/fits/${encodeURIComponent(fitId)}/`, {
+      method: 'DELETE',
+    })
+    await refetch()
+  } finally {
+    fitActionBusy.value = false
+  }
+}
+
+function triggerFitUpload() {
+  fitFileInput.value?.click()
+}
+
+async function onFitFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  fitActionBusy.value = true
+  try {
+    const form = new FormData()
+    form.append('datafile', file)
+    await api(`/api/analysis/analyses/${pk.value}/fits/`, { method: 'POST', body: form })
+    await refetch()
+  } finally {
+    fitActionBusy.value = false
+    input.value = ''
+  }
 }
 </script>
 
@@ -416,19 +566,59 @@ async function remove() {
       <div class="grid gap-4 xl:grid-cols-2">
         <section class="aots-panel-compact space-y-4 min-w-0 overflow-hidden">
           <div
-            v-if="analysis.rv_fits.length > 1"
+            v-if="showFitSelector"
             class="flex flex-wrap items-center gap-2 text-sm"
           >
-            <label for="rv-fit-select" class="text-aots-muted">Orbital fit</label>
+            <label for="fit-select" class="text-aots-muted">Model fit</label>
             <select
-              id="rv-fit-select"
-              v-model="selectedRvFitId"
+              id="fit-select"
+              v-model="selectedFitId"
               class="aots-input text-sm"
             >
-              <option v-for="fit in analysis.rv_fits" :key="fit.id" :value="fit.id">
+              <option v-for="fit in displayFits" :key="fit.id" :value="fit.id">
                 {{ fit.label }}{{ fit.is_best_fit ? ' (best)' : '' }}
+                <template v-if="fit.uploaded_by?.username"> — {{ fit.uploaded_by.username }}</template>
               </option>
             </select>
+            <AppButton
+              v-if="analysis.can_set_best_fit && selectedFitId && !displayFits.find(f => f.id === selectedFitId)?.is_best_fit"
+              variant="secondary"
+              size="sm"
+              :disabled="fitActionBusy"
+              @click="setBestFit(selectedFitId)"
+            >
+              Mark as best fit
+            </AppButton>
+          </div>
+
+          <div v-if="displayFits.length" class="text-xs space-y-1">
+            <div
+              v-for="fit in displayFits"
+              :key="fit.id"
+              class="flex flex-wrap items-center gap-2"
+            >
+              <span class="text-aots-muted">
+                {{ fit.label }}
+                <span v-if="fit.uploaded_by?.username">({{ fit.uploaded_by.username }})</span>
+                <span v-if="fit.is_best_fit" class="text-aots-brand">best</span>
+              </span>
+              <AppButton
+                v-if="fit.can_delete"
+                variant="link"
+                size="sm"
+                class="text-red-600"
+                :disabled="fitActionBusy"
+                @click="deleteFit(fit.id)"
+              >
+                <Trash2 class="w-3 h-3" />
+              </AppButton>
+            </div>
+            <div v-if="canEdit" class="pt-1">
+              <input ref="fitFileInput" type="file" accept=".h5,.hdf5" class="hidden" @change="onFitFileSelected" />
+              <AppButton variant="secondary" size="sm" :disabled="fitActionBusy" @click="triggerFitUpload">
+                Contribute fit
+              </AppButton>
+            </div>
           </div>
           <div v-if="plots?.fit" class="w-full max-w-full min-w-0">
             <BokehPlot compact :item="plots.fit.item" />
@@ -452,23 +642,25 @@ async function remove() {
                   </tr>
                 </thead>
                 <tbody class="font-mono">
-                  <tr v-if="!analysis.parameters.length">
+                  <tr v-if="!displayedParameters.length">
                     <td colspan="4" class="text-aots-muted">No data available</td>
                   </tr>
-                  <tr v-for="param in analysis.parameters" :key="param.pk">
+                  <tr v-for="param in displayedParameters" :key="param.key">
                     <th class="font-normal text-aots">
                       {{ param.display_label }}
                     </th>
-                    <td>{{ param.rvalue }}</td>
-                    <td>{{ param.rerror }}</td>
+                    <td>{{ param.value }}</td>
+                    <td>{{ param.error }}</td>
                     <td>
                       <input
+                        v-if="param.parameterPk != null && param.valid != null"
                         type="checkbox"
                         class="accent-aots"
                         :checked="param.valid"
                         :disabled="!canEdit"
-                        @change="toggleParameterValid(param.pk, ($event.target as HTMLInputElement).checked)"
+                        @change="toggleParameterValid(param.parameterPk, ($event.target as HTMLInputElement).checked)"
                       />
+                      <span v-else class="text-aots-muted">—</span>
                     </td>
                   </tr>
                 </tbody>

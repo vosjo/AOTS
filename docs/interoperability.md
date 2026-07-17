@@ -49,7 +49,7 @@ Catalog IDs are stored as AOTS `Identifier` rows; roundtrip IDs use `InteropReco
 
 ## Spectral / LC / SED fits
 
-Multiple ASTRA fits map to **separate** `Analysis` rows with `spectrum` or `lightcurve` FKs and `is_best_fit`. RV data uses one `rv_curve` analysis per star (multi-fit inside HDF5).
+Multiple ASTRA fits for the same spectrum, light curve, or star are merged into **one container `Analysis`** with contributor fits in HDF5 `FITS/<fit_id>/`. `InteropSubFitRecord` maps ASTRA fit UUIDs to container + fit_id for roundtrip. RV data uses one `rv_curve` analysis per star (multi-fit inside HDF5).
 
 **TESS light curves:** AOTS FITS files store TIME as BTJD (BJD − 2457000). Export writes native `b_val`/`b_scale` plus full BJD in `b_bjd`; import converts back.
 

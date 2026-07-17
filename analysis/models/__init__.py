@@ -1,4 +1,6 @@
 from .analysis_model import Analysis
+from .analysis_fit import AnalysisFit
+from .analysis_redirect import AnalysisRedirect
 from .consensus_policy import (
     CONSENSUS_WILDCARD,
     ConsensusRuleKind,

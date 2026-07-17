@@ -13,6 +13,7 @@ class ConsensusRuleKind(models.TextChoices):
     WEIGHTED_AVERAGE = 'weighted_average', 'Weighted average'
     PREFERRED_SOURCE = 'preferred_source', 'Preferred parameter source'
     PREFERRED_ANALYSIS_CATEGORY = 'preferred_analysis_category', 'Preferred analysis category'
+    PREFERRED_BEST_FIT = 'preferred_best_fit', 'Preferred container best fit'
     SOURCE_PRIORITY = 'source_priority', 'Source priority list'
     LATEST = 'latest', 'Latest measurement'
 

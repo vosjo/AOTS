@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db.models import F, ExpressionWrapper, FloatField
 
 from analysis.auxil.sed_hdf5 import ensure_sedfit_axis_metadata
-from analysis.auxil.rv_hdf5 import has_rv_fits
+from analysis.auxil.multi_fit_hdf5 import has_fits
+from analysis.auxil import process_analyses, read_analyses
 from analysis.categories import AnalysisCategory, CategorySource, category_derived_parameters, resolve_category, valid_category_codes
 from analysis.models import Analysis
 from stars.models import Star
@@ -111,13 +112,17 @@ def ingest_analysis_file(analysis_id, category_override=None, history_user_id=No
 
     try:
         npars = process_analyses.create_parameters(analfile, data)
-        if analfile.category == AnalysisCategory.RV_CURVE:
-            analfile.fit = has_rv_fits(data)
+        from analysis.services.fit_permissions import category_supports_multi_fit
+        from analysis.services.fit_sync import sync_fits_from_hdf5
+
+        if category_supports_multi_fit(analfile.category):
+            analfile.fit = has_fits(data, category=analfile.category)
             _save_analysis(analfile, history_user_id=history_user_id)
-            if not analfile.fit:
+            sync_fits_from_hdf5(analfile)
+            if analfile.category == AnalysisCategory.RV_CURVE and not analfile.fit:
                 message += ', (RV measurements only, no fit)'
             elif npars == 0:
-                message += ', (Fit present, no scalar parameters extracted)'
+                message += ', (Fit present, no scalar parameters extracted)' if analfile.fit else ', (No parameters included, no fit)'
             else:
                 message += f', ({npars} parameters)'
         elif npars == 0:

@@ -124,6 +124,8 @@ Bidirectional exchange with [ASTRA](https://github.com/schedar/ASTRA) `.astra` s
 | Converters | `converters/` | ASTRA JSON ↔ AOTS HDF5/FITS (RV v2, spectral fits, SED, LC) |
 | Provenance | `InteropRecord`, `InteropImportBatch` | Stable ASTRA UUIDs for roundtrip |
 
-**RV curves:** one `Analysis(rv_curve)` per star; multiple orbital fits live inside HDF5 v2 (`analysis/auxil/rv_hdf5.py`). Spectral/LC/SED fits use separate `Analysis` rows with `spectrum` / `lightcurve` FKs and `is_best_fit`.
+**Multi-contributor fits (HDF5 v2):** RV, spectral, LC, and SED categories use one container `Analysis` per dataset (star, spectrum, or light curve). Multiple model fits live in `FITS/<fit_id>/` with contributor metadata; DB mirror `AnalysisFit` drives fit-level permissions. Management commands: `migrate_spectral_multi_fit`, `migrate_lc_multi_fit`, `migrate_sed_multi_fit`. Legacy analysis PKs redirect via `AnalysisRedirect` and `GET /api/analysis/analyses/<pk>/redirect/`.
+
+**RV curves:** one `Analysis(rv_curve)` per star; shared `DATA/measurements` plus `FITS/` groups (`analysis/auxil/multi_fit_hdf5.py`, `rv_hdf5.py`). Spectral/LC containers link via `spectrum` / `lightcurve` FKs; best-fit is stored in HDF5 `best_fit_id` and `AnalysisFit.is_best_fit` (not `Analysis.is_best_fit`).
 
 **API:** `POST /api/interop/astra/import/`, `POST /api/interop/astra/export/`, task status via `GET /api/observations/tasks/<task_id>/`.

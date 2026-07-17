@@ -12,12 +12,12 @@ from django.db import transaction
 
 from analysis.categories import AnalysisCategory
 from analysis.models import Analysis
-from analysis.services.analysis_ingestion import ingest_analysis_file
+from analysis.services.fit_contribution import contribute_to_parent
 from analysis.models import ParameterSource
 from analysis.services import parameter_io
 from interop.astra_package import read_astra_package
 from interop.converters import lc_fit, rv, sed, spectral_fit, spectrum, lightcurve
-from interop.models import InteropImportBatch, InteropRecord
+from interop.models import InteropImportBatch, InteropRecord, InteropSubFitRecord
 from interop.star_match import apply_identifiers, match_star
 from observations.models import LightCurve, Photometry, SpecFile, Spectrum
 from stars.models import Star
@@ -44,6 +44,46 @@ def _link_record(batch, source, external_id, obj):
     )
 
 
+def _import_fit_to_container(
+    project,
+    star,
+    path,
+    category,
+    *,
+    batch,
+    external_id,
+    is_best_fit=False,
+    spectrum_obj=None,
+    lightcurve_obj=None,
+    user=None,
+    passband: str = '',
+):
+    container, fit_id = contribute_to_parent(
+        project=project,
+        category=category,
+        user=user,
+        upload_path=path,
+        star=star,
+        spectrum=spectrum_obj,
+        lightcurve=lightcurve_obj,
+        external_id=external_id,
+        set_as_best=is_best_fit,
+        skip_permissions=True,
+    )
+    if external_id:
+        _link_record(batch, InteropRecord.SOURCE_ASTRA, external_id, container)
+        InteropSubFitRecord.objects.update_or_create(
+            source=InteropSubFitRecord.SOURCE_ASTRA,
+            external_id=external_id,
+            defaults={
+                'analysis': container,
+                'fit_id': fit_id,
+                'import_batch': batch,
+            },
+        )
+    return container
+
+
 def _create_analysis_from_path(
     project,
     star,
@@ -55,21 +95,17 @@ def _create_analysis_from_path(
     is_best_fit=False,
     spectrum_obj=None,
     lightcurve_obj=None,
+    user=None,
 ):
-    with open(path, 'rb') as fh:
-        analysis = Analysis.objects.create(
-            project=project,
-            star=star,
-            category=category,
-            datafile=File(fh, name=os.path.basename(path)),
-            is_best_fit=is_best_fit,
-            spectrum=spectrum_obj,
-            lightcurve=lightcurve_obj,
-        )
-    ingest_analysis_file(analysis.pk)
-    if external_id:
-        _link_record(batch, InteropRecord.SOURCE_ASTRA, external_id, analysis)
-    return analysis
+    return _import_fit_to_container(
+        project, star, path, category,
+        batch=batch,
+        external_id=external_id,
+        is_best_fit=is_best_fit,
+        spectrum_obj=spectrum_obj,
+        lightcurve_obj=lightcurve_obj,
+        user=user,
+    )
 
 
 def _parameter_source(project, name='ASTRA import'):

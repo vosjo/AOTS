@@ -22,6 +22,13 @@ from analysis.services.analysis_history import (
     modified_by_username,
 )
 from analysis.services.parameter_consensus import consensus_queryset
+from analysis.services.fit_permissions import (
+    category_supports_multi_fit,
+    user_can_delete_fit,
+    user_can_edit_fit,
+    user_can_set_best_fit,
+)
+from analysis.services.fit_sync import sync_fits_from_hdf5
 from stars.api.serializers import SimpleStarSerializer
 
 
@@ -131,6 +138,8 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
     last_modified = SerializerMethodField()
     modified_by = SerializerMethodField()
     rv_fits = SerializerMethodField()
+    fits = SerializerMethodField()
+    can_set_best_fit = SerializerMethodField()
     spectrum = SerializerMethodField()
     lightcurve = SerializerMethodField()
 
@@ -147,6 +156,8 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
             'last_modified',
             'modified_by',
             'rv_fits',
+            'fits',
+            'can_set_best_fit',
             'spectrum',
             'lightcurve',
         ]
@@ -215,9 +226,59 @@ class AnalysisDetailSerializer(AnalysisListSerializer):
     def get_modified_by(self, obj):
         return modified_by_username(obj)
 
+    def _serialize_fit_row(self, fit, *, obj):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        uploaded_by = None
+        if fit.uploaded_by_id:
+            uploaded_by = {
+                'pk': fit.uploaded_by_id,
+                'username': fit.uploaded_by.get_username() if fit.uploaded_by else '',
+            }
+        return {
+            'id': fit.fit_id,
+            'label': fit.label,
+            'method': fit.method,
+            'is_best_fit': fit.is_best_fit,
+            'external_id': fit.external_id,
+            'uploaded_by': uploaded_by,
+            'uploaded_on': fit.created.isoformat() if fit.created else '',
+            'can_edit': user_can_edit_fit(user, fit) if user and user.is_authenticated else False,
+            'can_delete': user_can_delete_fit(user, fit) if user and user.is_authenticated else False,
+        }
+
+    def get_fits(self, obj):
+        if not category_supports_multi_fit(obj.category):
+            return []
+        try:
+            sync_fits_from_hdf5(obj)
+            return [self._serialize_fit_row(f, obj=obj) for f in obj.fits.all()]
+        except Exception:
+            return []
+
+    def get_can_set_best_fit(self, obj):
+        if not category_supports_multi_fit(obj.category):
+            return False
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if not user or not user.is_authenticated:
+            return False
+        return user_can_set_best_fit(user, obj)
+
     def get_rv_fits(self, obj):
         if obj.category != AnalysisCategory.RV_CURVE:
             return []
+        fits = self.get_fits(obj)
+        if fits:
+            return [
+                {
+                    'id': f['id'],
+                    'label': f['label'],
+                    'is_best_fit': f['is_best_fit'],
+                    'method': f['method'],
+                }
+                for f in fits
+            ]
         try:
             from analysis.auxil.rv_hdf5 import list_rv_fits
             return list_rv_fits(obj.get_data())

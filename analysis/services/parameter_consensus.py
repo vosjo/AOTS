@@ -287,6 +287,11 @@ def _apply_rule(
             if winner is not None:
                 return _result_from_winner(winner, rule, count)
 
+    elif rule == ConsensusRuleKind.PREFERRED_BEST_FIT:
+        winner = candidates.filter(analysis__fits__is_best_fit=True).distinct().first()
+        if winner is not None:
+            return _result_from_winner(winner, rule, count)
+
     elif rule == ConsensusRuleKind.SOURCE_PRIORITY:
         for entry in source_priority or []:
             if isinstance(entry, int):

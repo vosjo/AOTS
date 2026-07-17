@@ -291,17 +291,19 @@ def plot_generic_large(datafile, *, theme=None, category=None):
     return _finish_figure(fig, theme)  # , button
 
 
-def plot_generic_OC(datafile, *, theme=None, category=None):
+def plot_generic_OC(datafile, *, theme=None, category=None, fit_id=None):
     hdf = h5py.File(datafile, "r")
 
     TOOLS = "pan, box_zoom, wheel_zoom, reset"
 
-    xscale = (
-        get_attr(hdf["O-C"], "xscale", default="linear") if "O-C" in hdf else "linear"
-    )
-    yscale = (
-        get_attr(hdf["O-C"], "yscale", default="linear") if "O-C" in hdf else "linear"
-    )
+    oc_group = None
+    if fit_id and "FITS" in hdf and fit_id in hdf["FITS"] and "O-C" in hdf["FITS"][fit_id]:
+        oc_group = hdf["FITS"][fit_id]["O-C"]
+    elif "O-C" in hdf:
+        oc_group = hdf["O-C"]
+
+    xscale = get_attr(oc_group, "xscale", default="linear") if oc_group is not None else "linear"
+    yscale = get_attr(oc_group, "yscale", default="linear") if oc_group is not None else "linear"
 
     fig = bpl.figure(
         width=800,
@@ -316,8 +318,8 @@ def plot_generic_OC(datafile, *, theme=None, category=None):
 
     # -- plot the O-C
 
-    if "O-C" in hdf:
-        models = hdf["O-C"]
+    if oc_group is not None:
+        models = oc_group
         for i, (name, dataset) in enumerate(models.items()):
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
@@ -643,9 +645,9 @@ def plot_analysis_large(datafile, category=None, *, theme=None, fit_id=None):
         return plot_error_large(theme=theme)
 
 
-def plot_analysis_oc(datafile, category=None, *, theme=None):
+def plot_analysis_oc(datafile, category=None, *, theme=None, fit_id=None):
     try:
-        return plot_generic_OC(datafile, theme=theme, category=category)
+        return plot_generic_OC(datafile, theme=theme, category=category, fit_id=fit_id)
     except Exception as e:
         print(e)
         print(traceback.format_exc())

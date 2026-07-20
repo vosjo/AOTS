@@ -95,6 +95,36 @@ class MultiFitHdf5Tests(TestCase):
             self.assertIn('Obs', hdf['DATA'])
         os.unlink(path)
 
+    def test_multi_fit_parameter_units_survive_read2dict(self):
+        """Units stored as dataset attrs must be picked up after read2dict."""
+        from analysis.auxil.fileio import read2dict
+        from analysis.auxil import read_analyses
+
+        with tempfile.NamedTemporaryFile(suffix='.h5', delete=False) as tmp:
+            path = tmp.name
+        write_multi_fit_v2(
+            path,
+            category='sed_fit',
+            hdf5_type='SF',
+            fits=[{
+                'id': 'f1',
+                'label': 'SED',
+                'is_best_fit': True,
+                'parameters': {
+                    'teff': (44130.0, 100.0, 100.0, 'K'),
+                    'ebv': (0.06, 0.01, 0.01, 'mag'),
+                    'L': (2000.0, 50.0, 50.0, 'solLum'),
+                },
+            }],
+        )
+        data = read2dict(path)
+        params = read_analyses.get_parameters(data)
+        self.assertIn('teff', params)
+        self.assertEqual(params['teff'][3], 'K')
+        self.assertIn('ebv', params)
+        self.assertIn('L', params)
+        os.unlink(path)
+
 
 class ContributorPermissionTests(TestCase):
     def setUp(self):

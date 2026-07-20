@@ -163,17 +163,9 @@ def _measurements_from_hdf5_path(
             attrs = {k: v for k, v in grp.attrs.items()}
             return (payload or None), attrs
 
-        if category == AnalysisCategory.SED_FIT and 'master' in hdf:
-            grp = hdf['master']
-            payload = {}
-            for name in grp:
-                item = grp[name]
-                if isinstance(item, h5py.Dataset):
-                    payload[name] = {'data': item[()], 'attrs': dict(item.attrs)}
-            attrs = {k: v for k, v in grp.attrs.items()}
-            return (payload or None), attrs
-
-    return None, None
+        # ISIS SED layout: master/sed is the *model* curve, not shared photometry.
+        # Leave DATA empty here; model is extracted separately into FITS/<id>/MODEL.
+        return None, None
 
 
 def merge_analysis_group(

@@ -299,7 +299,12 @@ def get_parameters_generic(data):
 
 
 def _table_params_to_dict(pars: dict) -> dict:
-    """Convert astropy table entries from read2dict into plain dicts."""
+    """Convert astropy table entries from read2dict into plain dicts.
+
+    Multi-fit HDF5 stores units as dataset attrs; ``read2dict``/Astropy puts
+    those on ``Table.meta['unit']``. Without that, homogenisation sees an empty
+    unit and drops most SED parameters on re-ingest.
+    """
     out = {}
     for name, raw in pars.items():
         if isinstance(raw, dict):
@@ -307,6 +312,9 @@ def _table_params_to_dict(pars: dict) -> dict:
         elif hasattr(raw, 'dtype') and raw.dtype.names:
             row = raw[0]
             unit = ''
+            meta = getattr(raw, 'meta', None) or {}
+            if meta.get('unit') is not None:
+                unit = str(meta['unit'])
             out[name] = {
                 'value': float(row['value']),
                 'err_l': float(row['err_l']),

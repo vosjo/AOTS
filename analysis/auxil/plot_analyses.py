@@ -53,7 +53,25 @@ def get_attr(dataset, attr, default=None):
         return attr
 
 
-def plot_generic(datafile, *, theme=None, category=None):
+def _resolve_model_group(hdf, fit_id=None):
+    """Return MODEL group from root or from FITS/<fit_id>/ for multi-fit v2."""
+    if 'FITS' in hdf and len(hdf['FITS']) > 0:
+        chosen = fit_id
+        if not chosen or chosen not in hdf['FITS']:
+            chosen = hdf.attrs.get('best_fit_id')
+            if isinstance(chosen, bytes):
+                chosen = chosen.decode('utf-8', errors='replace')
+        if chosen and chosen in hdf['FITS'] and 'MODEL' in hdf['FITS'][chosen]:
+            return hdf['FITS'][chosen]['MODEL']
+        for fid in hdf['FITS']:
+            if 'MODEL' in hdf['FITS'][fid]:
+                return hdf['FITS'][fid]['MODEL']
+    if 'MODEL' in hdf:
+        return hdf['MODEL']
+    return None
+
+
+def plot_generic(datafile, *, theme=None, category=None, fit_id=None):
     """
     Generic plotting interface
     will plot the data and models as lines or circles/square.
@@ -134,10 +152,10 @@ def plot_generic(datafile, *, theme=None, category=None):
         data = hdf["DATA"]
         plot(data, mode="DATA")
 
-    # -- plot the models
-    if "MODEL" in hdf:
-        data = hdf["MODEL"]
-        plot(data, mode="MODEL")
+    # -- plot the models (root MODEL or FITS/<id>/MODEL for multi-fit v2)
+    models = _resolve_model_group(hdf, fit_id=fit_id)
+    if models is not None:
+        plot(models, mode="MODEL")
 
     fig.toolbar.logo = None
     fig.yaxis.axis_label = y_label
@@ -151,7 +169,7 @@ def plot_generic(datafile, *, theme=None, category=None):
     return _finish_figure(fig, theme)
 
 
-def plot_generic_large(datafile, *, theme=None, category=None):
+def plot_generic_large(datafile, *, theme=None, category=None, fit_id=None):
     """
     Generic plotting interface
     will plot the data and models as lines or circles/square.
@@ -247,9 +265,9 @@ def plot_generic_large(datafile, *, theme=None, category=None):
                 )
                 fig.add_tools(hover_tool)
 
-    # -- plot the models
-    if "MODEL" in hdf:
-        models = hdf["MODEL"]
+    # -- plot the models (root MODEL or FITS/<id>/MODEL for multi-fit v2)
+    models = _resolve_model_group(hdf, fit_id=fit_id)
+    if models is not None:
         for i, (name, dataset) in enumerate(models.items()):
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
@@ -277,16 +295,6 @@ def plot_generic_large(datafile, *, theme=None, category=None):
     fig.min_border = 5
 
     hdf.close()
-
-    # from bokeh.models import Button, CustomJS
-    # button = Button(label='fullscreen')
-    # button.callback = CustomJS(args=dict(fig=fig), code="""
-    # var old_width = fig.width;
-    # var doc = fig.document;
-    # fig.width = old_width * 0.8;
-    # doc.resize();
-    # """)
-    # http://stackoverflow.com/questions/39972162/dynamically-change-the-shape-of-bokeh-figure
 
     return _finish_figure(fig, theme)  # , button
 
@@ -622,7 +630,7 @@ def plot_analysis(datafile, category=None, *, theme=None, fit_id=None):
         from analysis.categories import AnalysisCategory
         if category == AnalysisCategory.RV_CURVE:
             return plot_rv_curve(datafile, theme=theme, fit_id=fit_id, large=False, category=category)
-        return plot_generic(datafile, theme=theme, category=category)
+        return plot_generic(datafile, theme=theme, category=category, fit_id=fit_id)
     except Exception as e:
         print(e)
         print(traceback.format_exc())
@@ -638,7 +646,7 @@ def plot_analysis_large(datafile, category=None, *, theme=None, fit_id=None):
         from analysis.categories import AnalysisCategory
         if category == AnalysisCategory.RV_CURVE:
             return plot_rv_curve(datafile, theme=theme, fit_id=fit_id, large=True, category=category)
-        return plot_generic_large(datafile, theme=theme, category=category)
+        return plot_generic_large(datafile, theme=theme, category=category, fit_id=fit_id)
     except Exception as e:
         print(e)
         print(traceback.format_exc())

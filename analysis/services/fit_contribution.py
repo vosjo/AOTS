@@ -163,10 +163,19 @@ def _fit_dict_from_legacy(data: dict, *, fit_id: str | None = None) -> dict[str,
     model = data.get('MODEL')
     if isinstance(model, dict) and model:
         fit['model'] = _model_series_from_block(model)
-        data_grp = data.get('DATA', {})
-        if isinstance(data_grp, dict):
-            fit['model_xlabel'] = data_grp.get('xlabel', 'x')
-            fit['model_ylabel'] = data_grp.get('ylabel', 'y')
+        # Prefer actual table column names (e.g. wave/flux) over DATA axis label strings.
+        first_ds = next(
+            (ds for ds in model.values() if hasattr(ds, 'dtype') and getattr(ds.dtype, 'names', None)),
+            None,
+        )
+        if first_ds is not None and first_ds.dtype.names:
+            fit['model_xlabel'] = first_ds.dtype.names[0]
+            fit['model_ylabel'] = first_ds.dtype.names[1] if len(first_ds.dtype.names) > 1 else 'y'
+        else:
+            data_grp = data.get('DATA', {})
+            if isinstance(data_grp, dict):
+                fit['model_xlabel'] = data_grp.get('xlabel', 'x')
+                fit['model_ylabel'] = data_grp.get('ylabel', 'y')
     return fit
 
 
@@ -349,13 +358,14 @@ def fit_parameters_for_api(analysis: Analysis, fit_id: str | None = None) -> lis
             value = raw.get('value', 0)
             err_l = raw.get('err_l', 0)
             err_u = raw.get('err_u', 0)
-            unit = raw.get('unit', '')
+            unit = raw.get('unit', '') or ''
         elif hasattr(raw, 'dtype') and raw.dtype.names:
             row = raw[0]
             value = float(row['value'])
             err_l = float(row['err_l'])
             err_u = float(row['err_u'])
-            unit = ''
+            meta = getattr(raw, 'meta', None) or {}
+            unit = str(meta.get('unit') or '')
         else:
             continue
         cname = name

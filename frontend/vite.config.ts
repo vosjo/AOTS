@@ -13,12 +13,15 @@ export default defineConfig(({ command }) => ({
   build: {
     outDir: '../site_static/dist',
     emptyOutDir: true,
+    // Content hashes prevent stale chunk mixes after deploy (cached index.js + new
+    // DashboardView.js caused cryptic runtime errors like undefined.join).
+    manifest: true,
     rollupOptions: {
       input: path.resolve(__dirname, 'index.html'),
       output: {
-        entryFileNames: 'assets/index.js',
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: 'assets/[name][extname]',
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
       },
     },
   },

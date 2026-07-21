@@ -253,6 +253,8 @@ python manage.py collectstatic --noinput
 
 Repeat **`npm run build`** and **`collectstatic`** on every deploy that changes the frontend. Node.js is only required at build time, not on the server at runtime (unless you build there).
 
+Production builds write **content-hashed** filenames under `site_static/dist/assets/` (e.g. `index-BANI6Ykf.js`). The SPA shell reads Vite’s `.vite/manifest.json` so the HTML always references a matching set of JS/CSS chunks — this avoids browsers mixing an old `index.js` with a new route chunk after deploy.
+
 ### 7. Upgrading an existing installation
 
 After `git pull` or a new release tarball:

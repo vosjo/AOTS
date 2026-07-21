@@ -15,8 +15,12 @@
   <script type="module" src="http://localhost:5173/src/main.ts"></script>
   {% else %}
   <script src="{% static 'dist/aots-bootstrap.js' %}"></script>
-  <link rel="stylesheet" href="{% static 'dist/assets/index.css' %}" />
-  <script type="module" src="{% static 'dist/assets/index.js' %}"></script>
+  {% for href in vite_css %}
+  <link rel="stylesheet" href="{{ href }}" />
+  {% endfor %}
+  {% if vite_js %}
+  <script type="module" src="{{ vite_js }}"></script>
+  {% endif %}
   {% endif %}
 </head>
 <body>

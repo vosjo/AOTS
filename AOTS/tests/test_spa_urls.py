@@ -14,6 +14,8 @@ class SpaUrlTests(TestCase):
         self.assertContains(response, 'name="aots-router-base"')
         self.assertContains(response, 'content="/"')
         self.assertNotContains(response, 'datatables')
+        self.assertContains(response, '/static/dist/assets/')
+        self.assertContains(response, 'type="module"')
 
     def test_nested_w_route_serves_spa_shell(self):
         response = self.client.get('/w/demo-project/systems/stars/')

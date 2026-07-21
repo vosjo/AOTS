@@ -206,7 +206,13 @@ function updateHrd() {
                 v-model="hrdFormValues[field]"
                 class="aots-select"
               >
-                <option v-for="[val, label] in form.choices[field]" :key="String(val)" :value="val ?? ''">{{ label }}</option>
+                <option
+                  v-for="choice in form.choices[field] ?? []"
+                  :key="String(choice?.[0])"
+                  :value="choice?.[0] ?? ''"
+                >
+                  {{ choice?.[1] }}
+                </option>
               </select>
             </label>
             <AppButton variant="primary" :disabled="isFetching" @click="updateHrd">

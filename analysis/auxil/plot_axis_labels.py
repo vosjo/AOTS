@@ -10,6 +10,8 @@ WAVELENGTH_ANGSTROM = 'Wavelength [Å]'
 FLUX_DENSITY_F_LAMBDA = 'Flux density Fλ [erg s⁻¹ cm⁻² Å⁻¹]'
 RADIAL_VELOCITY = 'Radial velocity [km s⁻¹]'
 TIME_AXIS = 'Time [d]'
+PHASE_AXIS = 'Phase'
+OC_AXIS = 'O−C [km s⁻¹]'
 
 _SED_FILE_TYPES = frozenset({'sedfit', 'sf', 'sed', 'sed_fit'})
 
@@ -69,12 +71,72 @@ def _groups_for_metadata(hdf) -> list[Any]:
     return groups
 
 
-def _first_attr(hdf, attr: str) -> str | None:
-    for node in (hdf, * _groups_for_metadata(hdf)):
+def _first_attr(hdf, attr: str, *, prefer_group: str | None = None) -> str | None:
+    nodes: list[Any] = []
+    if prefer_group and prefer_group in hdf:
+        nodes.append(hdf[prefer_group])
+    nodes.append(hdf)
+    nodes.extend(_groups_for_metadata(hdf))
+    seen: set[int] = set()
+    for node in nodes:
+        node_id = id(node)
+        if node_id in seen:
+            continue
+        seen.add(node_id)
         value = read_hdf_attr(node, attr)
         if value:
             return value
     return None
+
+
+def _first_dataset_xy_pars(hdf, *, prefer_group: str | None = None) -> tuple[str | None, str | None]:
+    """Return (xpar, ypar) from the first series under DATA/MODEL/O-C."""
+    groups = []
+    if prefer_group and prefer_group in hdf:
+        groups.append(prefer_group)
+    for name in ('DATA', 'MODEL', 'O-C'):
+        if name not in groups:
+            groups.append(name)
+    for gname in groups:
+        if gname not in hdf:
+            continue
+        group = hdf[gname]
+        for name in group:
+            dataset = group[name]
+            if not hasattr(dataset, 'attrs'):
+                continue
+            xpar = read_hdf_attr(dataset, 'xpar')
+            ypar = read_hdf_attr(dataset, 'ypar')
+            if xpar or ypar:
+                return xpar, ypar
+    return None, None
+
+
+def _rv_axis_labels(hdf, *, prefer_group: str | None = None) -> tuple[str, str]:
+    """Axis titles for RV curves; ignore bogus SED wavelength/flux group attrs."""
+    xpar, ypar = _first_dataset_xy_pars(hdf, prefer_group=prefer_group)
+    xlabel = _first_attr(hdf, 'xlabel', prefer_group=prefer_group)
+    ylabel = _first_attr(hdf, 'ylabel', prefer_group=prefer_group)
+
+    x_key = (xpar or '').strip().lower() or (xlabel or '').strip().lower()
+    if x_key == 'phase' or (xlabel or '').strip().lower() == 'phase':
+        x_axis = PHASE_AXIS
+    elif x_key in ('time', 'hjd', 'bjd', 'mjd', 't'):
+        x_axis = TIME_AXIS
+    elif xlabel and 'wavelength' not in xlabel.lower():
+        x_axis = format_axis_label(xlabel, axis='x')
+    else:
+        x_axis = TIME_AXIS
+
+    y_key = (ypar or '').strip().lower()
+    if prefer_group == 'O-C' or y_key in ('o-c', 'oc', 'residual', 'residuals'):
+        if ylabel and 'wavelength' not in ylabel.lower() and 'flux' not in ylabel.lower():
+            y_axis = ylabel
+        else:
+            y_axis = OC_AXIS
+    else:
+        y_axis = RADIAL_VELOCITY
+    return x_axis, y_axis
 
 
 def _is_sed_context(hdf, category: str | None) -> bool:
@@ -150,19 +212,30 @@ def format_axis_label(
     return text or 'y'
 
 
-def resolve_axis_labels(hdf, *, category: str | None = None) -> tuple[str, str]:
+def resolve_axis_labels(
+    hdf,
+    *,
+    category: str | None = None,
+    prefer_group: str | None = None,
+) -> tuple[str, str]:
     """
     Resolve X/Y axis titles from HDF5 group attributes.
 
     SED-fit files often store only ``ylabel='flux'``; when ``type`` is sedfit/SF
     or the analysis category is ``sed_fit``, default to Fλ in cgs flux-density units.
-  Optional ``xunit`` / ``yunit`` attributes are honoured when present.
+    Optional ``xunit`` / ``yunit`` attributes are honoured when present.
+
+    RV-curve files sometimes inherit SED log/wavelength group attrs; for
+    ``category=rv_curve`` labels are taken from series ``xpar``/``ypar`` instead.
     """
+    if category == AnalysisCategory.RV_CURVE:
+        return _rv_axis_labels(hdf, prefer_group=prefer_group)
+
     sed_context = _is_sed_context(hdf, category)
-    xlabel = _first_attr(hdf, 'xlabel')
-    ylabel = _first_attr(hdf, 'ylabel')
-    xunit = _first_attr(hdf, 'xunit')
-    yunit = _first_attr(hdf, 'yunit')
+    xlabel = _first_attr(hdf, 'xlabel', prefer_group=prefer_group)
+    ylabel = _first_attr(hdf, 'ylabel', prefer_group=prefer_group)
+    xunit = _first_attr(hdf, 'xunit', prefer_group=prefer_group)
+    yunit = _first_attr(hdf, 'yunit', prefer_group=prefer_group)
 
     x_axis = format_axis_label(xlabel, axis='x', unit=xunit, sed_context=sed_context)
     y_axis = format_axis_label(ylabel, axis='y', unit=yunit, sed_context=sed_context)

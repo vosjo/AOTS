@@ -53,6 +53,21 @@ def get_attr(dataset, attr, default=None):
         return attr
 
 
+def _axis_types(hdf, category=None):
+    """Resolve Bokeh axis types; RV curves must stay linear (negative RVs, phase)."""
+    from analysis.categories import AnalysisCategory
+
+    if category == AnalysisCategory.RV_CURVE:
+        return 'linear', 'linear'
+    xscale = (
+        get_attr(hdf['DATA'], 'xscale', default='linear') if 'DATA' in hdf else 'linear'
+    )
+    yscale = (
+        get_attr(hdf['DATA'], 'yscale', default='linear') if 'DATA' in hdf else 'linear'
+    )
+    return xscale, yscale
+
+
 def _resolve_model_group(hdf, fit_id=None):
     """Return MODEL group from root or from FITS/<fit_id>/ for multi-fit v2."""
     if 'FITS' in hdf and len(hdf['FITS']) > 0:
@@ -78,12 +93,7 @@ def plot_generic(datafile, *, theme=None, category=None, fit_id=None):
     """
     hdf = h5py.File(datafile, "r")
 
-    xscale = (
-        get_attr(hdf["DATA"], "xscale", default="linear") if "DATA" in hdf else "linear"
-    )
-    yscale = (
-        get_attr(hdf["DATA"], "yscale", default="linear") if "DATA" in hdf else "linear"
-    )
+    xscale, yscale = _axis_types(hdf, category=category)
 
     x_label, y_label = resolve_axis_labels(hdf, category=category)
 
@@ -99,6 +109,7 @@ def plot_generic(datafile, *, theme=None, category=None, fit_id=None):
 
     def plot(data, mode="DATA"):
         for i, (name, dataset) in enumerate(data.items()):
+            color = colors[i % len(colors)]
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
 
@@ -113,7 +124,7 @@ def plot_generic(datafile, *, theme=None, category=None, fit_id=None):
                 fig.line(
                     dataset[xpar][s],
                     dataset[ypar][s],
-                    color=colors[i],
+                    color=color,
                     line_dash=line_dash,
                     legend_label=name,
                 )
@@ -123,7 +134,7 @@ def plot_generic(datafile, *, theme=None, category=None, fit_id=None):
                     dataset[xpar][s],
                     dataset[ypar][s],
                     marker="circle",
-                    color=colors[i],
+                    color=color,
                     legend_label=name,
                     size=6,
                 )
@@ -133,7 +144,7 @@ def plot_generic(datafile, *, theme=None, category=None, fit_id=None):
                     dataset[xpar][s],
                     dataset[ypar][s],
                     marker="x",
-                    color=colors[i],
+                    color=color,
                     legend_label=name,
                     size=8,
                 )
@@ -144,7 +155,7 @@ def plot_generic(datafile, *, theme=None, category=None, fit_id=None):
                     dataset[xpar],
                     dataset[ypar],
                     dataset[ypar + "_err"],
-                    color=colors[i],
+                    color=color,
                 )
 
     # -- plot the data
@@ -178,12 +189,7 @@ def plot_generic_large(datafile, *, theme=None, category=None, fit_id=None):
 
     TOOLS = "pan, box_zoom, wheel_zoom, reset"
 
-    xscale = (
-        get_attr(hdf["DATA"], "xscale", default="linear") if "DATA" in hdf else "linear"
-    )
-    yscale = (
-        get_attr(hdf["DATA"], "yscale", default="linear") if "DATA" in hdf else "linear"
-    )
+    xscale, yscale = _axis_types(hdf, category=category)
 
     x_label, y_label = resolve_axis_labels(hdf, category=category)
 
@@ -203,6 +209,7 @@ def plot_generic_large(datafile, *, theme=None, category=None, fit_id=None):
         data = hdf["DATA"]
 
         for i, (name, dataset) in enumerate(data.items()):
+            color = colors[i % len(colors)]
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
             legend = get_attr(dataset, 'label', None) or name
@@ -214,7 +221,7 @@ def plot_generic_large(datafile, *, theme=None, category=None, fit_id=None):
                 fig.line(
                     dataset[xpar],
                     dataset[ypar],
-                    color=colors[i],
+                    color=color,
                     line_dash="dashed",
                     legend_label=legend,
                 )
@@ -232,7 +239,7 @@ def plot_generic_large(datafile, *, theme=None, category=None, fit_id=None):
                     name + "_x",
                     name + "_y",
                     marker="circle",
-                    color=colors[i],
+                    color=color,
                     source=bokehsource,
                     size=7,
                     legend_label=name,
@@ -253,7 +260,7 @@ def plot_generic_large(datafile, *, theme=None, category=None, fit_id=None):
                         dataset[ypar],
                         dataset[ypar + "_err"],
                         line_width=1,
-                        color=colors[i],
+                        color=color,
                     )
                 else:
                     tooltips += [(y_label, "@" + name + "_y")]
@@ -269,20 +276,21 @@ def plot_generic_large(datafile, *, theme=None, category=None, fit_id=None):
     models = _resolve_model_group(hdf, fit_id=fit_id)
     if models is not None:
         for i, (name, dataset) in enumerate(models.items()):
+            color = colors[i % len(colors)]
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
 
             legend = get_attr(dataset, 'label', None) or name
             if get_attr(dataset, "datatype", None) == "continuous":
                 fig.line(
-                    dataset[xpar], dataset[ypar], color=colors[i], legend_label=legend
+                    dataset[xpar], dataset[ypar], color=color, legend_label=legend
                 )
             elif get_attr(dataset, "datatype", None) == "discrete":
                 fig.scatter(
                     dataset[xpar],
                     dataset[ypar],
                     marker="x",
-                    color=colors[i],
+                    color=color,
                     legend_label=legend,
                     size=10,
                 )
@@ -312,6 +320,9 @@ def plot_generic_OC(datafile, *, theme=None, category=None, fit_id=None):
 
     xscale = get_attr(oc_group, "xscale", default="linear") if oc_group is not None else "linear"
     yscale = get_attr(oc_group, "yscale", default="linear") if oc_group is not None else "linear"
+    from analysis.categories import AnalysisCategory
+    if category == AnalysisCategory.RV_CURVE:
+        xscale, yscale = 'linear', 'linear'
 
     fig = bpl.figure(
         width=800,
@@ -329,32 +340,34 @@ def plot_generic_OC(datafile, *, theme=None, category=None, fit_id=None):
     if oc_group is not None:
         models = oc_group
         for i, (name, dataset) in enumerate(models.items()):
+            color = colors[i % len(colors)]
             xpar = get_attr(dataset, "xpar", "x")
             ypar = get_attr(dataset, "ypar", "y")
             legend = get_attr(dataset, 'label', None) or name
 
             if get_attr(dataset, "datatype", None) == "continuous":
                 fig.line(
-                    dataset[xpar], dataset[ypar], color=colors[i], legend_label=legend
+                    dataset[xpar], dataset[ypar], color=color, legend_label=legend
                 )
             elif get_attr(dataset, "datatype", None) == "discrete":
                 fig.scatter(
                     dataset[xpar],
                     dataset[ypar],
                     marker="circle",
-                    color=colors[i],
+                    color=color,
                     legend_label=legend,
                     size=7,
                 )
 
-                plot_errorbars(
-                    fig,
-                    dataset[xpar],
-                    dataset[ypar],
-                    dataset[ypar + "_err"],
-                    line_width=1,
-                    color=colors[i],
-                )
+                if ypar + "_err" in dataset.dtype.names:
+                    plot_errorbars(
+                        fig,
+                        dataset[xpar],
+                        dataset[ypar],
+                        dataset[ypar + "_err"],
+                        line_width=1,
+                        color=color,
+                    )
 
         hline = mpl.Span(
             location=0,
@@ -365,7 +378,7 @@ def plot_generic_OC(datafile, *, theme=None, category=None, fit_id=None):
         )
         fig.add_layout(hline)
 
-        oc_x, oc_y = resolve_axis_labels(hdf, category=category)
+        oc_x, oc_y = resolve_axis_labels(hdf, category=category, prefer_group='O-C')
         fig.yaxis.axis_label = oc_y
         fig.xaxis.axis_label = oc_x
 

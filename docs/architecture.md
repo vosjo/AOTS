@@ -106,6 +106,9 @@ python manage.py relocate_analysis_files
 
 Optional on PostgreSQL: `cleanup_orphan_analysis_sources` to remove leftover MTI parent `ParameterSource` rows.
 
+User guide for analysis HDF5 uploads: [analysis_hdf5_format.md](analysis_hdf5_format.md).
+Full in-app documentation: `/w/documentation/` (outline in [user_guide.md](user_guide.md)).
+
 After the RV consolidation release, migrate legacy RV HDF5 files to the v2 multi-fit layout:
 
 ```

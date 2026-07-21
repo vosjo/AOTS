@@ -2,6 +2,7 @@
 import {
   ChartScatter,
   ChartSpline,
+  CircleHelp,
   FlaskConical,
   LayoutDashboard,
   Menu,
@@ -90,6 +91,15 @@ async function logout() {
           variant="icon"
           size="sm"
           class="!p-2"
+          to="/w/documentation/"
+          title="Documentation"
+        >
+          <CircleHelp class="h-5 w-5" />
+        </AppButton>
+        <AppButton
+          variant="icon"
+          size="sm"
+          class="!p-2"
           :title="theme.mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
           @click="theme.toggle()"
         >
@@ -145,6 +155,14 @@ async function logout() {
       >
         <component :is="item.icon" class="h-4 w-4" />
         {{ item.label }}
+      </RouterLink>
+      <RouterLink
+        to="/w/documentation/"
+        class="aots-topbar-nav-link text-sm"
+        @click="mobileOpen = false"
+      >
+        <CircleHelp class="h-4 w-4" />
+        Documentation
       </RouterLink>
     </nav>
   </header>

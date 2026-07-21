@@ -43,8 +43,8 @@ def _uploaded_by_from_analysis(analysis: Analysis) -> tuple[int | None, str]:
     return user.pk, user.get_username()
 
 
-def _model_series_from_hdf5_group(grp: h5py.Group) -> dict[str, tuple]:
-    series: dict[str, tuple] = {}
+def _model_series_from_hdf5_group(grp: h5py.Group) -> dict[str, Any]:
+    series: dict[str, Any] = {}
     for name in grp:
         item = grp[name]
         if not isinstance(item, h5py.Dataset):
@@ -59,7 +59,17 @@ def _model_series_from_hdf5_group(grp: h5py.Group) -> dict[str, tuple]:
         x = np.asarray(arr[xkey], dtype=float)
         y = np.asarray(arr[ykey], dtype=float)
         err = np.asarray(arr[errkey], dtype=float) if errkey else None
-        series[name] = (x, y, err)
+        datatype = item.attrs.get('datatype', 'continuous')
+        if isinstance(datatype, bytes):
+            datatype = datatype.decode('utf-8', errors='replace')
+        label = item.attrs.get('label')
+        if isinstance(label, bytes):
+            label = label.decode('utf-8', errors='replace')
+        series[name] = {
+            'data': (x, y, err),
+            'datatype': datatype or 'continuous',
+            'label': label,
+        }
     return series
 
 

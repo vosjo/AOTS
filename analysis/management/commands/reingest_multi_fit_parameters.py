@@ -2,6 +2,7 @@
 
 from django.core.management.base import BaseCommand
 
+from analysis.auxil.multi_fit_hdf5 import repair_model_datatypes
 from analysis.categories import AnalysisCategory
 from analysis.models import Analysis
 from analysis.services.fit_contribution import reingest_best_fit_parameters
@@ -28,6 +29,11 @@ class Command(BaseCommand):
         )
         parser.add_argument('--project', type=int, help='Limit to project PK')
         parser.add_argument('--dry-run', action='store_true')
+        parser.add_argument(
+            '--fix-model-datatypes',
+            action='store_true',
+            help='Restore discrete datatype on synthetic-photometry MODEL series (e.g. Iflux)',
+        )
 
     def handle(self, *args, **options):
         qs = Analysis.objects.exclude(datafile='')
@@ -46,6 +52,7 @@ class Command(BaseCommand):
             qs = qs.filter(project_id=project_id)
 
         dry_run = options['dry_run']
+        fix_datatypes = options['fix_model_datatypes']
         updated = 0
         for analysis in qs.iterator():
             if not category_supports_multi_fit(analysis.category):
@@ -54,6 +61,13 @@ class Command(BaseCommand):
                 self.stdout.write(f'Would reingest analysis {analysis.pk} ({analysis.category})')
                 updated += 1
                 continue
+            if fix_datatypes and analysis.datafile:
+                try:
+                    nfix = repair_model_datatypes(analysis.datafile.path)
+                    if nfix:
+                        self.stdout.write(f'Analysis {analysis.pk}: fixed {nfix} model datatype(s)')
+                except Exception as exc:
+                    self.stdout.write(self.style.WARNING(f'Analysis {analysis.pk}: datatype repair failed: {exc}'))
             sync_fits_from_hdf5(analysis)
             count = reingest_best_fit_parameters(analysis)
             self.stdout.write(f'Analysis {analysis.pk}: {count} parameters')

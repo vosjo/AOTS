@@ -181,7 +181,7 @@ def _write_parameters_group(parent: h5py.Group, parameters: dict[str, tuple]) ->
 
 def _write_model_group(
     parent: h5py.Group,
-    model: dict[str, tuple],
+    model: dict[str, Any],
     *,
     xlabel: str = 'x',
     ylabel: str = 'y',
@@ -192,14 +192,76 @@ def _write_model_group(
     grp.attrs['xlabel'] = xlabel
     grp.attrs['ylabel'] = ylabel
     for name, series in model.items():
-        x, y, err = series
+        datatype = 'continuous'
+        label = None
+        if isinstance(series, dict):
+            x, y, err = series['data'] if 'data' in series else (series['x'], series['y'], series.get('err'))
+            datatype = series.get('datatype') or datatype
+            label = series.get('label')
+        else:
+            x, y, err = series
         err_arr = err if err is not None else np.zeros_like(np.asarray(x, dtype=float))
         dtype = np.dtype([(xlabel, 'f8'), (ylabel, 'f8'), (f'{ylabel}_err', 'f8')])
         arr = np.array(list(zip(x, y, err_arr)), dtype=dtype)
         ds = grp.create_dataset(name, data=arr)
-        ds.attrs['datatype'] = 'continuous'
+        ds.attrs['datatype'] = datatype
         ds.attrs['xpar'] = xlabel
         ds.attrs['ypar'] = ylabel
+        if label:
+            ds.attrs['label'] = label
+
+
+def repair_model_datatypes(path: str) -> int:
+    """
+    Fix MODEL series wrongly marked continuous after multi-fit migration.
+
+    Synthetic photometry (e.g. Iflux) must stay ``discrete`` so plots show
+    markers instead of a line through the observed bandpasses.
+    Returns number of datasets updated.
+    """
+    updated = 0
+    with h5py.File(path, 'r+') as hdf:
+        obs_len = None
+        if 'DATA' in hdf:
+            for name in hdf['DATA']:
+                item = hdf['DATA'][name]
+                if isinstance(item, h5py.Dataset) and len(item.shape) == 1:
+                    obs_len = item.shape[0]
+                    break
+
+        model_groups: list[h5py.Group] = []
+        if 'MODEL' in hdf:
+            model_groups.append(hdf['MODEL'])
+        if 'FITS' in hdf:
+            for fid in hdf['FITS']:
+                if 'MODEL' in hdf['FITS'][fid]:
+                    model_groups.append(hdf['FITS'][fid]['MODEL'])
+
+        for grp in model_groups:
+            lengths = {
+                name: grp[name].shape[0]
+                for name in grp
+                if isinstance(grp[name], h5py.Dataset) and len(grp[name].shape) == 1
+            }
+            if not lengths:
+                continue
+            max_len = max(lengths.values())
+            for name, length in lengths.items():
+                ds = grp[name]
+                current = ds.attrs.get('datatype')
+                if isinstance(current, bytes):
+                    current = current.decode('utf-8', errors='replace')
+                should_be_discrete = (
+                    name.lower() in {'iflux', 'synth', 'phot', 'obs'}
+                    or (obs_len is not None and length == obs_len and length < max_len)
+                    or (length < max_len and max_len >= 100 and length <= 500)
+                )
+                if should_be_discrete and current != 'discrete':
+                    ds.attrs['datatype'] = 'discrete'
+                    if 'label' not in ds.attrs and name.lower() == 'iflux':
+                        ds.attrs['label'] = 'Synth. photometry'
+                    updated += 1
+    return updated
 
 
 def _apply_fit_group_attrs(

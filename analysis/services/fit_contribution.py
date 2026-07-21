@@ -179,10 +179,10 @@ def _fit_dict_from_legacy(data: dict, *, fit_id: str | None = None) -> dict[str,
     return fit
 
 
-def _model_series_from_block(model_block: dict) -> dict[str, tuple]:
+def _model_series_from_block(model_block: dict) -> dict[str, Any]:
     import numpy as np
 
-    series: dict[str, tuple] = {}
+    series: dict[str, Any] = {}
     for name, dataset in model_block.items():
         if hasattr(dataset, 'dtype') and getattr(dataset.dtype, 'names', None):
             names = dataset.dtype.names
@@ -192,7 +192,18 @@ def _model_series_from_block(model_block: dict) -> dict[str, tuple]:
             x = np.asarray(dataset[xkey], dtype=float)
             y = np.asarray(dataset[ykey], dtype=float)
             err = np.asarray(dataset[errkey], dtype=float) if errkey else None
-            series[name] = (x, y, err)
+            meta = getattr(dataset, 'meta', None) or {}
+            datatype = meta.get('datatype') or 'continuous'
+            if isinstance(datatype, bytes):
+                datatype = datatype.decode('utf-8', errors='replace')
+            label = meta.get('label')
+            if isinstance(label, bytes):
+                label = label.decode('utf-8', errors='replace')
+            series[name] = {
+                'data': (x, y, err),
+                'datatype': datatype,
+                'label': label,
+            }
     return series
 
 

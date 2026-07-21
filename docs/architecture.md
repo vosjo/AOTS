@@ -112,6 +112,12 @@ After the RV consolidation release, migrate legacy RV HDF5 files to the v2 multi
 python manage.py migrate_rv_hdf5_layout
 ```
 
+Migration `0027_fix_analysis_id_sequence` restores the PostgreSQL sequence on
+`analysis_analysis.id` (lost when the former MTI `datasource_ptr_id` PK became a
+standalone column). Without it, new analysis uploads fail with
+`null value in column "id" … violates not-null constraint`. Apply via
+`python manage.py migrate`.
+
 ## Interoperability (`interop` app)
 
 Bidirectional exchange with [ASTRA](https://github.com/schedar/ASTRA) `.astra` star packages. User-facing docs: [`docs/interoperability.md`](interoperability.md).

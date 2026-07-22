@@ -3,9 +3,9 @@
     <header class="space-y-2">
       <h1 class="text-2xl font-semibold tracking-tight">Documentation</h1>
       <p class="text-aots-muted">
-        AOTS (Archive of Observations and Time Series) is a project-based archive for
-        stellar systems, spectra, light curves, and model analyses — with shared parameters,
-        plots, and optional exchange with ASTRA.
+        AOTS (Astronomical Observation Tracking System) is a project-based observation tracking system 
+        and data archive for stellar systems, spectra, light curves and model analyses and plots. It also 
+        allows for optional exchange with ASTRA.
       </p>
     </header>
 
@@ -51,7 +51,6 @@
       <p class="text-aots-muted">
         Scalar parameters from catalogues and analyses feed a per-star
         <strong class="text-aots">consensus</strong> value (rules are configurable per project).
-        The top navigation switches between Dashboard, Systems, Spectra, Light curves, Observatories, and Analyses.
       </p>
     </section>
 
@@ -81,7 +80,7 @@
         Under <strong class="text-aots">Systems</strong> you manage stars: create one by one or via CSV bulk upload,
         assign <strong class="text-aots">tags</strong>, and store catalogue identifiers.
         From the systems list you can enrich selected (or all) stars with external data such as
-        Gaia DR3, SIMBAD aliases, VizieR photometry, or TESS-related fetches (background jobs where configured).
+        Gaia DR3, SIMBAD aliases, VizieR photometry, or TESS-related fetches.
       </p>
       <p class="text-aots-muted">
         The <strong class="text-aots">star detail</strong> page shows identifiers, parameters (consensus and other measurements),
@@ -230,8 +229,7 @@
         </p>
         <p class="text-aots-muted">
           Prefer the <a class="text-aots-link hover:text-aots-link-hover" href="#layout-v2">multi-fit v2</a>
-          layout for RV, spectral, light-curve, and SED fits. Legacy root
-          <code class="text-sm">PARAMETERS</code> / <code class="text-sm">MODEL</code> files still work.
+          layout for RV, spectral, light-curve, and SED fits. Legacy files still work.
         </p>
       </section>
 
@@ -240,7 +238,7 @@
         <p class="text-aots-muted">Every file must identify the star. Matching order:</p>
         <ol class="list-decimal space-y-2 pl-5 text-aots-muted">
           <li>
-            If root attributes <code class="text-sm">ra</code> and <code class="text-sm">dec</code>
+            If attributes <code class="text-sm">ra</code> and <code class="text-sm">dec</code>
             are both non-zero (degrees; sexagesimal strings are accepted), AOTS finds a star
             in the project within ±0.01° and picks the closest.
           </li>
@@ -251,20 +249,20 @@
           </li>
         </ol>
         <p class="text-aots-muted">
-          Optional root metadata: <code class="text-sm">name</code> (analysis title),
+          Optional metadata: <code class="text-sm">name</code> (analysis title),
           <code class="text-sm">note</code>, <code class="text-sm">reference</code> (ADS bibcode).
         </p>
         <p class="text-aots-muted">
           <strong class="text-aots">ISIS SED</strong> files use group
           <code class="text-sm">info/</code> (<code class="text-sm">oname</code>,
-          <code class="text-sm">jradeg</code>, <code class="text-sm">jdedeg</code>) instead of these root attributes.
+          <code class="text-sm">jradeg</code>, <code class="text-sm">jdedeg</code>) instead of the above attributes.
         </p>
       </section>
 
       <section id="categories" class="mt-8 scroll-mt-20 space-y-3">
         <h2 class="text-xl font-semibold">Categories and <code class="text-lg">type</code></h2>
         <p class="text-aots-muted">
-          Set root attribute <code class="text-sm">type</code> so AOTS can classify the file.
+          Set attribute <code class="text-sm">type</code> so AOTS can classify the file.
           You can also choose a category in the upload dialog if detection fails.
         </p>
         <div class="overflow-x-auto rounded border border-aots">
@@ -309,7 +307,7 @@
         <h2 class="text-xl font-semibold">Multi-fit v2 layout (recommended)</h2>
         <p class="text-aots-muted">
           One container file per dataset (star / spectrum / light curve) can hold several fits under
-          <code class="text-sm">FITS/&lt;fit_id&gt;/</code>. Shared observations live in <code class="text-sm">DATA/</code>.
+          <code class="text-sm">FITS/&lt;fit_id&gt;/</code>. Observations live in <code class="text-sm">DATA/</code>.
         </p>
         <pre class="overflow-x-auto rounded border border-aots bg-aots-muted/10 p-3 text-xs leading-relaxed text-aots"><code>/
   @type                         # RC | XF | LC | SF | …
@@ -317,7 +315,7 @@
   @best_fit_id                  # id of the preferred fit
   @systemname, @ra, @dec
   @name, @note, @reference      # optional
-  DATA/                         # shared observations
+  DATA/                         # observations
   FITS/&lt;fit_id&gt;/
     @isBestFit, @label, @method # optional metadata
     PARAMETERS/                 # scalar fit parameters
@@ -420,8 +418,8 @@
           <p class="text-aots-muted">Two layouts are accepted:</p>
           <ul class="list-disc space-y-1 pl-5 text-aots-muted">
             <li>
-              <strong class="text-aots">Generic AOTS:</strong>
-              <code class="text-sm">type=SF</code>, photometry in <code class="text-sm">DATA/</code>
+              <strong class="text-aots">Generic AOTS:</strong> 
+              photometry in <code class="text-sm">DATA/</code>
               (e.g. <code class="text-sm">Obs</code>), continuous model (e.g. <code class="text-sm">tmap</code>)
               and discrete synthetic photometry as separate MODEL series, plus
               <code class="text-sm">PARAMETERS/</code>.

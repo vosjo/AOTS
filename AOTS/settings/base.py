@@ -100,7 +100,7 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'AOTS API',
-    'DESCRIPTION': 'Archive of Observations and Time Series API',
+    'DESCRIPTION': 'Astronomical Observation Tracking System API',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }

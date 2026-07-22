@@ -55,7 +55,8 @@ class PasswordResetApiTests(TestCase):
             f'/api/auth/password-reset/validate/?uid={uid}&token={token}',
         )
         self.assertEqual(validate.status_code, 200)
-        self.assertEqual(validate.json()['username'], 'resetuser')
+        self.assertTrue(validate.json()['valid'])
+        self.assertNotIn('username', validate.json())
 
         confirm = self.client.post(
             '/api/auth/password-reset/confirm/',

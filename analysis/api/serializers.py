@@ -38,6 +38,7 @@ class AnalysisListSerializer(ObjectPermissionFieldsMixin, ProjectFieldGuardMixin
     category_color = SerializerMethodField()
     href = SerializerMethodField()
     file_url = SerializerMethodField()
+    datafile = SerializerMethodField()
     added_on = SerializerMethodField()
 
     class Meta:
@@ -82,7 +83,11 @@ class AnalysisListSerializer(ObjectPermissionFieldsMixin, ProjectFieldGuardMixin
         return analysis_detail_url(obj.project.slug, obj.pk)
 
     def get_file_url(self, obj):
-        return obj.datafile.url
+        from AOTS.media_signing import signed_filefield_url
+        return signed_filefield_url(obj.datafile, original_name=obj.original_name)
+
+    def get_datafile(self, obj):
+        return self.get_file_url(obj)
 
 
 class AnalysisParameterSerializer(ModelSerializer):

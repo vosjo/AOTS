@@ -1,6 +1,5 @@
 """AOTS URL Configuration"""
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView, TemplateView
@@ -15,11 +14,13 @@ from AOTS.api_auth import (
     auth_logout,
     auth_token,
     me,
+    me_credentials,
     password_change_api,
     password_reset_confirm,
     password_reset_request,
     password_reset_validate,
 )
+from AOTS.media_views import media_download
 from AOTS.spa_views import spa_index
 from AOTS.views import health_check
 from dash.api_views import dashboard_bootstrap, dashboard_starmap
@@ -46,6 +47,7 @@ urlpatterns = [
     ),
 
     path('api/me/', me, name='api-me'),
+    path('api/me/credentials/', me_credentials, name='api-me-credentials'),
     path('api/bootstrap/', app_bootstrap, name='api-bootstrap'),
     path('api/admin/', include('AOTS.admin_api.urls')),
     path('api/auth/csrf/', auth_csrf, name='api-auth-csrf'),
@@ -57,6 +59,11 @@ urlpatterns = [
     path('api/auth/password-reset/', password_reset_request, name='api-password-reset'),
     path('api/auth/password-reset/validate/', password_reset_validate, name='api-password-reset-validate'),
     path('api/auth/password-reset/confirm/', password_reset_confirm, name='api-password-reset-confirm'),
+    re_path(
+        r'^api/media/(?P<token>[\w:=\._-]+)/$',
+        media_download,
+        name='api-media-download',
+    ),
     path(
         'api/dash/<slug:project_slug>/',
         dashboard_bootstrap,
@@ -86,9 +93,12 @@ urlpatterns = [
         'api/interop/',
         include('interop.api.urls', namespace='interop-api'),
     ),
+]
 
-    path('django-admin/', admin.site.urls),
+if settings.DJANGO_ADMIN_ENABLED:
+    urlpatterns.append(path('django-admin/', admin.site.urls))
 
+urlpatterns += [
     path('', RedirectView.as_view(url='/w/projects/', permanent=False)),
     re_path(r'^accounts/.*$', spa_index),
     path('w/projects/', spa_index, name='projects'),
@@ -99,4 +109,16 @@ urlpatterns = [
         r'^app/(?P<path>.*)$',
         RedirectView.as_view(url='/%(path)s', permanent=False),
     ),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Dev only: serve public media subtree directly. Private files use signed URLs.
+if settings.DEBUG:
+    from django.views.static import serve as static_serve
+
+    urlpatterns += [
+        re_path(
+            r'^media/public/(?P<path>.*)$',
+            static_serve,
+            {'document_root': settings.MEDIA_ROOT / 'public'},
+        ),
+    ]

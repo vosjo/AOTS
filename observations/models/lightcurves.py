@@ -62,10 +62,16 @@ class LightCurve(models.Model):
 
     note = models.TextField(default='', blank=True)
 
-    lcfile = models.FileField(upload_to='lightcurves/')
+    original_name = models.CharField(max_length=255, blank=True, default='')
+    lcfile = models.FileField(upload_to=fileio.get_lightcurve_path)
 
     # -- bookkeeping
     history = HistoricalRecords(cascade_delete_history=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['project', 'hjd'], name='obs_lc_proj_hjd_idx'),
+        ]
 
     def save(self, *args, **kwargs):
         from AOTS.project_scoping import require_same_project

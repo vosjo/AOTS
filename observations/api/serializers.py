@@ -166,8 +166,9 @@ class SpectrumSpecFileDetailSerializer(ModelSerializer):
         read_only_fields = fields
 
     def get_download_url(self, obj):
+        from AOTS.media_signing import signed_filefield_url
         if obj.specfile:
-            return obj.specfile.url
+            return signed_filefield_url(obj.specfile, original_name=obj.original_name)
         return ''
 
     def get_header_url(self, obj):
@@ -442,6 +443,7 @@ class SpecFileSerializer(ModelSerializer):
     spectrum = SerializerMethodField()
     added_on = SerializerMethodField()
     filename = SerializerMethodField()
+    specfile = SerializerMethodField()
 
     class Meta:
         model = SpecFile
@@ -482,7 +484,11 @@ class SpecFileSerializer(ModelSerializer):
         return Time(obj.history.earliest().history_date, precision=0).iso
 
     def get_filename(self, obj):
-        return obj.specfile.name.split('/')[-1]
+        return (obj.original_name or obj.specfile.name).split('/')[-1]
+
+    def get_specfile(self, obj):
+        from AOTS.media_signing import signed_filefield_url
+        return signed_filefield_url(obj.specfile, original_name=obj.original_name)
 
 
 class SimpleSpecFileSerializer(ModelSerializer):
@@ -735,8 +741,9 @@ class LightCurveDetailSerializer(LightCurveSerializer):
         return obj.observatory.short_name
 
     def get_download_url(self, obj):
+        from AOTS.media_signing import signed_filefield_url
         if obj.lcfile:
-            return obj.lcfile.url
+            return signed_filefield_url(obj.lcfile, original_name=obj.original_name)
         return ''
 
     def get_header_url(self, obj):

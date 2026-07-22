@@ -28,7 +28,7 @@ class BulkDownloadFilenameTests(TestCase):
 class BulkDownloadCleanupTests(TestCase):
     @override_settings(BULK_DOWNLOAD_TTL_SECONDS=60)
     def test_cleanup_removes_old_zip(self):
-        path = bulk_download_artifact_path('test-cleanup-task')
+        path = bulk_download_artifact_path('22222222-2222-4222-8222-222222222222')
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'wb') as handle:
             handle.write(b'zip')

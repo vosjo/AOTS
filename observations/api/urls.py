@@ -108,12 +108,12 @@ urlpatterns = [
         name='bulk-download-start',
     ),
     path(
-        'bulk-download/<str:task_id>/file/',
+        'bulk-download/<uuid:task_id>/file/',
         bulkDownloadFile,
         name='bulk-download-file',
     ),
     path(
-        'tasks/<str:task_id>/',
+        'tasks/<uuid:task_id>/',
         getTaskStatus,
         name='task-status',
     ),

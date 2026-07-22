@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
 
@@ -7,6 +8,8 @@ from AOTS.custom_permissions import IsAllowedOnProject
 def get_object_if_allowed(model, request, pk, select_related=None, require_edit=False):
     """
     Load an object by primary key and enforce project permissions.
+
+    Read denials raise Http404 (not 403) to avoid existence oracles.
     """
     queryset = model.objects.all()
     if select_related:
@@ -15,12 +18,12 @@ def get_object_if_allowed(model, request, pk, select_related=None, require_edit=
 
     if require_edit:
         if request.user.is_anonymous or not request.user.can_edit(obj):
-            raise PermissionDenied()
+            raise Http404()
         return obj
 
     permission = IsAllowedOnProject()
     if not permission.has_object_permission(request, None, obj):
-        raise PermissionDenied()
+        raise Http404()
 
     return obj
 

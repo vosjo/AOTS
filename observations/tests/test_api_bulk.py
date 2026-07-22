@@ -127,9 +127,10 @@ class BulkApiTests(TestCase):
     def test_task_status_forbidden_for_other_user(self):
         from AOTS.task_metadata import store_task_owner
 
-        store_task_owner('fake-task-id', self.api_user.pk)
+        task_id = '11111111-1111-4111-8111-111111111111'
+        store_task_owner(task_id, self.api_user.pk)
         self.client.force_authenticate(user=self.user)
-        response = self.client.get('/api/observations/tasks/fake-task-id/')
+        response = self.client.get(f'/api/observations/tasks/{task_id}/')
         self.assertEqual(response.status_code, 403)
 
     def test_api_key_auth_on_bulk_upload_missing_project(self):

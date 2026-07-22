@@ -10,7 +10,6 @@ const router = useRouter()
 const uidb64 = String(route.params.uidb64)
 const token = String(route.params.token)
 
-const username = ref('')
 const newPassword1 = ref('')
 const newPassword2 = ref('')
 const loading = ref(true)
@@ -20,10 +19,9 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const res = await api<{ valid: boolean; username: string }>(
+    await api<{ valid: boolean }>(
       `/api/auth/password-reset/validate/?uid=${encodeURIComponent(uidb64)}&token=${encodeURIComponent(token)}`,
     )
-    username.value = res.username
   } catch (e) {
     linkError.value = formatApiError(e)
   } finally {
@@ -66,7 +64,7 @@ async function submit() {
 
     <template v-else>
       <p class="text-sm text-aots-muted">
-        Set a new password for <strong>{{ username }}</strong>.
+        Choose a new password for your account.
       </p>
       <form class="space-y-3" @submit.prevent="submit">
         <input

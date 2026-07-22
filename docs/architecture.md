@@ -137,4 +137,8 @@ Bidirectional exchange with [ASTRA](https://github.com/schedar/ASTRA) `.astra` s
 
 **RV curves:** one `Analysis(rv_curve)` per star; shared `DATA/measurements` plus `FITS/` groups (`analysis/auxil/multi_fit_hdf5.py`, `rv_hdf5.py`). Spectral/LC containers link via `spectrum` / `lightcurve` FKs; best-fit is stored in HDF5 `best_fit_id` and `AnalysisFit.is_best_fit` (not `Analysis.is_best_fit`).
 
+## Private media
+
+Science files (`SpecFile`, `RawSpecFile`, `LightCurve`, `Analysis`) are stored under opaque UUID names (`AOTS.media_signing.opaque_upload_to`). API responses expose short-lived signed URLs (`/api/media/<token>/`). In production nginx serves them via `X-Accel-Redirect` to an `internal` `/protected-media/` location; logos/profile pictures remain under `/media/public/`. After deploy: `migrate` then `python manage.py migrate_media_to_uuid`.
+
 **API:** `POST /api/interop/astra/import/`, `POST /api/interop/astra/export/`, task status via `GET /api/observations/tasks/<task_id>/`.

@@ -1,6 +1,6 @@
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -228,7 +228,7 @@ def star_detail_bootstrap(request, pk):
     )
     permission = IsAllowedOnProject()
     if not permission.has_object_permission(request, None, star):
-        raise PermissionDenied()
+        raise Http404()
     return Response(build_star_detail_payload(star, request))
 
 

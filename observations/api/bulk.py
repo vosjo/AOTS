@@ -210,9 +210,19 @@ def bulkUploadSpectra(request, **kwargs):
     if form_err:
         return form_err
 
+    from AOTS.upload_validation import validate_science_upload
+    from django.core.exceptions import ValidationError as DjangoValidationError
+
     specfile_pks = []
     for f in files:
-        newspec = SpecFile(specfile=f, project=project)
+        try:
+            validate_science_upload(f, allow_fits=True, allow_hdf5=True, allow_text=False)
+        except DjangoValidationError as exc:
+            return Response(
+                {'detail': '; '.join(exc.messages)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        newspec = SpecFile(specfile=f, project=project, original_name=getattr(f, 'name', '')[:255])
         newspec.save()
         specfile_pks.append(newspec.pk)
 
@@ -288,8 +298,17 @@ def bulkUploadLightCurves(request, **kwargs):
     returned_messages = []
     n_exceptions = 0
 
+    from AOTS.upload_validation import validate_science_upload
+    from django.core.exceptions import ValidationError as DjangoValidationError
+
     for f in files:
-        newlc = LightCurve(project=project)
+        try:
+            validate_science_upload(f, allow_fits=True, allow_hdf5=False, allow_text=True)
+        except DjangoValidationError as exc:
+            returned_messages.append('; '.join(exc.messages))
+            n_exceptions += 1
+            continue
+        newlc = LightCurve(project=project, original_name=getattr(f, 'name', '')[:255])
         newlc.lcfile.save(f.name, f, save=True)
         if not newlc.lcfile:
             returned_messages.append(f'Could not store uploaded file: {f.name}')
@@ -365,13 +384,17 @@ def bulkDownloadStart(request, **kwargs):
 @authentication_classes(BULK_AUTH)
 @permission_classes([IsAuthenticated])
 def bulkDownloadFile(request, task_id):
+    task_id = str(task_id)
     if not user_may_view_task(request.user, task_id):
         return Response(
             {'detail': 'Not allowed to access this task.'},
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    path = bulk_download_artifact_path(task_id)
+    try:
+        path = bulk_download_artifact_path(task_id)
+    except ValueError:
+        return Response({'detail': 'Invalid task id.'}, status=status.HTTP_400_BAD_REQUEST)
     if not os.path.isfile(path):
         result = AsyncResult(task_id)
         if not result.ready():
@@ -403,6 +426,7 @@ def bulkDownloadFile(request, task_id):
 @authentication_classes(BULK_AUTH)
 @permission_classes([IsAuthenticated])
 def getTaskStatus(request, task_id):
+    task_id = str(task_id)
     if not user_may_view_task(request.user, task_id):
         return Response(
             {'detail': 'Not allowed to access this task.'},

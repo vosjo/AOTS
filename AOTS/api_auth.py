@@ -86,8 +86,8 @@ def _me_payload(user):
         'username': user.username,
         'email': user.email,
         'is_superuser': user.is_superuser,
-        'api_key': user.api_key,
         'has_api_secret': bool(user.api_secret),
+        'has_api_key': bool(user.api_key),
     }
 
 
@@ -96,6 +96,16 @@ def _me_payload(user):
 @permission_classes([AllowAny])
 def me(request):
     return Response(_me_payload(request.user))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def me_credentials(request):
+    """Return API public key (secret is never returned after creation)."""
+    return Response({
+        'api_key': request.user.api_key,
+        'has_api_secret': bool(request.user.api_secret),
+    })
 
 
 @ensure_csrf_cookie
@@ -186,9 +196,11 @@ def password_change_api(request):
         return Response({'new_password1': list(exc.messages)}, status=400)
     request.user.set_password(new1)
     request.user.save()
+    from AOTS.session_security import flush_other_sessions
+    flush_other_sessions(request.user, request=request)
     login(request, request.user)
     return Response({
-        'detail': 'Password changed.',
+        'detail': 'Password changed. Other sessions have been signed out.',
         'csrfToken': get_token(request),
     })
 
@@ -214,6 +226,7 @@ def password_reset_request(request):
 @ensure_csrf_cookie
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@throttle_classes([PasswordResetRateThrottle])
 def password_reset_validate(request):
     uidb64 = request.query_params.get('uid', '')
     token = request.query_params.get('token', '')
@@ -223,7 +236,7 @@ def password_reset_validate(request):
             {'detail': 'Invalid or expired reset link.'},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    return Response({'valid': True, 'username': user.username})
+    return Response({'valid': True})
 
 
 @ensure_csrf_cookie
@@ -251,4 +264,11 @@ def password_reset_confirm(request):
 
     user.set_password(new1)
     user.save()
-    return Response({'detail': 'Password has been reset.'})
+    from AOTS.session_security import flush_other_sessions
+    flush_other_sessions(user, request=None)
+    return Response({
+        'detail': (
+            'Password has been reset. Other sessions have been signed out. '
+            'API key credentials were not rotated; regenerate them if the account may have been compromised.'
+        ),
+    })

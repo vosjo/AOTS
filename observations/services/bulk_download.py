@@ -46,6 +46,12 @@ def bulk_download_directory():
 
 
 def bulk_download_artifact_path(task_id):
+    import re
+    if not re.fullmatch(
+        r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
+        str(task_id),
+    ):
+        raise ValueError('Invalid task_id')
     return os.path.join(bulk_download_directory(), f'{task_id}.zip')
 
 
@@ -88,9 +94,13 @@ def resolve_rawspecfiles_queryset(project, requested_ids, user):
 
 
 def collect_processed_download_entries(spectra_qs):
+    from AOTS.media_signing import safe_download_basename
     entries = []
     for spec in spectra_qs:
-        star_name = spec.star.name if spec.star else 'unknown'
+        star_name = safe_download_basename(
+            (spec.star.name if spec.star else 'unknown').replace(' ', '_'),
+            fallback='unknown',
+        )
         for i, specfile in enumerate(spec.specfile_set.all()):
             entries.append((
                 specfile.specfile.path,
@@ -100,13 +110,19 @@ def collect_processed_download_entries(spectra_qs):
 
 
 def collect_raw_spectra_download_entries(spectra_qs):
+    from AOTS.media_signing import safe_download_basename
     entries = []
     for spec in spectra_qs:
-        star_name = (spec.star.name if spec.star else 'unknown').strip().replace(' ', '_')
+        star_name = safe_download_basename(
+            (spec.star.name if spec.star else 'unknown').strip().replace(' ', '_'),
+            fallback='unknown',
+        )
         for specfile in spec.specfile_set.all():
             hjd = specfile.hjd
             for raw in specfile.rawspecfile_set.all():
-                basename = os.path.basename(raw.rawfile.name)
+                basename = safe_download_basename(
+                    getattr(raw, 'original_name', '') or raw.rawfile.name,
+                )
                 entries.append((
                     raw.rawfile.path,
                     f'{star_name}/{hjd}/{basename}',
@@ -115,9 +131,12 @@ def collect_raw_spectra_download_entries(spectra_qs):
 
 
 def collect_rawspecfile_download_entries(rawspecfile_qs):
+    from AOTS.media_signing import safe_download_basename
     entries = []
     for raw in rawspecfile_qs:
-        basename = os.path.basename(raw.rawfile.name)
+        basename = safe_download_basename(
+            getattr(raw, 'original_name', '') or raw.rawfile.name,
+        )
         entries.append((raw.rawfile.path, basename))
     return entries
 
@@ -145,17 +164,23 @@ def resolve_analyses_queryset(project, requested_ids, user):
 
 
 def collect_lightcurve_download_entries(lightcurve_qs):
+    from AOTS.media_signing import safe_download_basename
     entries = []
     for lc in lightcurve_qs:
-        basename = os.path.basename(lc.lcfile.name)
+        basename = safe_download_basename(
+            getattr(lc, 'original_name', '') or lc.lcfile.name,
+        )
         entries.append((lc.lcfile.path, basename))
     return entries
 
 
 def collect_analysis_download_entries(analysis_qs):
+    from AOTS.media_signing import safe_download_basename
     entries = []
     for analysis in analysis_qs:
-        basename = os.path.basename(analysis.datafile.name)
+        basename = safe_download_basename(
+            getattr(analysis, 'original_name', '') or analysis.datafile.name,
+        )
         entries.append((analysis.datafile.path, basename))
     return entries
 
@@ -183,16 +208,30 @@ def build_zip_archive(file_entries):
     file_entries: iterable of (source_path, arcname_within_zip).
     Caller must delete the parent temp directory when done.
     """
+    from AOTS.media_signing import safe_download_basename
+
     temp_directory = tempfile.mkdtemp(prefix='aots_bulk_')
     subdir = os.path.join(temp_directory, 'spec_dir')
     os.makedirs(subdir, exist_ok=True)
 
     for source_path, arcname in file_entries:
-        dest = os.path.join(subdir, arcname)
-        parent = os.path.dirname(dest)
+        # Prevent ZIP path traversal (M2): keep arcnames relative and without '..'
+        parts = []
+        for part in str(arcname).replace('\\', '/').split('/'):
+            cleaned = safe_download_basename(part, fallback='')
+            if cleaned:
+                parts.append(cleaned)
+        if not parts:
+            continue
+        safe_arc = '/'.join(parts)
+        dest = os.path.join(subdir, safe_arc)
+        dest_norm = os.path.normpath(dest)
+        if not dest_norm.startswith(os.path.normpath(subdir) + os.sep):
+            continue
+        parent = os.path.dirname(dest_norm)
         if parent:
             os.makedirs(parent, exist_ok=True)
-        shutil.copy2(source_path, dest)
+        shutil.copy2(source_path, dest_norm)
 
     zip_base = os.path.join(temp_directory, 'files')
     shutil.make_archive(zip_base, 'zip', subdir)

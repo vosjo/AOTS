@@ -3,6 +3,7 @@ Production settings for AOTS.
 """
 
 from .base import CELERY_BROKER_URL, REST_FRAMEWORK as BASE_REST_FRAMEWORK, env
+from .base import SPECTACULAR_SETTINGS as BASE_SPECTACULAR_SETTINGS
 
 DEBUG = False
 
@@ -20,6 +21,21 @@ DATABASES = {
 }
 
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+
+# Local MTA (sendmail replacement) on localhost:25 by default.
+EMAIL_BACKEND = env(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.smtp.EmailBackend',
+)
+EMAIL_HOST = env('EMAIL_HOST', default='localhost')
+EMAIL_PORT = env.int('EMAIL_PORT', default=25)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=False)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+
+# Private media downloads use nginx X-Accel-Redirect in production.
+MEDIA_USE_X_ACCEL = env.bool('MEDIA_USE_X_ACCEL', default=True)
 
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)
 SESSION_COOKIE_SECURE = True
@@ -63,12 +79,17 @@ CONTENT_SECURITY_POLICY = {
         # No inline scripts in spa/index.html; Bokeh uses json_item + CDN only.
         # Do not use 'strict-dynamic' here — it disables 'self' for parser-inserted scripts.
         'script-src': ("'self'", 'https://cdn.bokeh.org', "'wasm-unsafe-eval'"),
+        # Vue and Bokeh inject inline styles; nonces would require broader SPA rework.
         'style-src': ("'self'", "'unsafe-inline'"),
+        # Aladin HiPS tiles come from many survey hosts; keep https: wildcard for img.
         'img-src': ("'self'", 'data:', 'blob:', 'https:'),
         'media-src': ("'self'", 'data:', 'blob:'),
         'connect-src': ("'self'", 'data:', 'blob:', *_ALADIN_CONNECT_SRC),
         'worker-src': ("'self'", 'blob:'),
         'font-src': ("'self'", 'data:'),
+        'object-src': ("'none'",),
+        'base-uri': ("'self'",),
+        'form-action': ("'self'",),
         'frame-ancestors': ("'self'",),
     },
 }
@@ -91,6 +112,11 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
+}
+
+SPECTACULAR_SETTINGS = {
+    **BASE_SPECTACULAR_SETTINGS,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAdminUser'],
 }
 
 LOGGING = {

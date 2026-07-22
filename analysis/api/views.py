@@ -116,6 +116,18 @@ def upload_analyses_api(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    from AOTS.upload_validation import validate_science_upload
+    from django.core.exceptions import ValidationError as DjangoValidationError
+
+    for uploaded in files:
+        try:
+            validate_science_upload(uploaded, allow_fits=False, allow_hdf5=True, allow_text=False)
+        except DjangoValidationError as exc:
+            return Response(
+                {'messages': [[False, '; '.join(exc.messages)]]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     upload_form = UploadAnalysisFileForm(request.POST, request.FILES)
     if not upload_form.is_valid():
         return Response(

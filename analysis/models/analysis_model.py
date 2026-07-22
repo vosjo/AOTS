@@ -10,6 +10,11 @@ from analysis.categories import AnalysisCategory, CategorySource, category_label
 from stars.models import Star, Project
 
 
+def _analysis_upload_to(instance, filename):
+    from AOTS.media_signing import opaque_upload_to
+    return opaque_upload_to('analyses')(instance, filename)
+
+
 class Analysis(models.Model):
     """HDF5 analysis result (RV, SED fit, etc.) — standalone, not a parameter source."""
 
@@ -49,7 +54,8 @@ class Analysis(models.Model):
     )
     file_type = models.CharField(max_length=32, default='', blank=True)
 
-    datafile = models.FileField(upload_to='analyses/')
+    original_name = models.CharField(max_length=255, blank=True, default='')
+    datafile = models.FileField(upload_to=_analysis_upload_to)
     fit = models.BooleanField(default=True)
     is_best_fit = models.BooleanField(default=False)
 

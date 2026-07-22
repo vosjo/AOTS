@@ -147,6 +147,18 @@ STATIC_ROOT = BASE_DIR / 'static'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
+# Private media: short-lived signed download URLs (see AOTS.media_signing)
+MEDIA_SIGNED_URL_MAX_AGE = env.int('MEDIA_SIGNED_URL_MAX_AGE', default=900)
+# Production nginx uses X-Accel-Redirect; development streams via Django.
+MEDIA_USE_X_ACCEL = env.bool('MEDIA_USE_X_ACCEL', default=False)
+
+# Upload size limits (keep in sync with nginx client_max_body_size)
+DATA_UPLOAD_MAX_MEMORY_SIZE = env.int('DATA_UPLOAD_MAX_MEMORY_SIZE', default=10 * 1024 * 1024)
+FILE_UPLOAD_MAX_MEMORY_SIZE = env.int('FILE_UPLOAD_MAX_MEMORY_SIZE', default=10 * 1024 * 1024)
+
+# Legacy Django admin at /django-admin/ (SPA admin is under /admin/)
+DJANGO_ADMIN_ENABLED = env.bool('DJANGO_ADMIN_ENABLED', default=True)
+
 # Celery (Phase 4)
 CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default=CELERY_BROKER_URL)
@@ -167,3 +179,4 @@ STARMAP_MAX_POINTS = env.int('STARMAP_MAX_POINTS', default=20_000)
 STARMAP_SYNC_MAX_STARS = env.int('STARMAP_SYNC_MAX_STARS', default=5_000)
 STARMAP_CACHE_TTL_SECONDS = env.int('STARMAP_CACHE_TTL_SECONDS', default=7 * 24 * 3600)
 STARMAP_BUILD_LOCK_TTL_SECONDS = env.int('STARMAP_BUILD_LOCK_TTL_SECONDS', default=600)
+import AOTS.checks  # noqa: E402,F401

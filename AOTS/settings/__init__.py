@@ -2,25 +2,26 @@
 Django settings entry point.
 
 Select environment via DJANGO_ENV=development|production.
-Falls back to DEVICE hostname matching for backwards compatibility.
+Unset or unknown values fail closed (ImproperlyConfigured).
 """
 
 import os
-import platform
+
+from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F401,F403
 
-from .base import env
-
 
 def _use_production_settings():
-    django_env = os.environ.get('DJANGO_ENV', '').lower()
+    django_env = os.environ.get('DJANGO_ENV', '').strip().lower()
     if django_env == 'production':
         return True
     if django_env == 'development':
         return False
-    device = env('DEVICE', default='')
-    return bool(device) and device in platform.node()
+    raise ImproperlyConfigured(
+        "DJANGO_ENV must be set to 'production' or 'development' "
+        f"(got {django_env!r}). Refusing to start with an ambiguous environment."
+    )
 
 
 if _use_production_settings():

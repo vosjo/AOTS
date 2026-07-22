@@ -86,6 +86,12 @@ class Spectrum(models.Model):
     # -- bookkeeping
     history = HistoricalRecords(cascade_delete_history=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['project', 'hjd'], name='obs_spec_proj_hjd_idx'),
+            models.Index(fields=['star'], name='obs_spec_star_idx'),
+        ]
+
     def save(self, *args, **kwargs):
         from AOTS.project_scoping import require_same_project
         if self.star_id:
@@ -234,6 +240,7 @@ class SpecFile(models.Model):
     instrument = models.CharField(max_length=200, default='')
     filetype = models.CharField(max_length=200, default='')
 
+    original_name = models.CharField(max_length=255, blank=True, default='')
     specfile = models.FileField(upload_to=fileio.get_specfile_path)
 
     #   Observation time
@@ -241,6 +248,11 @@ class SpecFile(models.Model):
 
     #   Bookkeeping
     history = HistoricalRecords(cascade_delete_history=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['project', 'hjd'], name='obs_spf_proj_hjd_idx'),
+        ]
 
     def save(self, *args, **kwargs):
         from AOTS.project_scoping import require_same_project
@@ -304,6 +316,7 @@ class RawSpecFile(models.Model):
     exptime = models.FloatField(default=-1.)  # s
 
     #   The raw file
+    original_name = models.CharField(max_length=255, blank=True, default='')
     rawfile = models.FileField(upload_to=fileio.get_rawfile_path)
 
     #   Observation time

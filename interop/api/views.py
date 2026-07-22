@@ -66,6 +66,7 @@ def astra_import_api(request):
 @authentication_classes(AUTH)
 @permission_classes([IsAuthenticated])
 def astra_import_status_api(request, task_id):
+    task_id = str(task_id)
     result = AsyncResult(task_id)
     if not user_may_view_task(request.user, task_id):
         return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
@@ -76,6 +77,7 @@ def astra_import_status_api(request, task_id):
 @authentication_classes(AUTH)
 @permission_classes([IsAuthenticated])
 def astra_import_result_api(request, task_id):
+    task_id = str(task_id)
     result = AsyncResult(task_id)
     if not user_may_view_task(request.user, task_id):
         return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
@@ -133,6 +135,7 @@ def astra_export_api(request):
 @authentication_classes(AUTH)
 @permission_classes([IsAuthenticated])
 def astra_export_file_api(request, task_id):
+    task_id = str(task_id)
     result = AsyncResult(task_id)
     if not user_may_view_task(request.user, task_id):
         return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)

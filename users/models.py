@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from AOTS.project_resolution import get_object_project
@@ -20,11 +21,21 @@ def get_unknown_user():
     return User.objects.get_or_create(username='unknown')[0]
 
 
+def _profile_picture_upload_to(instance, filename):
+    from AOTS.media_signing import opaque_upload_to
+    return opaque_upload_to('public/profile_pictures')(instance, filename)
+
+
 class User(AbstractUser):
     is_student = models.BooleanField(default=False)
     api_key = models.CharField(max_length=120, blank=True, null=True, unique=True)
     api_secret = models.CharField(max_length=140, blank=True, null=True)
-    profile_picture = models.FileField(upload_to='profile_pictures/', null=True, blank=True)
+    profile_picture = models.FileField(
+        upload_to=_profile_picture_upload_to,
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg', 'webp'])],
+    )
 
     note = models.TextField(default='')
 

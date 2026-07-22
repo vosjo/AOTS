@@ -445,14 +445,32 @@ def read_lightcurve(filename, return_header=False):
 
 
 def get_rawfile_path(instance, filename):
-    '''
-        Set path to save the raw data: Add project slug as directory
-    '''
-    return os.path.join('raw_spectra', str(instance.project.slug), filename)
+    '''Store raw spectra under opaque UUID filenames.'''
+    from AOTS.media_signing import opaque_upload_to
+    return opaque_upload_to('raw_spectra')(instance, filename)
 
 
 def get_specfile_path(instance, filename):
-    '''
-        Set path to save the spec file: Add project slug as directory
-    '''
-    return os.path.join('spectra', str(instance.project.slug), filename)
+    '''Store processed spectra under opaque UUID filenames.'''
+    from AOTS.media_signing import opaque_upload_to
+    return opaque_upload_to('spectra')(instance, filename)
+
+
+def get_lightcurve_path(instance, filename):
+    from AOTS.media_signing import opaque_upload_to
+    return opaque_upload_to('lightcurves')(instance, filename)
+
+
+def get_analysis_path(instance, filename):
+    from AOTS.media_signing import opaque_upload_to
+    return opaque_upload_to('analyses')(instance, filename)
+
+
+def get_project_logo_path(instance, filename):
+    from AOTS.media_signing import opaque_upload_to
+    return opaque_upload_to('public/projects')(instance, filename)
+
+
+def get_profile_picture_path(instance, filename):
+    from AOTS.media_signing import opaque_upload_to
+    return opaque_upload_to('public/profile_pictures')(instance, filename)

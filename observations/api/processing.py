@@ -47,14 +47,19 @@ def getSpecfileHeader(request, specfile_pk):
 
 @api_view(['GET'])
 def getSpecfilePath(request, specfile_pk):
+    from AOTS.media_signing import signed_filefield_url
     specfile = get_object_if_allowed(SpecFile, request, specfile_pk)
-    return Response(specfile.specfile.url)
+    return Response(signed_filefield_url(specfile.specfile, original_name=specfile.original_name))
 
 
 @api_view(['GET'])
 def getSpecfileRawPath(request, specfile_pk):
+    from AOTS.media_signing import signed_filefield_url
     specfile = get_object_if_allowed(SpecFile, request, specfile_pk)
-    path_list = [raw.rawfile.url for raw in specfile.rawspecfile_set.all()]
+    path_list = [
+        signed_filefield_url(raw.rawfile, original_name=raw.original_name)
+        for raw in specfile.rawspecfile_set.all()
+    ]
     return Response(path_list)
 
 
@@ -70,8 +75,9 @@ def processRawSpecfile(request, rawspecfile_pk):
 
 @api_view(['GET'])
 def getRawSpecfilePath(request, rawspecfile_pk):
+    from AOTS.media_signing import signed_filefield_url
     rawfile = get_object_if_allowed(RawSpecFile, request, rawspecfile_pk)
-    return Response(rawfile.rawfile.url)
+    return Response(signed_filefield_url(rawfile.rawfile, original_name=rawfile.original_name))
 
 
 @api_view(['POST'])
@@ -92,5 +98,6 @@ def getLightCurveHeader(request, lightcurve_pk):
 
 @api_view(['GET'])
 def getLightCurvePath(request, lightcurve_pk):
+    from AOTS.media_signing import signed_filefield_url
     lightcurve = get_object_if_allowed(LightCurve, request, lightcurve_pk)
-    return Response(lightcurve.lcfile.url)
+    return Response(signed_filefield_url(lightcurve.lcfile, original_name=lightcurve.original_name))

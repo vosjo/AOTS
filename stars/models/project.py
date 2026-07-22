@@ -2,11 +2,17 @@ import random
 import string
 
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
+
+
+def _project_logo_upload_to(instance, filename):
+    from AOTS.media_signing import opaque_upload_to
+    return opaque_upload_to('public/projects')(instance, filename)
 
 
 class Project(models.Model):
@@ -20,7 +26,12 @@ class Project(models.Model):
 
     description = models.TextField(default='')
 
-    logo = models.FileField(upload_to='projects/', null=True, blank=True)
+    logo = models.FileField(
+        upload_to=_project_logo_upload_to,
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg', 'webp'])],
+    )
 
     is_public = models.BooleanField(default=True)
 

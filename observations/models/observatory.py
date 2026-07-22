@@ -4,12 +4,29 @@ import astropy.units as u
 from astroplan import Observer
 from astropy.coordinates import EarthLocation
 from astropy.time import Time
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 
 from stars.models import Project
+
+
+def validate_weatherurl_template(value):
+    """Allow http(s) URLs or http(s) format templates; reject javascript:/data:."""
+    if not value:
+        return
+    raw = value.strip()
+    lower = raw.lower()
+    if lower.startswith(('javascript:', 'data:', 'vbscript:')):
+        raise ValidationError('Only http and https weather URLs are allowed.')
+    if '{' not in raw:
+        URLValidator(schemes=['http', 'https'])(raw)
+        return
+    if not (lower.startswith('http://') or lower.startswith('https://')):
+        raise ValidationError('Weather URL template must start with http:// or https://.')
 
 
 class Observatory(models.Model):
@@ -37,7 +54,12 @@ class Observatory(models.Model):
 
     url = models.CharField(max_length=150, default='', blank=True)
 
-    weatherurl = models.CharField(max_length=150, default='', blank=True)
+    weatherurl = models.CharField(
+        max_length=150,
+        default='',
+        blank=True,
+        validators=[validate_weatherurl_template],
+    )
 
     note = models.TextField(default='', blank=True)
 
@@ -66,18 +88,29 @@ class Observatory(models.Model):
     def get_weather_url(self, hjd=None):
         """
       Returns the weather url set to the given time (hjd). If no time is given, the current time
-      is used.
+      is used. Only http(s) templates are returned.
       """
         if hjd is None:
             hjd = Time.now()
 
         if self.weatherurl != '':
-            print(hjd)
+            raw = self.weatherurl.strip()
+            # Reject javascript:/data: etc. even if legacy rows bypassed the validator.
+            lower = raw.lower()
+            if not (lower.startswith('http://') or lower.startswith('https://') or '{year}' in raw):
+                # Allow format templates that expand to http(s)
+                if 'javascript:' in lower or 'data:' in lower:
+                    return ''
             t = Time(hjd, format='jd')
             dt = t.datetime
-            return self.weatherurl.format(year=dt.year, month=dt.month, day=dt.day,
-                                          hour=dt.hour, min=dt.minute, sec=dt.second,
-                                          mjd=t.mjd, hjd=t.jd)
+            url = self.weatherurl.format(
+                year=dt.year, month=dt.month, day=dt.day,
+                hour=dt.hour, min=dt.minute, sec=dt.second,
+                mjd=t.mjd, hjd=t.jd,
+            )
+            if not (url.lower().startswith('http://') or url.lower().startswith('https://')):
+                return ''
+            return url
         else:
             return ''
 

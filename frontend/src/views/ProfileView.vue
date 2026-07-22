@@ -17,6 +17,10 @@ onMounted(async () => {
     if (auth.isAuthenticated) {
       const res = await api<{ token: string }>('/api/auth/token/')
       token.value = res.token
+      const creds = await api<{ api_key: string | null; has_api_secret: boolean }>(
+        '/api/me/credentials/',
+      )
+      apiKey.value = creds.api_key
     }
   } catch (err) {
     error.value = formatApiError(err)
@@ -59,7 +63,7 @@ async function regenerateApiKey() {
 
     <section class="aots-panel space-y-2">
       <h2 class="font-medium">API key pair</h2>
-      <p class="text-sm text-aots">Public key: {{ auth.user?.api_key || '—' }}</p>
+      <p class="text-sm text-aots">Public key: {{ apiKey || '—' }}</p>
       <AppButton variant="link" @click="regenerateApiKey">Generate new API key</AppButton>
       <AppAlert v-if="apiSecret" kind="warning">
         Secret (shown once): {{ apiSecret }}

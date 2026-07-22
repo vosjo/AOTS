@@ -191,8 +191,8 @@ cp AOTS/.env.example  AOTS/.env
 
 ### 3. Adjust the .env file
 
-In .env the secret Django security key, the postgres database password, the server IP and URL, as well as the name of
-the computer used in production needs to be specified.
+In `.env` the secret Django security key, the postgres database password, and the server IP/URL need to be specified.
+`DJANGO_ENV` **must** be set to exactly `production` or `development`; unset or unknown values refuse to start.
 
 ```
 SECRET_KEY=generate_and_add_your_secret_security_key_here
@@ -203,15 +203,16 @@ DATABASE_USER=aotsuser
 DATABASE_PASSWORD=your_database_password
 DATABASE_HOST=localhost
 DATABASE_PORT=
-DEVICE=the_name_of_your_device_used_in_production
 ALLOWED_HOSTS=server_url,server_ip,localhost
 CSRF_TRUSTED_ORIGINS=https://your_server_url
+DEFAULT_FROM_EMAIL=aots@example.de
+EMAIL_HOST=localhost
+EMAIL_PORT=25
 CELERY_BROKER_URL=redis://localhost:6379/0
 ```
 
-Production uses the **Vue SPA only**: Django serves the app on `/w/`, `/accounts/`, `/admin/`, etc. `VITE_DEV` must be `False` so the shell loads `/static/dist/…`, not the Vite dev server. Django’s built-in admin UI is at `/django-admin/` if needed.
+Production uses the **Vue SPA only**: Django serves the app on `/w/`, `/accounts/`, `/admin/`, etc. `VITE_DEV` must be `False` so the shell loads `/static/dist/…`, not the Vite dev server. Django’s built-in admin UI is at `/django-admin/` if needed (`DJANGO_ADMIN_ENABLED=False` to disable).
 
-`DEVICE` is optional if `DJANGO_ENV=production` is set (legacy fallback: hostname match).
 `CELERY_BROKER_URL` is required for bulk downloads and other background jobs (see
 [Redis and background tasks (Celery)](#redis-and-background-tasks-celery)).
 
@@ -372,8 +373,12 @@ sudo nano /etc/nginx/sites-available/aots
 
 ```
 server {
-    listen 80;
+    listen 443 ssl http2;
     server_name a15.astro.physik.uni-potsdam.de;
+
+    # TLS certificates (adjust paths to your certbot/deployment layout)
+    # ssl_certificate     /etc/letsencrypt/live/example/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/example/privkey.pem;
 
     location /favicon.ico {
         alias /home/aots/www/aots/AOTS/static/favicon.ico;
@@ -386,9 +391,25 @@ server {
         root /home/aots/www/aots/AOTS;
     }
 
-    location /media/ {
-        root /home/aots/www/aots/AOTS;
+    # Public media only (project logos, profile pictures)
+    location /media/public/ {
+        alias /home/aots/www/aots/AOTS/media/public/;
     }
+
+    # Private media: only reachable via Django X-Accel-Redirect
+    location /protected-media/ {
+        internal;
+        alias /home/aots/www/aots/AOTS/media/;
+    }
+
+    # Optional: restrict legacy Django admin
+    # location /django-admin/ {
+    #     allow 127.0.0.1;
+    #     allow 141.89.0.0/16;
+    #     deny all;
+    #     include proxy_params;
+    #     proxy_pass http://unix:/home/aots/www/aots/run/gunicorn.sock;
+    # }
 
     # Django + SPA shell + REST API (Vue client-side routes must reach Gunicorn)
     location / {
@@ -407,7 +428,16 @@ server {
     }
 
 }
+
+# Redirect HTTP → HTTPS
+server {
+    listen 80;
+    server_name a15.astro.physik.uni-potsdam.de;
+    return 301 https://$host$request_uri;
+}
 ```
+
+**Media security note:** Do **not** expose a public `location /media/`. Private science files are downloaded via short-lived signed URLs (`/api/media/<token>/`); Django validates the token and returns `X-Accel-Redirect: /protected-media/...` so nginx streams the file. After deploying this config, run `python manage.py migrate` and `python manage.py migrate_media_to_uuid` in a maintenance window.
 
 Now, we can enable the file by linking it to the sites-enabled directory:
 

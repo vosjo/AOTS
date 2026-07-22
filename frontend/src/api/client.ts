@@ -103,7 +103,7 @@ export interface MeResponse {
   username?: string
   email?: string
   is_superuser?: boolean
-  api_key?: string | null
+  has_api_key?: boolean
   has_api_secret?: boolean
   csrfToken?: string
 }

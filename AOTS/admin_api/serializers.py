@@ -140,6 +140,15 @@ class AdminProjectSerializer(serializers.ModelSerializer):
                     pass
         return super().to_internal_value(mutable)
 
+    def validate_logo(self, value):
+        if value:
+            from AOTS.upload_validation import validate_image_upload
+            try:
+                validate_image_upload(value)
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError(list(exc.messages)) from exc
+        return value
+
     def create(self, validated_data):
         m2m_data = self._pop_m2m(validated_data)
         if not validated_data.get('slug'):

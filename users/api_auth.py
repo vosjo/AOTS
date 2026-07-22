@@ -1,11 +1,14 @@
 import logging
 
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 from rest_framework import authentication, exceptions
 
 from .models import User
 
 logger = logging.getLogger('AOTS.api_auth')
+
+# Dummy hash so unknown-key checks take similar time to valid-key checks (L1).
+_DUMMY_API_SECRET_HASH = make_password('aots-dummy-api-secret-timing')
 
 
 def validate_api_key(public_key, secret_key):
@@ -13,6 +16,7 @@ def validate_api_key(public_key, secret_key):
         User.objects.filter(api_key__iexact=public_key).order_by('pk').first()
     )
     if requesting_user is None:
+        check_password(secret_key, _DUMMY_API_SECRET_HASH)
         return None, False
     if check_password(secret_key, requesting_user.api_secret):
         return requesting_user, True

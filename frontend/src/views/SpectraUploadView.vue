@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppAlert from '@/components/AppAlert.vue'
@@ -90,6 +90,7 @@ const emptyForm = (): UploadForm => ({
 
 const route = useRoute()
 const router = useRouter()
+const queryClient = useQueryClient()
 const auth = useAuthStore()
 const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
@@ -212,13 +213,17 @@ async function upload() {
     })
     const detail = typeof res === 'string' ? res : (res.detail ?? '')
     const feedback = parseUploadFeedback(detail)
-    if (feedback.length && feedback.every((item) => item.kind === 'success')) {
-      router.push(`/w/${projectSlug.value}/observations/spectra/`)
+    const allOk = !feedback.length || feedback.every((item) => item.kind === 'success')
+    if (allOk) {
+      await queryClient.invalidateQueries({ queryKey: ['/api/observations/spectra/'] })
+      await queryClient.invalidateQueries({ queryKey: ['/api/observations/specfiles/'] })
+      await router.push({
+        path: `/w/${projectSlug.value}/observations/spectra/`,
+        query: { uploaded: '1' },
+      })
       return
     }
-    uploadFeedback.value = feedback.length
-      ? feedback
-      : [{ kind: 'success', title: 'Upload complete', detail: 'All files were imported.' }]
+    uploadFeedback.value = feedback
   } catch (e) {
     uploadFeedback.value = parseUploadFeedback(formatApiError(e))
   } finally {

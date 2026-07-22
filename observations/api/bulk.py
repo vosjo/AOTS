@@ -216,7 +216,7 @@ def bulkUploadSpectra(request, **kwargs):
     specfile_pks = []
     for f in files:
         try:
-            validate_science_upload(f, allow_fits=True, allow_hdf5=True, allow_text=False)
+            validate_science_upload(f, allow_fits=True, allow_hdf5=True, allow_text=True)
         except DjangoValidationError as exc:
             return Response(
                 {'detail': '; '.join(exc.messages)},

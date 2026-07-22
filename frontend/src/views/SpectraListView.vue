@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Plus } from '@lucide/vue'
-import { computed, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import DataTablePage from '@/components/DataTablePage.vue'
 import ListFilterPanel from '@/components/ListFilterPanel.vue'
@@ -30,12 +31,14 @@ interface SpectrumRow {
 }
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 const projectSlug = computed(() => route.params.projectSlug as string)
 const bulk = useBulkDownload()
 const filterOpen = ref(false)
+const uploadNotice = ref('')
 const { filters, clearFilters } = useSpectraSectionFilters(
   {
     target: '',
@@ -65,6 +68,23 @@ const rows = computed(() => query.data.value?.results ?? [])
 const selectedIds = computed(() => [...selected.value])
 const { emptyMessage } = useEmptyTableMessage({ query, filters, entity: 'spectra' })
 const anyRaw = computed(() => rows.value.some((r) => selectedIds.value.includes(r.pk) && r.has_raw_files))
+
+async function consumeUploadNotice() {
+  if (route.query.uploaded !== '1') return
+  uploadNotice.value = 'Spectrum upload completed. The list has been refreshed.'
+  await query.refetch()
+  const nextQuery = { ...route.query }
+  delete nextQuery.uploaded
+  await router.replace({ query: nextQuery })
+}
+
+watch(
+  () => route.query.uploaded,
+  () => {
+    void consumeUploadNotice()
+  },
+  { immediate: true },
+)
 
 async function deleteSelected() {
   if (!(await confirmAction({
@@ -98,6 +118,10 @@ function formatAirmass(value: number) {
 <template>
   <div class="space-y-4">
     <SpectraSectionNav />
+
+    <AppAlert v-if="uploadNotice" kind="success" title="Upload successful">
+      {{ uploadNotice }}
+    </AppAlert>
 
     <DataTablePage
       hide-title

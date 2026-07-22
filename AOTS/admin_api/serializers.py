@@ -142,7 +142,7 @@ class AdminProjectSerializer(serializers.ModelSerializer):
 
     def validate_logo(self, value):
         if value:
-            from AOTS.upload_validation import validate_image_upload
+            from AOTS.file_validation import validate_image_upload
             try:
                 validate_image_upload(value)
             except DjangoValidationError as exc:

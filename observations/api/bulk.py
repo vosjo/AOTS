@@ -210,7 +210,7 @@ def bulkUploadSpectra(request, **kwargs):
     if form_err:
         return form_err
 
-    from AOTS.upload_validation import validate_science_upload
+    from AOTS.file_validation import validate_science_upload
     from django.core.exceptions import ValidationError as DjangoValidationError
 
     specfile_pks = []
@@ -298,7 +298,7 @@ def bulkUploadLightCurves(request, **kwargs):
     returned_messages = []
     n_exceptions = 0
 
-    from AOTS.upload_validation import validate_science_upload
+    from AOTS.file_validation import validate_science_upload
     from django.core.exceptions import ValidationError as DjangoValidationError
 
     for f in files:

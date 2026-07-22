@@ -116,7 +116,7 @@ def upload_analyses_api(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    from AOTS.upload_validation import validate_science_upload
+    from AOTS.file_validation import validate_science_upload
     from django.core.exceptions import ValidationError as DjangoValidationError
 
     for uploaded in files:

@@ -10,7 +10,7 @@ const props = withDefaults(
     compact?: boolean
     vizierCatalog?: string
   }>(),
-  { compact: false },
+  { compact: false, fov: undefined, vizierCatalog: undefined },
 )
 
 const el = ref<HTMLElement | null>(null)
@@ -62,13 +62,22 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="aladin-map" :class="{ 'aladin-map--compact': compact }">
+  <div
+    class="aladin-map"
+    :class="{ 'aladin-map--compact': compact }"
+  >
     <div
       ref="el"
       class="aladin-map__viewport w-full rounded-lg border border-aots overflow-hidden relative"
       :class="compact ? 'h-44' : 'h-80'"
     />
-    <AppAlert v-if="error" kind="error" class="mt-2">{{ error }}</AppAlert>
+    <AppAlert
+      v-if="error"
+      kind="error"
+      class="mt-2"
+    >
+      {{ error }}
+    </AppAlert>
   </div>
 </template>
 

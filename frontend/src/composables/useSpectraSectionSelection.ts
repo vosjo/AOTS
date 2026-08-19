@@ -213,7 +213,7 @@ function syncRawsFromSpecfiles(rows: RawspecfileRow[]) {
 
 export function useSpectraSectionSelection() {
   function getSelectedSet(kind: SpectraSectionKind): Set<number> {
-    revision.value
+    void revision.value
     switch (kind) {
       case 'spectra':
         return asSet(state.value.spectra)

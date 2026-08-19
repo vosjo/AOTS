@@ -5,7 +5,6 @@ import AppButton from '@/components/AppButton.vue'
 import { api } from '@/api/client'
 import { confirmAction } from '@/composables/useConfirm'
 import { useProjectPermissions } from '@/composables/useProjectPermissions'
-import { useAuthStore } from '@/stores/auth'
 
 interface PolicyRow {
   id: number
@@ -62,7 +61,6 @@ interface Meta {
 }
 
 const route = useRoute()
-const auth = useAuthStore()
 const { canAdd } = useProjectPermissions()
 const slug = computed(() => route.params.projectSlug as string)
 const loading = ref(true)

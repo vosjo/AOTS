@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AppAlert from '@/components/AppAlert.vue'
-import AppButton from '@/components/AppButton.vue'
 
 defineProps<{
   success?: string | null

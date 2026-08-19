@@ -53,7 +53,7 @@ jobs:
         run: ruff check AOTS stars observations analysis users
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
 

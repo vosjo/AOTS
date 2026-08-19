@@ -9,8 +9,7 @@ import SystemsSectionNav from '@/components/SystemsSectionNav.vue'
 import { confirmAction } from '@/composables/useConfirm'
 import { useDataTablePage } from '@/composables/useDataTablePage'
 import { useEmptyTableMessage } from '@/composables/useEmptyTableMessage'
-import { api, formatApiError } from '@/api/client'
-import { useAuthStore } from '@/stores/auth'
+import { api } from '@/api/client'
 import { useProjectStore } from '@/stores/project'
 import { useProjectPermissions } from '@/composables/useProjectPermissions'
 
@@ -26,7 +25,6 @@ const DEFAULT_COLOR = '#8B0000'
 
 const route = useRoute()
 const projectSlug = computed(() => route.params.projectSlug as string)
-const auth = useAuthStore()
 const { canAdd } = useProjectPermissions()
 const projectStore = useProjectStore()
 

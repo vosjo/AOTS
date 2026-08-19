@@ -19,7 +19,6 @@ import AppButton from '@/components/AppButton.vue'
 import AladinMap from '@/components/AladinMap.vue'
 import BokehPlot from '@/components/BokehPlot.vue'
 import { api, formatApiError } from '@/api/client'
-import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/project'
 import { useAstraExport, astraDownloadFilename } from '@/composables/useAstraExport'
 import { confirmAction } from '@/composables/useConfirm'
@@ -212,7 +211,6 @@ const OBSERVING_STATUS_OPTIONS = [
 
 const route = useRoute()
 const router = useRouter()
-const auth = useAuthStore()
 const projectStore = useProjectStore()
 const astraExport = useAstraExport()
 const canEdit = computed(() => detail.value?.permissions?.can_edit === true)

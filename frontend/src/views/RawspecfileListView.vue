@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/vue-query'
 import { CheckCircle2, Plus, XCircle } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import DataTablePage from '@/components/DataTablePage.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'

@@ -27,8 +27,13 @@ const activeTab = computed(() => {
 
 <template>
   <header class="space-y-3">
-    <h1 class="text-2xl font-semibold text-aots-heading">Analyses</h1>
-    <nav class="aots-section-nav" aria-label="Analyses views">
+    <h1 class="text-2xl font-semibold text-aots-heading">
+      Analyses
+    </h1>
+    <nav
+      class="aots-section-nav"
+      aria-label="Analyses views"
+    >
       <RouterLink
         v-for="tab in tabs"
         :key="tab.id"

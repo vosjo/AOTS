@@ -12,6 +12,7 @@ const props = withDefaults(
   }>(),
   {
     kind: 'info',
+    title: undefined,
     centered: false,
     showIcon: true,
   },
@@ -39,15 +40,26 @@ const role = computed(() => (props.kind === 'error' || props.kind === 'warning' 
     :role="role"
     aria-live="polite"
   >
-    <div class="flex gap-3 items-start" :class="centered ? 'justify-center' : ''">
+    <div
+      class="flex gap-3 items-start"
+      :class="centered ? 'justify-center' : ''"
+    >
       <component
         :is="icon"
         v-if="showIcon"
         class="w-5 h-5 shrink-0 mt-0.5"
         :class="alertIconClass(kind)"
       />
-      <div class="min-w-0" :class="centered && showIcon ? 'text-left' : ''">
-        <p v-if="title" class="font-medium">{{ title }}</p>
+      <div
+        class="min-w-0"
+        :class="centered && showIcon ? 'text-left' : ''"
+      >
+        <p
+          v-if="title"
+          class="font-medium"
+        >
+          {{ title }}
+        </p>
         <div :class="title ? 'mt-1.5 leading-relaxed opacity-90' : 'leading-relaxed'">
           <slot />
         </div>

@@ -20,6 +20,10 @@ const props = withDefaults(
     size: 'md',
     type: 'button',
     disabled: false,
+    to: undefined,
+    href: undefined,
+    download: undefined,
+    title: undefined,
     class: '',
   },
 )

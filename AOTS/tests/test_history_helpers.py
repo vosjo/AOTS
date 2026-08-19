@@ -2,8 +2,8 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
-from AOTS.history_helpers import find_history_user, history_actor_for_changelog
 from analysis.models import Analysis
+from AOTS.history_helpers import find_history_user, history_actor_for_changelog
 from stars.models import Project, Star
 
 

@@ -1,13 +1,14 @@
 import astropy.units as u
 import numpy as np
 from astroplan.moon import moon_illumination
-from astropy.coordinates import SkyCoord, AltAz, get_body
+from astropy.coordinates import AltAz, SkyCoord, get_body
 from astropy.time import Time
-from django.db.models import F, ExpressionWrapper, FloatField
+from django.db.models import ExpressionWrapper, F, FloatField
 
 from observations.models import LightCurve
 from stars.models import Star
 from stars.services import star_io
+
 from . import instrument_headers
 
 
@@ -152,7 +153,7 @@ def process_lightcurve(lightcurve_id, create_new_star=True):
             distance=ExpressionWrapper(((F('ra') - lightcurve.ra) ** 2 + (F('dec') - lightcurve.dec) ** 2) ** (1. / 2.),
                                        output_field=FloatField())).order_by('distance')[0]
         star.lightcurve_set.add(lightcurve)
-        message += ", added to existing System {} (_r = {})".format(star, star.distance)
+        message += f", added to existing System {star} (_r = {star.distance})"
         return True, message
     else:
 
@@ -172,5 +173,5 @@ def process_lightcurve(lightcurve_id, create_new_star=True):
         )
         star.lightcurve_set.add(lightcurve)
 
-        message += ", added to new System {}".format(star)
+        message += f", added to new System {star}"
         return True, message

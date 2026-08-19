@@ -3,7 +3,6 @@ from rest_framework import routers
 
 from .gaia_views import star_fetch_gaia_dr3, stars_fetch_gaia_dr3_bulk
 from .photometry_views import stars_fetch_photometry_vizier_bulk
-from .tess_views import star_fetch_tess_lightcurves, stars_fetch_tess_bulk
 from .plots import star_analysis_plots, star_sed_plot
 from .simbad_views import star_sync_simbad_identifiers, stars_sync_simbad_identifiers_bulk
 from .star_detail import star_detail_bootstrap, star_parameters_overview
@@ -17,10 +16,11 @@ from .star_mutations import (
     star_update_parameters,
     star_update_photometry,
 )
+from .tess_views import star_fetch_tess_lightcurves, stars_fetch_tess_bulk
 from .views import (
+    IdentifierViewSet,
     StarViewSet,  # star_remove_tag, star_add_tag,
     TagViewSet,
-    IdentifierViewSet,
     getStarSpecfiles,
 )
 

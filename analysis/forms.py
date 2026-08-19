@@ -108,13 +108,13 @@ class ParameterPlotterForm(forms.Form):
         self.initial['color'] = ''
 
     def clean_xaxis(self):
-        if not self['xaxis'].html_name in self.data:
+        if self['xaxis'].html_name not in self.data:
             return self.initial['xaxis']
         else:
             return self.cleaned_data['xaxis']
 
     def clean_yaxis(self):
-        if not self['yaxis'].html_name in self.data:
+        if self['yaxis'].html_name not in self.data:
             return self.initial['yaxis']
         else:
             return self.cleaned_data['yaxis']

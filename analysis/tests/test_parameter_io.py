@@ -5,7 +5,6 @@ from rest_framework.test import APIClient
 from analysis.categories import AnalysisCategory
 from analysis.models import Analysis, Parameter, ParameterSource
 from analysis.services import parameter_io
-from analysis.services.parameter_sources import get_or_create_avg_source
 from stars.models import Project, Star
 
 User = get_user_model()
@@ -24,7 +23,7 @@ class ParameterIoApiTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_patch_valid_triggers_average_sync(self):
-        src = ParameterSource.objects.create(name='src', project=self.project)
+        ParameterSource.objects.create(name='src', project=self.project)
         p = parameter_io.create_measurement(
             star=self.star, name='teff', component=0, value=5000,
             error_l=100, error_u=100, unit='K', analysis=self.analysis, run_after=False,

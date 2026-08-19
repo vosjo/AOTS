@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 
 from django.db import models
 from simple_history.models import HistoricalRecords
@@ -37,4 +36,4 @@ class ParameterSource(models.Model):
         return ''
 
     def __str__(self):
-        return "{} {}".format(self.name, '({})'.format(self.reference) if self.reference else '')
+        return "{} {}".format(self.name, f'({self.reference})' if self.reference else '')

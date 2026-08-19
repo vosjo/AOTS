@@ -5,7 +5,11 @@ import h5py
 import numpy as np
 from django.test import SimpleTestCase
 
-from analysis.auxil.plot_axis_labels import FLUX_DENSITY_F_LAMBDA, WAVELENGTH_ANGSTROM, resolve_axis_labels
+from analysis.auxil.plot_axis_labels import (
+    FLUX_DENSITY_F_LAMBDA,
+    WAVELENGTH_ANGSTROM,
+    resolve_axis_labels,
+)
 from analysis.auxil.sed_hdf5 import (
     SED_XUNIT,
     SED_YLABEL,

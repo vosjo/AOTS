@@ -31,7 +31,7 @@ class Tag(models.Model):
 
     # -- representation of self
     def __str__(self):
-        return "{}:{}".format(self.name, self.description)
+        return f"{self.name}:{self.description}"
 
 
 class Star(models.Model):
@@ -98,7 +98,7 @@ class Star(models.Model):
             p = get_consensus_parameter(self, name, component=0)
             if p is not None:
                 provenance = consensus_provenance_display(self, p, name, component=0)
-                pars.append((name, p.unit, "{} &pm; {}".format(p.rvalue(), p.rerror()), provenance))
+                pars.append((name, p.unit, f"{p.rvalue()} &pm; {p.rerror()}", provenance))
 
         return pars
 
@@ -118,8 +118,8 @@ class Star(models.Model):
             p1 = get_consensus_parameter(self, name, component=1)
             p2 = get_consensus_parameter(self, name, component=2)
 
-            v1 = "{} &pm; {}".format(p1.rvalue(), p1.rerror()) if p1 is not None else "/"
-            v2 = "{} &pm; {}".format(p2.rvalue(), p2.rerror()) if p2 is not None else "/"
+            v1 = f"{p1.rvalue()} &pm; {p1.rerror()}" if p1 is not None else "/"
+            v2 = f"{p2.rvalue()} &pm; {p2.rerror()}" if p2 is not None else "/"
 
             if p1 is not None or p2 is not None:
                 unit = p1.unit if p1 is not None else p2.unit
@@ -154,20 +154,20 @@ class Star(models.Model):
     def ra_hms(self):
         try:
             a = Angle(float(self.ra), unit='degree').hms
-        except Exception as e:
+        except Exception:
             return self.ra
         return "{:02.0f}:{:02.0f}:{:05.2f}".format(*a)
 
     def dec_dms(self):
         try:
             a = Angle(float(self.dec), unit='degree').dms
-        except Exception as e:
+        except Exception:
             return self.dec
-        return "{:+03.0f}:{:02.0f}:{:05.2f}".format(a[0], abs(a[1]), abs(a[2]))
+        return f"{a[0]:+03.0f}:{abs(a[1]):02.0f}:{abs(a[2]):05.2f}"
 
     # -- representation of self
     def __str__(self):
-        return "{}: {:.2f} {:.2f}".format(self.name, self.ra, self.dec)
+        return f"{self.name}: {self.ra:.2f} {self.dec:.2f}"
 
 
 class Identifier(models.Model):
@@ -190,7 +190,7 @@ class Identifier(models.Model):
 
     # -- representation of self
     def __str__(self):
-        return "{} = {} ; {}".format(self.star.name, self.name, self.href)
+        return f"{self.star.name} = {self.name} ; {self.href}"
 
     def save(self, *args, **kwargs):
         if self.star_id:

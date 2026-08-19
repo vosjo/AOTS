@@ -3,8 +3,9 @@
 
 from django import forms
 
-from stars.forms import RAField, DecField
+from stars.forms import DecField, RAField
 from stars.models import Star
+
 from .models import Observatory, SpecFile
 
 

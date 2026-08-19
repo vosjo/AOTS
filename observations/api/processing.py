@@ -3,7 +3,7 @@ from rest_framework.response import Response
 
 from AOTS.api_processing import run_process_view
 from AOTS.permissions_helpers import get_object_if_allowed
-from observations.models import Spectrum, SpecFile, RawSpecFile, LightCurve
+from observations.models import LightCurve, RawSpecFile, SpecFile, Spectrum
 from observations.services import fits_io
 from observations.tasks import (
     process_lightcurve_task,
@@ -11,11 +11,12 @@ from observations.tasks import (
     process_specfile_task,
     process_spectrum_task,
 )
+
 from .serializers import (
-    SpectrumSerializer,
-    SpecFileSerializer,
-    RawSpecFileSerializer,
     LightCurveSerializer,
+    RawSpecFileSerializer,
+    SpecFileSerializer,
+    SpectrumSerializer,
 )
 
 

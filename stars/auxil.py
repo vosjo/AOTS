@@ -6,7 +6,7 @@ from astroquery.simbad import Simbad
 from astroquery.vizier import Vizier
 from django.contrib import messages
 from django.http import HttpResponseRedirect
-from django.shortcuts import reverse, get_object_or_404
+from django.shortcuts import get_object_or_404, reverse
 
 from analysis import models as analModels
 from analysis.models import ParameterSource
@@ -15,13 +15,16 @@ from stars.photometry_bands import (
     CSV_ERR_BY_BAND,
     CSV_MAG_BY_BAND,
     CSV_MAG_TO_BAND,
-    PASSBANDS as passbands,
     build_vizier_catalogs,
     csv_import_bands,
     errs,
     photnames,
 )
+from stars.photometry_bands import (
+    PASSBANDS as passbands,
+)
 from stars.services import star_io
+
 from .models import Star
 
 catalogs = build_vizier_catalogs()
@@ -305,9 +308,9 @@ def populate_system(star, star_pk):
                     run_after=False,
                 )
     else:
-        if (star['parallax'] != None or
-                star['pmra_x'] != None or
-                star['pmdec_x'] != None):
+        if (star['parallax'] is not None or
+                star['pmra_x'] is not None or
+                star['pmdec_x'] is not None):
 
             try:
                 dsgaia = ParameterSource.objects.get(
@@ -323,7 +326,7 @@ def populate_system(star, star_pk):
                 )
 
             #   Set parallax
-            if star['parallax'] != None:
+            if star['parallax'] is not None:
                 parameter_io.create_measurement(
                     star=sobj,
                     parameter_source=dsgaia,
@@ -337,7 +340,7 @@ def populate_system(star, star_pk):
                 )
 
             #   RA proper motion
-            if star['pmra_x'] != None:
+            if star['pmra_x'] is not None:
                 parameter_io.create_measurement(
                     star=sobj,
                     parameter_source=dsgaia,
@@ -351,7 +354,7 @@ def populate_system(star, star_pk):
                 )
 
             #   DEC proper motion
-            if star['pmdec_x'] != None:
+            if star['pmdec_x'] is not None:
                 parameter_io.create_measurement(
                     star=sobj,
                     parameter_source=dsgaia,
@@ -488,17 +491,14 @@ def update_photometry(cleaned_data, project, star_id, from_vizier):
 
 
 def _parameter_display_value(param) -> str:
-    return r"{} &pm; {}".format(param.rvalue(), param.rerror())
+    return rf"{param.rvalue()} &pm; {param.rerror()}"
 
 
 def _consensus_result_display(name: str, result) -> str:
     from analysis.models.default_values import round_value
 
     error = result.error_l if result.error_l == result.error_u else result.error_l
-    return r"{} &pm; {}".format(
-        round_value(result.value, name, result.error_l),
-        round_value(error, name, result.error_l),
-    )
+    return rf"{round_value(result.value, name, result.error_l)} &pm; {round_value(error, name, result.error_l)}"
 
 
 def _parameter_provenance_label(param) -> str:

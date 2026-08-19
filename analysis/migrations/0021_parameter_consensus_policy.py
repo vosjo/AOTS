@@ -1,7 +1,7 @@
-from django.conf import settings
-from django.db import migrations, models
 import django.db.models.deletion
 import simple_history.models
+from django.conf import settings
+from django.db import migrations, models
 
 
 def seed_default_consensus_policies(apps, schema_editor):

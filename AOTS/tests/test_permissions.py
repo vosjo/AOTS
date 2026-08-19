@@ -4,8 +4,8 @@ from django.test import TestCase
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory, force_authenticate
 
-from AOTS.custom_permissions import IsAllowedOnProject, get_allowed_objects_to_view_for_user
 from analysis.models import Parameter
+from AOTS.custom_permissions import IsAllowedOnProject, get_allowed_objects_to_view_for_user
 from stars.models import Project, Star
 
 User = get_user_model()

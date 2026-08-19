@@ -8,16 +8,16 @@ from AOTS.page_urls import (
     star_detail_url,
 )
 from AOTS.serializer_mixins import ObjectPermissionFieldsMixin
-
 from observations.models import (
-    Spectrum,
-    UserInfo,
-    SpecFile,
-    RawSpecFile,
     LightCurve,
     Observatory,
+    RawSpecFile,
+    SpecFile,
+    Spectrum,
+    UserInfo,
 )
 from stars.api.serializers import SimpleStarSerializer
+
 from .formatting import (
     dgr2dms,
     dgr2hms,
@@ -138,7 +138,7 @@ class SpectrumSerializer(ModelSerializer):
     def get_observatory(self, obj):
         try:
             return obj.observatory.name
-        except:
+        except Exception:
             return ''
 
     def get_specfiles(self, obj):
@@ -367,7 +367,7 @@ class UserInfoSerializer(ModelSerializer):
     def get_observatory(self, obj):
         try:
             return obj.observatory.name
-        except:
+        except Exception:
             return ''
 
 

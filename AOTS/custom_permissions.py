@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 from rest_framework import permissions
+
 from AOTS.project_resolution import get_object_project
 from stars.models import Project
 
@@ -125,10 +126,10 @@ def check_user_can_view_project(function):
 
         if request.user.is_anonymous:
             if not project.is_public:
-                messages.error(request, 'Project: {} requires login to see'.format(project))
+                messages.error(request, f'Project: {project} requires login to see')
                 return redirect('login')
         elif not request.user.can_read(project):
-            messages.error(request, 'Project: {} requires login to see'.format(project))
+            messages.error(request, f'Project: {project} requires login to see')
             return redirect('login')
 
         return function(request, *args, **kwargs)

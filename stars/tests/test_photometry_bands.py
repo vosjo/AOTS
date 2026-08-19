@@ -1,5 +1,5 @@
-from django.test import SimpleTestCase
 from astropy.table import Table
+from django.test import SimpleTestCase
 
 from stars.auxil import _resolve_vizier_column, _vizier_mag_err
 from stars.photometry_bands import (

@@ -1,24 +1,28 @@
 from django.urls import include, re_path
 from rest_framework import routers
 
-from .plot_views import analysis_plots_api, parameter_plotter_api
 from .consensus_views import (
     consensus_policies_list_create,
     consensus_policies_meta,
     consensus_policy_detail,
 )
-from .views import (
-    ParameterViewSet, AnalysisViewSet, analysis_categories_api,
-    upload_analyses_api, derive_analysis_parameters_api, analysis_redirect_api,
-)
 from .fit_views import (
-    analysis_fits_api,
-    analysis_fit_detail_api,
     analysis_best_fit_api,
+    analysis_fit_detail_api,
     analysis_fit_parameters_api,
-    contribute_spectral_fit_api,
+    analysis_fits_api,
     contribute_lc_fit_api,
+    contribute_spectral_fit_api,
     contribute_star_fit_api,
+)
+from .plot_views import analysis_plots_api, parameter_plotter_api
+from .views import (
+    AnalysisViewSet,
+    ParameterViewSet,
+    analysis_categories_api,
+    analysis_redirect_api,
+    derive_analysis_parameters_api,
+    upload_analyses_api,
 )
 
 app_name = 'analysis-api'

@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from django.test import TestCase
 
-from stars.models import Star, Project
+from stars.models import Project, Star
 from stars.services import star_io
 
 

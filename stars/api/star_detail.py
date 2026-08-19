@@ -4,13 +4,16 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from analysis.parameter_labels import (
+    parameter_label_with_unit,
+    unit_display_name,
+)
 from AOTS.custom_permissions import IsAllowedOnProject
 from AOTS.permissions_helpers import get_object_if_allowed
 from observations.api.formatting import format_float_negative_na, hjd2date
-from analysis.parameter_labels import parameter_display_name, parameter_label_with_unit, unit_display_name
+from stars.api.serializers import IdentifierListSerializer, StarSerializer
 from stars.auxil import get_params
 from stars.models import Star
-from stars.api.serializers import StarSerializer, IdentifierListSerializer
 
 
 def _param_display(value: str) -> str:

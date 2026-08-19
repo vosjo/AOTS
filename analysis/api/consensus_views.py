@@ -15,7 +15,11 @@ from analysis.api.consensus_serializers import (
 )
 from analysis.categories import AnalysisCategory
 from analysis.models import Analysis, Parameter, ParameterConsensusPolicy, ParameterSource
-from analysis.models.default_values import COMPONENT_CHOICES, DEFAULT_PARAMETERS, canonical_parameter_base
+from analysis.models.default_values import (
+    COMPONENT_CHOICES,
+    DEFAULT_PARAMETERS,
+    canonical_parameter_base,
+)
 from analysis.models.parameter_source import ParameterSourceKind
 from analysis.parameter_labels import (
     group_consensus_parameter_choices,
@@ -23,7 +27,6 @@ from analysis.parameter_labels import (
     parameter_label_with_unit,
     serialize_plotter_choices,
 )
-from analysis.services.parameter_names import normalize_policy_parameter
 from analysis.services.parameter_consensus import refresh_project_consensus
 from stars.models import Project
 

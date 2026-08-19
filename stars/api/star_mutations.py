@@ -7,21 +7,23 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
 from analysis.parameter_labels import parameter_label_with_unit, unit_display_name
 from analysis.services import parameter_io
-from stars.photometry_bands import (
-    ALL_BANDS,
-    CSV_MAG_BY_BAND,
-    PASSBANDS as passbands,
-    survey_groups,
-)
+from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
 from stars.auxil import (
     populate_system,
     resolve_simbad_name,
     update_photometry,
 )
 from stars.models import Project, Star, Tag
+from stars.photometry_bands import (
+    ALL_BANDS,
+    CSV_MAG_BY_BAND,
+    survey_groups,
+)
+from stars.photometry_bands import (
+    PASSBANDS as passbands,
+)
 from stars.services import star_io
 
 PHOTNAME_BY_BAND = CSV_MAG_BY_BAND

@@ -69,9 +69,9 @@ def _get_aitoff_transform():
 
 def galactic_aitoff_xy(l_deg: np.ndarray | float, b_deg: np.ndarray | float) -> tuple[np.ndarray, np.ndarray]:
     """Project galactic l,b (degrees) to Aitoff x,y (matplotlib projection plane)."""
-    l = np.atleast_1d(np.asarray(l_deg, dtype=float))
+    gal_l = np.atleast_1d(np.asarray(l_deg, dtype=float))
     b = np.atleast_1d(np.asarray(b_deg, dtype=float))
-    lon = -np.deg2rad(l)
+    lon = -np.deg2rad(gal_l)
     lon = (lon + np.pi) % (2 * np.pi) - np.pi
     lat = np.deg2rad(b)
     xy = _get_aitoff_transform().transform(np.column_stack([lon, lat]))

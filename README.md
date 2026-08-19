@@ -53,7 +53,13 @@ git clone https://github.com/vosjo/AOTS.git
 
 ```
 cd AOTS
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
+```
+
+`requirements-dev.txt` includes Ruff (same check as GitHub CI). Enable the repo hook so a commit is blocked if Ruff would fail:
+
+```
+git config core.hooksPath .githooks
 ```
 
 ### 5. Install frontend dependencies

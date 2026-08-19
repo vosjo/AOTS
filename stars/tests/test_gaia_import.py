@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from astropy.table import Table
 import numpy as np
+from astropy.table import Table
 from django.test import TestCase
 from rest_framework.test import APIClient
 

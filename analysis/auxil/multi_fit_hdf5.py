@@ -17,7 +17,7 @@ Layout::
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from typing import Any
 
 import h5py
@@ -202,7 +202,7 @@ def _write_model_group(
             x, y, err = series
         err_arr = err if err is not None else np.zeros_like(np.asarray(x, dtype=float))
         dtype = np.dtype([(xlabel, 'f8'), (ylabel, 'f8'), (f'{ylabel}_err', 'f8')])
-        arr = np.array(list(zip(x, y, err_arr)), dtype=dtype)
+        arr = np.array(list(zip(x, y, err_arr, strict=False)), dtype=dtype)
         ds = grp.create_dataset(name, data=arr)
         ds.attrs['datatype'] = datatype
         ds.attrs['xpar'] = xlabel
@@ -276,7 +276,7 @@ def _apply_fit_group_attrs(
     grp.attrs['method'] = fit.get('method') or ''
     if fit.get('external_id'):
         grp.attrs['external_id'] = fit['external_id']
-    created = fit.get('created') or datetime.now(timezone.utc).isoformat()
+    created = fit.get('created') or datetime.now(UTC).isoformat()
     grp.attrs['created'] = created
     uid = fit.get('uploaded_by_user_id', uploaded_by_user_id)
     if uid is not None:

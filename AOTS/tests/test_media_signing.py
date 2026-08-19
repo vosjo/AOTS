@@ -1,8 +1,6 @@
 """Tests for signed media download URLs."""
 
-import os
 import time
-from pathlib import Path
 
 from django.core.files.base import ContentFile
 from django.test import Client, TestCase, override_settings
@@ -44,6 +42,7 @@ class SignedMediaDownloadTests(TestCase):
 
     def test_path_traversal_in_token_rejected(self):
         from django.core import signing
+
         from AOTS.media_signing import MEDIA_SIGNING_SALT
 
         token = signing.dumps({'p': '../etc/passwd', 'n': 'x'}, salt=MEDIA_SIGNING_SALT)

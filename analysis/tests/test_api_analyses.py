@@ -51,7 +51,7 @@ class AnalysisApiTests(TestCase):
         self.analysis.fit = True
         self.analysis.save()
         avg = get_or_create_avg_source(self.project)
-        src = ParameterSource.objects.create(name='src', project=self.project)
+        ParameterSource.objects.create(name='src', project=self.project)
         for comp, val in ((1, 5.0), (2, 10.0)):
             parameter_io.create_measurement(
                 star=self.star, name='K', component=comp, value=val,

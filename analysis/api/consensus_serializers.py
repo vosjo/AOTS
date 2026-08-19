@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from analysis.models.consensus_policy import ConsensusRuleKind, ParameterConsensusPolicy
-from analysis.models.parameter_source import ParameterSource
 from analysis.services.parameter_names import normalize_policy_parameter
 
 

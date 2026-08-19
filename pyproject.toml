@@ -8,6 +8,7 @@ ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "analysis/auxil/**" = ["F401", "F403", "E722", "F841"]
+"analysis/auxil/units/conversions.py" = ["E701", "E721", "UP031", "F821"]
 "analysis/models/**" = ["F401", "F403"]
 "scripts/**" = ["E722", "F401", "F841"]
 "stars/auxil.py" = ["E722", "F401", "F841"]

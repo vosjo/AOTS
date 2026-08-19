@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 
 import astropy.units as u
 from astroplan import Observer
@@ -116,7 +115,7 @@ class Observatory(models.Model):
 
     # -- representation of self
     def __str__(self):
-        return "{}: lat={}, lon={}, alt={}".format(self.name, self.latitude, self.longitude, self.altitude)
+        return f"{self.name}: lat={self.latitude}, lon={self.longitude}, alt={self.altitude}"
 
 
 @receiver(pre_save, sender=Observatory)
@@ -142,7 +141,8 @@ def set_short_name(sender, **kwargs):
         else:
             # take the first letter of each word longer than 3 chars.
             for word in observatory.name.split():
-                if len(word) > 3: short_name += word[0].upper()
+                if len(word) > 3:
+                    short_name += word[0].upper()
 
         # print ('shortname: ', short_name)
         observatory.short_name = short_name

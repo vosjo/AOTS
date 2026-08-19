@@ -4,17 +4,17 @@ from celery.result import AsyncResult
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import FileResponse
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 
 from AOTS.permissions_helpers import check_project_access
 from AOTS.project_resolution import resolve_project_from_request
 from AOTS.task_helpers import run_task
-from AOTS.task_status import build_task_status_payload
 from AOTS.task_metadata import get_task_owner, user_may_view_task
+from AOTS.task_status import build_task_status_payload
 from observations.auxil import read_lightcurve, read_spectrum
 from observations.forms import UploadSpectraDetailForm
 from observations.models import LightCurve, Observatory, SpecFile
@@ -30,7 +30,6 @@ from observations.tasks import (
 )
 from stars.models import Project
 from users.api_auth import APIKeyAuthentication
-
 
 BULK_AUTH = [SessionAuthentication, APIKeyAuthentication]
 
@@ -210,8 +209,9 @@ def bulkUploadSpectra(request, **kwargs):
     if form_err:
         return form_err
 
-    from AOTS.file_validation import validate_science_upload
     from django.core.exceptions import ValidationError as DjangoValidationError
+
+    from AOTS.file_validation import validate_science_upload
 
     specfile_pks = []
     for f in files:
@@ -298,8 +298,9 @@ def bulkUploadLightCurves(request, **kwargs):
     returned_messages = []
     n_exceptions = 0
 
-    from AOTS.file_validation import validate_science_upload
     from django.core.exceptions import ValidationError as DjangoValidationError
+
+    from AOTS.file_validation import validate_science_upload
 
     for f in files:
         try:

@@ -7,21 +7,21 @@ from rest_framework.response import Response
 
 from AOTS.api_mixins import ProjectFilteredQuerysetMixin
 from AOTS.permissions_helpers import get_object_if_allowed
-from stars.models import Project, Star, Identifier, Tag
+from stars.models import Identifier, Project, Star, Tag
 from stars.services import star_io
+
 from .filter import (
     StarFilter,
     TagFilter,
 )
 from .serializers import (
+    IdentifierListSerializer,
     ProjectListSerializer,
     ProjectSerializer,
     StarListSerializer,
     StarSerializer,
     TagSerializer,
-    IdentifierListSerializer,
 )
-
 
 # ===============================================================
 # PROJECTS
@@ -121,10 +121,7 @@ def getStarSpecfiles(request, star_pk):
     return_dict = {}
     for spectrum in spectra:
         for spec in spectrum.specfile_set.all():
-            return_dict[spec.pk] = "{} - {}".format(
-                spec.obs_date,
-                spec.instrument,
-            )
+            return_dict[spec.pk] = f"{spec.obs_date} - {spec.instrument}"
     return Response(return_dict)
 
 

@@ -1,7 +1,7 @@
 from django.contrib.admin.models import ADDITION, CHANGE, LogEntry
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token

@@ -4,7 +4,10 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from observations.models import LightCurve, Observatory
-from observations.services.tess_import import import_tess_lightcurves_for_star, query_tess_lc_products
+from observations.services.tess_import import (
+    import_tess_lightcurves_for_star,
+    query_tess_lc_products,
+)
 from stars.models import Project, Star
 
 
@@ -107,8 +110,8 @@ class TessImportServiceTests(TestCase):
         self.assertEqual(products[0]['productFilename'], 'tess_a_lc.fits')
 
     def _write_fake_lc(self, download_dir, filename):
-        from astropy.io import fits
         import numpy as np
+        from astropy.io import fits
 
         path = f'{download_dir}/{filename}'
         cols = fits.ColDefs([

@@ -1,15 +1,12 @@
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from AOTS.page_urls import analysis_detail_url
-from AOTS.serializer_mixins import ObjectPermissionFieldsMixin, ProjectFieldGuardMixin
 from analysis.categories import (
     AnalysisCategory,
     category_color,
     category_derived_parameter_specs,
     category_label,
 )
-from analysis.services.parameter_derivation import analysis_supports_derived_parameters
-from analysis.models import Analysis, DerivedParameter, Parameter
+from analysis.models import Analysis, Parameter
 from analysis.parameter_labels import (
     effective_parameter_unit,
     parameter_label_with_unit,
@@ -21,7 +18,6 @@ from analysis.services.analysis_history import (
     latest_iso,
     modified_by_username,
 )
-from analysis.services.parameter_consensus import consensus_queryset
 from analysis.services.fit_permissions import (
     category_supports_multi_fit,
     user_can_delete_fit,
@@ -29,6 +25,10 @@ from analysis.services.fit_permissions import (
     user_can_set_best_fit,
 )
 from analysis.services.fit_sync import sync_fits_from_hdf5
+from analysis.services.parameter_consensus import consensus_queryset
+from analysis.services.parameter_derivation import analysis_supports_derived_parameters
+from AOTS.page_urls import analysis_detail_url
+from AOTS.serializer_mixins import ObjectPermissionFieldsMixin, ProjectFieldGuardMixin
 from stars.api.serializers import SimpleStarSerializer
 
 

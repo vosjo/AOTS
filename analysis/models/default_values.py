@@ -116,7 +116,7 @@ def round_value(value, name=None, error=None):
     """
 
     # try to round based on the number of significant digits in the error if possible
-    if not error is None and error != 0:
+    if error is not None and error != 0:
         sd = -1 * np.floor(np.log10(abs(error))) + 1
         value = np.round(value, int(sd))
 
@@ -126,7 +126,7 @@ def round_value(value, name=None, error=None):
             return value
 
     # else round based on the type of parameter
-    if not name is None:
+    if name is not None:
         name, component = split_parameter_name(name)
         name = canonical_parameter_base(name)
 

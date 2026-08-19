@@ -30,13 +30,13 @@ def find_parameters(dpar, **kwargs):
 
     fname = 'parameters_for_' + dpar.name
 
-    if not fname in globals():
+    if fname not in globals():
         return False
 
     names, components = globals()[fname](dpar, **kwargs)
 
     try:
-        for n, c in zip(names, components):
+        for n, c in zip(names, components, strict=False):
             p = _consensus_on_star(dpar.star, n, c)
             dpar.source_parameters.add(p)
         return True
@@ -66,7 +66,7 @@ def averageParameter(func):
         for arg in args:
             if hasattr(arg, 'value') and hasattr(arg, 'error'):
                 new_args.append(np.random.normal(arg.value, arg.error, 512))
-            elif type(arg) == tuple and len(arg) == 2:
+            elif isinstance(arg, tuple) and len(arg) == 2:
                 new_args.append(np.random.normal(arg[0], arg[1], 512))
             else:
                 new_args.append(arg)

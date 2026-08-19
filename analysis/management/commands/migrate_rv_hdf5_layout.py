@@ -1,14 +1,15 @@
 """Migrate legacy RV HDF5 files to v2 multi-fit layout."""
 
-from django.core.management.base import BaseCommand
-
-from analysis.categories import AnalysisCategory
-from analysis.models import Analysis
-from analysis.auxil.rv_hdf5 import is_rv_curve_v2, write_migrated_v2_file
-from analysis.auxil.fileio import read2dict
 import os
 import shutil
 import tempfile
+
+from django.core.management.base import BaseCommand
+
+from analysis.auxil.fileio import read2dict
+from analysis.auxil.rv_hdf5 import is_rv_curve_v2, write_migrated_v2_file
+from analysis.categories import AnalysisCategory
+from analysis.models import Analysis
 
 
 class Command(BaseCommand):

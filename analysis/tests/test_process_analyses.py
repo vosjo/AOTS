@@ -1,6 +1,7 @@
+from unittest.mock import patch
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
-from unittest.mock import patch
 
 from analysis.auxil.process_analyses import create_parameters
 from analysis.models import Analysis, Parameter

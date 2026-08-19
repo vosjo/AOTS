@@ -10,8 +10,8 @@ import time
 from django.conf import settings
 from django.utils import timezone
 
-from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 from analysis.models import Analysis
+from AOTS.custom_permissions import get_allowed_objects_to_view_for_user
 from observations.models import LightCurve, RawSpecFile, Spectrum
 
 BULK_DOWNLOAD_KINDS = frozenset({

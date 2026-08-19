@@ -3,7 +3,6 @@ from django.test import TestCase
 
 from analysis.models import DerivedParameter, Parameter, ParameterSource
 from analysis.services import parameter_io
-from analysis.services.parameter_sources import get_or_create_avg_source
 from stars.models import Project, Star
 
 

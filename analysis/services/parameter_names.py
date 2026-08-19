@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from analysis.models.default_values import DEFAULT_PARAMETERS, PARAMETER_ALIASES, split_parameter_name
+from analysis.models.default_values import (
+    DEFAULT_PARAMETERS,
+    PARAMETER_ALIASES,
+    split_parameter_name,
+)
 
 
 def resolve_ingest_parameter_name(pname: str) -> tuple[str, int] | None:

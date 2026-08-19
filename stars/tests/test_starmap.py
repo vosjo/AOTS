@@ -117,7 +117,7 @@ class StarmapServiceTests(TestCase):
         self.assertEqual(len(grid.longitude_tick_labels), 12)
         self.assertGreater(len(grid.outline_xs), 10)
         self.assertGreater(max(grid.outline_xs), 1.5)
-        for xs, ys in zip(grid.parallel_xs, grid.parallel_ys):
+        for xs, ys in zip(grid.parallel_xs, grid.parallel_ys, strict=False):
             seg = np.sqrt(np.diff(xs) ** 2 + np.diff(ys) ** 2)
             self.assertLess(seg.max(), 0.05)
 

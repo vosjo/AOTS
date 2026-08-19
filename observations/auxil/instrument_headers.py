@@ -7,7 +7,6 @@ import numpy as np
 from astropy.coordinates import EarthLocation
 from astropy.coordinates.angles import Angle
 from astropy.time import Time
-
 from django.db.models import Q
 
 from observations.models import Observatory
@@ -17,7 +16,7 @@ def _is_tess_header(header):
     return 'TESS' in header.get('TELESCOP', '')
 
 
-def extract_header_info(header, user_info={}):
+def extract_header_info(header, user_info=None):
     """
     Reads the important header information and returns it as a dictionary
     """
@@ -54,7 +53,7 @@ def extract_header_info(header, user_info={}):
     return data
 
 
-def extract_header_raw(header, user_info={}):
+def extract_header_raw(header, user_info=None):
     """
     Set header data for raw file
     """
@@ -531,7 +530,7 @@ def derive_SDSS_info(header):
     else:
         ra_ = "J{:02.0f}{:02.0f}{:05.2f}".format(*Angle(header.get('PLUG_RA', -1), unit='degree').hms)
         dec_ = Angle(header.get('PLUG_DEC', -1), unit='degree').dms
-        data['objectname'] = ra_ + "{:+03.0f}{:02.0f}{:05.2f}".format(dec_[0], abs(dec_[1]), abs(dec_[2]))
+        data['objectname'] = ra_ + f"{dec_[0]:+03.0f}{abs(dec_[1]):02.0f}{abs(dec_[2]):05.2f}"
 
     data['ra'] = header.get('PLUG_RA', -1)
     data['dec'] = header.get('PLUG_DEC', -1)

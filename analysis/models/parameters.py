@@ -3,9 +3,15 @@ from django.db import models
 
 from analysis.categories import category_label
 from stars.models import Star
+
 from .analysis_model import Analysis
+from .default_values import (
+    COMPONENT_CHOICES,
+    SYSTEM,
+    parameter_order,
+    round_value,
+)
 from .parameter_source import ParameterSource
-from .default_values import *
 
 
 def combine_parameter_name(name, component):

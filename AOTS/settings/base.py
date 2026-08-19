@@ -2,7 +2,6 @@
 Shared Django settings for AOTS.
 """
 
-import os
 from pathlib import Path
 
 import environ

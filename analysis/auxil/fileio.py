@@ -17,7 +17,7 @@ def read2dict(filename):
     """
 
     if not os.path.isfile(filename):
-        raise IOError
+        raise OSError
 
     def read_rec(hdf):
         """ recusively read the hdf5 file """
@@ -38,7 +38,7 @@ def read2dict(filename):
 
         # -- read all the attributes
         for name, atr in hdf.attrs.items():
-            if type(atr) == bytes:
+            if isinstance(atr, bytes):
                 atr = str(atr.decode("utf-8"))
             res[name] = atr
 

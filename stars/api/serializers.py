@@ -2,7 +2,11 @@ import logging
 
 import numpy as np
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField
+from rest_framework.serializers import (
+    ModelSerializer,
+    PrimaryKeyRelatedField,
+    SerializerMethodField,
+)
 
 from AOTS.page_urls import analysis_detail_url, star_detail_url
 from AOTS.serializer_mixins import (
@@ -10,10 +14,9 @@ from AOTS.serializer_mixins import (
     ProjectCapabilityMixin,
     ProjectFieldGuardMixin,
 )
+from stars.models import Identifier, Project, Star, Tag
 
 logger = logging.getLogger('AOTS.stars.api')
-from stars.models import Project, Star, Tag, Identifier
-
 
 # ===============================================================
 # PROJECTS

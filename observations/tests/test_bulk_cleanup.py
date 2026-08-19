@@ -1,8 +1,7 @@
 import os
 import time
-from datetime import datetime, timezone as dt_timezone
+from datetime import UTC, datetime
 
-from django.conf import settings
 from django.test import TestCase, override_settings
 
 from observations.services.bulk_download import (
@@ -14,7 +13,7 @@ from observations.services.bulk_download import (
 
 class BulkDownloadFilenameTests(TestCase):
     def test_bulk_download_filename_uses_kind_and_timestamp(self):
-        moment = datetime(2026, 5, 23, 14, 30, 52, tzinfo=dt_timezone.utc)
+        moment = datetime(2026, 5, 23, 14, 30, 52, tzinfo=UTC)
         self.assertEqual(
             bulk_download_filename('processed', at=moment),
             'spectra_20260523_143052.zip',

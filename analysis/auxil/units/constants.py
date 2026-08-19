@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 List of physical constants (SI, CGS and solar)
 

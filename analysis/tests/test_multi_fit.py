@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import tempfile
-import uuid
 
 import numpy as np
 from django.contrib.auth import get_user_model
@@ -15,20 +14,18 @@ from analysis.auxil.multi_fit_hdf5 import (
     append_fit,
     get_best_fit_id,
     list_fits,
-    remove_fit,
     set_best_fit,
     write_multi_fit_v2,
 )
 from analysis.auxil.rv_hdf5 import write_rv_curve_v2
 from analysis.categories import AnalysisCategory
-from analysis.models import Analysis, AnalysisFit
-from analysis.services.fit_contribution import contribute_fit, reingest_best_fit_parameters
+from analysis.models import Analysis
 from analysis.services.fit_permissions import (
     user_can_delete_fit,
     user_can_set_best_fit,
 )
-from analysis.services.multi_fit_migration import _measurements_from_hdf5_path
 from analysis.services.fit_sync import sync_fits_from_hdf5
+from analysis.services.multi_fit_migration import _measurements_from_hdf5_path
 from stars.models import Project, Star
 
 
@@ -97,8 +94,8 @@ class MultiFitHdf5Tests(TestCase):
 
     def test_multi_fit_parameter_units_survive_read2dict(self):
         """Units stored as dataset attrs must be picked up after read2dict."""
-        from analysis.auxil.fileio import read2dict
         from analysis.auxil import read_analyses
+        from analysis.auxil.fileio import read2dict
 
         with tempfile.NamedTemporaryFile(suffix='.h5', delete=False) as tmp:
             path = tmp.name

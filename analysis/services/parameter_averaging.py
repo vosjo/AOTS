@@ -68,9 +68,7 @@ def sync_average_for(param):
     )
     if param.average:
         return
-    try:
-        param.star
-    except Exception:
+    if not param.star_id:
         return
     sync_consensus_cache(param.star, param.name, param.component)
 

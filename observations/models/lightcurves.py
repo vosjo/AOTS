@@ -1,15 +1,13 @@
-from __future__ import unicode_literals
 
-from collections import OrderedDict
 
-from astropy.io import fits
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 
 from observations.auxil import fileio
-from stars.models import Star, Project
+from stars.models import Project, Star
+
 from .observatory import Observatory
 
 
@@ -91,17 +89,17 @@ class LightCurve(models.Model):
         return fits_io.read_lightcurve_header(self, hdu=hdu)
 
     def get_weather_url(self):
-        if not self.observatory is None:
+        if self.observatory is not None:
             return self.observatory.get_weather_url(hjd=self.hjd)
         else:
             return ''
 
     # -- representation of self
     def __str__(self):
-        return "{}@{} - {}".format(self.instrument, self.telescope, self.hjd)
+        return f"{self.instrument}@{self.telescope} - {self.hjd}"
 
 
-# Handler to assure the deletion of a specfile removes the actual file, and if necessary the 
+# Handler to assure the deletion of a specfile removes the actual file, and if necessary the
 # lightcurve that belongs to this file
 @receiver(post_delete, sender=LightCurve)
 def specFile_post_delete_handler(sender, **kwargs):

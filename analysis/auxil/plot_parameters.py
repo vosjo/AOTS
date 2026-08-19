@@ -141,16 +141,16 @@ def plot_errorbars(fig, x, y, xerr=None, yerr=None, **kwargs):
     Plot errorbars on a bokeh plot
     """
 
-    if xerr != None:
+    if xerr is not None:
         err_xs, err_ys = [], []
-        for x_, y_, err in zip(x, y, xerr):
+        for x_, y_, err in zip(x, y, xerr, strict=False):
             err_xs.append((x_ - err, x_ + err))
             err_ys.append((y_, y_))
         fig.multi_line(err_xs, err_ys, **kwargs)
 
-    if yerr != None:
+    if yerr is not None:
         err_xs, err_ys = [], []
-        for x_, y_, err in zip(x, y, yerr):
+        for x_, y_, err in zip(x, y, yerr, strict=False):
             err_xs.append((x_, x_))
             err_ys.append((y_ - err, y_ + err))
         fig.multi_line(err_xs, err_ys, **kwargs)
@@ -211,11 +211,7 @@ def get_parameter_statistics(data, xpar, ypar, unit_lookup=None):
 
         corr, pvalue = pearsonr(x[mask], y[mask])
 
-        return "Pearson correlation ({} - {}) = {:0.2f},   P-value = {:0.3f}".format(
-            parameter_axis_label(xpar, (unit_lookup or {}).get(xpar)),
-            parameter_axis_label(ypar, (unit_lookup or {}).get(ypar)),
-            corr, pvalue,
-        )
+        return f"Pearson correlation ({parameter_axis_label(xpar, (unit_lookup or {}).get(xpar))} - {parameter_axis_label(ypar, (unit_lookup or {}).get(ypar))}) = {corr:0.2f},   P-value = {pvalue:0.3f}"
     except Exception:
         return "No statistics calculated"
 
@@ -262,7 +258,7 @@ def plot_parameters(parameters, project=None, show_regression=False, *, theme=No
 
     tooltips = [('System', '@system')] + \
                [(parameter_axis_label(p, unit_lookup.get(p)),
-                 '@{} +- @e_{}'.format(p, p)) for p in param_names]
+                 f'@{p} +- @e_{p}') for p in param_names]
     hover_rows = [(label, value) for label, value in tooltips]
 
     TOOLS = [mpl.PanTool(), mpl.WheelZoomTool(),

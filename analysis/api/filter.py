@@ -1,8 +1,8 @@
 from django_filters import rest_framework as filters
 
-from AOTS.filter_scoping import project_pk_filter
 from analysis.categories import CATEGORY_META, AnalysisCategory
 from analysis.models import Analysis, Parameter
+from AOTS.filter_scoping import project_pk_filter
 
 
 class AnalysisFilter(filters.FilterSet):

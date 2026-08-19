@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from AOTS.project_resolution import get_object_project
 from analysis.models import Parameter
+from AOTS.project_resolution import get_object_project
 from stars.models import Project, Star
 
 User = get_user_model()

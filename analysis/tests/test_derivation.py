@@ -1,8 +1,6 @@
-import numpy as np
 from django.test import TestCase
 
-from analysis.auxil import parameter_derivation
-from analysis.models import DerivedParameter, ParameterSource
+from analysis.models import ParameterSource
 from analysis.services import parameter_io
 from analysis.services.parameter_sources import get_or_create_avg_source
 from stars.models import Project, Star
@@ -32,7 +30,7 @@ class DerivationMathTests(TestCase):
         self.assertAlmostEqual(dpar.value, 0.5, places=1)
 
     def test_calculate_r(self):
-        ds = ParameterSource.objects.create(name='src', project=self.project)
+        ParameterSource.objects.create(name='src', project=self.project)
         avg = get_or_create_avg_source(self.project)
         parameter_io.create_measurement(
             star=self.star, name='m', component=1, value=1.0,

@@ -12,7 +12,6 @@ from astroquery.vizier import Vizier
 
 from analysis.models import ParameterSource
 from analysis.services import parameter_io
-from stars.photometry_bands import GAIA_PHOTOMETRY_BANDS
 
 GAIA_DR3_SOURCE_NAME = 'Gaia DR3'
 GAIA_DR3_CATALOG = 'I/355/gaiadr3'

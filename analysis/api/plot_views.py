@@ -1,16 +1,16 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from AOTS.bokeh_embed import bokeh_embed_response
-from AOTS.permissions_helpers import get_object_if_allowed
-from rest_framework.exceptions import PermissionDenied
 from analysis.auxil import plot_parameters
-from analysis.services.analysis_plotting import plot_analysis_detail_figures
 from analysis.forms import ParameterPlotterForm
 from analysis.models import Analysis
 from analysis.parameter_labels import serialize_plotter_choices
+from analysis.services.analysis_plotting import plot_analysis_detail_figures
+from AOTS.bokeh_embed import bokeh_embed_response
+from AOTS.permissions_helpers import get_object_if_allowed
 from stars.models import Project
 
 

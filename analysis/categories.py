@@ -4,8 +4,8 @@ Fixed analysis category registry (replaces per-project Method entities).
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from django.db import models
 

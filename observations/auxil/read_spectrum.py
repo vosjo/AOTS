@@ -1,21 +1,21 @@
 import astropy.units as u
 import numpy as np
 from astroplan.moon import moon_illumination
-from astropy.coordinates import SkyCoord, AltAz, get_body
+from astropy.coordinates import AltAz, SkyCoord, get_body
 from astropy.time import Time
-from django.db.models import F, ExpressionWrapper, DecimalField
+from django.db.models import DecimalField, ExpressionWrapper, F
 
 from observations.models import (
+    Observatory,
+    RawSpecFile,
+    SpecFile,
     Spectrum,
     UserInfo,
-    SpecFile,
-    RawSpecFile,
-    Observatory,
 )
 from stars.models import Star
 from stars.services import star_io
-from . import instrument_headers
 
+from . import instrument_headers
 
 ###############################################################################
 
@@ -53,7 +53,7 @@ def isfloat(value):
 
 ###    Spectrum    ###
 
-def derive_spectrum_info(spectrum_pk, user_info={}):
+def derive_spectrum_info(spectrum_pk, user_info=None):
     """
         Function to derive extra information about the observations from the
         fits files, calculate several parameters, and derive weather information
@@ -61,6 +61,8 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
 
         This information is stored in the spectrum database entry
     """
+    if user_info is None:
+        user_info = {}
     #   Get spectrum
     spectrum = Spectrum.objects.get(pk=spectrum_pk)
     wave, flux, header = spectrum.get_spectrum()
@@ -130,7 +132,7 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
         spectrum.observatory = Observatory.objects.get(pk=user_info['obs_pk'])
     elif 'observatory_id' in user_info.keys():
         #   Selection based on the information given in the user info form
-        if user_info['observatory_id'] == None:
+        if user_info['observatory_id'] is None:
             #   If form contains no information try header
             spectrum.observatory = instrument_headers.get_observatory(
                 header,
@@ -196,10 +198,12 @@ def derive_spectrum_info(spectrum_pk, user_info={}):
 
 ###     Specfile    ###
 
-def derive_specfile_info(specfile_id, user_info={}):
+def derive_specfile_info(specfile_id, user_info=None):
     """
         Read some basic info from the spectrum and store it in the database
     """
+    if user_info is None:
+        user_info = {}
     #   Initialize file
     specfile = SpecFile.objects.get(pk=specfile_id)
 
@@ -227,7 +231,7 @@ def derive_specfile_info(specfile_id, user_info={}):
 
 
 def process_specfile(specfile_id, create_new_star=True,
-                     add_to_existing_spectrum=True, user_info={}):
+                     add_to_existing_spectrum=True, user_info=None):
     """
         Check if the specfile is a duplicate, and if not, add it to a spectrum
         and target star.
@@ -239,6 +243,8 @@ def process_specfile(specfile_id, create_new_star=True,
         If user_info is provided, this will overwrite the data extracted from
         the header, if a header is present.
     """
+    if user_info is None:
+        user_info = {}
     message = ""
 
     derive_specfile_info(specfile_id, user_info=user_info)
@@ -271,8 +277,7 @@ def process_specfile(specfile_id, create_new_star=True,
     if len(spectrum) > 0 and add_to_existing_spectrum:
         spectrum = spectrum[0]
         spectrum.specfile_set.add(specfile)
-        message += "Specfile added to existing Spectrum {} (Target: {})" \
-            .format(spectrum, spectrum.objectname)
+        message += f"Specfile added to existing Spectrum {spectrum} (Target: {spectrum.objectname})"
         return True, message
     else:
         spectrum = Spectrum(project=specfile.project)
@@ -285,8 +290,7 @@ def process_specfile(specfile_id, create_new_star=True,
             user_info=user_info,
         )
         spectrum.refresh_from_db()  # spectrum is not updated automatically!
-        message += "Specfile added to new Spectrum {} (Target: {})" \
-            .format(spectrum, spectrum.objectname)
+        message += f"Specfile added to new Spectrum {spectrum} (Target: {spectrum.objectname})"
 
     # -- add the spectrum to existing or new star if the spectrum is newly created
     star = Star.objects.filter(project__exact=spectrum.project) \
@@ -304,10 +308,7 @@ def process_specfile(specfile_id, create_new_star=True,
             )
         ).order_by('distance')[0]
         star.spectrum_set.add(spectrum)
-        message += ", and added to existing System {} (_r = {})".format(
-            star,
-            star.distance
-        )
+        message += f", and added to existing System {star} (_r = {star.distance})"
         return True, message
     else:
 
@@ -331,7 +332,7 @@ def process_specfile(specfile_id, create_new_star=True,
 
         star.spectrum_set.add(spectrum)
 
-        message += ", and added to new System {}".format(star)
+        message += f", and added to new System {star}"
         return True, message
 
 
@@ -666,9 +667,9 @@ def process_raw_spec(rawfile_id, specfiles, stars):
         #   Remove the uploaded raw file
         rawfile.delete()
 
-        if SpecFileName == None:
+        if SpecFileName is None:
             message += rawfilename + " (raw file) is a duplicate. Used the " \
-                       + "already uploaded file {}.".format(otherRawSpecFileName)
+                       + f"already uploaded file {otherRawSpecFileName}."
         else:
             message += rawfilename + " (raw file) is a duplicate and already " \
                        + "associated with the reduced file " + SpecFileName \
@@ -678,16 +679,11 @@ def process_raw_spec(rawfile_id, specfiles, stars):
     ###
     #   Add raw file to existing specfile
     #
-    message += "{} (raw file) added to:\n".format(rawfilename)
+    message += f"{rawfilename} (raw file) added to:\n"
     for spfile in specfiles:
-        message += "{} ({}), ".format(
-            spfile,
-            spfile.spectrum.star.name,
-        )
+        message += f"{spfile} ({spfile.spectrum.star.name}), "
     for star in stars:
-        message += "{}, ".format(
-            star.name,
-        )
+        message += f"{star.name}, "
     return True, message
 
 
@@ -704,7 +700,7 @@ def check_form(data_dict):
     #   Loop over entries
     for key, value in data_dict.items():
         #   Check and add
-        if value != None and value != '':
+        if value is not None and value != '':
             user_info[key] = value
 
     return user_info
@@ -734,13 +730,11 @@ def add_userinfo(user_info_dict, spectrum_pk):
     if len(user_infos) > 0:
         info_model.delete()
         message = 'Provided information not added. Spectrum '
-        message += '({}, {}) is already associated with user information' \
-            .format(spectrum, spectrum.objectname)
+        message += f'({spectrum}, {spectrum.objectname}) is already associated with user information'
         success = False
     else:
         spectrum.userinfo_set.add(info_model)
-        message = 'Provided information added to spectrum: {} (Target: {})' \
-            .format(spectrum, spectrum.objectname)
+        message = f'Provided information added to spectrum: {spectrum} (Target: {spectrum.objectname})'
         success = True
 
     return success, message

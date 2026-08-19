@@ -1,6 +1,5 @@
 from django.db import migrations, models
 
-
 CATEGORY_CHOICES = [
     ('rv_solution', 'RV solution'),
     ('rv_curve', 'RV curve'),

@@ -22,7 +22,7 @@ class RAField(forms.CharField):
         value = value.strip()
 
         #   Check if a decimal or hexadecimal number was given
-        if re.match('^\d+\.\d+$', value) or re.match('^\d+\.+$', value):
+        if re.match(r'^\d+\.\d+$', value) or re.match(r'^\d+\.+$', value):
             if float(value) > 360 or float(value) < 0:
                 raise ValidationError(self.error_message, code='invalid_ra')
             else:
@@ -30,8 +30,8 @@ class RAField(forms.CharField):
         else:
             try:
                 return Angle(value.strip(), unit='hour').degree
-            except:
-                raise ValidationError(self.error_message, code='invalid_ra')
+            except Exception as exc:
+                raise ValidationError(self.error_message, code='invalid_ra') from exc
 
 
 class DecField(forms.CharField):
@@ -48,7 +48,7 @@ class DecField(forms.CharField):
         value = value.strip()
 
         #   Check if a decimal or hexadecimal number was given
-        if re.match('^\d+\.\d+$', value) or re.match('^\d+\.+$', value):
+        if re.match(r'^\d+\.\d+$', value) or re.match(r'^\d+\.+$', value):
             if float(value) < -90 or float(value) > 90:
                 raise ValidationError(self.error_message, code='invalid_dec')
             else:
@@ -56,8 +56,8 @@ class DecField(forms.CharField):
         else:
             try:
                 return Angle(value.strip(), unit='degree').degree
-            except:
-                raise ValidationError(self.error_message, code='invalid_dec')
+            except Exception as exc:
+                raise ValidationError(self.error_message, code='invalid_dec') from exc
 
 
 # ==================================================================================
@@ -74,7 +74,7 @@ class RangeField(forms.CharField):
         """ Normalize the data to a tuple of floats """
         if not value or value == '':
             return None
-        if not ':' in value:
+        if ':' not in value:
             raise forms.ValidationError(
                 "Please provide a range using ':'.",
                 code='no_range',
@@ -83,11 +83,11 @@ class RangeField(forms.CharField):
             try:
                 value = value.strip().split(':')
                 return (float(value[0]), float(value[1]))
-            except Exception as e:
+            except Exception as exc:
                 raise forms.ValidationError(
                     'Cannot interpret provided range',
                     code='invalid_range',
-                )
+                ) from exc
 
 
 class FilterStarForm(forms.Form):
@@ -135,15 +135,15 @@ class FilterStarForm(forms.Form):
 
     def clean(self):
         cd = self.cleaned_data
-        if 'ra' in cd and cd['ra'] == None:
+        if 'ra' in cd and cd['ra'] is None:
             self.cleaned_data.pop('ra')
-        if 'dec' in cd and cd['dec'] == None:
+        if 'dec' in cd and cd['dec'] is None:
             self.cleaned_data.pop('dec')
-        if 'mag' in cd and cd['mag'] == None:
+        if 'mag' in cd and cd['mag'] is None:
             self.cleaned_data.pop('mag')
 
-        if (not 'ra' in self.cleaned_data and
-                not 'dec' in self.cleaned_data and
+        if ('ra' not in self.cleaned_data and
+                'dec' not in self.cleaned_data and
                 self.cleaned_data['status'] == [] and
                 self.cleaned_data['tag'] == []):
             raise forms.ValidationError("You should at least filter one thing")
@@ -218,7 +218,7 @@ class StarForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super(StarForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         #   Some fields are not required
         self.fields['classification'].required = False
         self.fields['classification_type'].required = False
@@ -459,7 +459,7 @@ class UpdatePhotometryForm(forms.Form):
 
 class UpdateParamsForm(forms.Form):
     def __init__(self, star_id, *args, **kwargs):
-        super(UpdateParamsForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         params, _ = get_params(star_id)
 

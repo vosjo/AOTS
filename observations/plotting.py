@@ -4,25 +4,26 @@ collection of all necessary bokeh plotting functions for spectra
 import astropy.units as u
 import numpy as np
 import pandas as pd
-from astropy.coordinates import SkyCoord, AltAz, get_body
+from astropy.coordinates import AltAz, SkyCoord, get_body
 from astropy.time import Time
 from bokeh import models as mpl
 from bokeh import plotting as bpl
-from bokeh.models import TabPanel, Tabs, Range1d
+from bokeh.models import Range1d, TabPanel, Tabs
 from specutils import Spectrum as SpecutilsSpectrum
 
-from observations.auxil import tools as spectools
 from dash.bokeh_theme import (
     add_centered_plot_notice,
     apply_bokeh_figure_theme,
     apply_bokeh_tabs_theme,
     resolve_bokeh_theme,
     themed_field_hover_tool,
-    themed_status_label,
 )
+from observations.auxil import tools as spectools
 from stars.models import Star
-from stars.photometry_bands import SURVEY_PLOT_COLORS, ZEROPOINTS as zeropoints
-from .models import Spectrum, LightCurve
+from stars.photometry_bands import SURVEY_PLOT_COLORS
+from stars.photometry_bands import ZEROPOINTS as zeropoints
+
+from .models import LightCurve, Spectrum
 
 
 def plot_visibility(observation, *, theme=None):
@@ -188,7 +189,7 @@ def plot_spectrum(spectrum_id, rebin=1, normalize=True, porder=3, project=None, 
         #   -> wave is a np.ndarray of np.ndarrays
         if isinstance(wave[0], np.ndarray):
             #   Set normalize to true if current value is 'None'
-            if normalize == None:
+            if normalize is None:
                 normalize = True
 
             #   Normalize & merge spectra

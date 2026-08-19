@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import os
-import shutil
-import tempfile
 import uuid
 from typing import Any
 
 from django.core.files import File
-from django.db import transaction
 
+from analysis.auxil import process_analyses
 from analysis.auxil.fileio import read2dict
 from analysis.auxil.multi_fit_hdf5 import (
     append_fit,
@@ -20,11 +18,13 @@ from analysis.auxil.multi_fit_hdf5 import (
     is_multi_fit_v2,
     list_fits,
     remove_fit,
-    set_best_fit as h5_set_best_fit,
-    update_fit_metadata as h5_update_fit_metadata,
-    write_multi_fit_v2,
 )
-from analysis.auxil import process_analyses
+from analysis.auxil.multi_fit_hdf5 import (
+    set_best_fit as h5_set_best_fit,
+)
+from analysis.auxil.multi_fit_hdf5 import (
+    update_fit_metadata as h5_update_fit_metadata,
+)
 from analysis.categories import AnalysisCategory
 from analysis.models import Analysis, Parameter
 from analysis.services.fit_permissions import (
@@ -210,7 +210,6 @@ def _model_series_from_block(model_block: dict) -> dict[str, Any]:
 def extract_contributor_fit(upload_path: str, *, external_id: str = '') -> dict[str, Any]:
     """Build fit dict from contributor HDF5 (fit-only or legacy single-fit)."""
     data = read2dict(upload_path)
-    category = None
     if is_multi_fit_v2(data):
         fits = list_fits(data)
         if not fits:
@@ -359,7 +358,11 @@ def reingest_best_fit_parameters(analysis: Analysis, *, history_user_id: int | N
 
 def fit_parameters_for_api(analysis: Analysis, fit_id: str | None = None) -> list[dict]:
     """Serialize HDF5 fit parameters for GET fit-parameters."""
-    from analysis.parameter_labels import effective_parameter_unit, parameter_label_with_unit, unit_display_name
+    from analysis.parameter_labels import (
+        effective_parameter_unit,
+        parameter_label_with_unit,
+        unit_display_name,
+    )
 
     data = analysis.get_data()
     pars = get_fit_parameters_dict(data, fit_id, category=analysis.category)

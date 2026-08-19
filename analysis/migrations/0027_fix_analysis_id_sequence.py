@@ -7,7 +7,6 @@ IntegrityError on PostgreSQL.
 
 from django.db import migrations
 
-
 SEQUENCE = 'analysis_analysis_id_seq'
 
 
@@ -18,7 +17,7 @@ def fix_analysis_id_sequence(apps, schema_editor):
     with schema_editor.connection.cursor() as cursor:
         cursor.execute(f'CREATE SEQUENCE IF NOT EXISTS {SEQUENCE}')
         cursor.execute(
-            f"""
+            """
             SELECT setval(
                 %s,
                 GREATEST(COALESCE((SELECT MAX(id) FROM analysis_analysis), 1), 1),

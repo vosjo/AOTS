@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
 
 import collections
 import functools
+import importlib
 import inspect
+
 # -- standard libraries
 import itertools
 import os
@@ -23,16 +24,39 @@ except ImportError:
 #                          inconsistencies with python3
 #                       -> install lib version to readable this routine
 from analysis.auxil.units import constants
-from analysis.auxil.units.uncertainties import unumpy, AffineScalarFunc, ufloat
-from analysis.auxil.units.uncertainties.unumpy import log10, log, exp, sqrt
-from analysis.auxil.units.uncertainties.unumpy import sin, cos, tan
-from analysis.auxil.units.uncertainties.unumpy import arcsin, arccos, arctan
-
+from analysis.auxil.units.uncertainties import AffineScalarFunc, ufloat, unumpy
+from analysis.auxil.units.uncertainties.unumpy import (
+    arccos,
+    arcsin,
+    arctan,
+    cos,
+    exp,
+    log,
+    log10,
+    sin,
+    sqrt,
+    tan,
+)
 
 # from ivs.sed import filters
 # from ivs.io import ascii
 # from ivs.auxil import loggers
 # from ivs.auxil.decorators import memoized
+
+try:
+    from ivs.sed import filters as _ivs_filters
+except ImportError:
+    _ivs_filters = None
+
+
+def _require_filters():
+    """Return the IVS photometric catalog, or explain why photband is unavailable."""
+    if _ivs_filters is None:
+        raise ImportError(
+            "photband conversions need ivs.sed.filters, which is not bundled with AOTS. "
+            "Pass 'wave' or 'freq' instead of 'photband'."
+        )
+    return _ivs_filters
 
 # logger = logging.getLogger("UNITS.CONV")
 # logger.addHandler(loggers.NullHandler())
@@ -77,12 +101,10 @@ def convert(_from, _to, *args, **kwargs):
 
     # -- convert the kwargs to SI units if they are tuples (make a distinction
     #   when uncertainties are given)
-    if uni_from != uni_to and is_basic_unit(uni_from, 'length') and not (
-            'wave' in kwargs):  # or 'freq' in kwargs_SI or 'photband' in kwargs_SI):
+    if uni_from != uni_to and is_basic_unit(uni_from, 'length') and 'wave' not in kwargs:  # or 'freq' in kwargs_SI or 'photband' in kwargs_SI):
         kwargs['wave'] = (start_value, _from)
         # logger.warning('Assumed input value to serve also for "wave" key')
-    elif uni_from != uni_to and is_type(uni_from, 'frequency') and not (
-            'freq' in kwargs):  # or 'freq' in kwargs_SI or 'photband' in kwargs_SI):
+    elif uni_from != uni_to and is_type(uni_from, 'frequency') and 'freq' not in kwargs:  # or 'freq' in kwargs_SI or 'photband' in kwargs_SI):
         kwargs['freq'] = (start_value, _from)
         # logger.warning('Assumed input value to serve also for "freq" key')
     kwargs_SI = {}
@@ -104,9 +126,9 @@ def convert(_from, _to, *args, **kwargs):
         else:
             try:
                 ret_value *= fac_from * start_value
-            except TypeError:
+            except TypeError as err:
                 raise TypeError(
-                    'Cannot multiply value with a float; probably argument is a tuple (value,error), please expand with *(value,error)')
+                    'Cannot multiply value with a float; probably argument is a tuple (value,error), please expand with *(value,error)') from err
 
     # -- otherwise a little bit more complicated
     else:
@@ -157,7 +179,7 @@ def convert(_from, _to, *args, **kwargs):
 
             # -- nonlinear conversions need a little tweak
             try:
-                key = '%s_to_%s' % (only_from, only_to)
+                key = f'{only_from}_to_{only_to}'
                 # logger.debug('Switching from {} to {} via {:s}'.format(only_from,only_to,_switch[key].__name__))
                 if isinstance(fac_from, NonLinearConverter):
                     ret_value *= _switch[key](fac_from(start_value, **kwargs_SI), **kwargs_SI)
@@ -211,7 +233,7 @@ def nconvert(_froms, _tos, *args, **kwargs):
     @rtype: array
     """
     if len(args) == 1:
-        ret_value = np.zeros((len(args[0])))
+        ret_value = np.zeros(len(args[0]))
     elif len(args) == 2:
         ret_value = np.zeros((len(args[0]), 2))
     if isinstance(_tos, str):
@@ -219,7 +241,7 @@ def nconvert(_froms, _tos, *args, **kwargs):
     elif isinstance(_froms, str):
         _froms = [_froms for i in _tos]
 
-    for i, (_from, _to) in enumerate(list(zip(_froms, _tos))):
+    for i, (_from, _to) in enumerate(list(zip(_froms, _tos, strict=False))):
         myargs = [iarg[i] for iarg in args]
         mykwargs = {}
         for key in kwargs:
@@ -273,7 +295,7 @@ def change_convention(to_, units, origin=None):
     # -- translate
     new_units = [unit in translator and translator[unit] or unit for unit in new_units]
     # -- weave them back in
-    new_units = "".join(["".join([i, j]) for i, j in zip(new_units, powers)])
+    new_units = "".join(["".join([i, j]) for i, j in zip(new_units, powers, strict=False)])
     return new_units
 
 
@@ -414,7 +436,7 @@ def set_convention(units='SI', values='standard', frequency='rad'):
     constants._current_values = values
     # -- when we set everything back to SI, make sure we have no rounding errors:
     if units == 'SI' and values == 'standard' and frequency == 'rad':
-        reload(constants)
+        importlib.reload(constants)
         # logger.warning('Reloading of constants')
     # logger.info('Changed convention to {0} with values from {1} set'.format(units,values))
     return to_return
@@ -513,14 +535,14 @@ def solve_aliases(unit):
     # -- replace slash-forward with negative powers
     if '/' in unit:
         unit_ = [uni.split('/') for uni in unit.split()]
-        for i, uni in enumerate(unit_):
+        for _i, uni in enumerate(unit_):
             for j, after_div in enumerate(uni[1:]):
                 if not after_div[-1].isdigit(): after_div += '1'
                 # m = re.search(r'(\d*)(.+?)(-{0,1}\d+)',after_div)
                 m = re.search(r'(\d*)(.+?)(-{0,1}[\d\.]+)', after_div)
                 if m is not None:
                     factor, basis, power = m.group(1), m.group(2), m.group(3)
-                    if not '.' in power:
+                    if '.' not in power:
                         power = int(power)
                     else:
                         power = float(power)
@@ -530,7 +552,7 @@ def solve_aliases(unit):
                         factor = 1.
                 else:
                     factor, basis, power = 1., after_div, 1
-                uni[1 + j] = '%s%g' % (basis, -power)
+                uni[1 + j] = f'{basis}{-power:g}'
                 if factor != 1: uni[1 + j] = '%d%s' % (factor, uni[1 + j])
         ravelled = []
         for uni in unit_:
@@ -578,11 +600,11 @@ def components(unit):
     factor = 1.
     # -- manually check if there is a prefactor of the form '10-14' or '10e-14'
     #   and expand it if necessary
-    m = re.search('\d\d[-+]\d\d', unit[:5])
+    m = re.search(r'\d\d[-+]\d\d', unit[:5])
     if m is not None:
         factor *= float(m.group(0)[:2]) ** (float(m.group(0)[2] + '1') * float(m.group(0)[3:5]))
         unit = unit[5:]
-    m = re.search('\d\d[[eE][-+]\d\d', unit[:6])
+    m = re.search(r'\d\d[[eE][-+]\d\d', unit[:6])
     if m is not None:
         factor *= float(m.group(0)[:2]) ** (float(m.group(0)[3] + '1') * float(m.group(0)[4:6]))
         unit = unit[6:]
@@ -594,7 +616,7 @@ def components(unit):
     if m is not None:
         factor_, basis, power = m.group(1), m.group(2), m.group(3)
         # -- try to make power an integer, otherwise make it a float
-        if not '.' in power:
+        if '.' not in power:
             power = int(power)
         else:
             power = float(power)
@@ -609,7 +631,7 @@ def components(unit):
 
     for scale in _scalings:
         scale_unit, base_unit = basis[:len(scale)], basis[len(scale):]
-        if scale_unit == scale and base_unit in _factors and not basis in _factors:
+        if scale_unit == scale and base_unit in _factors and basis not in _factors:
             # if basis in _factors:
             #    raise ValueError,'ambiguity between %s and %s-%s'%(basis,scale_unit,base_unit)
             factor *= _scalings[scale]
@@ -618,11 +640,11 @@ def components(unit):
     # -- if we didn't find any scalings, check if the 'raw' unit is already
     #   a base unit
     else:
-        if not basis in _factors:
-            raise ValueError('Unknown unit %s' % (basis))
+        if basis not in _factors:
+            raise ValueError(f'Unknown unit {basis}')
 
     # -- switch from base units to SI units
-    if hasattr(_factors[basis][0], '__call__'):
+    if callable(_factors[basis][0]):
         factor = factor * _factors[basis][0]()
     else:
         factor *= _factors[basis][0]
@@ -679,7 +701,7 @@ def breakdown(unit):
                 total_power.append(power_ * power)
 
     # -- make sure to return a sorted version
-    total_units = sorted(['%s%s' % (i, j) for i, j in zip(total_units, total_power) if j != 0])
+    total_units = sorted([f'{i}{j}' for i, j in zip(total_units, total_power, strict=False) if j != 0])
     return total_factor, " ".join(total_units)
 
 
@@ -771,8 +793,8 @@ def split_units_powers(unit):
     @return: list of unit names, list of powers
     """
     # -- compile regular expressions
-    units = re.compile('\A[\d].[a-z]+|[a-z]+|\s\d+[a-z]+', re.IGNORECASE)
-    powers = re.compile('[-\.\d]+[\s]|[-\.\d]+\Z')
+    units = re.compile(r'\A[\d].[a-z]+|[a-z]+|\s\d+[a-z]+', re.IGNORECASE)
+    powers = re.compile(r'[-\.\d]+[\s]|[-\.\d]+\Z')
     # -- solve aliases
     unit = solve_aliases(unit)
     # -- and make sure every unit has at least one power:
@@ -906,12 +928,12 @@ def unit2texlabel(unit, full=False):
     fac, base = breakdown(unit)
     names, powers = split_units_powers(unit)
     powers = [(power != '1' and power or ' ') for power in powers]
-    powers = [(power[0] != ' ' and '$^{{{0}}}$'.format(power) or power) for power in powers]
-    unit_ = ' '.join([(name + power) for name, power in zip(names, powers)])
+    powers = [(power[0] != ' ' and f'$^{{{power}}}$' or power) for power in powers]
+    unit_ = ' '.join([(name + power) for name, power in zip(names, powers, strict=False)])
 
-    translate = {'kg1 m-1 s-3': r'$F_\lambda$ [{0}]'.format(unit_),
-                 'cy-1 kg1 s-2': r'$F_\nu$ [{0}]'.format(unit_),
-                 'kg1 s-3': r'$\lambda F_\lambda$ [{0}]'.format(unit_),
+    translate = {'kg1 m-1 s-3': rf'$F_\lambda$ [{unit_}]',
+                 'cy-1 kg1 s-2': rf'$F_\nu$ [{unit_}]',
+                 'kg1 s-3': rf'$\lambda F_\lambda$ [{unit_}]',
                  }
     # translate = {}
     # -- translate
@@ -920,12 +942,12 @@ def unit2texlabel(unit, full=False):
     else:
         label = unit_
     # -- make TeX
-    label = label.replace('AA', '$\AA$')
-    label = label.replace('mu', '$\mu$')
-    label = label.replace('sol', '$_\odot$')
+    label = label.replace('AA', r'$\AA$')
+    label = label.replace('mu', r'$\mu$')
+    label = label.replace('sol', r'$_\odot$')
 
     if full:
-        label = '{0} [{1}]'.format(get_type(unit).title(), label.strip())
+        label = f'{get_type(unit).title()} [{label.strip()}]'
 
     return label
 
@@ -938,7 +960,7 @@ def get_help():
     """
     try:
         set_exchange_rates()
-    except IOError:
+    except OSError:
         pass
         # logger.warning('Unable to connect to ecb.europa.eu')
     help_text = {}
@@ -954,7 +976,7 @@ def get_help():
     out = ''
     # for i,j in itertools.zip_longest(*text,fillvalue=''): # for Python 3
     for i, j in itertools.izip_longest(*text, fillvalue=''):
-        out += '%s| %s\n' % (i, j)
+        out += f'{i}| {j}\n'
 
     return out
 
@@ -962,13 +984,13 @@ def get_help():
 def units2sphinx():
     set_exchange_rates()
     text = []
-    divider = "+{0:s}+{1:s}+{2:s}+{3:s}+{4:s}+".format(22 * '-', 52 * '-', 22 * '-', 32 * '-', 52 * '-')
+    divider = "+{:s}+{:s}+{:s}+{:s}+{:s}+".format(22 * '-', 52 * '-', 22 * '-', 32 * '-', 52 * '-')
     text.append(divider)
     text.append(
-        "| {0:20s} | {1:50} | {2:20s} | {3:30s} | {4:50s} |".format('name', 'factor', 'units', 'type', 'description'))
+        "| {:20s} | {:50} | {:20s} | {:30s} | {:50s} |".format('name', 'factor', 'units', 'type', 'description'))
     text.append(divider)
     for key in _factors:
-        text.append("| {0:20s} | {1:50} | {2:20s} | {3:30s} | {4:50s} |".format(key, *_factors[key]))
+        text.append("| {:20s} | {:50} | {:20s} | {:30s} | {:50s} |".format(key, *_factors[key]))
         text.append(divider)
     return "\n".join(text)
 
@@ -1044,7 +1066,7 @@ def fnu2flambda(arg, **kwargs):
     @rtype: float
     """
     if 'photband' in kwargs:
-        lameff = filters.eff_wave(kwargs['photband'])
+        lameff = _require_filters().eff_wave(kwargs['photband'])
         lameff = convert('AA', 'm', lameff)
         kwargs['wave'] = lameff
     if 'wave' in kwargs:
@@ -1080,7 +1102,7 @@ def flambda2fnu(arg, **kwargs):
     @rtype: float
     """
     if 'photband' in kwargs:
-        lameff = filters.eff_wave(kwargs['photband'])
+        lameff = _require_filters().eff_wave(kwargs['photband'])
         lameff = convert('AA', 'm', lameff)
         kwargs['wave'] = lameff
     if 'wave' in kwargs:
@@ -1116,7 +1138,7 @@ def fnu2nufnu(arg, **kwargs):
     @rtype: float
     """
     if 'photband' in kwargs:
-        lameff = filters.eff_wave(kwargs['photband'])
+        lameff = _require_filters().eff_wave(kwargs['photband'])
         lameff = convert('AA', 'm', lameff)
         kwargs['wave'] = lameff
     if 'wave' in kwargs:
@@ -1149,7 +1171,7 @@ def nufnu2fnu(arg, **kwargs):
     @rtype: float
     """
     if 'photband' in kwargs:
-        lameff = filters.eff_wave(kwargs['photband'])
+        lameff = _require_filters().eff_wave(kwargs['photband'])
         lameff = convert('AA', 'm', lameff)
         kwargs['wave'] = lameff
     if 'wave' in kwargs:
@@ -1182,7 +1204,7 @@ def flam2lamflam(arg, **kwargs):
     @rtype: float
     """
     if 'photband' in kwargs:
-        lameff = filters.eff_wave(kwargs['photband'])
+        lameff = _require_filters().eff_wave(kwargs['photband'])
         lameff = convert('AA', 'm', lameff)
         kwargs['wave'] = lameff
     if 'wave' in kwargs:
@@ -1215,7 +1237,7 @@ def lamflam2flam(arg, **kwargs):
     @rtype: float
     """
     if 'photband' in kwargs:
-        lameff = filters.eff_wave(kwargs['photband'])
+        lameff = _require_filters().eff_wave(kwargs['photband'])
         lameff = convert('AA', 'm', lameff)
         kwargs['wave'] = lameff
     if 'wave' in kwargs:
@@ -1223,7 +1245,7 @@ def lamflam2flam(arg, **kwargs):
         flam = arg / wave
     elif 'freq' in kwargs:
         freq = kwargs['freq']
-        flam = arg / (cc / freq)
+        flam = arg / (constants.cc / freq)
     else:
         raise ValueError('reference wave/freq not given')
     return flam
@@ -1245,7 +1267,7 @@ def distance2spatialfreq(arg, **kwargs):
     @rtype: float
     """
     if 'photband' in kwargs:
-        lameff = filters.eff_wave(kwargs['photband'])
+        lameff = _require_filters().eff_wave(kwargs['photband'])
         lameff = convert('AA', 'm', lameff)
         kwargs['wave'] = lameff
     if 'wave' in kwargs:
@@ -1273,7 +1295,7 @@ def spatialfreq2distance(arg, **kwargs):
     @rtype: float
     """
     if 'photband' in kwargs:
-        lameff = filters.eff_wave(kwargs['photband'])
+        lameff = _require_filters().eff_wave(kwargs['photband'])
         lameff = convert('AA', 'm', lameff)
         kwargs['wave'] = lameff
     if 'wave' in kwargs:
@@ -1936,7 +1958,7 @@ def convert_Z_FeH(Z=None, FeH=None, Zsun=0.0122):
     log10(Z/Zsun) = 0.977 [Fe/H]
     """
 
-    if Z != None:
+    if Z is not None:
         return np.log10(Z / Zsun) / 0.977
     else:
         return 10 ** (0.977 * FeH + np.log10(Zsun))
@@ -1947,7 +1969,7 @@ def convert_Z_FeH(Z=None, FeH=None, Zsun=0.0122):
 
 # { Nonlinear change-of-base functions
 
-class NonLinearConverter():
+class NonLinearConverter:
     """
     Base class for nonlinear conversions
 
@@ -1962,15 +1984,15 @@ class NonLinearConverter():
         self.power = power
 
     def __rmul__(self, other):
-        if type(other) == type(5) or type(other) == type(5.):
+        if type(other) == int or type(other) == float:
             return self.__class__(prefix=self.prefix * other)
 
     def __div__(self, other):
-        if type(other) == type(5) or type(other) == type(5.):
+        if type(other) == int or type(other) == float:
             return self.__class__(prefix=self.prefix * other)
 
     def __pow__(self, other):
-        if type(other) == type(5) or type(other) == type(5.):
+        if type(other) == int or type(other) == float:
             return self.__class__(prefix=self.prefix, power=self.power + other)
 
 
@@ -2018,9 +2040,9 @@ class VegaMag(NonLinearConverter):
 
     def __call__(self, meas, photband=None, inv=False, **kwargs):
         # -- this part should include something where the zero-flux is retrieved
-        zp = filters.get_info()
+        zp = _require_filters().get_info()
         match = zp['photband'] == photband.upper()
-        if sum(match) == 0: raise ValueError("No calibrations for %s" % (photband))
+        if sum(match) == 0: raise ValueError(f"No calibrations for {photband}")
         F0 = convert(zp['Flam0_units'][match][0], 'W/m3', zp['Flam0'][match][0])
         mag0 = float(zp['vegamag'][match][0])
         if not inv:
@@ -2035,10 +2057,10 @@ class ABMag(NonLinearConverter):
     """
 
     def __call__(self, meas, photband=None, inv=False, **kwargs):
-        zp = filters.get_info()
+        zp = _require_filters().get_info()
         F0 = convert('W/m2/Hz', constants._current_convention, 3.6307805477010024e-23)
         match = zp['photband'] == photband.upper()
-        if sum(match) == 0: raise ValueError("No calibrations for %s" % (photband))
+        if sum(match) == 0: raise ValueError(f"No calibrations for {photband}")
         mag0 = float(zp['ABmag'][match][0])
         if np.isnan(mag0): mag0 = 0.
         if not inv:
@@ -2060,10 +2082,10 @@ class STMag(NonLinearConverter):
     """
 
     def __call__(self, meas, photband=None, inv=False, **kwargs):
-        zp = filters.get_info()
+        zp = _require_filters().get_info()
         F0 = convert('erg/s/cm2/AA', constants._current_convention, 3.6307805477010028e-09)  # 0.036307805477010027
         match = zp['photband'] == photband.upper()
-        if sum(match) == 0: raise ValueError("No calibrations for %s" % (photband))
+        if sum(match) == 0: raise ValueError(f"No calibrations for {photband}")
         mag0 = float(zp['STmag'][match][0])
         if np.isnan(mag0): mag0 = 0.
         if not inv:
@@ -2135,7 +2157,7 @@ class Color(NonLinearConverter):
             mv = convert('W/m3', 'mag', 1.00, photband='STROMGREN.B')
             return mv - 2 * mb + my
         else:
-            raise ValueError("No color calibrations for %s" % (photband))
+            raise ValueError(f"No color calibrations for {photband}")
 
 
 class DecibelSPL(NonLinearConverter):
@@ -2314,7 +2336,7 @@ def set_exchange_rates():
     # url = urllib.request.URLopener() # for Python 3
     # logger.info('Downloading current exchanges rates from ecb.europa.eu')
     filen, msg = url.retrieve(myurl)
-    ff = open(filen, 'r')
+    ff = open(filen)
     for line in ff.readlines():
         if '<Cube currency=' in line:
             prefix, curr, interfix, rate, postfix = line.split("'")
@@ -2326,7 +2348,7 @@ def set_exchange_rates():
     # url = urllib.request.URLopener() # for Python 3
     # logger.info('Downloading information on currency names from ecb.europa.eu')
     filen, msg = url.retrieve(myurl)
-    ff = open(filen, 'r')
+    ff = open(filen)
     gotcurr = False
     for line in ff.readlines():
         if gotcurr:
@@ -2343,7 +2365,7 @@ def set_exchange_rates():
 # }
 
 # { Computations with units
-class Unit(object):
+class Unit:
     """
     Class to calculate with numbers (and uncertainties) containing units.
 
@@ -2446,7 +2468,7 @@ class Unit(object):
         the class instance.
         """
         if not isinstance(args[0], Unit):
-            return super(Unit, cls).__new__(cls)
+            return super().__new__(cls)
         else:
             return args[0]
 
@@ -2517,12 +2539,12 @@ class Unit(object):
         if self.unit is not None:
             # -- perhaps someone says the unit is of "type" length. If so,
             #   take the current conventions' unit of the type
-            if not self.unit in _factors and self.unit in _conventions[constants._current_convention]:
+            if self.unit not in _factors and self.unit in _conventions[constants._current_convention]:
                 self.unit = _conventions[constants._current_convention][self.unit]
             # -- OK, maybe people are making it really difficult and give their
             #   unit as 'pressure' or so... then we can still try to do
             #   something
-            elif not self.unit in _factors:
+            elif self.unit not in _factors:
                 for fac in _factors:
                     if self.unit == _factors[fac][2]:
                         self.unit = _factors[fac][1]
@@ -2598,7 +2620,7 @@ class Unit(object):
         else:
             unit2 = breakdown(other.unit)[1]
         if unit1 != unit2:
-            raise ValueError('unequal units %s and %s' % (unit1, unit2))
+            raise ValueError(f'unequal units {unit1} and {unit2}')
         elif unit2 == '':
             return self.value + other
         else:
@@ -2658,7 +2680,7 @@ class Unit(object):
             uni_b_ = ''
             isalpha = True
             prev_char_min = False
-            for i, char in enumerate(unit2):
+            for _i, char in enumerate(unit2):
                 if char == '-':
                     prev_char_min = True
                     continue
@@ -2684,7 +2706,7 @@ class Unit(object):
             # -- reverse signs in second units
             uni_b_ = ''
             isalpha = True
-            for i, char in enumerate(unit2):
+            for _i, char in enumerate(unit2):
                 if char == '-': continue
                 if isalpha and not char.isalpha():
                     uni_b_ += '-'
@@ -2699,7 +2721,7 @@ class Unit(object):
             new_unit = ''
             isalpha = True
             prev_char_min = False
-            for i, char in enumerate(unit1):
+            for _i, char in enumerate(unit1):
                 if char == '-':
                     prev_char_min = True
                     continue
@@ -2733,7 +2755,7 @@ class Unit(object):
         mycomps = [components(u) for u in unit1.split()]
         mycomps = [(u[0] ** power, u[1], u[2] * power) for u in mycomps]
         factor = np.product([u[0] for u in mycomps])
-        new_unit = ' '.join(['%s%g' % (u[1], u[2]) for u in mycomps])
+        new_unit = ' '.join([f'{u[1]}{u[2]:g}' for u in mycomps])
         fac, new_unit = breakdown(new_unit)
         return Unit(value1 ** power, new_unit)
         # new_unit = ' '.join(power*[self._basic_unit])
@@ -2771,10 +2793,10 @@ class Unit(object):
         return self ** 0.5
 
     def __str__(self):
-        return '{0} {1}'.format(self.value, self.unit)
+        return f'{self.value} {self.unit}'
 
     def __repr__(self):
-        return "Unit('{value}','{unit}')".format(value=repr(self.value), unit=self.unit)
+        return f"Unit('{repr(self.value)}','{self.unit}')"
 
 
 # }
@@ -3086,9 +3108,9 @@ if __name__ == "__main__":
 
         doctest.testmod()
         quit()
-    from optparse import OptionParser, Option, OptionGroup
-    import datetime
     import copy
+    import datetime
+    from optparse import Option, OptionGroup, OptionParser, OptionValueError
 
 
     # logger = loggers.get_basic_logger()
@@ -3097,9 +3119,9 @@ if __name__ == "__main__":
     def check_pythoncode(option, opt, value):
         try:
             return eval(value)
-        except ValueError:
+        except ValueError as err:
             raise OptionValueError(
-                "option %s: invalid python code: %r" % (opt, value))
+                f"option {opt}: invalid python code: {value!r}") from err
 
 
     # -- generate a custom help log
@@ -3167,9 +3189,9 @@ if __name__ == "__main__":
     if _from == 'SI':
         fac, _from = breakdown(_to)
     if isinstance(output, tuple) and len(output) == 2 and len(args) == 2:
-        print(("%g +/- %g %s    =    %g +/- %g %s" % (args[0], args[1], _from, output[0], output[1], _to)))
+        print(f"{args[0]:g} +/- {args[1]:g} {_from}    =    {output[0]:g} +/- {output[1]:g} {_to}")
     elif isinstance(output, tuple) and len(output) == 2:
-        print(("%s %s    =    %s,%s %s" % (args[0], _from, output[0], output[1], _to)))
+        print(f"{args[0]} {_from}    =    {output[0]},{output[1]} {_to}")
     elif _to.lower() == 'cd':
         year, month, day = output
         year, month = int(year), int(month)
@@ -3180,6 +3202,6 @@ if __name__ == "__main__":
         minute, fraction = int(minute), minute - int(minute)
         second = int(fraction * 60)
         dt = datetime.datetime(year, month, day, hour, minute, second)
-        print(("%.10g %s    =    %s %s (YYYY-MM-DD HH:MM:SS)" % (args[0], _from, dt, _to)))
+        print(f"{args[0]:.10g} {_from}    =    {dt} {_to} (YYYY-MM-DD HH:MM:SS)")
     else:
-        print(("%.10g %s    =    %.10g %s" % (args[0], _from, output, _to)))
+        print(f"{args[0]:.10g} {_from}    =    {output:.10g} {_to}")

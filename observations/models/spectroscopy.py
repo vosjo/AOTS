@@ -1,17 +1,14 @@
-from __future__ import unicode_literals
 
-from collections import OrderedDict
 
-from astropy.io import fits
 from django.db import models
 from django.db.models.signals import m2m_changed, post_delete, pre_delete
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 
 from observations.auxil import fileio
-from stars.models import Star, Project
-from .observatory import Observatory
+from stars.models import Project, Star
 
+from .observatory import Observatory
 
 ###############################################################################
 
@@ -109,14 +106,14 @@ class Spectrum(models.Model):
             return files[0].get_spectrum()
 
     def get_weather_url(self):
-        if not self.observatory is None:
+        if self.observatory is not None:
             return self.observatory.get_weather_url(hjd=self.hjd)
         else:
             return ''
 
     # -- representation of self
     def __str__(self):
-        return "{}@{} - {}".format(self.instrument, self.telescope, self.hjd)
+        return f"{self.instrument}@{self.telescope} - {self.hjd}"
 
 
 class UserInfo(models.Model):
@@ -270,10 +267,7 @@ class SpecFile(models.Model):
 
     #   Representation of self
     def __str__(self):
-        return "{} - {}".format(
-            self.obs_date,
-            self.instrument,
-        )
+        return f"{self.obs_date} - {self.instrument}"
 
 
 ###
@@ -331,11 +325,7 @@ class RawSpecFile(models.Model):
 
     #   Representation of self
     def __str__(self):
-        return "{}@{} - {}".format(
-            self.hjd,
-            self.instrument,
-            self.obs_date,
-        )
+        return f"{self.hjd}@{self.instrument} - {self.obs_date}"
 
 
 @receiver(m2m_changed, sender=RawSpecFile.star.through)

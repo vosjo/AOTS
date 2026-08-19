@@ -25,7 +25,7 @@ def lower(value):
 def dgr2hms(value):
     try:
         a = Angle(float(value), unit='degree').hms
-    except Exception as e:
+    except Exception:
         return value
     return "{:02.0f}:{:02.0f}:{:05.2f}".format(*a)
 
@@ -34,27 +34,27 @@ def dgr2hms(value):
 def dgr2dms(value):
     try:
         a = Angle(float(value), unit='degree').dms
-    except Exception as e:
+    except Exception:
         return value
-    return "{:+03.0f}:{:02.0f}:{:05.2f}".format(a[0], abs(a[1]), abs(a[2]))
+    return f"{a[0]:+03.0f}:{abs(a[1]):02.0f}:{abs(a[2]):05.2f}"
 
 
 @register.filter
 def roundtwo(value):
-    return "{:.2f}".format(value)
+    return f"{value:.2f}"
 
 
 @register.filter
 def raround(value):
-    return "{:.4f}".format(value)
+    return f"{value:.4f}"
 
 
 @register.filter
 def degsign(value):
     if value >= 0.:
-        return "+{:.4f}".format(value)
+        return f"+{value:.4f}"
     else:
-        return "-{:.4f}".format(abs(value))
+        return f"-{abs(value):.4f}"
 
 
 @register.filter
@@ -107,7 +107,7 @@ def format_float_negative_na(value, args):
     decimals, unit = args.split("|")
 
     if value >= 0:
-        return "{{:0.{}f}} ".format(decimals).format(value) + unit
+        return f"{{:0.{decimals}f}} ".format(value) + unit
     else:
         return "NA"
 
@@ -118,7 +118,7 @@ def format_wind_speed(speed):
     Formats the wind speed and displays NA if not available
     """
     if speed >= 0:
-        return "{:0.1f} km/s".format(speed)
+        return f"{speed:0.1f} km/s"
     else:
         return "NA"
 
@@ -129,6 +129,6 @@ def format_wind_direction(direction):
     Formats the wind speed and displays NA if not available
     """
     if direction >= 0:
-        return "{:0.0f}° ({}) ".format(direction, dgr2cardinal(direction))
+        return f"{direction:0.0f}° ({dgr2cardinal(direction)}) "
     else:
         return "NA"

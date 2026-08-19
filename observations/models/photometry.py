@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -14,7 +13,7 @@ class Photometry(models.Model):
     would then be redundant.
     """
 
-    class Meta():
+    class Meta:
         ordering = ['wavelength', 'band']
 
     # -- a photometry measurement belongs to one star only
@@ -40,27 +39,27 @@ class Photometry(models.Model):
 
     def get_value(self):
         if self.upper_limit:
-            return "< {:0.3f}".format(self.measurement)
+            return f"< {self.measurement:0.3f}"
         if self.lower_limit:
-            return "> {:0.3f}".format(self.measurement)
-        return "{:0.3f}".format(self.measurement)
+            return f"> {self.measurement:0.3f}"
+        return f"{self.measurement:0.3f}"
 
     def get_error(self):
         if self.upper_limit or self.lower_limit:
             return "/"
         else:
-            return "{:0.3f}".format(self.error)
+            return f"{self.error:0.3f}"
 
     # -- representation of self
     def __str__(self):
         if self.upper_limit:
-            return "{} < {} {}".format(self.band, self.measurement, self.unit)
+            return f"{self.band} < {self.measurement} {self.unit}"
         if self.lower_limit:
-            return "{} > {} {}".format(self.band, self.measurement, self.unit)
-        return "{} = {} +- {} {}".format(self.band, self.measurement, self.error, self.unit)
+            return f"{self.band} > {self.measurement} {self.unit}"
+        return f"{self.band} = {self.measurement} +- {self.error} {self.unit}"
 
     def save(self, *args, **kwargs):
         if self.band in band_wavelengths:
             self.wavelength = band_wavelengths[self.band]
 
-        super(Photometry, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)

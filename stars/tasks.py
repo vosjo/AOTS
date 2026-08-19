@@ -3,8 +3,11 @@ import time
 
 from celery import shared_task
 
+from observations.services.tess_import import (
+    accumulate_tess_bulk_summary,
+    import_tess_lightcurves_for_star,
+)
 from stars.services.gaia_import import import_gaia_dr3_for_star
-from observations.services.tess_import import import_tess_lightcurves_for_star, accumulate_tess_bulk_summary
 
 logger = logging.getLogger('AOTS.tasks')
 

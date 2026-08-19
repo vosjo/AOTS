@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+import numpy as np
 from django.test import TestCase
 
 from analysis.auxil.fileio import read2dict
@@ -10,7 +11,6 @@ from analysis.auxil.rv_hdf5 import (
     list_rv_fits,
     write_rv_curve_v2,
 )
-import numpy as np
 
 
 class RvHdf5Tests(TestCase):

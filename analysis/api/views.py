@@ -8,17 +8,21 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from AOTS.api_mixins import ProjectFilteredQuerysetMixin
-from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
 from analysis.categories import choices_for_api
 from analysis.forms import UploadAnalysisFileForm
 from analysis.models import Analysis, Parameter
 from analysis.models.analysis_redirect import AnalysisRedirect
 from analysis.services import parameter_io
 from analysis.services.analysis_upload import upload_analysis_files
-from analysis.services.parameter_derivation import analysis_supports_derived_parameters, sync_derived_for_analysis
+from analysis.services.parameter_derivation import (
+    analysis_supports_derived_parameters,
+    sync_derived_for_analysis,
+)
+from AOTS.api_mixins import ProjectFilteredQuerysetMixin
+from AOTS.permissions_helpers import check_project_access, get_object_if_allowed
 from stars.models import Project
 from users.api_auth import APIKeyAuthentication
+
 from .filter import AnalysisFilter, ParameterFilter
 from .serializers import (
     AnalysisDetailSerializer,
@@ -116,8 +120,9 @@ def upload_analyses_api(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    from AOTS.file_validation import validate_science_upload
     from django.core.exceptions import ValidationError as DjangoValidationError
+
+    from AOTS.file_validation import validate_science_upload
 
     for uploaded in files:
         try:

@@ -3,21 +3,21 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from AOTS.bokeh_embed import bokeh_embed_response
-from AOTS.page_urls import analysis_detail_url
-from AOTS.permissions_helpers import get_object_if_allowed
 from analysis.categories import category_label
+from analysis.models.default_values import split_parameter_name
 from analysis.parameter_labels import (
     effective_parameter_unit,
     parameter_display_name,
     unit_display_name,
 )
-from analysis.models.default_values import split_parameter_name
 from analysis.services.analysis_display import get_component_parameters, get_system_parameters
 from analysis.services.analysis_plotting import plot_analysis_figure
+from AOTS.bokeh_embed import bokeh_embed_response
+from AOTS.page_urls import analysis_detail_url
+from AOTS.permissions_helpers import get_object_if_allowed
+from observations.plotting import plot_sed
 from stars.api.star_detail import _param_display
 from stars.models import Star
-from observations.plotting import plot_sed
 
 
 def _parameter_row_label(name: str) -> str:

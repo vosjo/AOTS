@@ -5,7 +5,6 @@ from django_filters import rest_framework as filters
 from AOTS.filter_scoping import project_id_from_mapping, project_pk_filter
 from stars.models import Identifier, Star, Tag
 
-
 # ===============================================================
 # STARS
 # ===============================================================
@@ -186,7 +185,7 @@ class StarFilter(filters.FilterSet):
                 ra_min = Angle(ra_min, unit='hour').degree
             else:
                 ra_min = Angle(ra_min, unit='degree').degree
-        except:
+        except Exception:
             ra_min = Angle(0., unit='degree').degree
 
         try:
@@ -194,7 +193,7 @@ class StarFilter(filters.FilterSet):
                 ra_max = Angle(ra_max, unit='hour').degree
             else:
                 ra_max = Angle(ra_max, unit='degree').degree
-        except:
+        except Exception:
             ra_max = Angle(360., unit='degree').degree
 
         return queryset.filter(ra__range=[ra_min, ra_max])
@@ -204,12 +203,12 @@ class StarFilter(filters.FilterSet):
 
         try:
             dec_min = float(dec_min)
-        except:
+        except Exception:
             dec_min = -90.
 
         try:
             dec_max = float(dec_max)
-        except:
+        except Exception:
             dec_max = 90.
 
         dec_min = Angle(dec_min, unit='degree').degree

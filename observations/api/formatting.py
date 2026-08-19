@@ -15,7 +15,7 @@ def dgr2hms(value):
 def dgr2dms(value):
     try:
         a = Angle(float(value), unit='degree').dms
-        return '{:+03.0f}:{:02.0f}:{:05.2f}'.format(a[0], abs(a[1]), abs(a[2]))
+        return f'{a[0]:+03.0f}:{abs(a[1]):02.0f}:{abs(a[2]):05.2f}'
     except (TypeError, ValueError):
         return str(value)
 

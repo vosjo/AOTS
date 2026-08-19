@@ -16,8 +16,6 @@ from analysis.auxil.multi_fit_hdf5 import (
     LEGACY_FIT_ID,
     MULTI_FIT_FORMAT_VERSION,
     append_fit,
-    get_best_fit_id as _get_best_fit_id,
-    get_fit_parameters_dict as _get_fit_parameters_dict,
     has_fits,
     is_multi_fit_v2,
     list_fits,
@@ -25,6 +23,12 @@ from analysis.auxil.multi_fit_hdf5 import (
     set_best_fit,
     update_fit_metadata,
     write_multi_fit_v2,
+)
+from analysis.auxil.multi_fit_hdf5 import (
+    get_best_fit_id as _get_best_fit_id,
+)
+from analysis.auxil.multi_fit_hdf5 import (
+    get_fit_parameters_dict as _get_fit_parameters_dict,
 )
 
 RV_CURVE_FORMAT_VERSION = MULTI_FIT_FORMAT_VERSION
@@ -171,7 +175,7 @@ def _write_model_group(parent: h5py.Group, model: dict[str, np.ndarray], *, xlab
     grp.attrs['ylabel'] = ylabel
     for name, (x, y, err) in model.items():
         dtype = np.dtype([(xlabel, 'f8'), (ylabel, 'f8'), (f'{ylabel}_err', 'f8')])
-        arr = np.array(list(zip(x, y, err)), dtype=dtype)
+        arr = np.array(list(zip(x, y, err, strict=False)), dtype=dtype)
         ds = grp.create_dataset(name, data=arr)
         ds.attrs['datatype'] = 'continuous'
         ds.attrs['xpar'] = xlabel
@@ -199,7 +203,7 @@ def write_rv_curve_v2(
             names.append(col_name)
             cols.append(np.asarray(values, dtype='f8'))
         dtype = np.dtype([(n, 'f8') for n in names])
-        arr = np.array([tuple(row) for row in zip(*cols)], dtype=dtype)
+        arr = np.array([tuple(row) for row in zip(*cols, strict=False)], dtype=dtype)
         measurements_data = {
             'measurements': {
                 'data': arr,

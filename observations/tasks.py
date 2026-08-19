@@ -43,9 +43,9 @@ def build_bulk_download_zip_task(self, project_pk, requested_ids, user_pk, kind=
 
     from observations.services.bulk_download import (
         BULK_DOWNLOAD_KINDS,
+        build_zip_archive,
         bulk_download_artifact_path,
         bulk_download_filename,
-        build_zip_archive,
         collect_download_entries,
     )
     from stars.models import Project
@@ -82,7 +82,6 @@ def build_bulk_download_zip_task(self, project_pk, requested_ids, user_pk, kind=
 
 @shared_task(bind=True)
 def process_bulk_upload_task(self, project_pk, specfile_pks, user_pk):
-    from django.contrib.auth import get_user_model
 
     logger.info(
         'Bulk upload processing project=%s specfiles=%s task_id=%s',

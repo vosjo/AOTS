@@ -15,8 +15,8 @@ User = get_user_model()
 def _minimal_tess_lc_bytes():
     import io
 
-    from astropy.io import fits
     import numpy as np
+    from astropy.io import fits
 
     buf = io.BytesIO()
     cols = fits.ColDefs([

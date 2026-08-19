@@ -5,14 +5,14 @@ from __future__ import annotations
 import os
 import tempfile
 
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
-from rest_framework.authentication import SessionAuthentication
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from AOTS.permissions_helpers import check_project_access
 from analysis.models import Analysis
 from analysis.services.fit_contribution import (
     FitContributionError,
@@ -28,6 +28,7 @@ from analysis.services.fit_permissions import (
     user_can_edit_fit,
 )
 from analysis.services.fit_sync import sync_fits_from_hdf5
+from AOTS.permissions_helpers import check_project_access
 from users.api_auth import APIKeyAuthentication
 
 UPLOAD_AUTH = [SessionAuthentication, APIKeyAuthentication]

@@ -2,6 +2,8 @@
 collection of all necessary bokeh plotting functions for analysis methods
 """
 
+import traceback
+
 import h5py
 import numpy as np
 from bokeh import models as mpl
@@ -33,9 +35,9 @@ def plot_errorbars(fig, x, y, e, **kwargs):
     Plot errorbars on a bokeh plot
     """
     err_xs, err_ys = [], []
-    for x, y, yerr in zip(x, y, e):
-        err_xs.append((x, x))
-        err_ys.append((y - yerr, y + yerr))
+    for xi, yi, yerr in zip(x, y, e, strict=False):
+        err_xs.append((xi, xi))
+        err_ys.append((yi - yerr, yi + yerr))
     fig.multi_line(err_xs, err_ys, **kwargs)
 
 
@@ -47,7 +49,7 @@ def get_attr(dataset, attr, default=None):
         return default
 
     attr = dataset.attrs.get(attr)
-    if type(attr) == bytes:
+    if isinstance(attr, bytes):
         return attr.decode("ascii")
     else:
         return attr
@@ -410,19 +412,19 @@ def plot_generic_hist(datafile, *, theme=None):
 
     figures = {}
 
-    if not "PARAMETERS" in hdf:
+    if "PARAMETERS" not in hdf:
         hdf.close()
         return figures
 
     data = hdf["PARAMETERS"]
-    for i, (name, dataset) in enumerate(data.items()):
+    for _i, (name, dataset) in enumerate(data.items()):
         if "DISTRIBUTION" in dataset:
             err = dataset.attrs.get("err", 0.0)
             emin = dataset.attrs.get("emin", err)
             emax = dataset.attrs.get("emax", err)
             value = dataset.attrs.get("value", 0.0)
 
-            title = "{} = {:.2f} + {:.2f} - {:.2f}".format(name, value, emax, emin)
+            title = f"{name} = {value:.2f} + {emax:.2f} - {emin:.2f}"
 
             fig = bpl.figure(
                 width=280, height=280, sizing_mode='scale_width', tools=[], title=title,
@@ -479,19 +481,19 @@ def plot_generic_ci(datafile, *, theme=None):
 
     figures = {}
 
-    if not "PARAMETERS" in hdf:
+    if "PARAMETERS" not in hdf:
         hdf.close()
         return figures
 
     data = hdf["PARAMETERS"]
-    for i, (name, dataset) in enumerate(data.items()):
+    for _i, (name, dataset) in enumerate(data.items()):
         if "Chi2Val" in dataset:
             err = dataset.attrs.get("err", 0.0)
             emin = dataset.attrs.get("emin", err)
             emax = dataset.attrs.get("emax", err)
             value = dataset.attrs.get("value", 0.0)
 
-            title = "{} = {:.2f} + {:.2f} - {:.2f}".format(name, value, emax, emin)
+            title = f"{name} = {value:.2f} + {emax:.2f} - {emin:.2f}"
 
             fig = bpl.figure(
                 width=280, height=280, sizing_mode='scale_width', tools=[], title=title,
@@ -578,7 +580,12 @@ def plot_error_large(*, theme=None):
 def plot_rv_curve(datafile, *, theme=None, fit_id=None, large=False, category=None):
     """Plot RV measurements and optional model curve from v2 or legacy layout."""
     from analysis.auxil.fileio import read2dict
-    from analysis.auxil.rv_hdf5 import get_best_fit_id, get_measurements_table, is_rv_curve_v2, list_rv_fits
+    from analysis.auxil.rv_hdf5 import (
+        get_best_fit_id,
+        get_measurements_table,
+        is_rv_curve_v2,
+        list_rv_fits,
+    )
 
     data = read2dict(datafile)
     fit_id = fit_id or get_best_fit_id(data)
@@ -630,9 +637,6 @@ def plot_rv_curve(datafile, *, theme=None, fit_id=None, large=False, category=No
     fig.xaxis.axis_label = 'Time'
     fig.yaxis.axis_label = 'RV (km/s)'
     return _finish_figure(fig, theme)
-
-
-import traceback
 
 
 def plot_analysis(datafile, category=None, *, theme=None, fit_id=None):

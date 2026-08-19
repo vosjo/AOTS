@@ -1,7 +1,7 @@
 import numpy as np
 from astropy import units as u
-from astropy.modeling import models, fitting
-from astropy.stats import sigma_clip, mad_std
+from astropy.modeling import fitting, models
+from astropy.stats import mad_std, sigma_clip
 from scipy import interpolate, optimize
 from specutils import Spectrum
 from specutils.fitting import fit_generic_continuum
@@ -102,7 +102,7 @@ def rebin_spectrum(wave, flux, binsize=2, mean=False):
     """
 
     #   Sanitize binsize I
-    if binsize == 0 or binsize == None:
+    if binsize == 0 or binsize is None:
         binsize = 1
 
     #   Identify echelle spectra (np.ndarray of np.ndarrays)

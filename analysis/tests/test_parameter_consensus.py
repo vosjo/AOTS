@@ -1,6 +1,5 @@
-from django.test import TestCase
-
 import numpy as np
+from django.test import TestCase
 
 from analysis.models import Parameter, ParameterConsensusPolicy, ParameterSource
 from analysis.models.consensus_policy import ConsensusRuleKind

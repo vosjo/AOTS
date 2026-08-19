@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-from astropy.io import fits, ascii
+from astropy.io import ascii, fits
 
 
 def istext(filename):
@@ -43,7 +43,7 @@ def istext(filename):
         if float(len(t)) / float(len(s)) > 0.30:
             return False
         return True
-    except UnicodeDecodeError as e:
+    except UnicodeDecodeError:
         print('         UnicodeDecodeError:')
         print('            -> File is probably a binary (FITS) file')
         print()
@@ -192,7 +192,7 @@ def read_iraf_multispec(filename):
     for content in split_content:
         if content != ' ':
             inner_content = content.split('=')[1].split(' ')
-            len_inner_content = len(inner_content)
+            len(inner_content)
             wave_start = float(inner_content[4])
             wave_incre = float(inner_content[5])
             wave_points = int(inner_content[6])
@@ -243,7 +243,7 @@ def read_spectrum(filename, return_header=False):
     if nHDUs > 10:
         #   Check if primary HDU contains data
         #    => ignore if primary HDU is empty
-        if hduLIST[0].data == None:
+        if hduLIST[0].data is None:
             hdu = 1
         else:
             hdu = 0
@@ -257,17 +257,16 @@ def read_spectrum(filename, return_header=False):
     else:
         hdu = 0
         try:
-            telescope = fits.getval(filename, 'TELESCOP')
+            fits.getval(filename, 'TELESCOP')
         except:
             try:
-                telescope = fits.getval(filename, 'TELESCOP', ext=1)
+                fits.getval(filename, 'TELESCOP', ext=1)
                 hdu = 1
             except Exception as e:
                 print('Exception occurred in read_spectrum().')
                 print('Context: Reading telescope info from Header.')
                 print('Problem: ', e)
 
-                telescope = 'UK'
 
         #    Read Header
         header = fits.getheader(filename, hdu)
@@ -287,7 +286,7 @@ def read_spectrum(filename, return_header=False):
             '''
             wave, flux = read_iraf_multispec(filename)
 
-        elif instrument in ['FEROS', 'UVES'] and not "CRVAL1" in header:
+        elif instrument in ['FEROS', 'UVES'] and "CRVAL1" not in header:
             """
             FEROS or UVES (phase 3 data product)
             """
@@ -372,7 +371,7 @@ def read_spectrum(filename, return_header=False):
                 flux.append(__fl)
                 wave.append(__wa)
 
-        elif not "CRVAL1" in header:
+        elif "CRVAL1" not in header:
             """
             Spectrum likely included as table data
             """

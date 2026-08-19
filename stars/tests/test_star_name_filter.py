@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from stars.models import Identifier, Project, Star
+from stars.models import Identifier, Project
 from stars.services import star_io
 
 

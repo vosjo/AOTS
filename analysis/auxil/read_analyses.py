@@ -2,7 +2,6 @@ from astropy import units as u
 from astropy.coordinates.angles import Angle
 
 from analysis.categories import uses_sed_hdf5_reader
-from analysis.auxil.rv_hdf5 import get_fit_parameters_dict
 from analysis.models.default_values import DEFAULT_PARAMETERS, UNIT_ALIASES
 from analysis.services.metallicity import metallicity_to_feh_dex
 from analysis.services.parameter_names import (
@@ -41,9 +40,9 @@ def basic_info_generic(data):
 
     ra = data.get('ra', 0.0)
     dec = data.get('dec', 0.0)
-    if type(ra) == str:
+    if isinstance(ra, str):
         ra = Angle(ra, unit='hour').degree
-    if type(dec) == str:
+    if isinstance(dec, str):
         dec = Angle(dec, unit='degree').degree
 
     atype = data.get('type', '??')
@@ -81,7 +80,7 @@ def basic_info_special_sedfit(data):
         method += ['iminimize']
     method = ', '.join(method)
 
-    name = 'SED fit of {} using {}'.format(systemname, method)
+    name = f'SED fit of {systemname} using {method}'
 
     return systemname, ra, dec, name, '', '', 'sedfit'
 
@@ -238,7 +237,7 @@ def get_parameters_special_sedfit(data):
     { parname: [value, error_l, error_u, unit],}
     """
 
-    if not 'iminimize' in data['results'] and not 'igrid_search' in data['results']:
+    if 'iminimize' not in data['results'] and 'igrid_search' not in data['results']:
         return {}
 
     ci = data['results']['iminimize']['CI'] if 'iminimize' in data['results'] else data['results']['igrid_search']['CI']
@@ -259,12 +258,12 @@ def get_parameters_special_sedfit(data):
             results[base + '2'] = t2
 
     results = {}
-    for p, u in [('ebv', 'mag')]:
-        t = _ci_tuple(p, u)
+    for p, unit in [('ebv', 'mag')]:
+        t = _ci_tuple(p, unit)
         if t is not None:
             results[p] = t
 
-    for p, u in [
+    for p, unit in [
         ('teff', 'K'),
         ('logg', 'dex'),
         ('z', 'dex'),
@@ -272,7 +271,7 @@ def get_parameters_special_sedfit(data):
         ('vrot', 'km/s'),
         ('dilution', ''),
     ]:
-        _add_component_pair(p, u)
+        _add_component_pair(p, unit)
 
     return parameter_homogenisation(results)
 
@@ -291,7 +290,7 @@ def get_parameters_generic(data):
         pars = get_fit_parameters_dict(data)
         return parameter_homogenisation(_table_params_to_dict(pars))
 
-    if not 'PARAMETERS' in data:
+    if 'PARAMETERS' not in data:
         return {}
 
     pars = data['PARAMETERS']

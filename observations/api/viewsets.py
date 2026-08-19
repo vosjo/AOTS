@@ -4,32 +4,33 @@ from rest_framework.filters import OrderingFilter
 
 from AOTS.api_mixins import ProjectFilteredQuerysetMixin
 from observations.models import (
-    Spectrum,
-    UserInfo,
-    SpecFile,
-    RawSpecFile,
     LightCurve,
     Observatory,
+    RawSpecFile,
+    SpecFile,
+    Spectrum,
+    UserInfo,
 )
+
 from .filter import (
-    SpectrumFilter,
-    UserInfoFilter,
-    SpecFileFilter,
-    RawSpecFileFilter,
     LightCurveFilter,
     ObservatoryFilter,
+    RawSpecFileFilter,
+    SpecFileFilter,
+    SpectrumFilter,
+    UserInfoFilter,
 )
 from .serializers import (
-    SpectrumSerializer,
+    LightCurveDetailSerializer,
+    LightCurveSerializer,
+    ObservatorySerializer,
+    RawSpecFileSerializer,
+    SpecFileListSerializer,
+    SpecFileSerializer,
     SpectrumDetailSerializer,
     SpectrumListSerializer,
+    SpectrumSerializer,
     UserInfoSerializer,
-    RawSpecFileSerializer,
-    SpecFileSerializer,
-    SpecFileListSerializer,
-    LightCurveSerializer,
-    LightCurveDetailSerializer,
-    ObservatorySerializer,
 )
 
 

@@ -22,7 +22,11 @@ from analysis.auxil.multi_fit_hdf5 import (
 from analysis.categories import AnalysisCategory, uses_sed_hdf5_reader
 from analysis.models import Analysis
 from analysis.models.analysis_redirect import AnalysisRedirect
-from analysis.services.fit_contribution import _fit_dict_from_legacy, _history_user, reingest_best_fit_parameters
+from analysis.services.fit_contribution import (
+    _fit_dict_from_legacy,
+    _history_user,
+    reingest_best_fit_parameters,
+)
 from analysis.services.fit_sync import sync_fits_from_hdf5
 
 

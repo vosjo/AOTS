@@ -2,14 +2,13 @@ from django_filters import rest_framework as filters
 
 from AOTS.filter_scoping import project_pk_filter
 from observations.models import (
-    Spectrum,
-    UserInfo,
-    SpecFile,
-    RawSpecFile,
     LightCurve,
     Observatory,
+    RawSpecFile,
+    SpecFile,
+    Spectrum,
+    UserInfo,
 )
-
 
 # ===============================================================
 #   Spectrum

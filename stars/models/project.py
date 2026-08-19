@@ -77,7 +77,7 @@ def set_project_slug(sender, **kwargs):
 
     extension = 1
     while Project._default_manager.filter(slug=unique_slug).exists() and extension <= 99:
-        unique_slug = '{}-{}'.format(slug, extension)
+        unique_slug = f'{slug}-{extension}'
         extension += 1
     if extension > 99:
         unique_slug = ''.join(

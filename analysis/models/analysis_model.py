@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -7,7 +6,7 @@ from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 
 from analysis.categories import AnalysisCategory, CategorySource, category_label
-from stars.models import Star, Project
+from stars.models import Project, Star
 
 
 def _analysis_upload_to(instance, filename):
@@ -96,7 +95,7 @@ class Analysis(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return "{} {}".format(self.name, '({})'.format(self.reference) if self.reference else '')
+        return "{} {}".format(self.name, f'({self.reference})' if self.reference else '')
 
     def get_data(self):
         from analysis.services.analysis_io import read_analysis_data

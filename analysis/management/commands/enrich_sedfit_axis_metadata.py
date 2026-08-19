@@ -35,8 +35,9 @@ class Command(BaseCommand):
                 skipped += 1
                 continue
             if options['dry_run']:
-                from analysis.auxil.sed_hdf5 import is_sed_fit_file
                 import h5py
+
+                from analysis.auxil.sed_hdf5 import is_sed_fit_file
 
                 try:
                     with h5py.File(path, 'r') as hdf:

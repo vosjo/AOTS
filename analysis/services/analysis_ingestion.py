@@ -1,12 +1,18 @@
 from dataclasses import dataclass
 
 from django.contrib.auth import get_user_model
-from django.db.models import F, ExpressionWrapper, FloatField
+from django.db.models import ExpressionWrapper, F, FloatField
 
-from analysis.auxil.sed_hdf5 import ensure_sedfit_axis_metadata
-from analysis.auxil.multi_fit_hdf5 import has_fits
 from analysis.auxil import process_analyses, read_analyses
-from analysis.categories import AnalysisCategory, CategorySource, category_derived_parameters, resolve_category, valid_category_codes
+from analysis.auxil.multi_fit_hdf5 import has_fits
+from analysis.auxil.sed_hdf5 import ensure_sedfit_axis_metadata
+from analysis.categories import (
+    AnalysisCategory,
+    CategorySource,
+    category_derived_parameters,
+    resolve_category,
+    valid_category_codes,
+)
 from analysis.models import Analysis
 from stars.models import Star
 from stars.services import star_io

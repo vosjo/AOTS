@@ -22,7 +22,7 @@ You need the python-dev package. Moreover you should update pip:
 
 ```
 sudo apt install python-dev-is-python3
-pip install -U pip
+pip install -U 'pip>=26.2'
 ```
 
 For the Vue frontend (local dev and production builds), install **Node.js 22** (or current LTS) and npm. On Debian/Ubuntu you can use [NodeSource](https://github.com/nodesource/distributions) or install Node in CI the same way as [.github/workflows/ci.yml](.github/workflows/ci.yml).

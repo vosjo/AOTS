@@ -20,7 +20,7 @@ jobs:
       # Django 6.x in requirements.txt requires Python >=3.12
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade 'pip>=26.2'
           pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Django check

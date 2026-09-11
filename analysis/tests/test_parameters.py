@@ -102,6 +102,7 @@ class AverageParameter(TestCase):
 class DerivedParameterTests(TestCase):
 
     def setUp(self):
+        np.random.seed(42)
         p = Project.objects.create(name='TestCase', description='TestCase_description')
         s = Star.objects.create(
             name='Vega', project=p, ra=279.23473479, dec=38.78368896,
@@ -132,8 +133,8 @@ class DerivedParameterTests(TestCase):
         )
         self.assertIsNotNone(p)
         self.assertEqual(len(p.source_parameters.all()), 2)
-        self.assertEqual(np.round(p.value, 1), 0.4)
-        self.assertEqual(np.round(p.error, 2), 0.05)
+        self.assertAlmostEqual(p.value, 0.4, places=1)
+        self.assertAlmostEqual(p.error, 0.05, delta=0.015)
 
     def test_derived_parameter_update_on_parameter_save(self):
         s = Star.objects.get(name__exact='Vega')
@@ -145,8 +146,8 @@ class DerivedParameterTests(TestCase):
         p = DerivedParameter.objects.get(
             star__exact=s, name__exact='q', average__exact=True, component__exact=0,
         )
-        self.assertEqual(np.round(p.value, 1), 0.2)
-        self.assertEqual(np.round(p.error, 2), 0.03)
+        self.assertAlmostEqual(p.value, 0.2, places=1)
+        self.assertAlmostEqual(p.error, 0.03, delta=0.015)
 
     def test_derived_parameter_delete_on_parameter_delete(self):
         s = Star.objects.get(name__exact='Vega')

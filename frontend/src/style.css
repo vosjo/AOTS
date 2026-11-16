@@ -695,7 +695,10 @@
   .aots-topbar-nav-link--active {
     background-color: var(--aots-nav-active-bg);
     color: var(--aots-text-strong);
-    box-shadow: 0 0 0 1px var(--aots-nav-active-ring);
+  }
+
+  .aots-topbar-nav-link--active svg {
+    color: var(--aots-accent);
   }
 
   .aots-alert {

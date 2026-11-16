@@ -3,7 +3,6 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useThemeStore } from '@/stores/theme'
-import type { ThemeMode } from '@/theme'
 
 export interface ObservatoryMapPoint {
   pk: number
@@ -20,15 +19,11 @@ const themeStore = useThemeStore()
 const mapEl = ref<HTMLElement | null>(null)
 let map: L.Map | null = null
 let markerLayer: L.LayerGroup | null = null
-let tileLayer: L.TileLayer | null = null
 
+// OSM has no dark style; dark mode inverts these tiles via CSS instead.
+const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 const TILE_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-
-function basemapUrl(mode: ThemeMode) {
-  const variant = mode === 'light' ? 'light_all' : 'dark_all'
-  return `https://{s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}{r}.png`
-}
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
 function markerColors() {
   const style = getComputedStyle(document.documentElement)
@@ -77,21 +72,6 @@ function rebuildMarkers() {
   }
 }
 
-function applyBasemap(mode: ThemeMode) {
-  if (!map) return
-
-  if (tileLayer) {
-    map.removeLayer(tileLayer)
-  }
-
-  tileLayer = L.tileLayer(basemapUrl(mode), {
-    attribution: TILE_ATTRIBUTION,
-    subdomains: 'abcd',
-    maxZoom: 20,
-  }).addTo(map)
-  tileLayer.bringToBack()
-}
-
 onMounted(() => {
   if (!mapEl.value) return
 
@@ -104,7 +84,13 @@ onMounted(() => {
     scrollWheelZoom: true,
   })
 
-  applyBasemap(themeStore.mode)
+  L.tileLayer(TILE_URL, {
+    attribution: TILE_ATTRIBUTION,
+    maxZoom: 19,
+    // OSM rejects tile requests without a Referer, which Django's default
+    // Referrer-Policy (same-origin) would strip for cross-origin images.
+    referrerPolicy: 'strict-origin-when-cross-origin',
+  }).addTo(map)
   markerLayer = L.layerGroup().addTo(map)
   rebuildMarkers()
   showWorldView()
@@ -117,24 +103,21 @@ onMounted(() => {
 
 watch(() => props.observatories, rebuildMarkers, { deep: true })
 
-watch(
-  () => themeStore.mode,
-  (mode) => {
-    applyBasemap(mode)
-    rebuildMarkers()
-  },
-)
+watch(() => themeStore.mode, rebuildMarkers)
 
 onUnmounted(() => {
   map?.remove()
   map = null
   markerLayer = null
-  tileLayer = null
 })
 </script>
 
 <template>
-  <div class="observatory-world-map w-full">
+  <!-- Theme class sits on the wrapper: Vue's class binding would overwrite Leaflet's classes on mapEl. -->
+  <div
+    class="observatory-world-map w-full"
+    :class="{ 'observatory-world-map--dark': themeStore.mode === 'dark' }"
+  >
     <div ref="mapEl" class="observatory-world-map__viewport" />
     <p v-if="observatories.length === 0" class="mt-2 text-sm text-aots-muted">
       No ground-based observatories to show.
@@ -155,6 +138,10 @@ onUnmounted(() => {
 .observatory-world-map :deep(.leaflet-container) {
   background: var(--aots-surface-muted);
   font-family: inherit;
+}
+
+.observatory-world-map--dark :deep(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
 }
 
 .observatory-world-map :deep(.leaflet-control-attribution) {

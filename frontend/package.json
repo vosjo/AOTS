@@ -40,15 +40,14 @@
     "vite": "^6.4.5",
     "vitest": "^4.1.12",
     "vue-eslint-parser": "^10.4.1",
-    "vue-tsc": "^2.2.0"
+    "vue-tsc": "^3.3.14"
   },
   "overrides": {
     "brace-expansion@1": "1.1.21",
     "brace-expansion@2": "2.1.7",
     "brace-expansion@5": "5.0.12",
     "minimatch@3": "3.1.5",
-    "minimatch@9": "9.0.9",
-    "minimatch@10": "10.2.5",
+    "minimatch@10": "11.0.8",
     "picomatch@2": "2.3.2",
     "picomatch@3": "3.0.2",
     "picomatch@4": "4.0.4",
